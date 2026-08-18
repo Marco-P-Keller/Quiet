@@ -1,0 +1,108 @@
+import XCTest
+@testable import Quiet
+
+final class ContentRulesTests: XCTestCase {
+    private func routing(_ address: String) -> Routing {
+        ContentRules.routing(for: URL(string: address)!)
+    }
+
+    func testTheFeedAndTheThingsYouWentLookingForAreAllowed() {
+        for address in [
+            "https://www.instagram.com/",
+            "https://www.instagram.com/direct/inbox/",
+            "https://www.instagram.com/p/CxYz123/",
+            "https://www.instagram.com/stories/someone/123/",
+            "https://www.instagram.com/someone/",
+            "https://www.instagram.com/someone/tagged/",
+            "https://www.instagram.com/accounts/login/",
+            "https://www.instagram.com/accounts/edit/",
+            "https://i.instagram.com/api/v1/whatever",
+        ] {
+            XCTAssertEqual(routing(address), .allow, address)
+        }
+    }
+
+    func testReelsAreRefusedWhereverTheyAppear() {
+        for address in [
+            "https://www.instagram.com/reels/",
+            "https://www.instagram.com/reels/audio/123/",
+            "https://www.instagram.com/reel/CxYz123/",
+            "https://www.instagram.com/someone/reels/",
+        ] {
+            XCTAssertEqual(routing(address), .refuse(.reels), address)
+        }
+    }
+
+    func testExploreAndTheDirectoriesBehindItAreRefused() {
+        for address in [
+            "https://www.instagram.com/explore/",
+            "https://www.instagram.com/explore/tags/sunset/",
+            "https://www.instagram.com/explore/search/keyword/?q=x",
+            "https://www.instagram.com/directory/profiles/",
+            "https://www.instagram.com/accounts/suggested/",
+        ] {
+            XCTAssertEqual(routing(address), .refuse(.explore), address)
+        }
+    }
+
+    /// The bug this guards against: a prefix match on "/reels" would also swallow
+    /// every profile whose name starts with those letters.
+    func testProfilesThatMerelyLookLikeBlockedPathsAreFine() {
+        for address in [
+            "https://www.instagram.com/reelstuff/",
+            "https://www.instagram.com/explorers/",
+            "https://www.instagram.com/reeling/",
+            "https://www.instagram.com/directorycorp/",
+        ] {
+            XCTAssertEqual(routing(address), .allow, address)
+        }
+    }
+
+    func testCaseAndTrailingSlashesDoNotMatter() {
+        XCTAssertEqual(routing("https://WWW.INSTAGRAM.COM/Reels"), .refuse(.reels))
+        XCTAssertEqual(routing("https://www.instagram.com/REEL/abc"), .refuse(.reels))
+    }
+
+    func testTheRestOfTheWebIsHandedToTheSystem() {
+        for address in [
+            "https://example.com/",
+            "https://threads.net/@someone",
+            "mailto:hello@example.com",
+            "tel:+41000000000",
+            "itms-apps://apps.apple.com/app/id1",
+        ] {
+            XCTAssertEqual(routing(address), .openOutside, address)
+        }
+    }
+
+    /// Signing in to Instagram legitimately passes through Meta's own domains.
+    /// Bouncing those to Safari would break logging in.
+    func testMetaLoginDomainsStayInside() {
+        XCTAssertEqual(routing("https://www.facebook.com/dialog/oauth?x=1"), .allow)
+        XCTAssertEqual(routing("https://accountscenter.instagram.com/"), .allow)
+    }
+
+    func testWebKitInternalsAreLeftAlone() {
+        XCTAssertEqual(routing("about:blank"), .allow)
+    }
+
+    func testFindSomeoneAcceptsWhatPeopleActuallyType() {
+        let expected = URL(string: "https://www.instagram.com/someone.here_1/")
+        for typed in [
+            "someone.here_1",
+            "  someone.here_1 ",
+            "@someone.here_1",
+            "SomeOne.Here_1",
+            "https://www.instagram.com/someone.here_1/",
+            "instagram.com/someone.here_1",
+        ] {
+            XCTAssertEqual(ContentRules.profile(forHandle: typed), expected, typed)
+        }
+    }
+
+    func testFindSomeoneRefusesThingsThatAreNotUsernames() {
+        for typed in ["", "   ", "@", "two words", "someone/../else", String(repeating: "a", count: 31)] {
+            XCTAssertNil(ContentRules.profile(forHandle: typed), typed)
+        }
+    }
+}

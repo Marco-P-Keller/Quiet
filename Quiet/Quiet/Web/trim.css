@@ -1,0 +1,57 @@
+/*
+ * What Quiet takes out of the page.
+ *
+ * This file is cosmetic. The rule that actually holds is in ContentRules.swift,
+ * which refuses to open these addresses at all; this only stops the entrances
+ * from being drawn in the first place, so nothing invites a tap that would then
+ * be refused.
+ *
+ * Every selector below matches on an address or an ARIA role — never on a class
+ * name. Instagram's class names are generated and change without notice; hrefs
+ * are part of how the site works and change rarely.
+ */
+
+/* ── Reels ──────────────────────────────────────────────────────────────── */
+
+a[href^="/reels"],
+a[href^="/reel/"],
+a[href$="/reels/"],
+a[href*="instagram.com/reels"],
+a[href*="instagram.com/reel/"] {
+  display: none !important;
+}
+
+/* ── Explore, and the account directory behind it ───────────────────────── */
+/*
+ * Hashtag links are deliberately left alone. They live inside captions, and
+ * deleting them would edit what a friend actually wrote. Tapping one is
+ * refused, with a word about why — that is a smaller lie than a hole in a
+ * sentence.
+ */
+
+a[href^="/explore"]:not([href^="/explore/tags/"]),
+a[href*="instagram.com/explore"]:not([href*="/explore/tags/"]),
+a[href^="/directory/"],
+a[href^="/accounts/suggested"] {
+  display: none !important;
+}
+
+/* ── The same entrances when the label lives on the icon ────────────────── */
+
+a:has(> svg[aria-label="Reels"]),
+a:has(> svg[aria-label="Explore"]),
+a:has(> svg[aria-label="Search"]),
+div[role="button"]:has(> svg[aria-label="Reels"]) {
+  display: none !important;
+}
+
+/* ── Anything the script has identified by its wording ──────────────────── */
+/*
+ * Set by trim.js on suggestion blocks, which carry no address of their own.
+ * Kept as an attribute rather than an inline style so that what Quiet has
+ * touched stays visible in the inspector.
+ */
+
+[data-quiet-hidden] {
+  display: none !important;
+}

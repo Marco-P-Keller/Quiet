@@ -1,0 +1,171 @@
+# Decisions
+
+Every one of these was a fork in the road. They are written down because in six
+months the reasons will be gone and only the code will be left.
+
+---
+
+## The day begins at 4 a.m., not at midnight
+
+A midnight reset hands out a second daily allowance at 00:00 — the exact moment
+self-control is thinnest and the exact moment a lot of scrolling happens. The
+hours after midnight belong to the evening you are still awake in.
+
+Four in the morning is late enough to be past almost everyone's evening and
+early enough that a normal day starts with a full allowance.
+
+## Asking for less is free; asking for more waits
+
+The single most important decision in the app.
+
+A symmetric limit — one you can move up or down whenever you like — is not a
+limit, it is a suggestion with extra steps. But making *reductions* hard would
+be user-hostile: the app should never stand between someone and a smaller
+number.
+
+So the rule is asymmetric:
+
+* **Down: immediately, always, free.** It does not consume the weekly change.
+* **Up: from tomorrow, once a week.**
+
+Both halves of the "up" rule are load-bearing.
+
+*Once a week* makes the decision rare enough to be deliberate. *From tomorrow*
+makes it impossible to be made in the moment it would help — with the curtain
+already down, five minutes from the end, at the point where the argument is not
+with the app but with yourself.
+
+Together they have a property worth stating plainly: **no change made anywhere
+in the app can return time to the day you are already in.** That is what makes
+it safe to put a way into settings on the curtain, which in turn is what stops
+the curtain from being a trap you cannot get out of. One rule, two problems
+solved.
+
+## A reduction does not reset the weekly clock
+
+The hole this closes: raise the limit on Monday, drop it on Tuesday, raise it
+again on Wednesday. If reductions cleared `lastIncrease`, the weekly rule would
+be one extra tap away from meaningless.
+
+`LimitPolicyTests.testLoweringDoesNotClearAnEarlierIncrease` is that hole, nailed
+shut.
+
+## A queued increase can be revised downward
+
+If you asked for 120 minutes yesterday and wake up thinking better of it, you
+can change it to 45 before it takes effect without spending another week. It is
+still asking for less. The cooldown keeps running from the original decision.
+
+## Time is counted from uptime, not from the clock
+
+Two independent time systems, on purpose:
+
+* **How much you have used** comes from `ProcessInfo.systemUptime`, which no
+  settings screen can change. Moving the date does not add minutes.
+* **Which day it is, and when the week is up** comes from the wall clock, which
+  *can* be changed — so it is wrapped in `MonotonicClock`, which never reports a
+  time earlier than one it has already seen.
+
+Turning the clock back therefore buys nothing: it freezes the calendar until the
+real time catches up. Turning it *forward* cannot be detected without a server,
+and Quiet has no server. That is a deliberate trade, written into the About
+screen rather than hidden.
+
+## The keychain, not UserDefaults
+
+Keychain items outlive the app that wrote them. Delete Quiet, install it again,
+and the limit and the cooldown are exactly where you left them.
+
+This is the whole point — a limit you can clear by holding an icon and tapping
+Delete is not a limit — and it is also the app's one genuinely surprising
+behaviour. It is stated in setup, in plain words, on the screen where the limit
+is chosen, before anything is committed. Surprising and disclosed is fine.
+Surprising and discovered later is not.
+
+## No visible countdown
+
+A timer on screen turns every minute into something to watch, and watching the
+clock is its own kind of compulsion. Quiet says two things and then stops: at
+five minutes and at one minute, once each per day. The remaining time is in the
+panel, for the moments you actually want to know.
+
+## No notifications, no permissions, no analytics
+
+The app asks for nothing. No push permission, no photo access, no location, and
+no analytics of any kind. An app about attention should not be sending push
+notifications, and an app that tells you it has no tracking should be able to
+prove it by having no networking code at all.
+
+## The panel opens with a long press on the status bar
+
+Quiet draws nothing over the page — no toolbar, no floating button, no
+address bar. That leaves the question of where settings live.
+
+The status bar is the one strip of the screen that belongs to the phone rather
+than to the page, so a transparent strip exactly that tall can take a long press
+without ever covering something tappable. A plain tap still scrolls to the top,
+as it always has.
+
+Hidden gestures are usually a mistake. This one is acceptable because it is
+taught once at the end of setup, because the panel is rarely needed, and because
+there is a second, fully visible way in on the curtain — the screen you are most
+likely to be on when you want it.
+
+## Search was replaced rather than removed
+
+On Instagram's mobile site, search and Explore are the same tab: tapping search
+shows the discovery grid. Blocking the grid means blocking the way to look
+someone up.
+
+Hiding the grid with DOM heuristics while leaving the search field working would
+be fragile in exactly the way the rest of the app avoids. So the tab is blocked
+outright and the panel has a box that goes straight to `instagram.com/<handle>/`.
+
+It only takes a username you already know, which is the honest cost. It is also
+robust: no selectors, no heuristics, nothing to break.
+
+## Hashtag links are left visible but refused
+
+`/explore/tags/…` is blocked like the rest of Explore, but the links are *not*
+hidden in captions. Deleting them would edit what a friend actually wrote.
+Tapping one says "Explore is off in Quiet."
+
+A hole in a sentence is a bigger lie than a refused tap.
+
+## Refused taps say so
+
+Silence reads as a broken app. An apology reads as an accident. Neither is true,
+so the app states what it did — one sentence, three seconds, nothing to dismiss.
+
+## Autoplay is off
+
+`mediaTypesRequiringUserActionForPlayback = .all`. Video plays when you ask it
+to. It is the smallest of the hooks and among the easiest to remove.
+
+## Links off Instagram open in Safari
+
+A bio link opens in the system browser, not in Quiet. Two reasons: the app
+should not quietly become a general-purpose browser, and leaving the app stops
+the timer — reading an article someone linked is not Instagram time.
+
+## The curtain does not force-quit the app
+
+The description of Quiet says "the app closes". It does not, technically:
+iOS gives no supported way for an app to terminate itself, `exit(0)` is grounds
+for App Review rejection, and to a person it looks exactly like a crash.
+
+What it does instead is end: a full screen with one sentence, the time it opens
+again, and nothing to press. That is closing, in every sense that matters to the
+person holding the phone.
+
+The one way to make the *icon itself* stop working is Apple's Family Controls
+and Device Activity framework, which can shield an app system-wide. It needs an
+entitlement granted by Apple on request. If Quiet is ever more than a personal
+project, that is the upgrade path — see
+[store-and-legal.md](store-and-legal.md).
+
+## Quiet's own screens look nothing like Instagram
+
+Warm paper, a serif, wide margins, one thing to read at a time. The contrast is
+the point: when the curtain comes down, it should feel like leaving a room, not
+like a modal in the same app.
