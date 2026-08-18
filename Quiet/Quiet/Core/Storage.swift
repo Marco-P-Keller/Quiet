@@ -26,7 +26,9 @@ extension StateStore {
         get {
             load(Double.self, for: .highWaterMark).map(Date.init(timeIntervalSince1970:))
         }
-        nonmutating set {
+        // No `nonmutating` here: the protocol is already class-bound, so the
+        // setter never mutates anything, and Swift rejects the keyword outright.
+        set {
             if let newValue {
                 save(newValue.timeIntervalSince1970, for: .highWaterMark)
             } else {
