@@ -8,6 +8,25 @@ import Foundation
 enum QuietDay {
     /// The hour a Quiet day begins, in local time.
     static let startHour = 4
+
+    /// Four in the morning on the calendar day that `date` falls in.
+    ///
+    /// Built by setting the hour rather than by adding four hours to midnight.
+    /// On the morning the clocks go forward, those are not the same instant:
+    /// adding four hours lands on 05:00, because an hour of the night does not
+    /// exist. Twice a year that would move the moment the day turns, and it
+    /// would move it for the boundary without moving it for the day's identity
+    /// — so the two would disagree about which day it was.
+    static func boundary(onTheDayOf date: Date, calendar: Calendar) -> Date {
+        let midnight = calendar.startOfDay(for: date)
+        return calendar.date(
+            bySettingHour: startHour,
+            minute: 0,
+            second: 0,
+            of: midnight,
+            matchingPolicy: .nextTime
+        ) ?? midnight.addingTimeInterval(Double(startHour) * 3600)
+    }
 }
 
 /// The identity of a single Quiet day.
@@ -23,19 +42,23 @@ struct DayKey: Codable, Hashable, Comparable, CustomStringConvertible, Sendable 
         self.ordinal = ordinal
     }
 
-    /// The day that `date` falls in.
+    /// The day that `date` falls in: the one whose 4 a.m. is the last to have
+    /// passed.
     init(_ date: Date, calendar: Calendar = .current) {
-        let shifted = date.addingTimeInterval(-Double(QuietDay.startHour) * 3600)
-        let start = calendar.startOfDay(for: shifted)
+        var day = calendar.startOfDay(for: date)
+        if date < QuietDay.boundary(onTheDayOf: day, calendar: calendar) {
+            // Before four in the morning, so this still belongs to yesterday.
+            day = calendar.date(byAdding: .day, value: -1, to: day) ?? day
+        }
         let reference = calendar.startOfDay(for: DayKey.referenceDate)
-        ordinal = calendar.dateComponents([.day], from: reference, to: start).day ?? 0
+        ordinal = calendar.dateComponents([.day], from: reference, to: day).day ?? 0
     }
 
     /// The instant this day begins: 4 a.m. local time.
     func start(calendar: Calendar = .current) -> Date {
         let reference = calendar.startOfDay(for: DayKey.referenceDate)
         let midnight = calendar.date(byAdding: .day, value: ordinal, to: reference) ?? reference
-        return calendar.date(byAdding: .hour, value: QuietDay.startHour, to: midnight) ?? midnight
+        return QuietDay.boundary(onTheDayOf: midnight, calendar: calendar)
     }
 
     /// The instant this day ends, which is the moment the next one begins.

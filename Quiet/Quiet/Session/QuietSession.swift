@@ -253,7 +253,12 @@ final class QuietSession {
     }
 
     private func evaluateScreen() {
-        guard screen != .setup else { return }
+        // Guarded on whether setup has happened, not on which screen is
+        // showing. Guarding on the screen looked equivalent and was not: at
+        // launch the screen still holds its initial `.setup` value, so this
+        // returned early every time and a returning user was shown the
+        // onboarding question forever.
+        guard setupDay != nil else { return }
         let target: Screen = ledger.isSpent(limitMinutes: limit.minutes) ? .spent : .browsing
         guard target != screen else { return }
         screen = target
