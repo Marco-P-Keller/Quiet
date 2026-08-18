@@ -38,6 +38,16 @@
                ReferencedContainer = "container:Quiet.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "1A000000000000000000001D"
+               BuildableName = "QuietUITests.xctest"
+               BlueprintName = "QuietUITests"
+               ReferencedContainer = "container:Quiet.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
