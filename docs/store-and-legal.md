@@ -88,6 +88,27 @@ feed with Reels removed — it can only give you no feed at all. Which of those
 two products is the right one is a real question, and worth answering before
 writing any more code.
 
+## Before the first upload
+
+Things App Store Connect checks mechanically, before any human sees the app.
+
+* **Privacy manifest.** Present, at `Quiet/Resources/PrivacyInfo.xcprivacy`. It
+  declares one required-reason API: `ProcessInfo.systemUptime`, the clock the
+  limit rests on, under `NSPrivacyAccessedAPICategorySystemBootTime` with
+  reason `35F9.1` — measuring time between events inside the app. Without it
+  the upload is rejected with ITMS-91053 and never reaches review.
+* **Bundle identifier.** Ships as `com.example.quiet` and must be changed to a
+  real one, registered in the developer portal, with an app record created in
+  App Store Connect before anything can be uploaded against it.
+* **Icon.** 1024×1024, opaque, no alpha channel — which is why
+  `Tools/make-icon.py` writes 8-bit RGB rather than RGBA. An icon with alpha
+  is rejected.
+* **Export compliance.** `ITSAppUsesNonExemptEncryption` is `false` in
+  `Info.plist`, so no question is asked on each upload.
+* **Build numbers.** `CURRENT_PROJECT_VERSION` is 1 and never moves. App Store
+  Connect refuses a second upload with a build number it has already seen, so
+  any real pipeline has to increment it.
+
 ## If it ships
 
 The store listing needs, at minimum:

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Quiet does not track anyone, anywhere, by any definition. There are no
+	     analytics, no advertising identifiers, and no network calls of Quiet's
+	     own: the only traffic the app makes is Instagram's own site, loaded in
+	     a web view under the reader's own session. -->
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<!-- ProcessInfo.systemUptime, in QuietSession. It is the clock the
+			     whole limit rests on: elapsed foreground time measured against
+			     something no settings screen can move. Apple counts it as a
+			     boot-time API, and reason 35F9.1 is exactly this use —
+			     measuring time between events inside the app. Without this
+			     declaration App Store Connect rejects the upload outright
+			     (ITMS-91053). -->
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategorySystemBootTime</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>35F9.1</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>
