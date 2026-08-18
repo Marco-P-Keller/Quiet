@@ -227,3 +227,18 @@ place of the explanation that normally sits there.
 
 The general rule this came from: an answer belongs on the surface that asked the
 question, not on the one behind it.
+
+## The tests were run, not just written
+
+The project spent a while in the state where the reasoning was sound, the code
+read well, and nothing had ever been compiled. Building it on a macOS runner
+was the difference between an argument and a fact, and it cost one afternoon.
+
+It found two defects that several careful readings had not. One of them —
+a guard on `screen != .setup` that never let the app leave onboarding — would
+have made the app unusable from its second launch. It is four words long and
+it looks correct.
+
+The lesson is not "write more tests". The suite already existed and already
+described the right behaviour. The lesson is that a test nobody has run is a
+document, and a document cannot fail.

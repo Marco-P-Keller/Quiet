@@ -52,8 +52,10 @@ brew install xcodegen && xcodegen generate
 Tests: `⌘U`, or
 
 ```sh
-xcodebuild test -scheme Quiet -destination 'platform=iOS Simulator,name=iPhone 15'
+xcodebuild test -scheme Quiet -destination 'platform=iOS Simulator,name=iPhone 16 Pro'
 ```
+
+They also run on every push — see [What is verified](#what-is-verified).
 
 The app icon is drawn by a script rather than checked in as a mystery PNG:
 
@@ -134,19 +136,42 @@ The parts that are easy to skip and obvious once missing:
   a control rather than a guess.
 * **No permission prompts at all**, and no networking of Quiet's own.
 
-## What is verified, and what is not
+## What is verified
 
-The tests in `QuietTests` cover the whole of `Core` and the session's state
-machine — 57 cases, including every branch of the limit rule, the day boundary
-across a daylight-saving change, a rewound clock, and the property that makes it
-safe to reach settings from the curtain (nothing there can give today's time
-back).
+Every push that touches this folder builds the app and runs its tests on a
+macOS runner with a real Xcode and a real simulator. The current state:
 
-**They have not been run.** This project was written in a Linux container with
-no Swift toolchain and no Xcode, so nothing here has been compiled. Treat the
-first `⌘U` as the real first test run, and expect to fix something.
+```
+** BUILD SUCCEEDED **
+Executed 57 tests, with 0 failures
+```
 
-Two things are worth checking by hand on a device, because no test can:
+No errors and no warnings in Quiet's own sources. The workflow is
+[`.github/workflows/quiet.yml`](../../.github/workflows/quiet.yml); a red run
+prints a digest naming the errors, the failed tests and the warnings, so
+nobody has to read four thousand lines of module compilation to find out what
+broke.
+
+The tests cover the whole of `Core` and the session's state machine: every
+branch of the limit rule, the day boundary across a daylight-saving change, a
+rewound clock, and the property that makes it safe to reach settings from the
+curtain — nothing there can give today's time back.
+
+That suite earned its keep on its first real run. It caught two defects that
+had survived several careful readings:
+
+* **The app was unusable from its second launch.** A guard read
+  `screen != .setup`, which looks like "setup is not finished" and is not: at
+  launch the screen still holds its initial value, so the guard fired every
+  time and nothing ever moved on to the feed. A returning user would have seen
+  the onboarding question forever.
+* **The day boundary was wrong twice a year.** It was computed by adding four
+  hours to midnight, which lands on 05:00 on the morning the clocks go
+  forward — and it moved the boundary without moving the day's identity, so
+  the two disagreed about which day it was.
+
+Two things still need a person and a device, because no test can stand in for
+them:
 
 * that Instagram serves the full mobile site to the user agent in
   `UserAgent.mobileSafari(systemVersion:)`, and
