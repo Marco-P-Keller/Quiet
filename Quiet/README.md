@@ -116,13 +116,31 @@ in red rather than quietly becoming the thing it replaces.
   stated in setup, before you choose, because nobody should find it out by
   accident.
 
+## Craft
+
+The parts that are easy to skip and obvious once missing:
+
+* **Dynamic Type everywhere.** Every size is a system text style; nothing is set
+  in fixed points. Setup and the limit screen are built around scroll views with
+  the action pinned to the bottom, so they still work at the largest settings.
+* **VoiceOver reaches the hidden gesture.** The status-bar strip is a labelled
+  element with a button's trait and responds to a double tap — otherwise the
+  panel would be unreachable while browsing.
+* **Reduce Motion is honoured** by every animation in the app.
+* **A cover, not a spinner.** Quiet's own paper sits over the web view until the
+  first page settles, then cross-fades, so a cold launch never shows a blank
+  white rectangle. It lifts on failure too.
+* **One haptic**, at the moment the long press takes, so the gesture feels like
+  a control rather than a guess.
+* **No permission prompts at all**, and no networking of Quiet's own.
+
 ## What is verified, and what is not
 
 The tests in `QuietTests` cover the whole of `Core` and the session's state
-machine — 50-odd cases, including every branch of the limit rule, the day
-boundary across a daylight-saving change, a rewound clock, and the property that
-makes it safe to reach settings from the curtain (nothing there can give today's
-time back).
+machine — 57 cases, including every branch of the limit rule, the day boundary
+across a daylight-saving change, a rewound clock, and the property that makes it
+safe to reach settings from the curtain (nothing there can give today's time
+back).
 
 **They have not been run.** This project was written in a Linux container with
 no Swift toolchain and no Xcode, so nothing here has been compiled. Treat the

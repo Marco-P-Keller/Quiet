@@ -9,6 +9,7 @@ struct RootView: View {
     @State private var surface = WebSurface()
     @State private var isHintShowing = false
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// How long the one-time hint about the top edge stays up. Long enough to
     /// read twice, short enough not to be in the way.
@@ -18,13 +19,18 @@ struct RootView: View {
         @Bindable var session = session
 
         content
-            .animation(.easeInOut(duration: 0.3), value: session.screen)
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.3), value: session.screen)
             .sheet(isPresented: $session.isPanelShowing) {
                 PanelView(session: session, surface: surface) {
                     session.isPanelShowing = false
                 }
             }
-            .task { session.start() }
+            .task {
+                session.start()
+                if session.screen == .browsing, session.isLearningTheGesture {
+                    teachTheGesture()
+                }
+            }
             .onChange(of: scenePhase, initial: true) { _, phase in
                 session.setForeground(phase == .active)
             }
@@ -58,10 +64,9 @@ struct RootView: View {
         }
     }
 
-    /// Shown once, right after setup. The app has one hidden gesture and no
-    /// tutorial; this is the whole of it. Nothing is stored, because a hint that
-    /// only ever appears in the same run of the app that created it does not
-    /// need to be remembered.
+    /// The app has one hidden gesture and no tutorial; this is the whole of it.
+    /// Shown right after setup, and again on the first launch of each of the
+    /// next two days, after which the app assumes you have it.
     private func teachTheGesture() {
         isHintShowing = true
         Task {

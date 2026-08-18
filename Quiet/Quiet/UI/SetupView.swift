@@ -10,6 +10,7 @@ struct SetupView: View {
 
     @State private var step = Step.what
     @State private var minutes = 20
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private enum Step { case what, howMuch }
 
@@ -17,24 +18,37 @@ struct SetupView: View {
     private static let choices = [5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 240]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            switch step {
-            case .what: what
-            case .howMuch: howMuch
+        // A scroll view rather than a fixed layout, so that the screen still
+        // works at the largest text sizes instead of quietly cropping the
+        // sentence that explains what the app does.
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                switch step {
+                case .what: what
+                case .howMuch: howMuch
+                }
             }
+            .padding(.horizontal, 28)
+            .padding(.top, 32)
+            .padding(.bottom, 24)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.horizontal, 28)
-        .padding(.bottom, 24)
+        .scrollBounceBehavior(.basedOnSize)
+        .safeAreaInset(edge: .bottom) {
+            QuietButton(title: actionTitle, action: advance)
+                .padding(.horizontal, 28)
+                .padding(.top, 12)
+                .padding(.bottom, 20)
+                .background(Paper.page)
+        }
         .quietPage()
-        .animation(.easeInOut(duration: 0.25), value: step)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: step)
     }
 
     private var what: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Spacer(minLength: 24)
-
             Text("Instagram,\nminus the parts\nthat keep you there.")
-                .font(.quietTitle(32))
+                .font(.quietTitle)
                 .lineSpacing(6)
                 .padding(.bottom, 28)
 
@@ -44,45 +58,56 @@ struct SetupView: View {
                 Line("You sign in on Instagram's own page. Your password never touches Quiet.")
                 Line("Quiet runs on Instagram's mobile site, so pages load a beat slower and a few things are missing.")
             }
-
-            Spacer(minLength: 24)
-
-            QuietButton(title: "Continue") { step = .howMuch }
         }
     }
 
     private var howMuch: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Spacer(minLength: 16)
+            Button {
+                step = .what
+            } label: {
+                Label("Back", systemImage: "chevron.left")
+                    .font(.quietSmall)
+                    .foregroundStyle(Paper.inkSoft)
+            }
+            .buttonStyle(.plain)
+            .padding(.bottom, 20)
 
             Text("How much Instagram\ndo you want in a day?")
-                .font(.quietTitle(28))
+                .font(.quietHeading)
                 .lineSpacing(5)
-                .padding(.bottom, 4)
 
             Picker("Minutes a day", selection: $minutes) {
                 ForEach(Self.choices, id: \.self) { value in
                     Text(Phrase.minutes(value))
-                        .font(.quietTitle(22))
+                        .font(.quietChoice)
                         .tag(value)
                 }
             }
             .pickerStyle(.wheel)
             .frame(maxWidth: .infinity)
-            .frame(height: 160)
+            .frame(height: 170)
+            .padding(.vertical, 4)
 
             VStack(alignment: .leading, spacing: 12) {
                 Line("You can ask for less whenever you like. It takes effect at once.")
                 Line("You can ask for more once a week, and it starts the next day — never in the moment you want five more minutes.")
                 Line("Your limit is kept outside the app. Deleting Quiet and installing it again does not reset it.")
             }
-            .padding(.top, 8)
+        }
+    }
 
-            Spacer(minLength: 20)
+    private var actionTitle: String {
+        switch step {
+        case .what: return "Continue"
+        case .howMuch: return "Set \(Phrase.minutes(minutes)) a day"
+        }
+    }
 
-            QuietButton(title: "Set \(Phrase.minutes(minutes)) a day") {
-                onFinish(minutes)
-            }
+    private func advance() {
+        switch step {
+        case .what: step = .howMuch
+        case .howMuch: onFinish(minutes)
         }
     }
 
@@ -94,7 +119,7 @@ struct SetupView: View {
 
         var body: some View {
             Text(text)
-                .font(.system(size: 15))
+                .font(.quietNote)
                 .foregroundStyle(Paper.inkSoft)
                 .fixedSize(horizontal: false, vertical: true)
         }

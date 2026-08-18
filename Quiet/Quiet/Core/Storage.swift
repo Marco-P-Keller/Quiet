@@ -8,8 +8,9 @@ enum StoreKey: String, CaseIterable, Sendable {
     case usage
     /// The furthest point in time the app has seen.
     case highWaterMark
-    /// Whether the first run is behind us.
-    case setupComplete
+    /// The day setup finished. Its absence is what marks a fresh install, and
+    /// its value is what lets the app know how new it still is to you.
+    case setupDay
 }
 
 /// Somewhere to keep a handful of small values.

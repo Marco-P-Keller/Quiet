@@ -26,6 +26,9 @@ final class QuietSession {
     private(set) var ledger: UsageLedger
     private(set) var notice: Notice?
 
+    /// The day the limit was first chosen. `nil` on a fresh install.
+    private(set) var setupDay: DayKey?
+
     /// Bound to the panel's presentation. While the panel is up, the clock stops:
     /// time spent deciding how much time you want is not time on Instagram.
     var isPanelShowing = false {
@@ -64,14 +67,14 @@ final class QuietSession {
 
     /// Load what was saved and decide which screen to show. Safe to call twice.
     func start() {
-        let isSetUp = store.load(Bool.self, for: .setupComplete) ?? false
+        setupDay = store.load(DayKey.self, for: .setupDay)
         if let saved = store.load(LimitState.self, for: .limit) {
             limit = saved
         }
         if let saved = store.load(UsageLedger.self, for: .usage) {
             ledger = saved
         }
-        guard isSetUp else {
+        guard setupDay != nil else {
             screen = .setup
             return
         }
@@ -87,7 +90,8 @@ final class QuietSession {
         let clamped = min(max(minutes, LimitPolicy.allowed.lowerBound), LimitPolicy.allowed.upperBound)
         limit = LimitState(minutes: clamped)
         ledger = UsageLedger(day: today)
-        store.save(true, for: .setupComplete)
+        setupDay = today
+        store.save(today, for: .setupDay)
         persist()
         screen = .browsing
         syncCounting()
@@ -122,6 +126,19 @@ final class QuietSession {
 
     /// True when the device clock sits behind time the app has already seen.
     var isClockRewound: Bool { clock.isRewound }
+
+    /// Whether the app should still point out the gesture that opens the panel.
+    ///
+    /// A hidden gesture explained exactly once, on the busiest screen of the
+    /// first run, is a gesture most people will not have. Quiet repeats it on
+    /// the first launch of each of the first three days and then stops, which
+    /// costs no extra stored state: the day setup finished is already known.
+    var isLearningTheGesture: Bool {
+        guard let setupDay else { return false }
+        return setupDay.days(to: today) < Self.teachingDays
+    }
+
+    private static let teachingDays = 3
 
     // MARK: - Changing the limit
 

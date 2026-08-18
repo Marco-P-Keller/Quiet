@@ -22,38 +22,50 @@ struct LimitView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text("Less takes effect at once. More starts the next day, and only once a week.")
-                .font(.system(size: 14))
-                .foregroundStyle(Paper.inkSoft)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.top, 4)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Less takes effect at once. More starts the next day, and only once a week.")
+                    .font(.quietNote)
+                    .foregroundStyle(Paper.inkSoft)
+                    .fixedSize(horizontal: false, vertical: true)
 
-            Picker("Minutes a day", selection: $minutes) {
-                ForEach(options, id: \.self) { value in
-                    Text(Phrase.minutes(value))
-                        .font(.quietTitle(22))
-                        .tag(value)
+                Picker("Minutes a day", selection: $minutes) {
+                    ForEach(options, id: \.self) { value in
+                        Text(Phrase.minutes(value))
+                            .font(.quietChoice)
+                            .tag(value)
+                    }
                 }
+                .pickerStyle(.wheel)
+                .frame(height: 180)
+                .padding(.vertical, 8)
+
+                Text(explanation)
+                    .font(.quietBody)
+                    .fixedSize(horizontal: false, vertical: true)
+                    // Held open so that the button does not walk up and down the
+                    // screen as the wheel turns.
+                    .frame(minHeight: 74, alignment: .top)
+                    .accessibilityLabel(explanation)
             }
-            .pickerStyle(.wheel)
-            .frame(height: 180)
-            .padding(.vertical, 8)
-
-            Text(explanation)
-                .font(.system(size: 15))
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(minHeight: 62, alignment: .top)
-
-            Spacer()
-
-            QuietButton(title: buttonTitle, isEnabled: isAllowed, action: commit)
+            .padding(.horizontal, 28)
+            .padding(.top, 8)
+            .padding(.bottom, 20)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.horizontal, 28)
-        .padding(.bottom, 24)
+        .scrollBounceBehavior(.basedOnSize)
+        .safeAreaInset(edge: .bottom) {
+            QuietButton(title: buttonTitle, isEnabled: isAllowed, action: commit)
+                .padding(.horizontal, 28)
+                .padding(.top, 12)
+                .padding(.bottom, 20)
+                .background(Paper.page)
+        }
         .quietPage()
         .navigationTitle("Daily limit")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(Paper.page, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
     }
 
     /// The standard choices, plus whatever is currently set, so the wheel always

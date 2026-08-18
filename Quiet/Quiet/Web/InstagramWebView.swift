@@ -14,6 +14,12 @@ final class WebSurface {
     /// rather than swallowed.
     private(set) var missingResources: [String] = []
 
+    /// False until the first page has finished, or failed. While it is false the
+    /// browsing screen keeps Quiet's own paper over the top, so a cold launch
+    /// shows a considered blank rather than the white rectangle of a web view
+    /// that has not painted yet.
+    private(set) var hasLoaded = false
+
     func open(_ url: URL) {
         webView?.load(URLRequest(url: url))
     }
@@ -47,6 +53,14 @@ final class WebSurface {
     fileprivate func adopt(_ webView: WKWebView, missing: [String]) {
         self.webView = webView
         missingResources = missing
+        hasLoaded = false
+    }
+
+    /// Called when the first navigation settles, whether it worked or not. A
+    /// failed load must lift the cover too, or a person offline would be left
+    /// looking at an empty page with no explanation.
+    fileprivate func markLoaded() {
+        hasLoaded = true
     }
 }
 
@@ -56,7 +70,7 @@ struct InstagramWebView: UIViewRepresentable {
     let session: QuietSession
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(session: session)
+        Coordinator(session: session, surface: surface)
     }
 
     func makeUIView(context: Context) -> WKWebView {
@@ -101,9 +115,11 @@ struct InstagramWebView: UIViewRepresentable {
     @MainActor
     final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         var session: QuietSession
+        let surface: WebSurface
 
-        init(session: QuietSession) {
+        init(session: QuietSession, surface: WebSurface) {
             self.session = session
+            self.surface = surface
         }
 
         func webView(
@@ -163,6 +179,10 @@ struct InstagramWebView: UIViewRepresentable {
             return nil
         }
 
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            surface.markLoaded()
+        }
+
         func webView(
             _ webView: WKWebView,
             didFailProvisionalNavigation navigation: WKNavigation!,
@@ -170,9 +190,18 @@ struct InstagramWebView: UIViewRepresentable {
         ) {
             let code = (error as NSError).code
             guard code != NSURLErrorCancelled else { return }
+            surface.markLoaded()
             if code == NSURLErrorNotConnectedToInternet || code == NSURLErrorNetworkConnectionLost {
                 session.show("No connection.")
             }
+        }
+
+        func webView(
+            _ webView: WKWebView,
+            didFail navigation: WKNavigation!,
+            withError error: Error
+        ) {
+            surface.markLoaded()
         }
 
         fileprivate func receive(_ message: WKScriptMessage) {

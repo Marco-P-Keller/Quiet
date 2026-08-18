@@ -15,7 +15,7 @@ struct NoticeView: View {
 
     var body: some View {
         Text(notice.text)
-            .font(.system(size: 14, weight: .medium))
+            .font(.quietSmall.weight(.medium))
             .foregroundStyle(Paper.page)
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
@@ -23,6 +23,9 @@ struct NoticeView: View {
             .clipShape(Capsule())
             .shadow(color: .black.opacity(0.12), radius: 12, y: 4)
             .transition(.move(edge: .top).combined(with: .opacity))
+            // Announced to VoiceOver as it appears, since it is gone before
+            // anyone could go looking for it.
+            .accessibilityAddTraits(.isStaticText)
             .task(id: notice.token) {
                 try? await Task.sleep(for: Self.lifetime)
                 guard !Task.isCancelled else { return }

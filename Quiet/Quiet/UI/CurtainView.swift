@@ -18,11 +18,14 @@ struct CurtainView: View {
             Spacer()
 
             Text("That's all\nfor today.")
-                .font(.quietTitle(38))
+                .font(.quietDisplay)
                 .lineSpacing(8)
+                // The one place a fixed shape matters more than a fixed size:
+                // three words on two lines is the whole design.
+                .minimumScaleFactor(0.6)
 
             Text("You asked for \(Phrase.minutes(limitMinutes)) a day. Quiet opens again at \(Phrase.clockTime(resetsAt)).")
-                .font(.system(size: 15))
+                .font(.quietNote)
                 .foregroundStyle(Paper.inkSoft)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.top, 18)
@@ -30,7 +33,7 @@ struct CurtainView: View {
             Spacer()
 
             Button("Settings", action: onOpenPanel)
-                .font(.system(size: 14))
+                .font(.quietSmall)
                 .foregroundStyle(Paper.inkSoft)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

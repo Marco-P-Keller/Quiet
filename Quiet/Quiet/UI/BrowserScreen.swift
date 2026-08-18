@@ -11,7 +11,8 @@ import UIKit
 ///
 /// The way into the panel is a long press on the status bar: the one strip of
 /// the screen that belongs to the phone rather than to the page. It is taught
-/// once, on the first run, and repeated on the curtain, which also has a way in.
+/// once, on the first run, answered with a haptic so it never feels like a
+/// guess, and repeated on the curtain, which has a visible way in.
 @MainActor
 struct BrowserScreen: View {
     let session: QuietSession
@@ -22,6 +23,7 @@ struct BrowserScreen: View {
     /// Twenty points is the shortest status bar any iPhone has; the real height
     /// arrives on the first layout pass.
     @State private var topInset: CGFloat = 20
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         // The stack ignores the safe area so that its top edge is the top of the
@@ -30,13 +32,28 @@ struct BrowserScreen: View {
         ZStack(alignment: .top) {
             InstagramWebView(surface: surface, session: session)
 
+            if !surface.hasLoaded {
+                cover
+            }
+
             statusBarStrip
 
             overlays
                 .padding(.top, topInset + 8)
         }
         .ignoresSafeArea()
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: surface.hasLoaded)
         .onAppear { topInset = SafeArea.top }
+    }
+
+    /// Quiet's own paper, held over the web view until the first page settles.
+    /// A cold launch should look like the app deciding to start, not like a
+    /// blank browser.
+    private var cover: some View {
+        Paper.page
+            .ignoresSafeArea()
+            .transition(.opacity)
+            .accessibilityHidden(true)
     }
 
     /// Transparent, and exactly as tall as the status bar, so it never sits over
@@ -47,7 +64,19 @@ struct BrowserScreen: View {
             .frame(height: topInset)
             .contentShape(Rectangle())
             .onTapGesture { surface.scrollToTop() }
-            .onLongPressGesture(minimumDuration: 0.45) { onOpenPanel() }
+            .onLongPressGesture(minimumDuration: 0.45) {
+                Feedback.gestureRecognised()
+                onOpenPanel()
+            }
+            // A hidden gesture is invisible to VoiceOver, which would leave the
+            // panel unreachable while browsing. As an element with a button's
+            // trait it is the first thing in the rotor, and a double tap opens
+            // the panel without any holding at all.
+            .accessibilityElement()
+            .accessibilityLabel("Quiet settings")
+            .accessibilityHint("Your time today, your daily limit, and finding someone")
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { onOpenPanel() }
     }
 
     private var overlays: some View {
@@ -62,13 +91,13 @@ struct BrowserScreen: View {
                 brokenBuildWarning
             }
         }
-        .animation(.easeInOut(duration: 0.22), value: session.notice)
-        .animation(.easeInOut(duration: 0.22), value: isHintShowing)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: session.notice)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: isHintShowing)
     }
 
     private var hint: some View {
         Text("Touch and hold the top edge for settings.")
-            .font(.system(size: 13))
+            .font(.quietSmall)
             .foregroundStyle(Paper.page)
             .padding(.horizontal, 14)
             .padding(.vertical, 9)
@@ -82,7 +111,7 @@ struct BrowserScreen: View {
     /// on screen than to let anyone find out by scrolling.
     private var brokenBuildWarning: some View {
         Text("Quiet is missing \(surface.missingResources.joined(separator: " and ")). Reinstall from a clean build.")
-            .font(.system(size: 13, weight: .medium))
+            .font(.quietSmall.weight(.medium))
             .multilineTextAlignment(.center)
             .foregroundStyle(.white)
             .padding(.horizontal, 14)

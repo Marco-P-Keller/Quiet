@@ -169,3 +169,61 @@ project, that is the upgrade path — see
 Warm paper, a serif, wide margins, one thing to read at a time. The contrast is
 the point: when the curtain comes down, it should feel like leaving a room, not
 like a modal in the same app.
+
+## One type scale, tied to the system's
+
+Every size in the app is a system text style — `.largeTitle` through `.caption`,
+with the serif applied on top of the big ones. Nothing is set in fixed points.
+
+Fixed sizes look correct exactly once: on the machine they were chosen on. A
+person who has turned text up two notches, which is a great many people, gets an
+app that either crops or lies about how much it can show. Four of the screens
+were rebuilt around scroll views with the action pinned to the bottom edge so
+that they still work at the largest settings rather than merely surviving them.
+
+## A cover over the web view, not a spinner
+
+A cold launch used to show the white rectangle of a web view that has not
+painted, then Instagram arriving in pieces. Quiet now holds its own paper over
+the top until the first page settles, and cross-fades.
+
+Not a spinner: a spinner says "we are busy", and this is a third of a second on
+a good connection. Paper says "the app has started", which is the true thing.
+The cover lifts on failure as well as on success — otherwise someone offline
+would be left looking at a blank page with no way to know why.
+
+## The long press answers with a haptic
+
+A long press that does nothing until a sheet appears is indistinguishable from
+a long press that did not work. One soft tap at the moment the gesture takes is
+what every long press on iOS does, and it is the difference between a control
+and a guess.
+
+## The hidden gesture is taught three times, not once
+
+A gesture explained exactly once, on the busiest screen of the first run, is a
+gesture most people will not have a week later. Quiet points it out on the first
+launch of each of the first three days and then stops.
+
+This cost nothing to store. The fourth thing the app remembers used to be a
+boolean — *is setup done* — and is now the day setup finished, which answers the
+same question and this one too.
+
+## VoiceOver can reach everything a finger can
+
+The status-bar strip is an accessibility element with a button's trait, labelled
+and hinted, and it responds to a double tap without any holding. Without that,
+the panel would have been unreachable while browsing for anyone using VoiceOver
+— an invisible gesture is invisible in both senses.
+
+Animations check `accessibilityReduceMotion` before running.
+
+## Errors appear where the question was asked
+
+"Find someone" used to answer a bad username with the app's floating notice —
+which renders on the browsing screen, underneath the very panel the person was
+typing into. The answer was invisible. It is now a line under the field, in
+place of the explanation that normally sits there.
+
+The general rule this came from: an answer belongs on the surface that asked the
+question, not on the one behind it.

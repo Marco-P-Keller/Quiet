@@ -11,6 +11,7 @@ struct PanelView: View {
     var onDismiss: () -> Void
 
     @State private var handle = ""
+    @State private var handleProblem: String?
     @State private var isConfirmingSignOut = false
     @State private var isChangingLimit = false
 
@@ -38,7 +39,13 @@ struct PanelView: View {
                 }
             }
             .navigationDestination(isPresented: $isChangingLimit) {
-                LimitView(session: session) { onDismiss() }
+                LimitView(session: session) {
+                    // Leave the stack where it started, so that opening the panel
+                    // again lands on the panel rather than halfway into a screen
+                    // nobody asked for.
+                    isChangingLimit = false
+                    onDismiss()
+                }
             }
             .toolbarBackground(Paper.page, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
@@ -51,10 +58,11 @@ struct PanelView: View {
     private var timeSection: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(headline)
-                .font(.quietTitle(30))
+                .font(.quietTitle)
+                .fixedSize(horizontal: false, vertical: true)
 
             Text(subhead)
-                .font(.system(size: 14))
+                .font(.quietNote)
                 .foregroundStyle(Paper.inkSoft)
                 .padding(.top, 8)
                 .fixedSize(horizontal: false, vertical: true)
@@ -68,10 +76,10 @@ struct PanelView: View {
                     Text(Phrase.minutes(session.limit.minutes))
                         .foregroundStyle(Paper.inkSoft)
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.quietSmall.weight(.semibold))
                         .foregroundStyle(Paper.inkSoft)
                 }
-                .font(.system(size: 16))
+                .font(.quietBody)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -79,14 +87,14 @@ struct PanelView: View {
 
             if let pending = session.limit.pending {
                 Text("\(Phrase.minutes(pending.minutes)) from \(Phrase.day(pending.effective, relativeTo: session.today)).")
-                    .font(.system(size: 13))
+                    .font(.quietSmall)
                     .foregroundStyle(Paper.inkSoft)
                     .padding(.top, 6)
             }
 
             if session.isClockRewound {
                 Text("The date on this phone is behind where Quiet last saw it. The limit can be lowered, but not raised, until it catches up.")
-                    .font(.system(size: 13))
+                    .font(.quietSmall)
                     .foregroundStyle(Paper.inkSoft)
                     .padding(.top, 10)
                     .fixedSize(horizontal: false, vertical: true)
@@ -110,7 +118,7 @@ struct PanelView: View {
     private var findSomeone: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Find someone")
-                .font(.system(size: 16))
+                .font(.quietBody)
 
             HStack(spacing: 10) {
                 Text("@")
@@ -120,30 +128,39 @@ struct PanelView: View {
                     .autocorrectionDisabled()
                     .submitLabel(.go)
                     .onSubmit(open)
+                    .onChange(of: handle) { handleProblem = nil }
                 Button("Go", action: open)
-                    .font(.system(size: 15, weight: .medium))
-                    .disabled(handle.trimmingCharacters(in: .whitespaces).isEmpty)
+                    .font(.quietAction)
+                    .disabled(trimmedHandle.isEmpty)
             }
-            .font(.system(size: 16))
+            .font(.quietBody)
             .padding(.vertical, 12)
             .padding(.horizontal, 14)
             .background(Paper.ink.opacity(0.05))
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
-            Text("Quiet has no search page, because search is where Explore lives. Typing a name goes straight to that profile.")
-                .font(.system(size: 13))
+            // Said here rather than as a floating notice: the panel is covering
+            // the screen a notice would appear on, and an answer nobody can see
+            // is the same as no answer.
+            Text(handleProblem ?? "Quiet has no search page, because search is where Explore lives. Typing a name goes straight to that profile.")
+                .font(.quietSmall)
                 .foregroundStyle(Paper.inkSoft)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
 
+    private var trimmedHandle: String {
+        handle.trimmingCharacters(in: .whitespaces)
+    }
+
     private func open() {
         guard let url = ContentRules.profile(forHandle: handle) else {
-            session.show("That doesn't look like a username.")
+            handleProblem = "That doesn't look like a username."
             return
         }
         surface.open(url)
         handle = ""
+        handleProblem = nil
         onDismiss()
     }
 
@@ -154,7 +171,7 @@ struct PanelView: View {
             Button("Sign out of Instagram") {
                 isConfirmingSignOut = true
             }
-            .font(.system(size: 16))
+            .font(.quietBody)
             .buttonStyle(.plain)
             .confirmationDialog(
                 "Sign out of Instagram?",
@@ -170,7 +187,7 @@ struct PanelView: View {
             }
 
             VStack(alignment: .leading, spacing: 8) {
-                Note("Quiet has no account, no servers and no analytics. It stores four things on this phone: your limit, today's total, the last time it saw, and whether setup is done.")
+                Note("Quiet has no account, no servers and no analytics. It stores four things on this phone: your limit, today's total, the last time it saw, and the day you set it up.")
                 Note("Your limit is kept in the keychain, which outlives the app. Deleting Quiet and installing it again does not reset it.")
                 Note("Quiet is not affiliated with or endorsed by Instagram or Meta.")
                 Note(Build.versionLine)
@@ -186,7 +203,7 @@ struct PanelView: View {
 
         var body: some View {
             Text(text)
-                .font(.system(size: 12))
+                .font(.quietFine)
                 .foregroundStyle(Paper.inkSoft)
                 .fixedSize(horizontal: false, vertical: true)
         }

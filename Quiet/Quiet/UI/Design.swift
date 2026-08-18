@@ -31,18 +31,34 @@ enum Paper {
     static let rule = ink.opacity(0.12)
 }
 
+/// One scale, nine steps, every one of them tied to a system text style so that
+/// the whole app grows and shrinks with the reader's own setting. Fixed point
+/// sizes would have looked identical on the machine they were designed on and
+/// wrong on everybody else's.
 extension Font {
-    /// The one voice Quiet speaks in. A serif, because the app's few sentences
-    /// are meant to be read rather than scanned, and because nothing else on the
-    /// phone looks like it.
-    static func quietTitle(_ size: CGFloat) -> Font {
-        .system(size: size, weight: .regular, design: .serif)
-    }
+    /// The curtain. Said once, and meant.
+    static let quietDisplay = Font.system(.largeTitle, design: .serif)
+    /// The first line of a screen.
+    static let quietTitle = Font.system(.title, design: .serif)
+    /// A question.
+    static let quietHeading = Font.system(.title2, design: .serif)
+    /// Numbers on a wheel.
+    static let quietChoice = Font.system(.title3, design: .serif)
+
+    /// Rows, fields, consequences.
+    static let quietBody = Font.body
+    /// The one thing to press.
+    static let quietAction = Font.body.weight(.medium)
+    /// The sentence under a heading.
+    static let quietNote = Font.subheadline
+    /// Hints and asides.
+    static let quietSmall = Font.footnote
+    /// Version numbers and disclaimers.
+    static let quietFine = Font.caption
 }
 
 extension View {
-    /// The standard page: paper to the edges, generous margins, text that never
-    /// runs the full width of a phone.
+    /// The standard page: paper to the edges, text that inherits the app's ink.
     func quietPage() -> some View {
         frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Paper.page.ignoresSafeArea())
@@ -61,15 +77,29 @@ struct QuietButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 17, weight: .medium))
+                .font(.quietAction)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
                 .background(Paper.ink.opacity(isEnabled ? 1 : 0.25))
                 .foregroundStyle(Paper.page)
                 .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .contentShape(Rectangle())
         }
         .disabled(!isEnabled)
         .buttonStyle(.plain)
+    }
+}
+
+/// The one piece of physical feedback in the app.
+///
+/// A long press that does nothing until a sheet appears feels broken, because
+/// you cannot tell whether you held it long enough. One soft tap at the moment
+/// it takes is what every long press on iOS does, and the reason it feels like
+/// a control rather than a guess.
+@MainActor
+enum Feedback {
+    static func gestureRecognised() {
+        UIImpactFeedbackGenerator(style: .soft).impactOccurred()
     }
 }
 
@@ -89,7 +119,7 @@ enum Phrase {
         date.formatted(date: .omitted, time: .shortened)
     }
 
-    /// "on Tuesday" for the coming week, a date after that.
+    /// "tomorrow", "on Tuesday" for the coming week, a date after that.
     static func day(_ day: DayKey, relativeTo today: DayKey, calendar: Calendar = .current) -> String {
         let date = day.start(calendar: calendar)
         let distance = today.days(to: day)
