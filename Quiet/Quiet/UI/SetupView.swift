@@ -21,19 +21,27 @@ struct SetupView: View {
         // A scroll view rather than a fixed layout, so that the screen still
         // works at the largest text sizes instead of quietly cropping the
         // sentence that explains what the app does.
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                switch step {
-                case .what: what
-                case .howMuch: howMuch
+        //
+        // The geometry reader is what makes the page look composed rather than
+        // merely fitted: it gives the text block a minimum height of the space
+        // actually available above the button, so a short page sits centred in
+        // its own field instead of hugging the top edge above a void. At large
+        // text sizes the content outgrows that minimum and simply scrolls.
+        GeometryReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    switch step {
+                    case .what: what
+                    case .howMuch: howMuch
+                    }
                 }
+                .padding(.horizontal, 28)
+                .padding(.vertical, 28)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(minHeight: proxy.size.height, alignment: .center)
             }
-            .padding(.horizontal, 28)
-            .padding(.top, 32)
-            .padding(.bottom, 24)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .scrollBounceBehavior(.basedOnSize)
         }
-        .scrollBounceBehavior(.basedOnSize)
         .safeAreaInset(edge: .bottom) {
             QuietButton(title: actionTitle, action: advance)
                 .padding(.horizontal, 28)
@@ -48,7 +56,7 @@ struct SetupView: View {
     private var what: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("Instagram,\nminus the parts\nthat keep you there.")
-                .font(.quietTitle)
+                .font(.quietDisplay)
                 .lineSpacing(6)
                 .padding(.bottom, 28)
 

@@ -22,38 +22,42 @@ struct LimitView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                Text("Less takes effect at once. More starts the next day, and only once a week.")
-                    .font(.quietNote)
-                    .foregroundStyle(Paper.inkSoft)
-                    .fixedSize(horizontal: false, vertical: true)
+        // Same shape as setup: centred in the space above the button when it
+        // fits, scrolling when the reader's text size says it should not.
+        GeometryReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Less takes effect at once. More starts the next day, and only once a week.")
+                        .font(.quietNote)
+                        .foregroundStyle(Paper.inkSoft)
+                        .fixedSize(horizontal: false, vertical: true)
 
-                Picker("Minutes a day", selection: $minutes) {
-                    ForEach(options, id: \.self) { value in
-                        Text(Phrase.minutes(value))
-                            .font(.quietChoice)
-                            .tag(value)
+                    Picker("Minutes a day", selection: $minutes) {
+                        ForEach(options, id: \.self) { value in
+                            Text(Phrase.minutes(value))
+                                .font(.quietChoice)
+                                .tag(value)
+                        }
                     }
-                }
-                .pickerStyle(.wheel)
-                .frame(height: 180)
-                .padding(.vertical, 8)
+                    .pickerStyle(.wheel)
+                    .frame(height: 180)
+                    .padding(.vertical, 8)
 
-                Text(explanation)
-                    .font(.quietBody)
-                    .fixedSize(horizontal: false, vertical: true)
-                    // Held open so that the button does not walk up and down the
-                    // screen as the wheel turns.
-                    .frame(minHeight: 74, alignment: .top)
-                    .accessibilityLabel(explanation)
+                    Text(explanation)
+                        .font(.quietBody)
+                        .fixedSize(horizontal: false, vertical: true)
+                        // Held open so that the button does not walk up and down
+                        // the screen as the wheel turns.
+                        .frame(minHeight: 74, alignment: .top)
+                        .accessibilityLabel(explanation)
+                }
+                .padding(.horizontal, 28)
+                .padding(.vertical, 20)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(minHeight: proxy.size.height, alignment: .center)
             }
-            .padding(.horizontal, 28)
-            .padding(.top, 8)
-            .padding(.bottom, 20)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .scrollBounceBehavior(.basedOnSize)
         }
-        .scrollBounceBehavior(.basedOnSize)
         .safeAreaInset(edge: .bottom) {
             QuietButton(title: buttonTitle, isEnabled: isAllowed, action: commit)
                 .padding(.horizontal, 28)
