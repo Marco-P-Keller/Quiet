@@ -120,10 +120,6 @@ final class QuietSession {
     /// When today's allowance comes back.
     var resetsAt: Date { today.end(calendar: calendar) }
 
-    /// The first day the limit could be raised again, or `nil` if it could be
-    /// raised now.
-    var nextIncreaseDay: DayKey? { LimitPolicy.nextIncreaseDay(limit, today: today) }
-
     /// True when the device clock sits behind time the app has already seen.
     var isClockRewound: Bool { clock.isRewound }
 

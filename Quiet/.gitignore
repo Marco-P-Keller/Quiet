@@ -8,3 +8,7 @@ xcuserdata/
 
 # macOS
 .DS_Store
+
+# Left behind by a local `xcodebuild test`, and by the CI workflow.
+build.log
+*.xcresult
