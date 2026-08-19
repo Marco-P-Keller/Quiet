@@ -174,7 +174,7 @@ it on a simulator and photographs it. The current state:
 
 ```
 ** BUILD SUCCEEDED **
-Executed 57 tests, with 0 failures        (rules, clock, ledger, session)
+Executed 61 tests, with 0 failures        (rules, clock, ledger, session)
 Executed 1 test,  with 0 failures         (setup → Instagram → relaunch)
 ```
 
@@ -192,7 +192,15 @@ What the photographs actually settled, none of which a unit test could:
 * **The limit outlives the app.** The UI test closes it, opens it again, and
   insists the setup question does not come back.
 
-Four defects were found this way, all of which had survived careful reading:
+A review of the whole branch against `main` then turned up eleven more, none
+of them in the rule engine and all of them in the glue: an unreachable
+one-minute warning, a confirmation shown on a screen that renders none, a
+`closest("section")` that could climb past `<main>` and blank the page, a day
+that could not turn while the curtain sat open past four in the morning, and
+seven others. They are in the history with their reasons.
+
+Four defects were found by running it, all of which had survived careful
+reading:
 
 * **The app was unusable from its second launch.** A guard read
   `screen != .setup`, which looks like "setup is not finished" and is not: at
