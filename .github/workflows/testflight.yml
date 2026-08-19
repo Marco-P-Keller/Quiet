@@ -193,20 +193,27 @@ jobs:
 
           if grep -q "Cloud signing permission error" "$log"; then
             printf '%s\n' \
-              '## The API key is not allowed to sign' \
+              '## App Store Connect refused to create the signing assets' \
               '' \
-              'Xcode asked App Store Connect for a distribution certificate and a' \
-              'provisioning profile, and was refused. That is a role rather than a' \
-              'mistake in this workflow: cloud signing needs a key with **Admin** or' \
-              '**App Manager** access, and a key created with Developer access can' \
-              'build but cannot sign for distribution.' \
+              'Xcode asked for a distribution certificate and a provisioning profile' \
+              'and was turned down. Nothing in this repository can fix that; it is one' \
+              'of three things on the account, in the order they are worth checking.' \
               '' \
-              'App Store Connect → **Users and Access** → **Integrations** → **Keys**,' \
-              'and read the Access column of the key in use. If it says Developer,' \
-              'that is the whole problem. A key’s access cannot be changed after it is' \
-              'made, so generate a new one with **Admin** and replace two secrets —' \
-              '`APP_STORE_CONNECT_KEY_ID` and `APP_STORE_CONNECT_PRIVATE_KEY`. The' \
-              'issuer ID stays as it is.' \
+              '**1. The key needs Admin.** App Manager is enough to ship builds and not' \
+              'enough to create a certificate — this exact error is what that looks' \
+              'like. A key’s access cannot be changed after it is made, so generate a' \
+              'new one with **Admin** at **Users and Access → Integrations → Keys**' \
+              'and replace `APP_STORE_CONNECT_KEY_ID` and' \
+              '`APP_STORE_CONNECT_PRIVATE_KEY`. The issuer ID stays as it is.' \
+              '' \
+              '**2. An agreement is waiting to be signed.** A pending Program License' \
+              'Agreement blocks certificate creation while everything else keeps' \
+              'working. Look for a banner on the App Store Connect home page, and at' \
+              '**Business → Agreements**.' \
+              '' \
+              '**3. The membership is not a paid enrolment.** A free Apple Developer' \
+              'account has a team ID and cannot hold a distribution certificate.' \
+              'Check **developer.apple.com/account → Membership**.' \
               >> "$GITHUB_STEP_SUMMARY"
           elif grep -q "No suitable application records were found" "$log"; then
             printf '%s\n' \
