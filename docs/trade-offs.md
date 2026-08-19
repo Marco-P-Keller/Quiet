@@ -29,6 +29,16 @@ It does not get you:
   Spanish, French, Italian, Portuguese, Dutch and Swedish. In any other
   language they will still appear; adding one is a one-line change.
 
+## Because Instagram would rather you used Instagram
+
+* **Its pages carry a button that opens Instagram's own app.** Quiet refuses
+  it — `instagram://` links are turned down with "Quiet is your Instagram
+  here." It is the only link a person deliberately taps that the app declines,
+  and it is declined because handing it over would undo the whole thing in one
+  tap.
+* **Nothing stops anyone opening the real app from the home screen.** Quiet is
+  a self-imposed rule, not a lock on the phone.
+
 ## Because it is a web view and not a native client
 
 * **The trim files have a shelf life.** `ContentRules` matches on URLs and will

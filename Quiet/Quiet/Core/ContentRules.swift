@@ -7,6 +7,8 @@ import Foundation
 enum BlockedSurface: String, Codable, Sendable {
     case reels
     case explore
+    /// Instagram's own app, offered by its own pages as a way out of here.
+    case theApp
 
     /// Shown for a moment when a link into one of these is tapped. Silence would
     /// read as a broken app; an apology would read as an accident. Neither is
@@ -15,6 +17,7 @@ enum BlockedSurface: String, Codable, Sendable {
         switch self {
         case .reels: return "Reels are off in Quiet."
         case .explore: return "Explore is off in Quiet."
+        case .theApp: return "Quiet is your Instagram here."
         }
     }
 }
@@ -65,6 +68,15 @@ enum ContentRules {
         // WebKit's own internals. Never a page a person chose to visit.
         if scheme == "about" || scheme == "data" || scheme == "blob" {
             return .allow
+        }
+
+        // Instagram's pages carry a button that opens Instagram's own app.
+        // Handing that to the system would walk someone straight back into the
+        // thing they installed this to get away from — one tap, no limit, all
+        // the Reels. It is the only door out that Instagram builds itself, and
+        // the only reason to refuse a link the person deliberately tapped.
+        if scheme == "instagram" || scheme == "instagram-stories" {
+            return .refuse(.theApp)
         }
 
         guard scheme == "http" || scheme == "https" else { return .openOutside }

@@ -82,6 +82,15 @@ final class ContentRulesTests: XCTestCase {
         XCTAssertEqual(routing("https://accountscenter.instagram.com/"), .allow)
     }
 
+    /// Seen on the running app: Instagram's own logged-out page offers an
+    /// "Open Instagram" button. Handing that to the system would undo the whole
+    /// app in one tap.
+    func testInstagramsOwnAppIsRefused() {
+        XCTAssertEqual(routing("instagram://app"), .refuse(.theApp))
+        XCTAssertEqual(routing("instagram://media?id=1"), .refuse(.theApp))
+        XCTAssertEqual(routing("instagram-stories://share"), .refuse(.theApp))
+    }
+
     func testWebKitInternalsAreLeftAlone() {
         XCTAssertEqual(routing("about:blank"), .allow)
     }

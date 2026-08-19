@@ -138,45 +138,47 @@ The parts that are easy to skip and obvious once missing:
 
 ## What is verified
 
-Every push that touches this folder builds the app and runs its tests on a
-macOS runner with a real Xcode and a real simulator. The current state:
+Every push that touches this folder builds the app, runs its tests, launches
+it on a simulator and photographs it. The current state:
 
 ```
 ** BUILD SUCCEEDED **
-Executed 57 tests, with 0 failures
+Executed 57 tests, with 0 failures        (rules, clock, ledger, session)
+Executed 1 test,  with 0 failures         (setup → Instagram → relaunch)
 ```
 
 No errors and no warnings in Quiet's own sources. The workflow is
 [`.github/workflows/quiet.yml`](../../.github/workflows/quiet.yml); a red run
-prints a digest naming the errors, the failed tests and the warnings, so
-nobody has to read four thousand lines of module compilation to find out what
-broke.
+prints a digest naming the errors, the failed tests and the warnings, and a
+screenshot of the app in whatever state it reached.
 
-The tests cover the whole of `Core` and the session's state machine: every
-branch of the limit rule, the day boundary across a daylight-saving change, a
-rewound clock, and the property that makes it safe to reach settings from the
-curtain — nothing there can give today's time back.
+What the photographs actually settled, none of which a unit test could:
 
-That suite earned its keep on its first real run. It caught two defects that
-had survived several careful readings:
+* **The app launches, and Instagram's real mobile site loads inside it.** The
+  user agent is accepted; no "unsupported browser" wall.
+* **The trim works.** The bottom navigation arrives with three entries — home,
+  messages, profile. Search and Reels are gone from the page itself.
+* **The limit outlives the app.** The UI test closes it, opens it again, and
+  insists the setup question does not come back.
+
+Four defects were found this way, all of which had survived careful reading:
 
 * **The app was unusable from its second launch.** A guard read
   `screen != .setup`, which looks like "setup is not finished" and is not: at
-  launch the screen still holds its initial value, so the guard fired every
-  time and nothing ever moved on to the feed. A returning user would have seen
-  the onboarding question forever.
-* **The day boundary was wrong twice a year.** It was computed by adding four
-  hours to midnight, which lands on 05:00 on the morning the clocks go
-  forward — and it moved the boundary without moving the day's identity, so
-  the two disagreed about which day it was.
+  launch the screen still holds its initial value, so nothing ever moved on to
+  the feed.
+* **The day boundary was wrong twice a year.** Computed by adding four hours to
+  midnight, which lands on 05:00 on the morning the clocks go forward.
+* **The keychain was failing in silence.** Every status code was discarded, so
+  a store that refused writes looked identical to one that worked — while the
+  app's one promise quietly stopped being true.
+* **Instagram's own page offers a way out.** A button that opens Instagram's
+  app, which the URL rules were politely handing to the system.
 
-Two things still need a person and a device, because no test can stand in for
-them:
-
-* that Instagram serves the full mobile site to the user agent in
-  `UserAgent.mobileSafari(systemVersion:)`, and
-* that the selectors in `trim.css` still match. They are the part of this app
-  with a shelf life.
+One thing still needs a person with an account, because a data centre has no
+Instagram login: whether the trim holds on a **signed-in** feed, where the
+navigation has five entries and posts arrive with suggestions between them.
+Everything above was checked logged out.
 
 ## The trade
 
