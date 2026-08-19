@@ -188,30 +188,41 @@ jobs:
         if: failure()
         run: |
           set -euo pipefail
-          say () { { echo "## $1"; echo; echo "$2"; echo; } >> "$GITHUB_STEP_SUMMARY"; echo "$1: $2" >&2; }
+          log=archive.log
+          [ -f "$log" ] || exit 0
 
-          if grep -q "Cloud signing permission error" archive.log 2>/dev/null; then
-            say "The API key is not allowed to sign" \
-"Xcode asked App Store Connect to create a distribution certificate and a
-provisioning profile, and was refused. That is a role, not a mistake in this
-workflow: cloud signing needs a key with **Admin** or **App Manager** access,
-and a key created with Developer access can build but cannot sign for
-distribution.
-
-Fix it in App Store Connect → **Users and Access** → **Integrations** → **Keys**.
-Look at the Access column of the key you are using. If it says Developer, that
-is the whole problem — a key's access cannot be changed after it is made, so
-generate a new one with **Admin**, then replace two secrets:
-\`APP_STORE_CONNECT_KEY_ID\` and \`APP_STORE_CONNECT_PRIVATE_KEY\`. The issuer ID
-does not change."
-          elif grep -q "No suitable application records were found" archive.log 2>/dev/null; then
-            say "There is no app record yet" \
-"The build is fine; App Store Connect has nothing to put it in. Create the app
-once, at **Apps → +**, with bundle ID \`com.connexa.quiet\`, then run this again."
-          elif grep -q "The provided entity includes an attribute with a value that has already been used" archive.log 2>/dev/null; then
-            say "That build number is already taken" \
-"App Store Connect never re-issues a build number. This workflow takes it from
-the run number, so simply running it again produces the next one."
+          if grep -q "Cloud signing permission error" "$log"; then
+            printf '%s\n' \
+              '## The API key is not allowed to sign' \
+              '' \
+              'Xcode asked App Store Connect for a distribution certificate and a' \
+              'provisioning profile, and was refused. That is a role rather than a' \
+              'mistake in this workflow: cloud signing needs a key with **Admin** or' \
+              '**App Manager** access, and a key created with Developer access can' \
+              'build but cannot sign for distribution.' \
+              '' \
+              'App Store Connect → **Users and Access** → **Integrations** → **Keys**,' \
+              'and read the Access column of the key in use. If it says Developer,' \
+              'that is the whole problem. A key’s access cannot be changed after it is' \
+              'made, so generate a new one with **Admin** and replace two secrets —' \
+              '`APP_STORE_CONNECT_KEY_ID` and `APP_STORE_CONNECT_PRIVATE_KEY`. The' \
+              'issuer ID stays as it is.' \
+              >> "$GITHUB_STEP_SUMMARY"
+          elif grep -q "No suitable application records were found" "$log"; then
+            printf '%s\n' \
+              '## There is no app record yet' \
+              '' \
+              'The build is fine; App Store Connect has nowhere to put it. Create the' \
+              'app once, at **Apps → +**, with bundle ID `com.connexa.quiet`, and run' \
+              'this again.' \
+              >> "$GITHUB_STEP_SUMMARY"
+          elif grep -q "has already been used" "$log"; then
+            printf '%s\n' \
+              '## That build number is taken' \
+              '' \
+              'App Store Connect never re-issues one. This workflow takes the number' \
+              'from the run, so running it again produces the next.' \
+              >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Keep the log
