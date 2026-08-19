@@ -156,6 +156,11 @@ struct InstagramWebView: UIViewRepresentable {
                 }
                 decisionHandler(.cancel)
                 UIApplication.shared.open(url)
+
+            case .ignore:
+                // A scheme belonging to some app on the phone. The page asked;
+                // the person did not.
+                decisionHandler(.cancel)
             }
         }
 
@@ -174,6 +179,8 @@ struct InstagramWebView: UIViewRepresentable {
                     session.report(surface)
                 case .openOutside:
                     UIApplication.shared.open(url)
+                case .ignore:
+                    break
                 }
             }
             return nil

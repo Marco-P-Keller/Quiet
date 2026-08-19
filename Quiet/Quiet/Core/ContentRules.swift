@@ -31,6 +31,9 @@ enum Routing: Equatable, Sendable {
     /// Not Instagram. Hand it to the system so Quiet stays one app, not a
     /// browser with an Instagram bookmark.
     case openOutside
+    /// Neither Instagram's nor anything a person meant to leave for. Cancel it
+    /// without a word: nothing happened that anyone needs telling about.
+    case ignore
 }
 
 /// Which addresses Quiet will open, and which it will not.
@@ -51,6 +54,17 @@ enum ContentRules {
         "meta.com",
     ]
 
+    /// The only schemes Quiet will hand to the system.
+    ///
+    /// A page can ask iOS to open any app on the phone simply by naming its
+    /// scheme, and iOS obliges without asking anyone. These five are the ones a
+    /// person genuinely taps from a web page: a link out, an address, a number,
+    /// the App Store. Anything else is a remote page reaching for an app on
+    /// your phone that you never reached for, and it goes nowhere.
+    static let handOffSchemes: Set<String> = [
+        "http", "https", "mailto", "tel", "sms", "itms-apps",
+    ]
+
     /// The first path component of every surface Quiet removes.
     ///
     /// Matched on whole components rather than on a string prefix, so that a
@@ -63,7 +77,7 @@ enum ContentRules {
     ]
 
     static func routing(for url: URL) -> Routing {
-        guard let scheme = url.scheme?.lowercased() else { return .openOutside }
+        guard let scheme = url.scheme?.lowercased() else { return .ignore }
 
         // WebKit's own internals. Never a page a person chose to visit.
         if scheme == "about" || scheme == "data" || scheme == "blob" {
@@ -79,6 +93,7 @@ enum ContentRules {
             return .refuse(.theApp)
         }
 
+        guard handOffSchemes.contains(scheme) else { return .ignore }
         guard scheme == "http" || scheme == "https" else { return .openOutside }
         guard let host = url.host?.lowercased(), isInternal(host: host) else { return .openOutside }
 

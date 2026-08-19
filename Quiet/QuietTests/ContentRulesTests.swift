@@ -75,6 +75,21 @@ final class ContentRulesTests: XCTestCase {
         }
     }
 
+    /// iOS opens any app a page names, without asking anyone, so a page could
+    /// reach for an app on the phone that nobody reached for. Only the handful
+    /// of schemes a person actually taps in a document leave this app.
+    func testSchemesNobodyTapsGoNowhere() {
+        for address in [
+            "fb://profile/1",
+            "whatsapp://send?text=hi",
+            "shortcuts://run-shortcut?name=x",
+            "tg://resolve?domain=x",
+            "prefs:root=General",
+        ] {
+            XCTAssertEqual(routing(address), .ignore, address)
+        }
+    }
+
     /// Signing in to Instagram legitimately passes through Meta's own domains.
     /// Bouncing those to Safari would break logging in.
     func testMetaLoginDomainsStayInside() {
