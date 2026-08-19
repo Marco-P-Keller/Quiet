@@ -242,3 +242,30 @@ it looks correct.
 The lesson is not "write more tests". The suite already existed and already
 described the right behaviour. The lesson is that a test nobody has run is a
 document, and a document cannot fail.
+
+## The keychain is not allowed to fail quietly
+
+`KeychainStore` used to ignore every status code the Security framework
+returns — `_ = SecItemAdd(...)`. It looked tidy. What it actually bought was
+the worst failure this app can have: a store that declines writes and says
+nothing turns "your limit outlives the app" into every launch a clean slate,
+while the app goes on looking perfectly healthy.
+
+It took photographing the running app to notice. The screenshot after the UI
+test showed the setup question again, seconds after the test had answered it.
+With the status codes recorded, the device log said it in one line:
+
+    Quiet: keychain update failed with -34018 (A required entitlement isn't present.)
+
+That turned out to be the build, not the app: CI had been passing
+`CODE_SIGNING_ALLOWED=NO` to avoid needing a development team, and an unsigned
+build carries no `application-identifier` entitlement, without which iOS
+refuses the keychain outright. The override is gone; a simulator destination
+signs ad-hoc without a team.
+
+Two things stay from it. The store now records refusals and the app says so in
+the one red banner it owns, alongside the warning for missing trim files —
+both are failures silent enough to go unnoticed, and neither is allowed to be
+discovered by accident. And the UI test now closes the app, opens it again,
+and insists that setup does not come back, so the promise is checked rather
+than assumed.
