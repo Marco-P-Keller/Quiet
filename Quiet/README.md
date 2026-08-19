@@ -39,8 +39,39 @@ Requires Xcode 16 or later.
 open Quiet.xcodeproj     # then set your team and bundle identifier, and Run
 ```
 
-The bundle identifier ships as `com.example.quiet`. Change it in the target's
-Signing & Capabilities before running on a device.
+The bundle identifier is `com.connexa.quiet` and the team is `B97SQSQBMR`,
+both already set in the project. Running on your own device needs nothing
+further; running on somebody else's needs their team instead.
+
+## TestFlight
+
+`.github/workflows/testflight.yml` archives, signs and uploads. It runs only
+when somebody presses the button — Actions → TestFlight → Run workflow — never
+on a push, because an upload puts a build under a real developer account and
+consumes a build number App Store Connect will not give back. The build number
+comes from the run number, so it only ever goes up.
+
+It needs three repository secrets, added under Settings → Secrets and
+variables → Actions:
+
+| Secret | Where it comes from |
+| --- | --- |
+| `APP_STORE_CONNECT_ISSUER_ID` | App Store Connect → Users and Access → Integrations |
+| `APP_STORE_CONNECT_KEY_ID` | the same page, next to the key |
+| `APP_STORE_CONNECT_PRIVATE_KEY` | the contents of the downloaded `.p8`, whole file |
+
+The key is downloadable exactly once, so keep a copy somewhere safe. It grants
+access to the developer account, which is why it belongs in Actions secrets
+and nowhere else — not in the repository, not in a chat.
+
+Two things have to exist in App Store Connect first, and neither can be done
+from CI: the bundle identifier registered in the developer portal, and an app
+record created against it. After that the workflow signs itself — Xcode
+creates the certificate and profile through the API key.
+
+Uploading is not submitting. The build lands in TestFlight; review is a
+separate, deliberate step, and
+[what it will run into](../docs/store-and-legal.md) is worth reading first.
 
 If the project file ever refuses to open, `project.yml` regenerates an
 equivalent one:
