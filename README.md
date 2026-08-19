@@ -174,7 +174,7 @@ it on a simulator and photographs it. The current state:
 
 ```
 ** BUILD SUCCEEDED **
-Executed 61 tests, with 0 failures        (rules, clock, ledger, session)
+Executed 62 tests, with 0 failures        (rules, clock, ledger, session)
 Executed 1 test,  with 0 failures         (setup → Instagram → relaunch)
 ```
 
@@ -198,6 +198,17 @@ one-minute warning, a confirmation shown on a screen that renders none, a
 `closest("section")` that could climb past `<main>` and blank the page, a day
 that could not turn while the curtain sat open past four in the morning, and
 seven others. They are in the history with their reasons.
+
+A security pass over the same diff found one more, and only one. Any page
+inside the web view could name a URL scheme, and the app handed every one of
+them to iOS, which opens the matching app without asking anybody — the move
+`instagram://` was already refused for, minus the name. Six schemes leave the
+app now: a link, an address, a phone number, a message, the App Store.
+Everything else is cancelled in silence. Nothing else in that pass rose to a
+finding: the workflows never echo a secret and never interpolate their input
+into a shell, the injected script escapes through `JSONSerialization`, the
+handle field is charset-checked against a fixed host, and the keychain entry
+is device-only, in no access group, and holds a number of minutes.
 
 Four defects were found by running it, all of which had survived careful
 reading:
