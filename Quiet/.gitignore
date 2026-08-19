@@ -15,3 +15,6 @@ build.log
 
 # Screenshots taken by CI.
 shots/
+
+# Written by Tools/look-at-icon.py, for looking at rather than keeping.
+Tools/icon-in-place.png

@@ -89,7 +89,7 @@ final class QuietSession {
     func completeSetup(minutes: Int) {
         let clamped = min(max(minutes, LimitPolicy.allowed.lowerBound), LimitPolicy.allowed.upperBound)
         limit = LimitState(minutes: clamped)
-        ledger = UsageLedger(day: today)
+        ledger = UsageLedger(day: today, endsAt: today.end(calendar: calendar))
         setupDay = today
         store.save(today, for: .setupDay)
         persist()
@@ -118,7 +118,11 @@ final class QuietSession {
     var remaining: TimeInterval { ledger.remaining(limitMinutes: limit.minutes) }
 
     /// When today's allowance comes back.
-    var resetsAt: Date { today.end(calendar: calendar) }
+    ///
+    /// The ending the running day was given, not one recomputed now — otherwise
+    /// the curtain would promise a reset that changes the moment somebody
+    /// crosses a border.
+    var resetsAt: Date { ledger.endsAt ?? today.end(calendar: calendar) }
 
     /// True when the device clock sits behind time the app has already seen.
     var isClockRewound: Bool { clock.isRewound }
@@ -279,7 +283,11 @@ final class QuietSession {
     private func rollIfNeeded() {
         let day = today
         guard day != ledger.day else { return }
-        ledger.roll(to: day)
+        // A different day is not the same thing as a day that has passed. The
+        // date changes the instant a time zone does, and a time zone is two taps
+        // away; the ending this day was given when it began does not move.
+        guard ledger.hasEnded(by: clock.now) else { return }
+        ledger.roll(to: day, endingAt: day.end(calendar: calendar))
         limit = LimitPolicy.rolled(limit, to: day)
         announced.removeAll()
         persist()

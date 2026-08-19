@@ -23,7 +23,7 @@ final class QuietSessionTests: XCTestCase {
     private func makeWorld(limit: LimitState? = nil, used: TimeInterval = 0) -> World {
         let store = MemoryStore()
         if let limit {
-            var ledger = UsageLedger(day: today)
+            var ledger = UsageLedger(day: today, endsAt: today.end())
             ledger.add(used)
             store.save(today, for: .setupDay)
             store.save(limit, for: .limit)
@@ -32,6 +32,83 @@ final class QuietSessionTests: XCTestCase {
         let time = FakeTime(noon)
         let session = QuietSession(store: store, clock: MonotonicClock(base: time, store: store))
         return World(store: store, time: time, session: session)
+    }
+
+    // MARK: - Travelling
+
+    /// 16:30 at home, which is already half past four the next morning fourteen
+    /// hours east, and still half past three the same morning eleven hours west.
+    /// One instant, three different dates, which is the whole problem.
+    private let aboard = Date(timeIntervalSince1970: 1_804_689_000)
+
+    private func zone(_ hoursFromGMT: Int) -> Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: hoursFromGMT * 3600)!
+        return calendar
+    }
+
+    /// A phone that has been in use at home, with ten of its twenty minutes gone.
+    private func packed(homeHours: Int = 2) -> World {
+        let home = zone(homeHours)
+        let store = MemoryStore()
+        let day = DayKey(aboard, calendar: home)
+        var ledger = UsageLedger(day: day, endsAt: day.end(calendar: home))
+        ledger.add(10 * 60)
+        store.save(day, for: .setupDay)
+        store.save(LimitState(minutes: 20), for: .limit)
+        store.save(ledger, for: .usage)
+        let time = FakeTime(aboard)
+        let session = QuietSession(
+            store: store,
+            clock: MonotonicClock(base: time, store: store),
+            calendar: home
+        )
+        session.start()
+        return World(store: store, time: time, session: session)
+    }
+
+    /// Land somewhere else: same instant, same store, a different zone.
+    private func landing(_ world: World, at hoursFromGMT: Int) -> QuietSession {
+        let session = QuietSession(
+            store: world.store,
+            clock: MonotonicClock(base: world.time, store: world.store),
+            calendar: zone(hoursFromGMT)
+        )
+        session.start()
+        return session
+    }
+
+    /// The premise, stated as a test so it cannot quietly stop being true: the
+    /// local date really does move in both directions at that instant.
+    func testTheSameInstantIsThreeDifferentDates() {
+        let home = DayKey(aboard, calendar: zone(2))
+        XCTAssertEqual(DayKey(aboard, calendar: zone(14)).ordinal, home.ordinal + 1)
+        XCTAssertEqual(DayKey(aboard, calendar: zone(-11)).ordinal, home.ordinal - 1)
+    }
+
+    /// Changing the time zone is two taps in Settings and moves the date by a
+    /// day in either direction. Neither direction may hand out a fresh
+    /// allowance, or the limit is a suggestion.
+    func testCrossingTimeZonesDoesNotHandOutANewDay() {
+        for destination in [14, -11] {
+            let landed = landing(packed(), at: destination)
+            XCTAssertEqual(landed.ledger.seconds, 10 * 60, "flying to \(destination)")
+            XCTAssertEqual(landed.remaining, 10 * 60, "flying to \(destination)")
+        }
+    }
+
+    /// The day still ends when it said it would, wherever the phone is by then.
+    func testTheDayEndsWhenItsEndingArrives() {
+        let world = packed()
+        let ending = world.session.resetsAt
+        let landed = landing(world, at: 14)
+        XCTAssertEqual(landed.resetsAt, ending, "the promise must not move mid-day")
+
+        world.time.now = ending.addingTimeInterval(1)
+        let next = landing(world, at: 14)
+        XCTAssertEqual(next.ledger.seconds, 0)
+        // And the day that follows belongs to where the phone actually is.
+        XCTAssertEqual(next.resetsAt, next.ledger.day.end(calendar: zone(14)))
     }
 
     // MARK: - First run

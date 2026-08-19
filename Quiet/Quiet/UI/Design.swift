@@ -101,6 +101,17 @@ enum Feedback {
     static func gestureRecognised() {
         UIImpactFeedbackGenerator(style: .soft).impactOccurred()
     }
+
+    /// The curtain, arriving while you are looking at the page.
+    ///
+    /// The same argument as above, for the same reason: a screen that replaces
+    /// itself with no warning reads as a fault unless something says the app
+    /// meant it. One soft tap, the softest iOS has, once. Not a notification
+    /// tone — nothing has gone wrong and nothing has been achieved. It is the
+    /// sound of a book being closed, and there is no second one.
+    static func dayEnded() {
+        UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+    }
 }
 
 /// Minutes, said the way a person would say them.

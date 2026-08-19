@@ -61,6 +61,12 @@ It does not get you:
   grants a new day, and there is no way to know without asking a server Quiet
   does not have. Turning the clock *back* is handled: time freezes until the
   real clock catches up.
+* **Changing the time zone is not a way through**, though it used to be. The
+  local date moves a whole day in either direction the moment a zone changes,
+  and a different date was being read as a day that had passed. The day now
+  keeps the ending it was given when it began: the day you are in is as long as
+  it was born to be, and the next one starts at 4 a.m. wherever you have
+  landed.
 * **Nothing syncs.** A second device has its own limit and its own day.
 * **There is no backup.** The state lives in this phone's keychain. Restoring an
   encrypted iPhone backup carries it over; anything else starts fresh.

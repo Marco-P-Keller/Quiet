@@ -37,6 +37,13 @@ struct RootView: View {
             .onChange(of: scenePhase, initial: true) { _, phase in
                 session.setForeground(phase == .active)
             }
+            // Only this one transition. Opening the app onto a day that was
+            // already gone goes from setup to the curtain, and a phone that
+            // buzzes at you for a thing you did yesterday is a phone that has
+            // misunderstood the app.
+            .onChange(of: session.screen) { was, now in
+                if was == .browsing, now == .spent { Feedback.dayEnded() }
+            }
     }
 
     @ViewBuilder
