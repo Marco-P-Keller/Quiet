@@ -93,6 +93,10 @@ struct SetupView: View {
                 }
             }
             .pickerStyle(.wheel)
+            // See LimitView: a wheel's rows are a fixed height, so the numbers
+            // collide past the largest ordinary text size. The choice is
+            // repeated at full size on the button underneath.
+            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
             .frame(maxWidth: .infinity)
             .frame(height: 170)
             .padding(.vertical, 4)

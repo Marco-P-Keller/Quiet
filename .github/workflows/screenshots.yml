@@ -145,7 +145,14 @@ jobs:
                    setup-dark panel-dark curtain-dark \
                    setup-german panel-german limit-german curtain-german; do
             [ -f "$f.png" ] || continue
-            sips -Z 380 -s format jpeg -s formatOptions 55 "$f.png" --out "$f.jpg" >/dev/null
+            # The accessibility sizes are the ones worth looking at closely,
+            # so they travel bigger. A layout that fails at the largest text
+            # size fails in a detail, and 380 pixels cannot show a detail.
+            case "$f" in
+              *-largest) width=760 ;;
+              *)         width=420 ;;
+            esac
+            sips -Z "$width" -s format jpeg -s formatOptions 60 "$f.png" --out "$f.jpg" >/dev/null
             echo "----BEGIN $f----"
             base64 -b 200 -i "$f.jpg"
             echo "----END $f----"

@@ -40,6 +40,15 @@ struct LimitView: View {
                         }
                     }
                     .pickerStyle(.wheel)
+                    // A wheel is the one control here that cannot grow with the
+                    // reader. UIPickerView fixes its row height, so past the
+                    // largest ordinary size the numbers climb into each other
+                    // and three of them occupy one row — which is what the
+                    // accessibility screenshots showed. Capped rather than
+                    // cropped, and safe to cap: the number chosen is said again
+                    // at full size in the sentence below the wheel and on the
+                    // button, both of which scale all the way.
+                    .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
                     .frame(height: 180)
                     .padding(.vertical, 8)
 

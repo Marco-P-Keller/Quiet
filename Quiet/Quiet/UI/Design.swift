@@ -78,6 +78,12 @@ struct QuietButton: View {
         Button(action: action) {
             Text(title)
                 .font(.quietAction)
+                // Two lines and then it shrinks. A button whose label wraps to
+                // four lines stops being a button and starts being a paragraph
+                // with a box round it.
+                .lineLimit(2)
+                .minimumScaleFactor(0.75)
+                .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
                 .background(Paper.ink.opacity(isEnabled ? 1 : 0.25))
