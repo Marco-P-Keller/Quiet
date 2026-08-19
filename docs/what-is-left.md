@@ -96,95 +96,134 @@ should work.
 
 ## 2. What is needed before it can ship
 
-### 2.1 The rejection risk, stated plainly
+### 2.1 The rejection risk, stated plainly — *answered, as far as it can be*
 
 An app that is one company's website in a web view meets two review guidelines
 head-on: **4.2** (minimum functionality) and **5.2.1** (another party's content
 and brand). No code fixes this.
 
-What helps: Quiet is a limiter, not a viewer — the daily budget, the weekly rule
-and the removed surfaces are the product, and Instagram is the thing being
-limited. Write the review notes to say that in three sentences, and hand the
-reviewer a demo account. Expect a conversation, not a rubber stamp.
+The answer is written and ready to paste, in
+[the listing](store-listing.md#review-notes): three paragraphs saying what the
+app is, in the order the questions will occur to whoever opens it, plus the one
+thing that decides the outcome — a demo account, so a reviewer sees an app
+rather than a login page. The name, the subtitle and the icon carry no
+third-party trademark, deliberately.
 
-### 2.2 A privacy policy and a support page that exist
+Expect a conversation, not a rubber stamp. That part is not a task anybody can
+finish in advance.
 
-App Store Connect requires both as live URLs. Quiet collects nothing, which
-makes the policy short — but a short page still has to be somewhere.
+### 2.2 A privacy policy and a support page that exist — *written; one switch left*
 
-### 2.3 The listing
+Both are in [`site/`](../site) and published to the `gh-pages` branch by a
+workflow, so what is served is what is in the repository rather than a copy that
+drifts. They need GitHub Pages turned on once, by hand:
 
-Screenshots at 6.9" and 6.5". Name (30 characters), subtitle (30), description,
-keywords, age rating. The "not affiliated with or endorsed by Instagram or Meta"
-line belongs in the description too, not only inside the app.
+> **Settings → Pages → Source: Deploy from a branch → `gh-pages` → `/ (root)`**
 
-### 2.4 The first build on a real phone
+Then `https://marco-p-keller.github.io/Quiet/privacy.html` and `/support.html`
+resolve, which is what App Store Connect demands.
 
-The three secrets in the repository, then **Actions → TestFlight → Run
+### 2.3 The listing — *written*
+
+Name, subtitle, promotional text, description, keywords, category, age rating,
+privacy answers and the four screenshots with their captions are all in
+[the listing](store-listing.md), inside Apple's character limits, with the
+reasoning for every arguable choice.
+
+The screenshots themselves come out of the `Screenshots` workflow at 1320 ×
+2868 — the 6.9-inch size App Store Connect requires — as a downloadable
+artifact.
+
+### 2.4 The first build on a real phone — *the one thing still blocked*
+
+The three secrets go into the repository, then **Actions → TestFlight → Run
 workflow**. Everything after the guard in that workflow — archive, export,
-upload — has never run. Until it does, "it builds" and "it ships" are different
-claims.
+upload — has never run, and cannot run until the secrets exist.
 
-### 2.5 English, or not
+The `.p8` private key belongs in **Settings → Secrets and variables → Actions**
+and nowhere else. Not in the repository, not in a message, not pasted into a
+chat.
 
-Every string is English and written in the source. If the first person to use
-this reads German, that is the first thing they notice. Either decide English is
-the voice of the app, or move the strings into a `Localizable.strings` and mean
-it — half a translation is worse than none.
+### 2.5 English, or not — *decided: both*
 
-### 2.6 The version on the first upload
+Every string is now in a catalogue with an English and a German entry, including
+the sentences the app builds rather than writes — the ones that would otherwise
+have shipped in English inside a German app. Two of them carry plural rules
+rather than an `if`.
 
-`MARKETING_VERSION` is what a person sees; the build number comes from the run
-number and only ever climbs. Confirm 1.0 is what you want written down forever,
-because the first upload fixes it.
+German runs about a third longer than English, so the screenshot workflow
+photographs every screen in German too, and the layouts are looked at rather
+than assumed.
+
+### 2.6 The version on the first upload — *decided: 1.0*
+
+`MARKETING_VERSION` is 1.0 and stays there. The build number comes from the
+workflow's run number and only ever climbs, so it never has to be typed.
 
 ---
 
 ## 3. What is not yet good enough
 
-### 3.1 The icon, on a home screen
+### 3.1 The icon, on a home screen — *looked at*
 
-It has only ever been judged as a file. Put it between other apps, in light and
-dark, and in the App Library where it gets shrunk. A full stop has to still read
-as a full stop at 40 points, and must not read as a bug on the screen.
+`Tools/look-at-icon.py` puts it where it is actually seen: 60 points between
+other apps, 40 in Spotlight, 29 in Settings, on a light wallpaper and a dark
+one, behind the rounded mask iOS applies whether the artwork expects it or not.
 
-### 3.2 The moment the curtain arrives
+It holds at every size, and reads as a full stop rather than as dust on the
+display. The smallest — the App Library — is where it comes closest to reading
+as a camera lens, and is the size to look at again if the diameter ever changes.
 
-It fades in over 0.3 seconds, mid-scroll, without warning beyond the two
-notices. It is the one dramatic moment the app has, and it has never been seen
-by anyone. Watch it happen on a phone. If it feels like a crash, it is wrong; if
-it feels like a page being closed, it is right.
+### 3.2 The moment the curtain arrives — *seen, and answered*
 
-### 3.3 The end of the day, in the hand
+It is now photographed on every push, in three variants, so the composition is
+no longer a thing anybody imagines.
 
-The long press answers with a haptic. The day ending does not. Consider one —
-soft, once. Consider also that silence may be the better answer. Either way it
-should be chosen rather than left.
+It also answers in the hand: one soft tap, the softest iOS has, at the moment it
+takes — and only on the transition from reading to spent. Opening the app onto a
+day that was already gone stays silent. What is still unjudged is the *feel* of
+the fade at the moment it interrupts a scroll, which needs a phone.
 
-### 3.4 The largest text anyone uses
+### 3.3 The end of the day, in the hand — *decided: one soft tap*
 
-Every size is a system text style, so it scales. Nobody has looked at the
-curtain or the panel at the largest accessibility size, where a serif display
-line and a wheel of numbers are both at risk.
+The same argument the long press already won. A screen that replaces itself with
+no warning reads as a fault unless something says the app meant it. Not a
+notification tone: nothing has gone wrong and nothing has been achieved.
 
-### 3.5 VoiceOver, from an empty install
+### 3.4 The largest text anyone uses — *photographed*
 
-The status-bar gesture carries an accessibility element so the panel is
-reachable. The whole path — setup, the wheel, browsing, the panel, the limit
-screen — has never been driven with the screen curtain on.
+Every screen Quiet owns is now captured at
+`UICTContentSizeCategoryAccessibilityExtraExtraExtraLarge` as well as at the
+ordinary size, which is where a serif display line of three words on two lines
+and a wheel of numbers are most likely to break.
 
-### 3.6 Travelling
+### 3.5 VoiceOver, from an empty install — *covered by tests*
 
-The day turns at 4 a.m. local, and the boundary is computed against the current
-calendar. Fly two time zones and something has to give: either the day gets
-short or it gets long. Decide which is correct before someone discovers it
-mid-flight.
+Four tests drive every screen the way VoiceOver does: no swipes, no long
+presses, elements found by the name they are announced under and then activated.
+The panel behind the hidden gesture is the one that mattered, and it now has a
+test that fails if the element standing in for the press ever disappears.
+
+A real ear on a real phone is still worth an evening. What cannot happen any
+more is the app silently becoming unreachable.
+
+### 3.6 Travelling — *fixed*
+
+It was not merely undecided; it was a hole. The local date moves a whole day in
+either direction the moment a time zone changes, and a date that was merely
+different was being read as a day that had passed — so a flight east handed out
+a fresh allowance, and so did the flight back. Changing the zone in Settings did
+the same thing without leaving the sofa.
+
+A day now keeps the ending it was given when it began. The day you are in is as
+long as it was born to be; the next one starts at 4 a.m. wherever you have
+landed.
 
 ---
 
 ## How to use this
 
-Items 1.1 through 1.5 need one evening with a phone, an account and TestFlight.
-They are also the only ones that can prove the app does what it says. Everything
-in part 2 is paperwork and decisions, and can be done while waiting for review.
-Part 3 is the part that takes taste rather than time.
+Everything above the line in part 1 needs one evening with a phone, an account
+and TestFlight, and those five items are the only ones that can prove the app
+does what it says. Below it, one switch (Pages), one upload (TestFlight), and a
+conversation with a reviewer.

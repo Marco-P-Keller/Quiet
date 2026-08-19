@@ -269,3 +269,56 @@ both are failures silent enough to go unnoticed, and neither is allowed to be
 discovered by accident. And the UI test now closes the app, opens it again,
 and insists that setup does not come back, so the promise is checked rather
 than assumed.
+
+## A day keeps the ending it was given when it began
+
+The day turns at 4 a.m. wherever you are, which quietly makes the time zone part
+of the rule — and a time zone is two taps in Settings, with no clock change for
+the monotonic guard to notice.
+
+The local date moves a whole day in either direction the instant a zone changes.
+The app was reading a date that was merely *different* as a day that had
+*passed*, so both directions handed out a fresh allowance: fly east, get twenty
+minutes; fly back, get twenty more; or skip the flight and use Settings.
+
+The ending is now decided when a day begins and does not move. The day you are
+in is as long as it was born to be, and the next one starts at 4 a.m. wherever
+you have landed. One honest turnover and the app has fully adopted the new zone,
+which is the behaviour somebody who has actually emigrated wants.
+
+## The curtain answers in the hand
+
+The long press already won this argument: a control that does nothing visible
+feels broken, and one soft tap at the moment it takes is what makes it read as a
+control rather than a guess.
+
+A screen replacing itself mid-scroll has the same problem in a larger form. One
+soft tap — the softest iOS has, not a notification tone, since nothing has gone
+wrong and nothing has been achieved — and only on the transition from reading to
+spent. Opening the app onto a day that was already gone stays silent: a phone
+that buzzes at you for something you did yesterday has misunderstood the app.
+
+## The app speaks German as carefully as it speaks English
+
+Quiet is almost entirely a piece of writing. Sixty-odd sentences, each one
+argued over, are the whole interface — so shipping them in a language its reader
+does not think in would throw away most of what the app is.
+
+Both languages live in one catalogue. The trap was never the sentences in `Text`,
+which SwiftUI translates on its own; it was the ones the app *builds* — the
+button that says "Ask for 30 minutes a day", the notice that says "Two minutes
+left." A `Text` of a `String` variable is verbatim by design, so those would have
+shipped in English inside a German app, looking for all the world like a
+finished translation. Every one is now looked up explicitly.
+
+## A debug-only way to stand on any screen
+
+The curtain is the moment the whole app turns on, and reaching it honestly costs
+the shortest limit the app allows: five minutes of watching a simulator. So
+nobody ever looked at it, and it went to the App Store listing unexamined.
+
+`Rehearsal` writes the state a named scene needs — an empty install, a spent day,
+the panel open — through the same store the app writes to, and then gets out of
+the way. It is wrapped in `#if DEBUG` in its entirety: none of it exists in a
+build anybody can install, and it holds no opinion about how the app behaves,
+which is the only thing that makes a rehearsal worth trusting.

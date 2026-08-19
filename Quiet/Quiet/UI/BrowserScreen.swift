@@ -116,7 +116,7 @@ struct BrowserScreen: View {
     /// bundle, which brings Reels back, and a keychain that refuses writes,
     /// which throws the limit away at every launch. Neither is allowed to be
     /// discovered by accident.
-    private func alarm(_ text: String) -> some View {
+    private func alarm(_ text: LocalizedStringKey) -> some View {
         Text(text)
             .font(.quietSmall.weight(.medium))
             .multilineTextAlignment(.center)
