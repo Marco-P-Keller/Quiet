@@ -1,0 +1,134 @@
+name: Screenshots
+
+# Photographs every screen Quiet owns, at the size the App Store asks for.
+#
+# The app's own screens are the ones worth showing: the question it opens with,
+# the panel, the limit screen, and the curtain. Reaching the curtain honestly
+# costs five minutes of staring at a simulator, so a debug-only launch argument
+# puts the day where it needs to be. Nothing here can affect a build anybody can
+# install — `Rehearsal` is wrapped in `#if DEBUG` in its entirety.
+#
+# The full-size images go out as an artifact, for the listing. Small previews go
+# into the log, because that is the only channel out of this environment that a
+# person reading a run can use immediately.
+on:
+  push:
+    paths:
+      - 'Quiet/**'
+      - '.github/workflows/screenshots.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: shots-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  photograph:
+    name: Photograph every screen
+    runs-on: macos-15
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: Quiet
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select the newest Xcode
+        run: |
+          set -euo pipefail
+          latest=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          sudo xcode-select -s "$latest/Contents/Developer"
+          xcodebuild -version
+
+      # The App Store wants 6.9 inches: 1320 × 2868. That is the Pro Max, and
+      # only the Pro Max — a screenshot from a smaller phone is rejected on
+      # upload rather than scaled. Any iPhone will do for looking at the app,
+      # so the fallback is not fatal, only smaller.
+      - name: Boot the biggest iPhone
+        id: sim
+        timeout-minutes: 10
+        run: |
+          set -euo pipefail
+          available=$(xcrun simctl list devices available \
+            | sed -n 's/^ *\(iPhone [^(]*\) (.*/\1/p' | sed 's/ *$//')
+          device=$(echo "$available" | grep -m1 "Pro Max" || echo "$available" | head -1)
+          if [ -z "$device" ]; then
+            echo "No iPhone simulator on this runner" >&2
+            exit 1
+          fi
+          echo "Booting $device"
+          xcrun simctl boot "$device" || true
+          time xcrun simctl bootstatus "$device" -b
+          echo "device=$device" >> "$GITHUB_OUTPUT"
+
+      - name: Build
+        timeout-minutes: 25
+        run: |
+          set -o pipefail
+          time xcodebuild build \
+            -project Quiet.xcodeproj \
+            -scheme Quiet \
+            -destination "platform=iOS Simulator,name=${{ steps.sim.outputs.device }}" \
+            -derivedDataPath DerivedData \
+            2>&1 \
+            | sed "s|$GITHUB_WORKSPACE/||g" \
+            | grep -E "error:|warning:|\*\* BUILD"
+
+      - name: Photograph
+        timeout-minutes: 15
+        run: |
+          set -euo pipefail
+          app="DerivedData/Build/Products/Debug-iphonesimulator/Quiet.app"
+          xcrun simctl install booted "$app"
+          mkdir -p shots
+
+          # One launch per photograph, because the state is written before the
+          # session reads it and a relaunch is the only honest way to get there.
+          shoot () {
+            local name="$1" scene="$2"; shift 2
+            xcrun simctl terminate booted com.connexa.quiet >/dev/null 2>&1 || true
+            xcrun simctl launch booted com.connexa.quiet -QuietRehearsal "$scene" "$@" >/dev/null
+            # The browsing screen holds Quiet's own paper over the web view
+            # until the first page settles, so this waits for the page rather
+            # than for the app.
+            if [ "$scene" = "browsing" ]; then sleep 14; else sleep 6; fi
+            xcrun simctl io booted screenshot --type=png "shots/$name.png"
+          }
+
+          shoot setup   fresh
+          shoot panel   panel
+          shoot limit   limit
+          shoot curtain spent
+          shoot feed    browsing
+
+          # The same screens at the largest size anybody's phone can be set to.
+          # This is where a serif display line and a wheel of numbers break.
+          big="-UIPreferredContentSizeCategoryName UICTContentSizeCategoryAccessibilityExtraExtraExtraLarge"
+          shoot setup-largest   fresh $big
+          shoot panel-largest   panel $big
+          shoot limit-largest   limit $big
+          shoot curtain-largest spent $big
+
+          file shots/*.png | sed 's|.*/||'
+
+      # Small enough to travel through a log, large enough to judge a layout.
+      - name: Look at them
+        if: always()
+        run: |
+          set -euo pipefail
+          cd shots
+          for f in setup panel limit curtain setup-largest panel-largest limit-largest curtain-largest; do
+            [ -f "$f.png" ] || continue
+            sips -Z 380 -s format jpeg -s formatOptions 55 "$f.png" --out "$f.jpg" >/dev/null
+            echo "----BEGIN $f----"
+            base64 -b 200 -i "$f.jpg"
+            echo "----END $f----"
+          done
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: Quiet/shots/*.png
+          if-no-files-found: error

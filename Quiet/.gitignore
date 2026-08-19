@@ -12,3 +12,6 @@ xcuserdata/
 # Left behind by a local `xcodebuild test`, and by the CI workflow.
 build.log
 *.xcresult
+
+# Screenshots taken by CI.
+shots/

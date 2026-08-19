@@ -27,6 +27,9 @@ struct RootView: View {
             }
             .task {
                 session.start()
+                #if DEBUG
+                Rehearsal.open(session)
+                #endif
                 if session.screen == .browsing, session.isLearningTheGesture {
                     teachTheGesture()
                 }

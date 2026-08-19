@@ -51,6 +51,15 @@ struct PanelView: View {
             .toolbarBackground(.visible, for: .navigationBar)
         }
         .presentationBackground(Paper.page)
+        .onAppear(perform: openLimitIfRehearsing)
+    }
+
+    /// Nothing at all, except when a screenshot is being taken of the limit
+    /// screen. See `Rehearsal`, which does not exist outside a debug build.
+    private func openLimitIfRehearsing() {
+        #if DEBUG
+        if Rehearsal.opensLimit { isChangingLimit = true }
+        #endif
     }
 
     // MARK: - Today

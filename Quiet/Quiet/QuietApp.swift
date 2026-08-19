@@ -15,6 +15,11 @@ struct QuietApp: App {
     init() {
         let store = KeychainStore()
         let clock = MonotonicClock(store: store)
+        #if DEBUG
+        // Nothing unless a launch argument asks for it, and none of it exists
+        // in a build anybody can install.
+        Rehearsal.prepare(store: store, clock: clock)
+        #endif
         _session = State(initialValue: QuietSession(store: store, clock: clock))
     }
 
