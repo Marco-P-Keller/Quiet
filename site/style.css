@@ -1,0 +1,92 @@
+/* The same paper the app is printed on: warm off-white by day, warm near-black
+   by night, never pure white and never pure black. One column, one thing to
+   read at a time. */
+:root {
+  --page: #f7f4ef;
+  --ink: #1b1916;
+  --soft: #1b191699;
+  --rule: #1b19161f;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #121110;
+    --ink: #efece6;
+    --soft: #efece699;
+    --rule: #efece61f;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0 28px 80px;
+  background: var(--page);
+  color: var(--ink);
+  font: 17px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+main {
+  max-width: 34rem;
+  margin: 0 auto;
+}
+
+header {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 64px 0 40px;
+}
+
+h1 {
+  font-family: ui-serif, Georgia, "Times New Roman", serif;
+  font-size: 2.1rem;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
+}
+
+h2 {
+  font-family: ui-serif, Georgia, "Times New Roman", serif;
+  font-size: 1.25rem;
+  font-weight: 400;
+  margin: 44px 0 10px;
+}
+
+p { margin: 0 0 16px; }
+
+ul { margin: 0 0 16px; padding-left: 1.1rem; }
+li { margin-bottom: 8px; }
+
+.lede { color: var(--soft); }
+
+a { color: inherit; text-decoration-color: var(--rule); text-underline-offset: 3px; }
+a:hover { text-decoration-color: currentColor; }
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 48px 0 24px;
+}
+
+footer {
+  max-width: 34rem;
+  margin: 0 auto;
+  color: var(--soft);
+  font-size: 0.82rem;
+}
+
+nav { margin-top: 20px; font-size: 0.95rem; }
+nav a { margin-right: 18px; }
+
+/* The mark: a full stop, the same one on the icon. */
+.mark {
+  display: block;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--ink);
+  margin-bottom: 26px;
+}

@@ -1,0 +1,53 @@
+name: Site
+
+# Publishes site/ to the gh-pages branch, which is what
+# marco-p-keller.github.io/Quiet serves.
+#
+# The App Store will not take a listing without a privacy policy and a support
+# page at real URLs, and a page that exists only in a repository is not a URL.
+# Copying the files by hand would mean the published pages and the ones in the
+# repository drift the first time somebody is in a hurry, so nobody copies
+# anything: what is on main is what is served.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - '.github/workflows/site.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: site
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: Publish the pages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # gh-pages carries no history worth keeping: it is output, not work. Each
+      # run replaces it with exactly what site/ contains, so a file deleted
+      # there is a file gone from the web.
+      - name: Push site/ to gh-pages
+        working-directory: site
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Tells GitHub Pages not to run these through Jekyll, which would hide
+          # any file whose name begins with an underscore.
+          touch .nojekyll
+          git init -q -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Publish the site from ${GITHUB_SHA:0:7}"
+          git push -q -f \
+            "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            gh-pages
+          echo "Published $(git ls-files | wc -l | tr -d ' ') files."

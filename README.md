@@ -245,7 +245,8 @@ Longer versions of all of this: [decisions](docs/decisions.md),
 [trade-offs](docs/trade-offs.md), and
 [what the App Store and Instagram's terms have to say](docs/store-and-legal.md).
 What has not been answered yet, in the order it matters:
-[what is left](docs/what-is-left.md).
+[what is left](docs/what-is-left.md). Everything the App Store asks for,
+written out: [the listing](docs/store-listing.md).
 
 ---
 
