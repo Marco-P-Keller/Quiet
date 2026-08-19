@@ -104,11 +104,25 @@ jobs:
 
           # The same screens at the largest size anybody's phone can be set to.
           # This is where a serif display line and a wheel of numbers break.
-          big="-UIPreferredContentSizeCategoryName UICTContentSizeCategoryAccessibilityExtraExtraExtraLarge"
-          shoot setup-largest   fresh $big
-          shoot panel-largest   panel $big
-          shoot limit-largest   limit $big
-          shoot curtain-largest spent $big
+          #
+          # Set on the device rather than passed to the app. The launch argument
+          # -UIPreferredContentSizeCategoryName takes the short spelling
+          # (…AccessibilityXXXL); the long one is silently ignored, which is how
+          # the first version of this step produced four screenshots identical
+          # to the ordinary ones and looked like it had checked something.
+          xcrun simctl ui booted content_size accessibility-extra-extra-extra-large
+          shoot setup-largest   fresh
+          shoot panel-largest   panel
+          shoot limit-largest   limit
+          shoot curtain-largest spent
+          xcrun simctl ui booted content_size large
+
+          # At night. Quiet has a complete dark palette that nobody has looked at.
+          xcrun simctl ui booted appearance dark
+          shoot setup-dark   fresh
+          shoot panel-dark   panel
+          shoot curtain-dark spent
+          xcrun simctl ui booted appearance light
 
           # And in German, which is a third longer than English and therefore
           # the real test of every line that was written to fit.
@@ -128,6 +142,7 @@ jobs:
           cd shots
           for f in setup panel limit curtain \
                    setup-largest panel-largest limit-largest curtain-largest \
+                   setup-dark panel-dark curtain-dark \
                    setup-german panel-german limit-german curtain-german; do
             [ -f "$f.png" ] || continue
             sips -Z 380 -s format jpeg -s formatOptions 55 "$f.png" --out "$f.jpg" >/dev/null
