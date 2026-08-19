@@ -199,7 +199,7 @@ struct InstagramWebView: UIViewRepresentable {
             guard code != NSURLErrorCancelled else { return }
             surface.markLoaded()
             if code == NSURLErrorNotConnectedToInternet || code == NSURLErrorNetworkConnectionLost {
-                session.show("No connection.")
+                session.show(String(localized: "No connection."))
             }
         }
 

@@ -330,7 +330,7 @@ final class QuietSession {
         // coming back from the background at one minute should say one thing,
         // and it should be the urgent one.
         announced.formUnion(due)
-        show(threshold == 1 ? "One minute left." : "\(threshold) minutes left.")
+        show(String(localized: "\(threshold) minutes left."))
     }
 
     // MARK: - Persistence

@@ -115,9 +115,16 @@ enum Feedback {
 }
 
 /// Minutes, said the way a person would say them.
+///
+/// These are strings the app builds rather than writes, so each one is looked
+/// up explicitly. A `Text` with a literal in it is translated by SwiftUI; a
+/// `String` assembled in code is not, and would have shipped in English inside
+/// a German app.
 enum Phrase {
     static func minutes(_ count: Int) -> String {
-        count == 1 ? "1 minute" : "\(count) minutes"
+        // One entry with a plural rule, rather than two strings and an `if`:
+        // languages do not agree on how many plurals there are.
+        String(localized: "\(count) minutes")
     }
 
     /// Rounds up, so "0 minutes left" never sits on screen while time is still
@@ -134,13 +141,13 @@ enum Phrase {
     static func day(_ day: DayKey, relativeTo today: DayKey, calendar: Calendar = .current) -> String {
         let date = day.start(calendar: calendar)
         let distance = today.days(to: day)
-        if distance <= 0 { return "today" }
-        if distance == 1 { return "tomorrow" }
+        if distance <= 0 { return String(localized: "today") }
+        if distance == 1 { return String(localized: "tomorrow") }
         // Exactly a week out gets a date, not a weekday: "on Tuesday" is the
         // same word as today, and would read as the wrong Tuesday.
         if distance > 1 && distance < 7 {
-            return "on " + date.formatted(.dateTime.weekday(.wide))
+            return String(localized: "on \(date.formatted(.dateTime.weekday(.wide)))")
         }
-        return "on " + date.formatted(.dateTime.day().month(.wide))
+        return String(localized: "on \(date.formatted(.dateTime.day().month(.wide)))")
     }
 }

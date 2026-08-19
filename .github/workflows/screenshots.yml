@@ -110,6 +110,14 @@ jobs:
           shoot limit-largest   limit $big
           shoot curtain-largest spent $big
 
+          # And in German, which is a third longer than English and therefore
+          # the real test of every line that was written to fit.
+          german="-AppleLanguages (de) -AppleLocale de_DE"
+          shoot setup-german   fresh $german
+          shoot panel-german   panel $german
+          shoot limit-german   limit $german
+          shoot curtain-german spent $german
+
           file shots/*.png | sed 's|.*/||'
 
       # Small enough to travel through a log, large enough to judge a layout.
@@ -118,7 +126,9 @@ jobs:
         run: |
           set -euo pipefail
           cd shots
-          for f in setup panel limit curtain setup-largest panel-largest limit-largest curtain-largest; do
+          for f in setup panel limit curtain \
+                   setup-largest panel-largest limit-largest curtain-largest \
+                   setup-german panel-german limit-german curtain-german; do
             [ -f "$f.png" ] || continue
             sips -Z 380 -s format jpeg -s formatOptions 55 "$f.png" --out "$f.jpg" >/dev/null
             echo "----BEGIN $f----"

@@ -1,0 +1,706 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    " You can ask for more again %@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " Um mehr kannst du wieder %@ bitten."
+          }
+        }
+      }
+    },
+    " You have already used more than that today, so today ends here.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " Du hast heute schon mehr verbraucht, also endet der Tag hier."
+          }
+        }
+      }
+    },
+    "%@ a day, starting %@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ am Tag, ab %@."
+          }
+        }
+      }
+    },
+    "%@ from %@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ab %@."
+          }
+        }
+      }
+    },
+    "%@ left today.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heute noch %@."
+          }
+        }
+      }
+    },
+    "Ask for %@ a day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um %@ am Tag bitten"
+          }
+        }
+      }
+    },
+    "Back": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück"
+          }
+        }
+      }
+    },
+    "Cancels the increase you asked for.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nimmt die Erhöhung zurück, um die du gebeten hast."
+          }
+        }
+      }
+    },
+    "Continue": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weiter"
+          }
+        }
+      }
+    },
+    "Daily limit": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tageslimit"
+          }
+        }
+      }
+    },
+    "Done": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fertig"
+          }
+        }
+      }
+    },
+    "Explore is off in Quiet.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explore ist in Quiet aus."
+          }
+        }
+      }
+    },
+    "Find someone": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jemanden finden"
+          }
+        }
+      }
+    },
+    "Go": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los"
+          }
+        }
+      }
+    },
+    "How much Instagram\ndo you want in a day?": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wie viel Instagram\nwillst du am Tag?"
+          }
+        }
+      }
+    },
+    "Instagram,\nminus the parts\nthat keep you there.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram,\nohne die Teile,\ndie dich festhalten."
+          }
+        }
+      }
+    },
+    "Less takes effect at once. More starts the next day, and only once a week.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weniger gilt sofort. Mehr beginnt am nächsten Tag — und nur einmal pro Woche."
+          }
+        }
+      }
+    },
+    "Minutes a day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minuten am Tag"
+          }
+        }
+      }
+    },
+    "No Reels. No Explore. No accounts suggested between your friends.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Reels. Kein Explore. Keine vorgeschlagenen Konten zwischen deinen Freunden."
+          }
+        }
+      }
+    },
+    "No connection.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Verbindung."
+          }
+        }
+      }
+    },
+    "No time left today.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heute ist die Zeit vorbei."
+          }
+        }
+      }
+    },
+    "Quiet": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet"
+          }
+        }
+      }
+    },
+    "Quiet cannot save to this phone's keychain. Your limit will not survive closing the app.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet kann nicht in den Schlüsselbund dieses Telefons schreiben. Dein Limit überlebt das Schließen der App nicht."
+          }
+        }
+      }
+    },
+    "Quiet has no account, no servers and no analytics. It stores four things on this phone: your limit, today's total, the last time it saw, and the day you set it up.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet hat kein Konto, keine Server und keine Analyse. Es speichert vier Dinge auf diesem Telefon: dein Limit, den heutigen Stand, den spätesten Zeitpunkt, den es gesehen hat, und den Tag, an dem du es eingerichtet hast."
+          }
+        }
+      }
+    },
+    "Quiet has no search page, because search is where Explore lives. Typing a name goes straight to that profile.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet hat keine Suchseite, denn dort wohnt Explore. Ein eingetippter Name führt direkt zu diesem Profil."
+          }
+        }
+      }
+    },
+    "Quiet is missing %@. Reinstall from a clean build.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet fehlt %@. Neu aus einem sauberen Build installieren."
+          }
+        }
+      }
+    },
+    "Quiet is not affiliated with or endorsed by Instagram or Meta.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet steht in keiner Verbindung zu Instagram oder Meta und wird von ihnen nicht unterstützt."
+          }
+        }
+      }
+    },
+    "Quiet is your Instagram here.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet ist hier dein Instagram."
+          }
+        }
+      }
+    },
+    "Quiet runs on Instagram's mobile site, so pages load a beat slower and a few things are missing.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet läuft auf Instagrams mobiler Website. Seiten laden einen Takt langsamer, und ein paar Dinge fehlen."
+          }
+        }
+      }
+    },
+    "Quiet settings": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet-Einstellungen"
+          }
+        }
+      }
+    },
+    "Quiet works between %lld and %lld minutes a day.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet arbeitet zwischen %lld und %lld Minuten am Tag."
+          }
+        }
+      }
+    },
+    "Reels are off in Quiet.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reels sind in Quiet aus."
+          }
+        }
+      }
+    },
+    "Resets at %@. Only time with Instagram on screen counts.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurückgesetzt um %@. Es zählt nur Zeit, in der Instagram auf dem Bildschirm ist."
+          }
+        }
+      }
+    },
+    "Set %@ a day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ am Tag festlegen"
+          }
+        }
+      }
+    },
+    "Settings": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen"
+          }
+        }
+      }
+    },
+    "Sign out": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abmelden"
+          }
+        }
+      }
+    },
+    "Sign out of Instagram": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Von Instagram abmelden"
+          }
+        }
+      }
+    },
+    "Sign out of Instagram?": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Von Instagram abmelden?"
+          }
+        }
+      }
+    },
+    "Starts %@. Today stays at %@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beginnt %@. Heute bleibt bei %@."
+          }
+        }
+      }
+    },
+    "Takes effect now.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gilt ab sofort."
+          }
+        }
+      }
+    },
+    "That doesn't look like a username.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das sieht nicht nach einem Benutzernamen aus."
+          }
+        }
+      }
+    },
+    "That's all\nfor today.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das war's\nfür heute."
+          }
+        }
+      }
+    },
+    "The date on this phone is behind where Quiet last saw it. The limit can be lowered, but not raised, until it catches up.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Datum auf diesem Telefon liegt hinter dem, was Quiet zuletzt gesehen hat. Das Limit kann gesenkt werden, aber nicht erhöht, bis es aufgeholt hat."
+          }
+        }
+      }
+    },
+    "The date on this phone is behind where Quiet last saw it. Until it catches up, the limit can go down but not up.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Datum auf diesem Telefon liegt hinter dem, was Quiet zuletzt gesehen hat. Bis es aufgeholt hat, kann das Limit sinken, aber nicht steigen."
+          }
+        }
+      }
+    },
+    "This clears the Instagram session from this app. Your daily limit stays as it is.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das löscht die Instagram-Sitzung aus dieser App. Dein Tageslimit bleibt, wie es ist."
+          }
+        }
+      }
+    },
+    "This is your limit.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das ist dein Limit."
+          }
+        }
+      }
+    },
+    "Touch and hold the top edge for settings.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oberen Rand berühren und halten für Einstellungen."
+          }
+        }
+      }
+    },
+    "Version %@ (%@)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %@ (%@)"
+          }
+        }
+      }
+    },
+    "You asked for %@ a day. Quiet opens again at %@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du hast dir %@ am Tag vorgenommen. Quiet öffnet wieder um %@."
+          }
+        }
+      }
+    },
+    "You can ask for less whenever you like. It takes effect at once.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um weniger kannst du jederzeit bitten. Es gilt sofort."
+          }
+        }
+      }
+    },
+    "You can ask for more once a week, and it starts the next day — never in the moment you want five more minutes.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um mehr kannst du einmal pro Woche bitten, und es beginnt am nächsten Tag — nie in dem Moment, in dem du fünf Minuten mehr willst."
+          }
+        }
+      }
+    },
+    "You raised your limit less than a week ago. You can ask for more again %@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du hast dein Limit vor weniger als einer Woche erhöht. Um mehr kannst du wieder %@ bitten."
+          }
+        }
+      }
+    },
+    "You sign in on Instagram's own page. Your password never touches Quiet.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du meldest dich auf Instagrams eigener Seite an. Dein Passwort berührt Quiet nie."
+          }
+        }
+      }
+    },
+    "Your feed, your stories, your messages, your profile. Everything else works the way it always did.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Feed, deine Stories, deine Nachrichten, dein Profil. Alles andere funktioniert wie immer."
+          }
+        }
+      }
+    },
+    "Your limit is kept in the keychain, which outlives the app. Deleting Quiet and installing it again does not reset it.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Limit liegt im Schlüsselbund, der die App überlebt. Quiet zu löschen und neu zu installieren setzt es nicht zurück."
+          }
+        }
+      }
+    },
+    "Your limit is kept outside the app. Deleting Quiet and installing it again does not reset it.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Limit liegt außerhalb der App. Quiet zu löschen und neu zu installieren setzt es nicht zurück."
+          }
+        }
+      }
+    },
+    "Your limit is now %@ a day.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Limit ist jetzt %@ am Tag."
+          }
+        }
+      }
+    },
+    "Your time today, your daily limit, and finding someone": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Zeit heute, dein Tageslimit und jemanden finden"
+          }
+        }
+      }
+    },
+    "on %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "am %@"
+          }
+        }
+      }
+    },
+    "today": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "heute"
+          }
+        }
+      }
+    },
+    "tomorrow": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "morgen"
+          }
+        }
+      }
+    },
+    "username": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "benutzername"
+          }
+        }
+      }
+    },
+    "%lld minutes": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "1 minute"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld minutes"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "1 Minute"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Minuten"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld minutes left.": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "One minute left."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld minutes left."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Noch eine Minute."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Noch %lld Minuten."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

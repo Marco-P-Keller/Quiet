@@ -107,8 +107,8 @@ struct SetupView: View {
 
     private var actionTitle: String {
         switch step {
-        case .what: return "Continue"
-        case .howMuch: return "Set \(Phrase.minutes(minutes)) a day"
+        case .what: return String(localized: "Continue")
+        case .howMuch: return String(localized: "Set \(Phrase.minutes(minutes)) a day")
         }
     }
 
@@ -121,12 +121,14 @@ struct SetupView: View {
 
     /// One sentence, set the way the whole app sets sentences.
     private struct Line: View {
-        let text: String
+        let key: LocalizedStringKey
 
-        init(_ text: String) { self.text = text }
+        /// A key rather than a string, so the sentence is translated. `Text` of
+        /// a `String` variable is verbatim by design.
+        init(_ key: LocalizedStringKey) { self.key = key }
 
         var body: some View {
-            Text(text)
+            Text(key)
                 .font(.quietNote)
                 .foregroundStyle(Paper.inkSoft)
                 .fixedSize(horizontal: false, vertical: true)

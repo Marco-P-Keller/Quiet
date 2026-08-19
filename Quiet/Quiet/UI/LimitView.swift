@@ -95,13 +95,13 @@ struct LimitView: View {
         case let .success((state, change)):
             return describe(change, resulting: state)
         case .failure(.unchanged):
-            return "This is your limit."
+            return String(localized: "This is your limit.")
         case let .failure(.tooSoon(next)):
-            return "You raised your limit less than a week ago. You can ask for more again \(Phrase.day(next, relativeTo: session.today))."
+            return String(localized: "You raised your limit less than a week ago. You can ask for more again \(Phrase.day(next, relativeTo: session.today)).")
         case .failure(.clockRewound):
-            return "The date on this phone is behind where Quiet last saw it. Until it catches up, the limit can go down but not up."
+            return String(localized: "The date on this phone is behind where Quiet last saw it. Until it catches up, the limit can go down but not up.")
         case let .failure(.outOfRange(range)):
-            return "Quiet works between \(range.lowerBound) and \(range.upperBound) minutes a day."
+            return String(localized: "Quiet works between \(range.lowerBound) and \(range.upperBound) minutes a day.")
         }
     }
 
@@ -109,16 +109,16 @@ struct LimitView: View {
         switch change {
         case .now:
             let lead = minutes == session.limit.minutes
-                ? "Cancels the increase you asked for."
-                : "Takes effect now."
+                ? String(localized: "Cancels the increase you asked for.")
+                : String(localized: "Takes effect now.")
             if session.ledger.isSpent(limitMinutes: minutes) {
-                return lead + " You have already used more than that today, so today ends here."
+                return lead + String(localized: " You have already used more than that today, so today ends here.")
             }
             return lead
         case let .on(day, _):
-            var sentence = "Starts \(Phrase.day(day, relativeTo: session.today)). Today stays at \(Phrase.minutes(session.limit.minutes))."
+            var sentence = String(localized: "Starts \(Phrase.day(day, relativeTo: session.today)). Today stays at \(Phrase.minutes(session.limit.minutes)).")
             if let next = LimitPolicy.nextIncreaseDay(state, today: session.today) {
-                sentence += " You can ask for more again \(Phrase.day(next, relativeTo: session.today))."
+                sentence += String(localized: " You can ask for more again \(Phrase.day(next, relativeTo: session.today)).")
             }
             return sentence
         }
@@ -128,18 +128,18 @@ struct LimitView: View {
     /// The button should not promise something the rule will not deliver.
     private var buttonTitle: String {
         if case let .success((_, change)) = outcome, case .on = change {
-            return "Ask for \(Phrase.minutes(minutes)) a day"
+            return String(localized: "Ask for \(Phrase.minutes(minutes)) a day")
         }
-        return "Set \(Phrase.minutes(minutes)) a day"
+        return String(localized: "Set \(Phrase.minutes(minutes)) a day")
     }
 
     private func commit() {
         guard case let .success(change) = session.requestLimit(minutes) else { return }
         switch change {
         case let .now(value):
-            session.show("Your limit is now \(Phrase.minutes(value)) a day.")
+            session.show(String(localized: "Your limit is now \(Phrase.minutes(value)) a day."))
         case let .on(day, value):
-            session.show("\(Phrase.minutes(value)) a day, starting \(Phrase.day(day, relativeTo: session.today)).")
+            session.show(String(localized: "\(Phrase.minutes(value)) a day, starting \(Phrase.day(day, relativeTo: session.today))."))
         }
         onFinish()
     }

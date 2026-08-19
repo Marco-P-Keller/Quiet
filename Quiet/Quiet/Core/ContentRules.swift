@@ -15,9 +15,9 @@ enum BlockedSurface: String, Codable, Sendable {
     /// true, so the app just says what it did.
     var message: String {
         switch self {
-        case .reels: return "Reels are off in Quiet."
-        case .explore: return "Explore is off in Quiet."
-        case .theApp: return "Quiet is your Instagram here."
+        case .reels: return String(localized: "Reels are off in Quiet.")
+        case .explore: return String(localized: "Explore is off in Quiet.")
+        case .theApp: return String(localized: "Quiet is your Instagram here.")
         }
     }
 }

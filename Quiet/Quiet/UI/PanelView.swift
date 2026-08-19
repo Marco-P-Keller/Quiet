@@ -113,13 +113,13 @@ struct PanelView: View {
 
     private var headline: String {
         switch session.screen {
-        case .spent: return "No time left today."
-        default: return "\(Phrase.remaining(session.remaining)) left today."
+        case .spent: return String(localized: "No time left today.")
+        default: return String(localized: "\(Phrase.remaining(session.remaining)) left today.")
         }
     }
 
     private var subhead: String {
-        "Resets at \(Phrase.clockTime(session.resetsAt)). Only time with Instagram on screen counts."
+        String(localized: "Resets at \(Phrase.clockTime(session.resetsAt)). Only time with Instagram on screen counts.")
     }
 
     // MARK: - Find someone
@@ -151,7 +151,7 @@ struct PanelView: View {
             // Said here rather than as a floating notice: the panel is covering
             // the screen a notice would appear on, and an answer nobody can see
             // is the same as no answer.
-            Text(handleProblem ?? "Quiet has no search page, because search is where Explore lives. Typing a name goes straight to that profile.")
+            Text(handleProblem ?? String(localized: "Quiet has no search page, because search is where Explore lives. Typing a name goes straight to that profile."))
                 .font(.quietSmall)
                 .foregroundStyle(Paper.inkSoft)
                 .fixedSize(horizontal: false, vertical: true)
@@ -164,7 +164,7 @@ struct PanelView: View {
 
     private func open() {
         guard let url = ContentRules.profile(forHandle: handle) else {
-            handleProblem = "That doesn't look like a username."
+            handleProblem = String(localized: "That doesn't look like a username.")
             return
         }
         surface.open(url)
@@ -199,19 +199,23 @@ struct PanelView: View {
                 Note("Quiet has no account, no servers and no analytics. It stores four things on this phone: your limit, today's total, the last time it saw, and the day you set it up.")
                 Note("Your limit is kept in the keychain, which outlives the app. Deleting Quiet and installing it again does not reset it.")
                 Note("Quiet is not affiliated with or endorsed by Instagram or Meta.")
-                Note(Build.versionLine)
+                Note(verbatim: Build.versionLine)
             }
             .padding(.top, 6)
         }
     }
 
     private struct Note: View {
-        let text: String
+        let text: Text
 
-        init(_ text: String) { self.text = text }
+        /// A literal, so that it is translated. `Text(someString)` is verbatim
+        /// by design, which is right for a version number and wrong for a
+        /// sentence — hence the two ways in.
+        init(_ key: LocalizedStringKey) { text = Text(key) }
+        init(verbatim: String) { text = Text(verbatim: verbatim) }
 
         var body: some View {
-            Text(text)
+            text
                 .font(.quietFine)
                 .foregroundStyle(Paper.inkSoft)
                 .fixedSize(horizontal: false, vertical: true)
@@ -224,6 +228,6 @@ enum Build {
         let info = Bundle.main.infoDictionary
         let version = info?["CFBundleShortVersionString"] as? String ?? "1.0"
         let build = info?["CFBundleVersion"] as? String ?? "1"
-        return "Version \(version) (\(build))"
+        return String(localized: "Version \(version) (\(build))")
     }
 }

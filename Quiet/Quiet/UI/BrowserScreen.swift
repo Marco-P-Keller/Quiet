@@ -73,8 +73,8 @@ struct BrowserScreen: View {
             // trait it is the first thing in the rotor, and a double tap opens
             // the panel without any holding at all.
             .accessibilityElement()
-            .accessibilityLabel("Quiet settings")
-            .accessibilityHint("Your time today, your daily limit, and finding someone")
+            .accessibilityLabel(Text("Quiet settings"))
+            .accessibilityHint(Text("Your time today, your daily limit, and finding someone"))
             .accessibilityAddTraits(.isButton)
             .accessibilityAction { onOpenPanel() }
     }
