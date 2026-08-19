@@ -35,7 +35,14 @@ final class KeychainStore: StateStore, HighWaterMarkStore {
     }
 
     func save<T: Codable>(_ value: T, for key: StoreKey) {
-        guard let data = try? encoder.encode(Boxed(value: value)) else { return }
+        guard let data = try? encoder.encode(Boxed(value: value)) else {
+            // The last silent path in this file. Encoding cannot realistically
+            // fail for the four small values Quiet stores, but "realistically"
+            // is exactly the word that let the keychain failures through.
+            isWritable = false
+            NSLog("Quiet: could not encode %@ for the keychain", key.rawValue)
+            return
+        }
 
         let identity = identity(of: key)
         let update = SecItemUpdate(

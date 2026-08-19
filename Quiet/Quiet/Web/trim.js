@@ -110,7 +110,11 @@
 
   /* ── 2. Suggestion blocks ─────────────────────────────────────────────── */
 
-  var inspected = new WeakSet();
+  /* What each element said the last time it was read, rather than merely that
+   * it was read. Instagram's client recycles DOM nodes: an element inspected
+   * while it held a caption can later hold "Suggested for you", and a set of
+   * seen nodes would never look at it again. */
+  var lastSeenText = new WeakMap();
 
   function isCaption(element) {
     /* Captions and comments live inside a link to their author or a heading of
@@ -124,18 +128,23 @@
     );
     for (var i = 0; i < candidates.length; i++) {
       var element = candidates[i];
-      if (inspected.has(element)) continue;
-      inspected.add(element);
 
       var text = (element.textContent || "").trim().toLowerCase();
+      if (lastSeenText.get(element) === text) continue;
+      lastSeenText.set(element, text);
+
       if (!text || text.length > 40 || !labelSet[text]) continue;
       if (isCaption(element)) continue;
 
-      var block =
-        element.closest("article") ||
-        element.closest("section") ||
-        element.parentElement;
-      if (block && block !== root) {
+      /* Only ever a block inside the feed. `closest` climbs as far as the
+       * document, so without this it could reach a <section> wrapping the
+       * whole page and hide everything — a blank app, from one matching
+       * word. */
+      var block = element.closest("article, section");
+      if (!block || block === root || !root.contains(block)) {
+        block = element.parentElement;
+      }
+      if (block && block !== root && root.contains(block)) {
         block.setAttribute("data-quiet-hidden", "suggestion");
       }
     }

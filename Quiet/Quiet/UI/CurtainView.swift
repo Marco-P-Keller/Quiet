@@ -11,6 +11,12 @@ import SwiftUI
 struct CurtainView: View {
     var limitMinutes: Int
     var resetsAt: Date
+    /// The curtain shows nothing of its own, but it does answer for what you
+    /// just did. Changing the limit from here used to confirm itself into a
+    /// screen that renders no notices, so the answer was invisible — and then
+    /// surfaced stale the following day.
+    var notice: Notice?
+    var onExpireNotice: (Int) -> Void = { _ in }
     var onOpenPanel: () -> Void
 
     var body: some View {
@@ -39,10 +45,17 @@ struct CurtainView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 32)
         .padding(.bottom, 28)
+        .overlay(alignment: .top) {
+            if let notice {
+                NoticeView(notice: notice, onExpire: onExpireNotice)
+                    .padding(.top, 8)
+            }
+        }
+        .animation(.easeInOut(duration: 0.22), value: notice)
         .quietPage()
     }
 }
 
 #Preview {
-    CurtainView(limitMinutes: 20, resetsAt: .now, onOpenPanel: {})
+    CurtainView(limitMinutes: 20, resetsAt: .now, notice: nil, onOpenPanel: {})
 }

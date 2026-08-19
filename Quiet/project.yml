@@ -50,6 +50,18 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.connexa.quiet.tests
 
+  QuietUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: QuietUITests
+    dependencies:
+      - target: Quiet
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.connexa.quiet.uitests
+        TEST_TARGET_NAME: Quiet
+
 schemes:
   Quiet:
     build:
@@ -58,3 +70,4 @@ schemes:
     test:
       targets:
         - QuietTests
+        - QuietUITests

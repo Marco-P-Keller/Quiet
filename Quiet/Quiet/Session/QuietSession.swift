@@ -54,7 +54,7 @@ final class QuietSession {
 
     /// Minutes remaining at which the app says something. Twice, quietly, and
     /// then not again.
-    private static let warnings = [5, 1]
+    static let warnings = [5, 1]
 
     init(store: any StateStore, clock: MonotonicClock, calendar: Calendar = .current) {
         self.store = store
@@ -126,7 +126,11 @@ final class QuietSession {
     /// False once the store has refused a write. At that point nothing the app
     /// is told survives a relaunch — the limit least of all — and the only
     /// honest thing to do is stop implying otherwise.
-    var isMemoryReliable: Bool { store.isWritable }
+    ///
+    /// Mirrored rather than read through to the store, which is a plain class:
+    /// reading it directly meant SwiftUI never learned that it had changed, and
+    /// the red banner waited for some unrelated redraw to appear.
+    private(set) var isMemoryReliable = true
 
     /// Whether the app should still point out the gesture that opens the panel.
     ///
@@ -172,8 +176,14 @@ final class QuietSession {
 
     /// A rewound clock only threatens increases. Asking for less is always
     /// allowed, whatever the date says.
+    ///
+    /// "Less" is measured against everything already agreed to, today's limit
+    /// and any increase already queued for tomorrow. Measuring it against today
+    /// alone refused a revision of a queued increase *downward* — a reduction —
+    /// while the screen was saying the limit could go down but not up.
     private func guardRail(_ minutes: Int) -> LimitRefusal? {
-        minutes > limit.minutes && isClockRewound ? .clockRewound : nil
+        let agreed = max(limit.minutes, limit.pending?.minutes ?? limit.minutes)
+        return minutes > agreed && isClockRewound ? .clockRewound : nil
     }
 
     // MARK: - Notices
@@ -193,14 +203,25 @@ final class QuietSession {
 
     // MARK: - Counting
 
+    /// Whether the clock should be running at all.
+    ///
+    /// Wider than `shouldCount` on purpose. Somebody who reaches the curtain
+    /// and leaves the app open overnight still deserves their morning: without
+    /// a tick behind the curtain, nothing notices four o'clock and the day
+    /// never turns until the app is backgrounded and brought back.
+    private var shouldTick: Bool {
+        isForeground && screen != .setup
+    }
+
+    /// Whether the time being spent is time on Instagram.
     private var shouldCount: Bool {
-        screen == .browsing && isForeground && !isPanelShowing
+        shouldTick && screen == .browsing && !isPanelShowing
     }
 
     /// Start or stop the ticker to match `shouldCount`. Never reentrant: nothing
     /// it calls changes `screen`, `isForeground` or `isPanelShowing`.
     private func syncCounting() {
-        if shouldCount {
+        if shouldTick {
             guard ticker == nil else { return }
             lastSample = ProcessInfo.processInfo.systemUptime
             let timer = Timer(timeInterval: Self.sampleInterval, repeats: true) { [weak self] _ in
@@ -222,9 +243,16 @@ final class QuietSession {
     }
 
     private func tick() {
-        accrue()
-        if !ledger.isSpent(limitMinutes: limit.minutes) {
-            announceIfNeeded()
+        if shouldCount {
+            accrue()
+            if !ledger.isSpent(limitMinutes: limit.minutes) {
+                announceIfNeeded()
+            }
+        } else {
+            // The clock runs, but nothing is being spent. Dropping the sample
+            // is what makes the panel and the curtain free.
+            lastSample = nil
+            rollIfNeeded()
         }
         evaluateScreen()
         syncCounting()
@@ -273,11 +301,27 @@ final class QuietSession {
         }
     }
 
+    /// Which warnings have come due, given what is left and what has already
+    /// been said.
+    ///
+    /// Pulled out as a function of its arguments because the first version was
+    /// wrong in a way that reading it did not reveal: it took the first match
+    /// in `[5, 1]`, which is always 5, so with one minute left the app said
+    /// "5 minutes left" and "One minute left." could never be reached at all.
+    static func warningsDue(minutesLeft: Int, alreadySaid: Set<Int>) -> Set<Int> {
+        Set(warnings.filter { minutesLeft <= $0 && !alreadySaid.contains($0) })
+    }
+
     private func announceIfNeeded() {
-        let minutesLeft = Int(ceil(remaining / 60))
-        guard let threshold = Self.warnings.first(where: { minutesLeft <= $0 }),
-              !announced.contains(threshold) else { return }
-        announced.insert(threshold)
+        let due = Self.warningsDue(
+            minutesLeft: Int(ceil(remaining / 60)),
+            alreadySaid: announced
+        )
+        guard let threshold = due.min() else { return }
+        // Anything less urgent that came due in the same breath is spent too:
+        // coming back from the background at one minute should say one thing,
+        // and it should be the urgent one.
+        announced.formUnion(due)
         show(threshold == 1 ? "One minute left." : "\(threshold) minutes left.")
     }
 
@@ -286,12 +330,22 @@ final class QuietSession {
     private func flush() {
         unsavedSeconds = 0
         store.save(ledger, for: .usage)
+        checkMemory()
     }
 
     private func persist() {
         unsavedSeconds = 0
         store.save(limit, for: .limit)
         store.save(ledger, for: .usage)
+        checkMemory()
+    }
+
+    /// Pulls the store's health across into observable state, after every write
+    /// that could have been the one it turned down.
+    private func checkMemory() {
+        if isMemoryReliable != store.isWritable {
+            isMemoryReliable = store.isWritable
+        }
     }
 
     /// Called when the app is about to lose the foreground, so nothing is lost if

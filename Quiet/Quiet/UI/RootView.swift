@@ -57,7 +57,9 @@ struct RootView: View {
         case .spent:
             CurtainView(
                 limitMinutes: session.limit.minutes,
-                resetsAt: session.resetsAt
+                resetsAt: session.resetsAt,
+                notice: session.notice,
+                onExpireNotice: { session.dismissNotice(token: $0) }
             ) {
                 session.isPanelShowing = true
             }

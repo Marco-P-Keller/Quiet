@@ -136,6 +136,28 @@ final class QuietSessionTests: XCTestCase {
         XCTAssertEqual(world.session.remaining, 20 * 60, "one day's worth, not nine")
     }
 
+    // MARK: - Saying how much is left
+
+    /// The bug this pins: `first(where:)` over `[5, 1]` always returns 5, so
+    /// the one-minute warning was unreachable and three minutes left announced
+    /// itself as five.
+    func testTheWarningsComeDueInTheRightOrder() {
+        typealias S = QuietSession
+        XCTAssertEqual(S.warningsDue(minutesLeft: 6, alreadySaid: []), [])
+        XCTAssertEqual(S.warningsDue(minutesLeft: 5, alreadySaid: []), [5])
+        XCTAssertEqual(S.warningsDue(minutesLeft: 3, alreadySaid: [5]), [])
+        XCTAssertEqual(S.warningsDue(minutesLeft: 1, alreadySaid: [5]), [1])
+        XCTAssertEqual(S.warningsDue(minutesLeft: 0, alreadySaid: [5, 1]), [])
+    }
+
+    /// Away from the app across both thresholds: it should say the urgent one,
+    /// once, and consider the other spent.
+    func testComingBackLateSaysTheUrgentWarningOnly() {
+        let due = QuietSession.warningsDue(minutesLeft: 1, alreadySaid: [])
+        XCTAssertEqual(due, [5, 1])
+        XCTAssertEqual(due.min(), 1, "one minute left is not a five-minute warning")
+    }
+
     // MARK: - A rewound clock
 
     func testRaisingIsRefusedWhileTheClockIsBehind() {
@@ -156,6 +178,25 @@ final class QuietSessionTests: XCTestCase {
         world.time.now = noon.addingTimeInterval(-7 * 24 * 3600)
         XCTAssertEqual(world.session.requestLimit(15), .success(.now(15)))
         XCTAssertEqual(world.session.limit.minutes, 15)
+    }
+
+    /// A queued increase can still be revised downward while the clock is
+    /// behind. Measuring "an increase" against today alone refused a reduction
+    /// while the screen said the limit could go down but not up.
+    func testAQueuedIncreaseCanStillBeCutWhileTheClockIsBehind() {
+        let world = makeWorld(limit: LimitState(minutes: 30))
+        world.session.start()
+        XCTAssertEqual(world.session.requestLimit(120), .success(.on(today.next, 120)))
+
+        world.time.now = noon.addingTimeInterval(-7 * 24 * 3600)
+        XCTAssertTrue(world.session.isClockRewound)
+
+        XCTAssertEqual(
+            world.session.requestLimit(45),
+            .success(.on(today.next, 45)),
+            "asking for less than what is already queued is asking for less"
+        )
+        XCTAssertEqual(world.session.requestLimit(240), .failure(.clockRewound))
     }
 
     func testTurningTheClockBackDoesNotHandOutANewDay() {
