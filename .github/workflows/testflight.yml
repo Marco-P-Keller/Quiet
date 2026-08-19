@@ -1,0 +1,190 @@
+name: TestFlight
+
+# Never on a push. Uploading a build puts something under somebody's name in
+# somebody's developer account, and consumes a build number that App Store
+# Connect will not hand back. That is a decision, so it is a button.
+on:
+  workflow_dispatch:
+    inputs:
+      note:
+        description: "What is this build for? (appears in the run title)"
+        required: false
+        default: "TestFlight"
+
+concurrency:
+  group: testflight
+  cancel-in-progress: false
+
+env:
+  TEAM_ID: B97SQSQBMR
+  BUNDLE_ID: com.connexa.quiet
+
+jobs:
+  upload:
+    name: Archive and upload
+    runs-on: macos-15
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: Quiet
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Fail here, with a sentence, rather than thirty minutes later inside
+      # xcodebuild with a stack trace.
+      - name: Check the secrets are there
+        env:
+          ISSUER: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+        run: |
+          missing=""
+          [ -n "$ISSUER" ] || missing="$missing APP_STORE_CONNECT_ISSUER_ID"
+          [ -n "$KEY_ID" ] || missing="$missing APP_STORE_CONNECT_KEY_ID"
+          [ -n "$KEY" ]    || missing="$missing APP_STORE_CONNECT_PRIVATE_KEY"
+          if [ -n "$missing" ]; then
+            echo "Missing repository secrets:$missing" >&2
+            echo "Add them under Settings → Secrets and variables → Actions." >&2
+            exit 1
+          fi
+
+          # The key is pasted by hand, often from a phone, and the two ways it
+          # goes wrong are silent: only the middle of the file gets copied, or
+          # the header and footer are left behind. Both produce an archive that
+          # fails half an hour later with something unrelated-looking.
+          case "$KEY" in
+            *"BEGIN PRIVATE KEY"*) ;;
+            *)
+              echo "APP_STORE_CONNECT_PRIVATE_KEY does not contain a BEGIN PRIVATE KEY line." >&2
+              echo "Paste the whole .p8 file, including the -----BEGIN----- and" >&2
+              echo "-----END----- lines." >&2
+              exit 1 ;;
+          esac
+          case "$KEY" in
+            *"END PRIVATE KEY"*) ;;
+            *)
+              echo "APP_STORE_CONNECT_PRIVATE_KEY is missing its END PRIVATE KEY line." >&2
+              echo "The paste was cut short — copy the file again, all of it." >&2
+              exit 1 ;;
+          esac
+
+          # Issuer and key IDs are UUID-ish and 10 characters respectively. A
+          # swapped pair is the third classic mistake.
+          if [ ${#KEY_ID} -ne 10 ]; then
+            echo "APP_STORE_CONNECT_KEY_ID should be 10 characters; got ${#KEY_ID}." >&2
+            echo "It may have been swapped with the issuer ID." >&2
+            exit 1
+          fi
+
+          echo "All three present, and the key looks like a key."
+
+      - name: Select the newest Xcode
+        run: |
+          set -euo pipefail
+          latest=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          sudo xcode-select -s "$latest/Contents/Developer"
+          xcodebuild -version
+
+      # The .p8 never touches the repository and never reaches the log: Actions
+      # masks secret values, and the file lives in a runner directory that is
+      # destroyed with the machine.
+      - name: Write the App Store Connect key
+        id: key
+        env:
+          KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/private_keys"
+          mkdir -p "$dir"
+          path="$dir/AuthKey_${KEY_ID}.p8"
+          printf '%s\n' "$KEY" > "$path"
+          chmod 600 "$path"
+          echo "path=$path" >> "$GITHUB_OUTPUT"
+
+      # The run number, so App Store Connect never sees a build number twice.
+      # It only ever goes up, which is the one thing it has to do.
+      - name: Archive
+        env:
+          KEY_PATH: ${{ steps.key.outputs.path }}
+          KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ISSUER: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          set -o pipefail
+          xcodebuild archive \
+            -project Quiet.xcodeproj \
+            -scheme Quiet \
+            -configuration Release \
+            -destination "generic/platform=iOS" \
+            -archivePath "$RUNNER_TEMP/Quiet.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$KEY_PATH" \
+            -authenticationKeyID "$KEY_ID" \
+            -authenticationKeyIssuerID "$ISSUER" \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }} \
+            2>&1 \
+            | tee archive.log \
+            | sed "s|$GITHUB_WORKSPACE/||g" \
+            | grep -E "error:|warning:|\*\* ARCHIVE"
+
+      - name: Upload to App Store Connect
+        env:
+          KEY_PATH: ${{ steps.key.outputs.path }}
+          KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ISSUER: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          set -o pipefail
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>${TEAM_ID}</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>uploadSymbols</key><true/>
+            <!-- Quiet sets its own build number from the run number above.
+                 Letting Xcode manage it would quietly renumber the thing we
+                 just archived. -->
+            <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict>
+          </plist>
+          PLIST
+
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/Quiet.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$KEY_PATH" \
+            -authenticationKeyID "$KEY_ID" \
+            -authenticationKeyIssuerID "$ISSUER" \
+            2>&1 \
+            | tee -a archive.log \
+            | sed "s|$GITHUB_WORKSPACE/||g" \
+            | grep -E "error:|warning:|Upload|\*\* EXPORT"
+
+      - name: Say what went up
+        if: success()
+        run: |
+          {
+            echo "## Uploaded"
+            echo
+            echo "- Bundle: \`$BUNDLE_ID\`"
+            echo "- Build: ${{ github.run_number }}"
+            echo "- Commit: \`${{ github.sha }}\`"
+            echo
+            echo "It lands in TestFlight after App Store Connect finishes"
+            echo "processing, which takes a few minutes. Nothing has been"
+            echo "submitted for review."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: archive-log
+          path: Quiet/archive.log
+          retention-days: 7

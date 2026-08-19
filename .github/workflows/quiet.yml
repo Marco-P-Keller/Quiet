@@ -1,0 +1,176 @@
+name: Quiet
+
+# Builds the iOS app and runs its tests on a real macOS machine with a real
+# Xcode, because a project that has only ever been read is not a project that
+# works. Only runs when something under the app actually changes.
+on:
+  push:
+    paths:
+      - 'Quiet/**'
+      - '.github/workflows/quiet.yml'
+  pull_request:
+    paths:
+      - 'Quiet/**'
+      - '.github/workflows/quiet.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: quiet-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Build and test
+    runs-on: macos-15
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: Quiet
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The newest Xcode on the image, so the project format is never the
+      # limiting factor.
+      #
+      # A previous version of this file preferred the image's default instead,
+      # on the theory that the newest Xcode's simulator runtime would not boot.
+      # That was wrong. Nothing was hanging: the boot below takes about ninety
+      # seconds, and the run that looked stuck had simply not finished yet. The
+      # note stays as a reminder that a silent step is not evidence of anything,
+      # which is the entire reason the phases below are separate and timed.
+      - name: Select the newest Xcode
+        run: |
+          set -euo pipefail
+          latest=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          sudo xcode-select -s "$latest/Contents/Developer"
+          xcodebuild -version
+          xcrun simctl list runtimes
+
+      - name: Boot a simulator
+        id: sim
+        timeout-minutes: 8
+        run: |
+          set -euo pipefail
+          device=$(xcrun simctl list devices available \
+            | sed -n 's/^ *\(iPhone [^(]*\) (.*/\1/p' \
+            | sed 's/ *$//' \
+            | head -1)
+          if [ -z "$device" ]; then
+            echo "No iPhone simulator on this runner" >&2
+            xcrun simctl list devices available >&2
+            exit 1
+          fi
+          echo "Booting $device"
+          xcrun simctl boot "$device" || true
+          time xcrun simctl bootstatus "$device" -b
+          echo "device=$device" >> "$GITHUB_OUTPUT"
+
+      # Split from the run below so that a slow compile and a stuck test are
+      # two different lines in the log rather than one silence.
+      - name: Build for testing
+        run: |
+          set -o pipefail
+          # Signing is deliberately left alone. Turning it off with
+          # CODE_SIGNING_ALLOWED=NO built fine and cost the app its memory: an
+          # unsigned build carries no application-identifier entitlement, so
+          # iOS refuses every keychain write with -34018, and Quiet's one
+          # promise — that the limit outlives the app — quietly stopped being
+          # true. A simulator destination ad-hoc signs without needing a team.
+          time xcodebuild build-for-testing \
+            -project Quiet.xcodeproj \
+            -scheme Quiet \
+            -destination "platform=iOS Simulator,name=${{ steps.sim.outputs.device }}" \
+            2>&1 \
+            | tee build.log \
+            | sed "s|$GITHUB_WORKSPACE/||g" \
+            | grep -E "error:|warning:|\*\* BUILD"
+
+      - name: Test
+        timeout-minutes: 20
+        run: |
+          set -o pipefail
+          xcodebuild test-without-building \
+            -project Quiet.xcodeproj \
+            -scheme Quiet \
+            -destination "platform=iOS Simulator,name=${{ steps.sim.outputs.device }}" \
+            -resultBundlePath TestResults.xcresult \
+            -test-timeouts-enabled YES \
+            -maximum-test-execution-time-allowance 180 \
+            -parallel-testing-enabled NO \
+            2>&1 \
+            | tee -a build.log \
+            | sed "s|$GITHUB_WORKSPACE/||g" \
+            | grep -E "error:|Test Case|Executed |Test Suite .* (passed|failed)|\*\* TEST"
+
+      # Tests prove the rules. They prove nothing about whether the thing
+      # launches, or what it looks like when it does. So: install it, start
+      # it, photograph it, and read back anything it said to the system log.
+      # The picture comes through the log because that is the only channel out
+      # of here, so it is deliberately small — enough to judge a layout, not a
+      # hairline.
+      - name: Look at it
+        # Always, not only when green: a picture of the app in the state that
+        # failed is worth more than no picture at all.
+        if: always()
+        timeout-minutes: 5
+        run: |
+          set -euo pipefail
+          app=$(find ~/Library/Developer/Xcode/DerivedData \
+            -name "Quiet.app" -path "*Debug-iphonesimulator*" | head -1)
+          echo "Installing $app"
+          xcrun simctl install booted "$app"
+          xcrun simctl launch booted com.connexa.quiet
+          # The UI test has already answered setup, so this launch lands on the
+          # feed. Long enough for Instagram to arrive over a data centre's
+          # network before the shutter.
+          sleep 14
+
+          xcrun simctl io booted screenshot --type=png shot.png
+          sips -Z 420 -s format jpeg -s formatOptions 68 shot.png --out shot.jpg >/dev/null
+          ls -l shot.png shot.jpg
+
+          echo "----BEGIN SCREENSHOT----"
+          base64 -b 200 -i shot.jpg
+          echo "----END SCREENSHOT----"
+
+          echo "----BEGIN APP LOG----"
+          xcrun simctl spawn booted log show --last 60s --style compact \
+            --predicate 'process == "Quiet"' 2>/dev/null | head -40 || echo "(nothing)"
+          echo "----END APP LOG----"
+
+      # The full log is thousands of lines of module compilation. What anybody
+      # actually needs after a red run is the handful of lines naming what
+      # broke, in one place, without scrolling.
+      - name: Digest
+        if: always()
+        run: |
+          # `grep ... | head` exits with head's status, which is always zero, so
+          # a trailing `|| echo "None."` never fires and an empty section looks
+          # like a broken digest. Collect first, then decide.
+          section() {
+            local found
+            found=$(eval "$2" || true)
+            echo "### $1"
+            echo "${found:-None.}"
+            echo
+          }
+          strip="sed \"s|$GITHUB_WORKSPACE/||g\""
+          {
+            echo "## Quiet"
+            echo
+            section "Errors"       "grep -E 'error:' build.log | $strip | sort -u | head -40"
+            section "Failed tests" "grep -E '^Test Case .* failed' build.log | sort -u | head -40"
+            section "Warnings"     "grep -E 'warning:' build.log | $strip | sort -u | head -60"
+            grep -E "^Executed [0-9]+ test" build.log | tail -2 || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the log and the result bundle
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: TestResults
+          path: |
+            Quiet/build.log
+            Quiet/TestResults.xcresult
+          retention-days: 7
