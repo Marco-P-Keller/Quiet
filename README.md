@@ -244,6 +244,8 @@ seeing what your friends posted and then putting the phone down.
 Longer versions of all of this: [decisions](docs/decisions.md),
 [trade-offs](docs/trade-offs.md), and
 [what the App Store and Instagram's terms have to say](docs/store-and-legal.md).
+What has not been answered yet, in the order it matters:
+[what is left](docs/what-is-left.md).
 
 ---
 
