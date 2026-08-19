@@ -50,13 +50,13 @@ struct DayKey: Codable, Hashable, Comparable, CustomStringConvertible, Sendable 
             // Before four in the morning, so this still belongs to yesterday.
             day = calendar.date(byAdding: .day, value: -1, to: day) ?? day
         }
-        let reference = calendar.startOfDay(for: DayKey.referenceDate)
+        let reference = DayKey.reference(in: calendar)
         ordinal = calendar.dateComponents([.day], from: reference, to: day).day ?? 0
     }
 
     /// The instant this day begins: 4 a.m. local time.
     func start(calendar: Calendar = .current) -> Date {
-        let reference = calendar.startOfDay(for: DayKey.referenceDate)
+        let reference = DayKey.reference(in: calendar)
         let midnight = calendar.date(byAdding: .day, value: ordinal, to: reference) ?? reference
         return QuietDay.boundary(onTheDayOf: midnight, calendar: calendar)
     }
@@ -77,7 +77,23 @@ struct DayKey: Codable, Hashable, Comparable, CustomStringConvertible, Sendable 
 
     var description: String { "day \(ordinal)" }
 
-    /// 1 January 2001, local time. Any fixed date works; this one keeps the
-    /// ordinals small enough to read in a debugger.
-    private static let referenceDate = Date(timeIntervalSinceReferenceDate: 0)
+    /// Midnight on 1 January 2001, wherever the phone happens to be.
+    ///
+    /// Named as a date on a calendar rather than as an instant on a clock, and
+    /// the difference is not academic. An instant falls on a different *date*
+    /// depending on the time zone reading it, so the whole numbering shifted by
+    /// a day when a phone crossed enough meridians — and every ordinal already
+    /// written down, the day setup happened and the day the limit was last
+    /// raised, quietly started counting from somewhere else. The weekly rule is
+    /// a subtraction of two of those numbers.
+    ///
+    /// A date is the same date everywhere, so two ordinals written on either
+    /// side of a flight now differ by exactly the days between them.
+    ///
+    /// Any fixed date would do; this one keeps the ordinals short enough to
+    /// read in a debugger.
+    private static func reference(in calendar: Calendar) -> Date {
+        calendar.date(from: DateComponents(year: 2001, month: 1, day: 1))
+            ?? calendar.startOfDay(for: Date(timeIntervalSinceReferenceDate: 0))
+    }
 }
