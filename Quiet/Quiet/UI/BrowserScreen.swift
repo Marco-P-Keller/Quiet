@@ -88,7 +88,10 @@ struct BrowserScreen: View {
                 hint
             }
             if !surface.missingResources.isEmpty {
-                brokenBuildWarning
+                alarm("Quiet is missing \(surface.missingResources.joined(separator: " and ")). Reinstall from a clean build.")
+            }
+            if !session.isMemoryReliable {
+                alarm("Quiet cannot save to this phone's keychain. Your limit will not survive closing the app.")
             }
         }
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: session.notice)
@@ -106,11 +109,15 @@ struct BrowserScreen: View {
             .transition(.opacity)
     }
 
-    /// If the trim files did not make it into the bundle, Reels come back and
-    /// the app silently becomes the thing it exists to replace. Better to say so
-    /// on screen than to let anyone find out by scrolling.
-    private var brokenBuildWarning: some View {
-        Text("Quiet is missing \(surface.missingResources.joined(separator: " and ")). Reinstall from a clean build.")
+    /// The only red in the app.
+    ///
+    /// Two things can go wrong quietly enough to leave Quiet looking healthy
+    /// while doing the opposite of its job: the trim files missing from the
+    /// bundle, which brings Reels back, and a keychain that refuses writes,
+    /// which throws the limit away at every launch. Neither is allowed to be
+    /// discovered by accident.
+    private func alarm(_ text: String) -> some View {
+        Text(text)
             .font(.quietSmall.weight(.medium))
             .multilineTextAlignment(.center)
             .foregroundStyle(.white)

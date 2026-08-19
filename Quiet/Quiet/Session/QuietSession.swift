@@ -123,6 +123,11 @@ final class QuietSession {
     /// True when the device clock sits behind time the app has already seen.
     var isClockRewound: Bool { clock.isRewound }
 
+    /// False once the store has refused a write. At that point nothing the app
+    /// is told survives a relaunch — the limit least of all — and the only
+    /// honest thing to do is stop implying otherwise.
+    var isMemoryReliable: Bool { store.isWritable }
+
     /// Whether the app should still point out the gesture that opens the panel.
     ///
     /// A hidden gesture explained exactly once, on the busiest screen of the

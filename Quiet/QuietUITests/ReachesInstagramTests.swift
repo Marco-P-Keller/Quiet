@@ -52,5 +52,16 @@ final class ReachesInstagramTests: XCTestCase {
         shot.name = "instagram-in-quiet"
         shot.lifetime = .keepAlways
         add(shot)
+
+        // The whole promise, checked: close the app, open it again, and the
+        // answer given during setup should still be the answer. If setup comes
+        // back, nothing the app is told is being kept — and a limit that does
+        // not survive closing the app is not a limit.
+        app.terminate()
+        app.launch()
+        XCTAssertFalse(
+            app.buttons["Continue"].waitForExistence(timeout: 10),
+            "Setup came back after a relaunch, so nothing is being stored"
+        )
     }
 }

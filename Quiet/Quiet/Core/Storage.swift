@@ -18,6 +18,14 @@ protocol StateStore: AnyObject {
     func load<T: Codable>(_ type: T.Type, for key: StoreKey) -> T?
     func save<T: Codable>(_ value: T, for key: StoreKey)
     func remove(_ key: StoreKey)
+
+    /// False once a write has failed.
+    ///
+    /// Quiet's entire promise is that the limit outlives the app. A store that
+    /// refuses writes and says nothing turns that into the opposite promise —
+    /// every launch a clean slate — and it would look exactly like a working
+    /// app. So the failure is carried out of here and said on screen.
+    var isWritable: Bool { get }
 }
 
 extension StateStore {
@@ -42,6 +50,9 @@ extension StateStore {
 /// by SwiftUI previews.
 final class MemoryStore: StateStore, HighWaterMarkStore {
     private var values: [StoreKey: Data] = [:]
+
+    /// A dictionary never refuses.
+    let isWritable = true
 
     init() {}
 

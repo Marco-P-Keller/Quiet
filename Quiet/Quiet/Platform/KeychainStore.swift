@@ -15,6 +15,10 @@ final class KeychainStore: StateStore, HighWaterMarkStore {
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
 
+    /// Cleared the first time the keychain turns a write down. Nothing sets it
+    /// back: one refusal is enough to know the app's memory cannot be trusted.
+    private(set) var isWritable = true
+
     init(service: String = "app.quiet.state") {
         self.service = service
     }
@@ -38,7 +42,11 @@ final class KeychainStore: StateStore, HighWaterMarkStore {
             identity as CFDictionary,
             [kSecValueData as String: data] as CFDictionary
         )
-        guard update == errSecItemNotFound else { return }
+        if update == errSecSuccess { return }
+        guard update == errSecItemNotFound else {
+            note(update, doing: "update")
+            return
+        }
 
         var insert = identity
         insert[kSecValueData as String] = data
@@ -46,11 +54,28 @@ final class KeychainStore: StateStore, HighWaterMarkStore {
         // background write cannot fail. Never synced to iCloud: this is about
         // this device, and it is nobody else's business.
         insert[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
-        _ = SecItemAdd(insert as CFDictionary, nil)
+        note(SecItemAdd(insert as CFDictionary, nil), doing: "add")
     }
 
     func remove(_ key: StoreKey) {
-        _ = SecItemDelete(identity(of: key) as CFDictionary)
+        let status = SecItemDelete(identity(of: key) as CFDictionary)
+        if status != errSecItemNotFound {
+            note(status, doing: "delete")
+        }
+    }
+
+    /// Records a refusal instead of dropping it on the floor.
+    ///
+    /// The old version of this file ignored every status code these calls
+    /// return. A keychain that quietly declines — an unsigned build, a device
+    /// still locked after a restart, a full store — would have left the app
+    /// starting from nothing every launch, looking perfectly healthy while
+    /// doing the one thing it promises never to do.
+    private func note(_ status: OSStatus, doing action: String) {
+        guard status != errSecSuccess else { return }
+        isWritable = false
+        let message = SecCopyErrorMessageString(status, nil) as String? ?? "unknown"
+        NSLog("Quiet: keychain %@ failed with %d (%@)", action, status, message)
     }
 
     var highWaterMark: Date? {
