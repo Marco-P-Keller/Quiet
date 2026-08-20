@@ -96,19 +96,19 @@ struct BrowserScreen: View {
             Spacer(minLength: 0)
             HStack(spacing: 0) {
                 barButton("house", Text("Home")) { surface.goToFeed() }
+                barButton("clock", Text("Quiet settings")) {
+                    session.isPanelShowing = true
+                }
+                barButton("paperplane", Text("Messages")) { surface.goToMessages() }
                 barButton("magnifyingglass", Text("Find someone")) {
                     session.isSearchShowing = true
                 }
-                barButton("paperplane", Text("Messages")) { surface.goToMessages() }
                 // Only once the page has said who is signed in. A button that
                 // leads nowhere is worse than one that arrives a second late.
                 if surface.me != nil {
                     barButton("person.crop.circle", Text("Your profile")) {
                         surface.goToMyProfile()
                     }
-                }
-                barButton("clock", Text("Quiet settings")) {
-                    session.isPanelShowing = true
                 }
             }
             .frame(height: Self.barHeight)

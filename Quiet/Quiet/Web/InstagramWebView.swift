@@ -217,7 +217,7 @@ struct InstagramWebView: UIViewRepresentable {
     }
 
     func makeUIView(context: Context) -> WKWebView {
-        let payload = WebScripts.load()
+        let payload = WebScripts.load(topInset: inset.top)
 
         let controller = WKUserContentController()
         payload.scripts.forEach(controller.addUserScript)
@@ -256,7 +256,10 @@ struct InstagramWebView: UIViewRepresentable {
         // this defines, and it is the same mechanism a browser uses for its own
         // toolbars.
         webView.scrollView.contentInsetAdjustmentBehavior = .never
-        webView.scrollView.contentInset = inset
+        // Only the top. The pill floats *over* the page, the way Instagram's
+        // own does — insetting the bottom as well left a band of black beneath
+        // it where the page had simply been told to stop.
+        webView.scrollView.contentInset = UIEdgeInsets(top: inset.top, left: 0, bottom: 0, right: 0)
         webView.scrollView.verticalScrollIndicatorInsets = inset
         webView.load(URLRequest(url: ContentRules.home))
 
@@ -266,8 +269,9 @@ struct InstagramWebView: UIViewRepresentable {
     }
 
     func updateUIView(_ webView: WKWebView, context: Context) {
-        if webView.scrollView.contentInset != inset {
-            webView.scrollView.contentInset = inset
+        let top = UIEdgeInsets(top: inset.top, left: 0, bottom: 0, right: 0)
+        if webView.scrollView.contentInset != top {
+            webView.scrollView.contentInset = top
             webView.scrollView.verticalScrollIndicatorInsets = inset
         }
         context.coordinator.session = session

@@ -8,15 +8,16 @@
  *      say why. Silence would read as a broken page.
  *   2. Hide suggestion blocks, which carry no address of their own and can only
  *      be recognised by their wording.
- *   3. Take out Instagram's navigation bar, having first read the signed-in
+ *   3. Push whatever the page pins to the top of the screen below the clock.
+ *   4. Take out Instagram's navigation bar, having first read the signed-in
  *      name out of it, because Quiet carries all five entries in a row of its
  *      own that no stylesheet of Instagram's can reach.
- *   4. Put Quiet's clock beside Instagram's own settings, on your profile.
+ *   5. Put Quiet's clock beside Instagram's own settings, on your profile.
  *      Found by where it sits on the screen rather than by what it is called,
  *      because a corner does not change with the language or with next week's
  *      generated class names. Everything else Quiet needs is in the app's own
  *      row along the bottom, where no stylesheet of Instagram's can reach it.
- *   5. Keep all of it up as the page rewrites itself, because Instagram's web
+ *   6. Keep all of it up as the page rewrites itself, because Instagram's web
  *      client replaces the feed without ever loading a new page.
  *
  * It never reads form fields, and never touches the login page's inputs. Your
@@ -87,6 +88,42 @@
 
   function tell(surface) {
     post({ kind: "refused", surface: surface });
+  }
+
+  /* ── The status bar ──────────────────────────────────────────────────── */
+
+  /**
+   * Push whatever the page pins to the top of the screen below the clock.
+   *
+   * The content inset holds the page down while it is at rest, and that is
+   * where two earlier attempts stopped — which is why this looked fixed until
+   * somebody scrolled. A sticky header does not live in the content: it pins
+   * itself to the top of the viewport, and the viewport starts at the top of
+   * the glass. So the moment the feed moved, Instagram's header climbed back
+   * under the clock.
+   *
+   * The element is found by asking what is actually drawn at the very top of
+   * the screen, rather than by guessing at markup — one call, no walking the
+   * document — and only something as wide as the screen is treated as a bar.
+   * Setting its `top` to the same inset makes the two agree: below the clock at
+   * rest, below the clock while scrolling.
+   */
+  function liftPinned() {
+    var inset = window.__quietTopInset || 0;
+    if (!inset) return;
+
+    var stack = document.elementsFromPoint(window.innerWidth / 2, 2);
+    for (var i = 0; i < stack.length; i++) {
+      var element = stack[i];
+      if (element.hasAttribute("data-quiet-lifted")) return;
+      var position = getComputedStyle(element).position;
+      if (position !== "sticky" && position !== "fixed") continue;
+      if (element.getBoundingClientRect().width < window.innerWidth * 0.6) continue;
+
+      element.setAttribute("data-quiet-lifted", "");
+      element.style.setProperty("top", inset + "px", "important");
+      return;
+    }
   }
 
   /* ── What Quiet puts back ────────────────────────────────────────────── */
@@ -339,6 +376,7 @@
       var main = document.querySelector("main");
       if (main) trimSuggestions(main);
       guardLocation();
+      liftPinned();
       replaceNav();
       placeMark();
     });
@@ -373,6 +411,9 @@
   });
 
   window.addEventListener("popstate", schedule);
+  // A header only climbs under the clock once the page moves, so the page
+  // moving is exactly when to look. Cheap: `schedule` waits for a frame.
+  window.addEventListener("scroll", schedule, { passive: true });
 
   new MutationObserver(schedule).observe(document.documentElement, {
     childList: true,

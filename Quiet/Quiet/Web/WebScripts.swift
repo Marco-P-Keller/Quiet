@@ -20,7 +20,7 @@ enum WebScripts {
         var missing: [String]
     }
 
-    static func load(from bundle: Bundle = .main) -> Payload {
+    static func load(topInset: CGFloat, from bundle: Bundle = .main) -> Payload {
         var scripts: [WKUserScript] = []
         var missing: [String] = []
 
@@ -35,6 +35,7 @@ enum WebScripts {
         // rather than in the language this file happens to be written in.
         scripts.append(userScript(source: """
         window.__quietSettingsLabel = \(quoted(String(localized: "Quiet settings")));
+        window.__quietTopInset = \(Int(topInset.rounded()));
         """))
 
         if let js = text(named: "trim", extension: "js", in: bundle) {
