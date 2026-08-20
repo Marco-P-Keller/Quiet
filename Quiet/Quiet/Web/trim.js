@@ -122,16 +122,36 @@
     return null;
   }
 
-  function button(id, label, onPress) {
+  /**
+   * An icon in Instagram's own hand.
+   *
+   * The bar these sit in is a set of line drawings: one weight, one size, one
+   * colour, inherited from whatever the page is wearing. Anything that does not
+   * match that reads as a fault rather than as a control — which is what a bare
+   * dot did, next to a gear.
+   */
+  function icon(shapes) {
+    return (
+      '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" ' +
+      'stroke="currentColor" stroke-width="1.6" stroke-linecap="round">' +
+      shapes +
+      "</svg>"
+    );
+  }
+
+  function button(id, label, shapes, onPress) {
     var element = document.createElement("button");
     element.id = id;
     element.type = "button";
     element.setAttribute("aria-label", label);
     // `all: unset` first, so none of Instagram's own button styling comes with
-    // it, and nothing of ours leaks the other way.
+    // it, and nothing of ours leaks the other way. The 40 is a finger; the icon
+    // inside it is 24, which is what everything else in these bars is.
     element.style.cssText =
       "all: unset; display: inline-flex; align-items: center; justify-content: center;" +
-      "cursor: pointer; vertical-align: middle; color: inherit;";
+      "width: 40px; height: 40px; cursor: pointer; vertical-align: middle;" +
+      "color: inherit; opacity: 0.85;";
+    element.innerHTML = icon(shapes);
     element.addEventListener("click", function (event) {
       event.preventDefault();
       event.stopPropagation();
@@ -141,40 +161,25 @@
   }
 
   /**
-   * A full stop — the same one on the app's icon — beside Instagram's settings,
-   * on your own profile and nowhere else. Drawn by the page rather than by the
-   * app so it sits at whatever size and spacing Instagram is using today, and
-   * scrolls away with the header it belongs to.
+   * Quiet's mark: a full stop set inside a ring.
+   *
+   * The icon is the app's own sentence — *that's all for today* — drawn at the
+   * weight of the icons it stands among, so it reads as one of them rather than
+   * as something that has gone wrong on the screen. A bare dot did not: at this
+   * size, beside a gear, it looked like dust on the display.
+   *
+   * The numbers were drawn and looked at rather than guessed. The ring started
+   * a point wider and the stop a third larger, which read as a record button;
+   * matching the ring to the magnifying glass beside it, and shrinking the stop
+   * inside it, turns it back into punctuation.
    */
-  function placeMark() {
-    var existing = document.getElementById(MARK_ID);
-    if (!isOwnProfile()) {
-      if (existing) existing.remove();
-      return;
-    }
-    if (existing && existing.isConnected) return;
-    // Only while the header is actually at the top of the screen, or the
-    // "top-left corner" is whatever happens to have scrolled into it.
-    if (window.scrollY > 40) return;
+  var MARK_SHAPES =
+    '<circle cx="12" cy="12" r="7.25"/>' +
+    '<circle cx="12" cy="12" r="1.75" fill="currentColor" stroke="none"/>';
 
-    var settings = controlNear(function (box) {
-      return box.top < 90 && box.left < 90;
-    });
-    if (!settings || !settings.parentElement) return;
-
-    var mark = button(MARK_ID, window.__quietSettingsLabel || "Quiet settings", function () {
-      post({ kind: "settings" });
-    });
-    mark.style.cssText += "width: 34px; height: 34px;";
-
-    var dot = document.createElement("span");
-    dot.style.cssText =
-      "display: block; width: 6px; height: 6px; border-radius: 50%;" +
-      "background: currentColor; opacity: 0.4;";
-    mark.appendChild(dot);
-
-    settings.insertAdjacentElement("afterend", mark);
-  }
+  var GLASS_SHAPES =
+    '<circle cx="10.75" cy="10.75" r="7"/>' +
+    '<line x1="15.9" y1="15.9" x2="20.5" y2="20.5"/>';
 
   /**
    * The search Instagram took away, put back where it was.
@@ -193,16 +198,14 @@
     });
     if (!home || !home.parentElement) return;
 
-    var glass = button(SEARCH_ID, window.__quietSearchLabel || "Find someone", function () {
-      post({ kind: "search" });
-    });
-    glass.style.cssText += "width: 44px; height: 44px;";
-    glass.innerHTML =
-      '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
-      '<circle cx="10.5" cy="10.5" r="7" stroke="currentColor" stroke-width="2"/>' +
-      '<line x1="15.8" y1="15.8" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
-      "</svg>";
-
+    var glass = button(
+      SEARCH_ID,
+      window.__quietSearchLabel || "Find someone",
+      GLASS_SHAPES,
+      function () {
+        post({ kind: "search" });
+      }
+    );
     home.insertAdjacentElement("afterend", glass);
   }
 
