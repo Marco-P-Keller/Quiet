@@ -623,3 +623,26 @@ enough to feel like it belongs to a different tap.
 
 Neither is visible in a screenshot. Both are most of what "it doesn't feel the
 same" means when somebody says it about a row of icons that already looks right.
+
+## The row is a different shape on a phone with a home button
+
+Instagram does not draw the same bar on every iPhone, and neither does iOS.
+
+A phone with a home indicator reserves a strip along the bottom for the system,
+so the row floats above it: a pill, inset from both edges, the page running
+underneath and out to the bottom of the glass.
+
+A phone with a home button reserves nothing there, and a floating pill on one
+leaves a band of nothing beneath it — the exact fault this project spent a day
+removing from the top of the screen. So on those phones the row *is* the bottom
+edge: full width, flush, a hairline above it, no shadow, no shrinking as you
+scroll, and no capsule behind the entry you are on. It marks its place the way
+those bars always have, by filling the symbol.
+
+The two are told apart by the only thing that actually distinguishes them —
+whether the system reserves anything at the bottom. Not by screen size, and not
+by a list of model names that goes stale every September.
+
+The insets are read from the window when the screen is built rather than
+defaulted and corrected on appear. A wrong first answer used to cost a few
+points of padding; now it would draw the row in the wrong shape for a frame.

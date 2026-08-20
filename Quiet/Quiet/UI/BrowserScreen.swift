@@ -48,10 +48,15 @@ struct BrowserScreen: View {
     let session: QuietSession
     let surface: WebSurface
 
-    /// Twenty points is the shortest status bar any iPhone has; the real height
-    /// arrives on the first layout pass.
-    @State private var topInset: CGFloat = 20
-    @State private var bottomInset: CGFloat = 0
+    /// What the system has reserved at either end of the screen.
+    ///
+    /// Asked of the window at the moment the screen is built rather than
+    /// defaulted and corrected, because the row is a different *shape* on a
+    /// phone with a home button and a wrong first answer would show it in the
+    /// wrong one for a frame. Asked again on appear, for the case where the
+    /// window has laid nothing out yet and answers zero.
+    @State private var topInset: CGFloat = SafeArea.top
+    @State private var bottomInset: CGFloat = SafeArea.bottom
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -71,7 +76,7 @@ struct BrowserScreen: View {
                 inset: UIEdgeInsets(
                     top: topInset,
                     left: 0,
-                    bottom: Self.barHeight + Self.barGap * 2 + bottomInset,
+                    bottom: furniture,
                     right: 0
                 )
             )
@@ -127,57 +132,103 @@ struct BrowserScreen: View {
         return .home
     }
 
-    /// The row.
+    /// The row, in whichever shape this phone wears.
+    ///
+    /// Instagram does not draw the same bar on every iPhone, and neither does
+    /// iOS. A phone with a home indicator has a strip along the bottom that
+    /// belongs to the system, so the row floats above it: a pill, inset from
+    /// both edges, with the page running underneath. A phone with a home button
+    /// has no such strip, and there a floating pill leaves a band of nothing
+    /// beneath it — so the row *is* the bottom edge, full width, flush, with a
+    /// hairline above it, the way every bar on those phones has always been.
+    ///
+    /// The two are told apart by the only thing that actually distinguishes
+    /// them: whether the system reserves anything at the bottom. Not by screen
+    /// size, not by a list of model names that goes stale every September.
     private var quietBar: some View {
         VStack(spacing: 0) {
             Spacer(minLength: 0)
-            HStack(spacing: 0) {
-                barButton(.home, "house", "house.fill", Text("Home")) {
-                    surface.goToFeed()
+            if isFloating {
+                row
+                    .frame(height: Self.barHeight)
+                    .padding(.horizontal, 6)
+                    // A pill rather than a bar across the whole screen. It is
+                    // the app's one piece of furniture; it should sit on the
+                    // page rather than cut it off, and the page should be
+                    // visible either side of it — and underneath.
+                    .background(.regularMaterial, in: Capsule())
+                    .shadow(color: .black.opacity(0.22), radius: 16, y: 6)
+                    .padding(.horizontal, 22)
+                    // Drawn in while the page is moving away under your thumb,
+                    // back out the moment it stops or reverses. It never
+                    // leaves: a control that disappears is one you hunt for.
+                    .scaleEffect(surface.isBarCollapsed ? 0.86 : 1, anchor: .bottom)
+                    .opacity(surface.isBarCollapsed ? 0.62 : 1)
+                    .animation(
+                        reduceMotion ? nil : .spring(response: 0.34, dampingFraction: 0.86),
+                        value: surface.isBarCollapsed
+                    )
+                    // Low, over the home indicator, the way Instagram's sits.
+                    // The page runs on beneath it to the bottom edge of the
+                    // glass, which is the whole point of a row that floats.
+                    .padding(.bottom, Self.barGap)
+            } else {
+                VStack(spacing: 0) {
+                    Rectangle()
+                        .fill(Color(uiColor: .separator))
+                        .frame(height: 0.5)
+                    row
+                        .frame(height: Self.flushHeight)
                 }
-                barButton(.clock, "clock", "clock.fill", Text("Quiet settings")) {
-                    session.isPanelShowing = true
-                }
-                barButton(.messages, "paperplane", "paperplane.fill", Text("Messages")) {
-                    surface.goToMessages()
-                }
-                barButton(.search, "magnifyingglass", "magnifyingglass", Text("Find someone")) {
-                    session.isSearchShowing = true
-                }
-                // Only once the page has said who is signed in. A button that
-                // leads nowhere is worse than one that arrives a second late.
-                if surface.me != nil {
-                    myProfileButton
-                }
+                // No shadow and no shrinking. A bar attached to the edge of the
+                // screen has nothing to float over and nothing to get out of
+                // the way of; both would read as a fault rather than a flourish.
+                .background(.regularMaterial)
             }
-            .frame(height: Self.barHeight)
-            .padding(.horizontal, 6)
-            // A pill rather than a bar across the whole screen. It is the app's
-            // one piece of furniture; it should sit on the page rather than cut
-            // it off, and the page should be visible either side of it — and
-            // underneath, which is why nothing below is taken away from it.
-            .background(.regularMaterial, in: Capsule())
-            .shadow(color: .black.opacity(0.22), radius: 16, y: 6)
-            .padding(.horizontal, 22)
-            // Drawn in while the page is moving away under your thumb, back out
-            // the moment it stops or reverses. It never leaves: a control that
-            // disappears is a control you end up hunting for.
-            .scaleEffect(surface.isBarCollapsed ? 0.86 : 1, anchor: .bottom)
-            .opacity(surface.isBarCollapsed ? 0.62 : 1)
-            .animation(
-                reduceMotion ? nil : .spring(response: 0.34, dampingFraction: 0.86),
-                value: surface.isBarCollapsed
-            )
-            // Low, over the home indicator, the way Instagram's sits. The page
-            // runs on beneath it to the bottom edge of the glass, which is the
-            // whole point of a row that floats.
-            .padding(.bottom, Self.barGap)
+        }
+    }
+
+    /// How much of the bottom of the screen the row stands on. The scroll
+    /// indicator is the one thing that still respects it: a scroll bar running
+    /// underneath the row reads as a fault.
+    private var furniture: CGFloat {
+        isFloating ? Self.barHeight + Self.barGap * 2 + bottomInset : Self.flushHeight
+    }
+
+    /// Whether this phone reserves a strip at the bottom for itself.
+    private var isFloating: Bool { bottomInset > 0 }
+
+    /// The five entries, in the order Instagram uses, with the clock where
+    /// Reels would be.
+    private var row: some View {
+        HStack(spacing: 0) {
+            barButton(.home, "house", "house.fill", Text("Home")) {
+                surface.goToFeed()
+            }
+            barButton(.clock, "clock", "clock.fill", Text("Quiet settings")) {
+                session.isPanelShowing = true
+            }
+            barButton(.messages, "paperplane", "paperplane.fill", Text("Messages")) {
+                surface.goToMessages()
+            }
+            barButton(.search, "magnifyingglass", "magnifyingglass", Text("Find someone")) {
+                session.isSearchShowing = true
+            }
+            // Only once the page has said who is signed in. A button that leads
+            // nowhere is worse than one that arrives a second late.
+            if surface.me != nil {
+                myProfileButton
+            }
         }
     }
 
     /// The pill, and the air beneath it. Together they are what the page is
     /// asked to keep clear at the bottom.
     private static let barHeight: CGFloat = 52
+
+    /// A bar attached to the bottom edge is the height every bar on those
+    /// phones has been since the first one.
+    private static let flushHeight: CGFloat = 49
 
     /// The last entry, with your own face in it, the way Instagram's row ends.
     /// An outline of a person stands in until the page has handed one over.
@@ -255,9 +306,12 @@ struct BrowserScreen: View {
     }
 
     /// The lighter capsule behind wherever you are.
+    ///
+    /// Only on the pill. A bar attached to the bottom edge marks its place the
+    /// way those bars always have — by filling the symbol and nothing else.
     @ViewBuilder
     private func mark(_ here: Bool) -> some View {
-        if here {
+        if here && isFloating {
             Capsule()
                 .fill(Color(uiColor: .label).opacity(0.13))
                 .padding(.vertical, 6)
