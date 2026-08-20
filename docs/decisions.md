@@ -850,3 +850,99 @@ this project turned on itself, three commits after complaining about one.
 
 Both are refused now, on `html` and `body` and on anything found holding a floor
 worth eight points or more.
+
+## The bottom inset the page is never told about
+
+`html` and `body` were the wrong place to refuse `env(safe-area-inset-bottom)`,
+and the photograph after that build says so: the band is still there. A
+stylesheet can only reach the elements it can name, and the ones consulting the
+safe area at the bottom are Instagram's, several layers down, generated afresh
+whenever the client feels like it. `env()` is not a property; there is nothing
+to override.
+
+So it is answered where it is asked. The view the page is drawn in reports the
+notch at the top and nothing at the bottom — one override on `QuietWebView`, and
+every rule anywhere on the page that reserves room for the home indicator
+reserves nothing. WebKit reads the same number for its own layout, so a viewport
+inset at the bottom goes with it.
+
+The top is untouched, which is the whole reason `viewport-fit=cover` is on: the
+rule that keeps Instagram's header off the clock still sees the notch, and still
+takes the larger of that and the number the app hands over.
+
+## Two and a half millimetres
+
+The row sat twelve points above the bottom edge of the glass. It sits at
+twenty-eight now — about two and a half millimetres higher on the phone, at
+roughly a hundred and sixty points to the inch, which is what a photograph asked
+for.
+
+It still floats over the home indicator rather than clearing it. A row that
+clears it leaves a band of page between the two that nobody can read and nothing
+can cover, which is the thing this project keeps taking out.
+
+The scroll indicator moves with it: the pill, the air beneath it and the
+system's strip, so a scroll bar stops above the row instead of running beside
+it. Only the indicator — the page itself is given all of the glass, as before.
+
+## The band was never a gap
+
+Four fixes went into the black band above the row, and every one of them read it
+as a gap — the page stopping short of the bottom of the glass. A taller frame,
+the floor padding taken up, `html` and `body` refused their bottom padding, the
+bottom safe area zeroed at the view so no `env()` anywhere could reserve a
+strip. The photograph after the fourth shows the band exactly where it was.
+
+That is the answer, and it took four builds to hear it. A band that survives
+everything done to the page's *size* is not a hole in the page. It is an
+element, drawn over Instagram's own photograph, in Instagram's own background
+colour: the bar its row hangs in.
+
+`navRow` finds the smallest container holding the five links, because that is
+what has to be measured, read for the signed-in name, and rasterised for its
+icons. What carries the colour, the border and the forty-odd points of height is
+a wrapper further out. Hiding the links empties the bar without taking the bar
+away, and an empty bar is a black band.
+
+So the wrapper goes too, found the way everything else in trim.js is found — by
+asking the browser what it did. Pinned to the bottom of the glass, short enough
+to be a bar rather than a page, and without the feed inside it. That last one is
+the stop: it is the only question that matters when a walk up the tree reaches a
+container nobody meant.
+
+Four checks in the harness. The bar behind the row is hidden with it, a wrapper
+merely in the flow is left alone and keeps its floor taken up, a wrapper with
+`main` inside it is the page, and one as tall as the page is not a bar.
+
+The four earlier fixes stay. None of them was wrong — a page that owns the whole
+glass and reserves nothing at the bottom is what this app wants either way, and
+each of them removes a band this one would have left behind.
+
+## Another two millimetres
+
+Twelve points to begin with, then twenty-eight, and forty-one now. The row
+clears the home indicator instead of floating over it, which is only worth
+having because the page finally runs the whole way down behind it: under the row
+is Instagram's next photograph rather than a strip of its background.
+
+## The last inch: stop arguing with the page about it
+
+Four rounds went into the strip along the bottom of the screen. A content inset.
+Instagram's floor padding. A `viewport-fit` this project switched on itself and
+then had to refuse at the other end. A frame instead of a request. Each one
+moved the band and none of them removed it, because every one of them was a
+guess about what a stranger's stylesheet keeps clear down there.
+
+So the arguing stops. `env(safe-area-inset-bottom)` is the page's own name for
+"the strip at the bottom I must not draw in" — so the web view is made that much
+taller than the glass, and whatever the page reserves lands off the screen
+entirely. Whatever it is, and however it is spelled next week, it is no longer
+on the phone.
+
+Nothing real is lost. What falls off the bottom is space the page itself set
+aside to be empty, and the scroll view is given the same amount as a bottom
+inset so that a page which *does* end can still be scrolled all the way into
+view — that inset lands in the overhang, where nobody can see it.
+
+On a phone with a home button the system reserves nothing, this adds nothing,
+and the frame is exactly the screen.

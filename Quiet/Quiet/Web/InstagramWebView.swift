@@ -277,6 +277,30 @@ final class WebSurface {
 final class QuietWebView: WKWebView {
     var onSafeArea: ((UIEdgeInsets) -> Void)?
 
+    /// The notch, and nothing at the bottom.
+    ///
+    /// This is where the black band above the row actually came from, and it
+    /// took three commits to find because the app never asked for it. The page
+    /// is told to cover the glass — `viewport-fit=cover`, set by trim.js — so
+    /// that trim.css can ask about the notch and keep Instagram's header off
+    /// the clock. Switching that on switches on *every* rule that consults the
+    /// safe area, at both ends: `env(safe-area-inset-bottom)` stopped reading
+    /// zero, and every reservation Instagram makes for the home indicator came
+    /// back as a strip of nothing under Quiet's row, where the next photograph
+    /// belongs.
+    ///
+    /// A stylesheet cannot answer that. `env()` is not a property to override
+    /// and the elements that consult it are somebody else's, all over the page.
+    /// So it is answered here instead, at the source both WebKit and the page
+    /// read from: this view has a top inset and no bottom one. The clock keeps
+    /// its number, and nothing anywhere is asked to keep clear of a strip that
+    /// Quiet's own row is deliberately floating over.
+    override var safeAreaInsets: UIEdgeInsets {
+        var insets = super.safeAreaInsets
+        insets.bottom = 0
+        return insets
+    }
+
     override func safeAreaInsetsDidChange() {
         super.safeAreaInsetsDidChange()
         onSafeArea?(safeAreaInsets)
@@ -290,6 +314,14 @@ struct InstagramWebView: UIViewRepresentable {
     /// How much of the top and bottom of the screen belongs to somebody else —
     /// the status bar above, Quiet's own row of controls below.
     var inset: UIEdgeInsets
+    /// How far the view hangs below the bottom of the glass.
+    ///
+    /// The page reserves that much for a bar that is not there, and the view is
+    /// made taller by the same amount so the reservation falls off the screen.
+    /// The scroll view is told about it as a bottom inset so that the end of a
+    /// page that *does* end can still be scrolled all the way into view: the
+    /// inset lands in the overhang, which nobody can see.
+    var overhang: CGFloat = 0
 
     func makeCoordinator() -> Coordinator {
         Coordinator(session: session, surface: surface)
@@ -347,7 +379,7 @@ struct InstagramWebView: UIViewRepresentable {
         // status bar and scrolls up behind it. That is what Instagram does, and
         // it is a property of the page rather than of the view.
         webView.scrollView.contentInsetAdjustmentBehavior = .never
-        webView.scrollView.contentInset = .zero
+        webView.scrollView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: overhang, right: 0)
         // The indicator is the one thing that should still respect the app's
         // furniture: a scroll bar running under the row reads as a fault.
         webView.scrollView.verticalScrollIndicatorInsets = inset
@@ -361,6 +393,9 @@ struct InstagramWebView: UIViewRepresentable {
     func updateUIView(_ webView: WKWebView, context: Context) {
         if webView.scrollView.verticalScrollIndicatorInsets != inset {
             webView.scrollView.verticalScrollIndicatorInsets = inset
+        }
+        if webView.scrollView.contentInset.bottom != overhang {
+            webView.scrollView.contentInset.bottom = overhang
         }
         // The same larger-of-the-two as in `makeUIView`, so that a layout pass
         // that still reports the starting twenty points cannot walk the number

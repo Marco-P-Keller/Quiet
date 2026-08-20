@@ -257,12 +257,82 @@
     var row = navRow();
     if (!row) return;
     if (!window.__quietMe) learnMe(row);
+    // Before the row goes: what is drawn behind it still has a size, and a
+    // hidden element has none.
+    hideNavShell(row);
     if (row.getAttribute("data-quiet-hidden") !== "nav") {
       row.setAttribute("data-quiet-hidden", "nav");
     }
     takeUpTheFloor(row);
     faceFromRow(row);
     sendIcons(row);
+  }
+
+  /**
+   * The bar Instagram draws *behind* its row, which is the black band in the
+   * photograph.
+   *
+   * This is the thing four separate fixes went looking for in the wrong place.
+   * The band was read as a gap — the page stopping short of the bottom of the
+   * glass — and answered four times over: a taller frame, the floor padding
+   * taken up, `html` and `body` refused their bottom padding, and finally the
+   * bottom safe area zeroed at the view so that no `env()` anywhere could
+   * reserve a strip. The band survived all four, which is the answer: it is not
+   * a gap at all. It is an element, drawn over Instagram's own photograph, in
+   * Instagram's own background colour.
+   *
+   * `navRow` finds the smallest container holding the five links, because that
+   * is what has to be measured and read. What carries the bar's colour, its
+   * border and its height is a wrapper further out — pinned to the bottom of
+   * the glass, spanning it, forty or fifty points tall. Hiding the links inside
+   * it empties the bar without taking the bar away.
+   *
+   * So the wrapper goes too. Found the way everything else here is found: by
+   * asking the browser what it did, rather than by matching a class name.
+   * Pinned to the bottom, short enough to be a bar rather than a page, and
+   * without the feed inside it — that last one is the stop that keeps a walk up
+   * the tree from reaching a container holding the whole document, which is the
+   * mistake this file has made twice before.
+   */
+  function hideNavShell(row) {
+    var node = row.parentElement;
+    var depth = 0;
+
+    while (node && node !== document.body &&
+           node !== document.documentElement && depth < 6) {
+      if (node.getAttribute("data-quiet-hidden") !== null) return;
+      if (isBottomBar(node)) {
+        node.setAttribute("data-quiet-hidden", "nav");
+        return;
+      }
+      node = node.parentElement;
+      depth += 1;
+    }
+  }
+
+  /**
+   * Whether this is the bar itself rather than something it happens to be in.
+   *
+   * Four questions, and a no to any of them leaves the element alone. It has to
+   * be taken out of the flow and pinned to the bottom of the glass, because
+   * that is what a bottom bar is and what a wrapper in the feed is not. It has
+   * to be short: a bar is forty or fifty points and the page is nine hundred.
+   * And the feed must not be inside it, which is the only question that matters
+   * when the other three are answered by a container nobody meant.
+   */
+  function isBottomBar(node) {
+    var style = window.getComputedStyle(node);
+    if (style.position !== "fixed" && style.position !== "sticky") return false;
+
+    // `auto` parses to nothing, and something merely floating in the page is
+    // not pinned to the bottom of anything.
+    var bottom = parseFloat(style.bottom);
+    if (isNaN(bottom) || bottom > 1) return false;
+
+    if (node.querySelector("main")) return false;
+
+    var box = node.getBoundingClientRect();
+    return box.height <= 140;
   }
 
   /* ── Instagram's own icons ────────────────────────────────────────────── */

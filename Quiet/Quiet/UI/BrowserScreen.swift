@@ -20,9 +20,9 @@ import UIKit
 ///
 /// The pill draws itself in while the page moves away under your thumb and
 /// comes back out when it stops. It never leaves, because a control that
-/// disappears is a control you end up hunting for. It sits low, over the home
-/// indicator, and the page runs on beneath it to the bottom edge — a row that
-/// floats and a page that stops under it is the worst of both.
+/// disappears is a control you end up hunting for. It sits just clear of the
+/// home indicator, and the page runs on beneath it to the bottom edge — a row
+/// that floats and a page that stops under it is the worst of both.
 ///
 /// The two Quiet needed lived inside Instagram's bar for a while, which is
 /// where they belonged and where they twice failed to appear: a row built by
@@ -88,11 +88,32 @@ struct BrowserScreen: View {
                     left: 0,
                     bottom: furniture,
                     right: 0
-                )
+                ),
+                overhang: bottomInset
             )
+            // Taller than the glass, by exactly what the system reserves at
+            // the bottom.
+            //
+            // Four rounds went into arguing with the page about the last inch:
+            // a content inset, Instagram's floor padding, a viewport-fit that
+            // this project switched on itself, a frame instead of a request.
+            // Each moved the band and none of them removed it, because each
+            // was a guess about what a stranger's stylesheet keeps clear down
+            // there.
+            //
+            // This stops guessing. `env(safe-area-inset-bottom)` is the page's
+            // own name for "the strip at the bottom I must not draw in", so the
+            // web view is given that much extra below the screen and the page's
+            // own reservation lands off the glass entirely. Whatever it is, and
+            // however it is spelled this week, it is no longer on the phone.
+            //
+            // Nothing real is lost: what falls off the bottom is the space the
+            // page itself set aside to be empty. On a phone with a home button
+            // the system reserves nothing, this adds nothing, and the frame is
+            // the screen.
             .frame(
                 width: glass.width > 0 ? glass.width : nil,
-                height: glass.height > 0 ? glass.height : nil
+                height: glass.height > 0 ? glass.height + bottomInset : nil
             )
             // Said again here, on the view itself.
             //
@@ -213,9 +234,11 @@ struct BrowserScreen: View {
                         reduceMotion ? nil : .spring(response: 0.34, dampingFraction: 0.86),
                         value: surface.isBarCollapsed
                     )
-                    // Low, over the home indicator, the way Instagram's sits.
-                    // The page runs on beneath it to the bottom edge of the
-                    // glass, which is the whole point of a row that floats.
+                    // Just clear of the home indicator, with Instagram's next
+                    // photograph running on beneath it to the bottom edge of
+                    // the glass — which is the whole point of a row that
+                    // floats, and was a black band of Instagram's own until the
+                    // bar behind its row came out. See `hideNavShell`.
                     .padding(.bottom, Self.barGap)
             } else {
                 VStack(spacing: 0) {
@@ -236,8 +259,13 @@ struct BrowserScreen: View {
     /// How much of the bottom of the screen the row stands on. The scroll
     /// indicator is the one thing that still respects it: a scroll bar running
     /// underneath the row reads as a fault.
+    ///
+    /// The pill and the air beneath it, and then the system's own strip on top
+    /// of that, so the indicator stops above the row rather than beside it.
+    /// The page itself is given all of this back — it runs on underneath to the
+    /// bottom edge of the glass, which is the whole point of a row that floats.
     private var furniture: CGFloat {
-        isFloating ? Self.barHeight + Self.barGap * 2 + bottomInset : Self.flushHeight
+        isFloating ? Self.barHeight + Self.barGap + bottomInset : Self.flushHeight
     }
 
     /// Whether this phone reserves a strip at the bottom for itself.
@@ -308,7 +336,20 @@ struct BrowserScreen: View {
         .accessibilityAddTraits(here ? .isSelected : [])
     }
 
-    private static let barGap: CGFloat = 12
+    /// How far the pill floats above the bottom edge of the glass.
+    ///
+    /// Twelve points to begin with, then twenty-eight, and forty-one now: two
+    /// photographs, each asking for a couple of millimetres more. Roughly a
+    /// hundred and sixty points to the inch, so a millimetre is a little over
+    /// six points and the arithmetic is honest rather than a round number that
+    /// happened to look right.
+    ///
+    /// It clears the home indicator now rather than floating over it, which is
+    /// only worth having because the page finally runs the whole way down
+    /// behind it. Under the row is Instagram's next photograph; it was a black
+    /// band of Instagram's own until the bar behind its row came out. See
+    /// `hideNavShell` in trim.js.
+    private static let barGap: CGFloat = 41
 
     /// What a tap on the row does.
     ///

@@ -293,6 +293,72 @@ const GROUPED = `
     true
   );
 
+  /* And the bar the row was standing *in*, which is the black band in the
+   * photograph. Four fixes read that band as a gap — the page stopping short of
+   * the bottom of the glass — and answered it four times over: a taller frame,
+   * the floor padding taken up, `html` and `body` refused their bottom padding,
+   * the bottom safe area zeroed at the view. It survived all four, because it
+   * was never a gap. `navRow` hides the five links; what carries the colour and
+   * the height is the wrapper they hang in. */
+  const shell = await page(
+    `<div data-name="shell" style="position: fixed; bottom: 0px" data-box="0,803,393,49">
+       <div data-name="nav">
+         <a href="/">home</a>
+         <a href="/direct/inbox/">messages</a>
+         <a href="/marco/"><img src="face.jpg"></a>
+       </div>
+     </div>
+     <main></main>`,
+    FEED
+  );
+  check(
+    "the bar drawn behind the row is hidden with it",
+    shell.document.querySelector('[data-name="shell"]').getAttribute("data-quiet-hidden"),
+    "nav"
+  );
+
+  /* A wrapper in the flow is padding, not a bar. Its floor is taken up — that
+   * is the check above — and it keeps everything else it was drawing. */
+  check(
+    "something merely in the flow is not a bar and is left where it is",
+    bottom.document.querySelector('[data-name="floor"]').hasAttribute("data-quiet-hidden"),
+    false
+  );
+
+  /* The stop that matters. Everything else about a container can look like a
+   * bar; a container with the feed inside it is the page. */
+  const holdsTheFeed = await page(
+    `<div data-name="shell" style="position: fixed; bottom: 0px" data-box="0,803,393,49">
+       <div data-name="nav">
+         <a href="/">home</a>
+         <a href="/direct/inbox/">messages</a>
+       </div>
+       <main></main>
+     </div>`,
+    FEED
+  );
+  check(
+    "a wrapper with the feed inside it is not a bar",
+    holdsTheFeed.document.querySelector('[data-name="shell"]').hasAttribute("data-quiet-hidden"),
+    false
+  );
+
+  const tall = await page(
+    `<div data-name="shell" style="position: fixed; bottom: 0px" data-box="0,0,393,852">
+       <div data-name="nav">
+         <a href="/">home</a>
+         <a href="/direct/inbox/">messages</a>
+       </div>
+     </div>
+     <main></main>`,
+    FEED
+  );
+  check(
+    "nor is one as tall as the page",
+    tall.document.querySelector('[data-name="shell"]').hasAttribute("data-quiet-hidden"),
+    false
+  );
+
   /* The button marked "your profile" uses Instagram's own link rather than an
    * address built from a name the app may have read a moment too early. */
   // It answers with the address it went to rather than a bare yes, which is
