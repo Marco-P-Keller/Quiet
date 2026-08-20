@@ -90,6 +90,8 @@
 
   var MARK_ID = "quiet-mark";
   var SEARCH_ID = "quiet-search";
+  var CLOCK_ID = "quiet-clock";
+  var OURS = { "quiet-mark": true, "quiet-search": true, "quiet-clock": true };
 
   /**
    * Is this the signed-in person's own profile?
@@ -110,16 +112,66 @@
    * Both of those change; a settings control in the top-left corner and a
    * navigation bar along the bottom have not changed in the life of the site.
    */
+  function controls() {
+    return document.querySelectorAll('a[href], button, [role="button"], [role="link"]');
+  }
+
   function controlNear(test) {
-    var candidates = document.querySelectorAll('a[href], button, [role="button"], [role="link"]');
+    var candidates = controls();
     for (var i = 0; i < candidates.length; i++) {
       var element = candidates[i];
-      if (element.id === MARK_ID || element.id === SEARCH_ID) continue;
+      if (OURS[element.id]) continue;
       var box = element.getBoundingClientRect();
       if (box.width < 16 || box.height < 16 || box.width > 120) continue;
       if (test(box)) return element;
     }
     return null;
+  }
+
+  /**
+   * The navigation bar along the bottom, and the controls in it.
+   *
+   * Found as the element with the most tappable children sitting on the bottom
+   * edge — which is what a navigation bar *is*, and is true of it in every
+   * language and under every generated class name. An earlier version looked
+   * for a single control near the bottom-left and rejected it for being too
+   * wide: the items in that bar are stretched to a third of the screen each, so
+   * the one measurement I used to recognise a button is the one thing they are
+   * not.
+   */
+  function bottomRow() {
+    var candidates = controls();
+    var rows = [];
+    for (var i = 0; i < candidates.length; i++) {
+      var element = candidates[i];
+      if (OURS[element.id] || !element.parentElement) continue;
+      var box = element.getBoundingClientRect();
+      if (box.width < 20 || box.height < 20) continue;
+      if (window.innerHeight - box.bottom > 130) continue;
+      if (box.top < window.innerHeight * 0.7) continue;
+
+      var row = null;
+      for (var j = 0; j < rows.length; j++) {
+        if (rows[j].parent === element.parentElement) row = rows[j];
+      }
+      if (!row) {
+        row = { parent: element.parentElement, items: [] };
+        rows.push(row);
+      }
+      row.items.push(element);
+    }
+
+    var best = null;
+    for (var k = 0; k < rows.length; k++) {
+      if (rows[k].items.length < 2) continue;
+      if (!best || rows[k].items.length > best.items.length) best = rows[k];
+    }
+    if (best) {
+      best.items.sort(function (a, b) {
+        return a.getBoundingClientRect().left - b.getBoundingClientRect().left;
+      });
+    }
+    return best;
   }
 
   /**
@@ -139,18 +191,17 @@
     );
   }
 
-  function button(id, label, shapes, onPress) {
+  function button(id, label, shapes, extra, onPress) {
     var element = document.createElement("button");
     element.id = id;
     element.type = "button";
     element.setAttribute("aria-label", label);
     // `all: unset` first, so none of Instagram's own button styling comes with
-    // it, and nothing of ours leaks the other way. The 40 is a finger; the icon
-    // inside it is 24, which is what everything else in these bars is.
+    // it, and nothing of ours leaks the other way. The icon inside is 24, which
+    // is what everything else in these bars is.
     element.style.cssText =
       "all: unset; display: inline-flex; align-items: center; justify-content: center;" +
-      "width: 40px; height: 40px; cursor: pointer; vertical-align: middle;" +
-      "color: inherit; opacity: 0.85;";
+      "height: 44px; cursor: pointer; color: inherit; opacity: 0.85;" + extra;
     element.innerHTML = icon(shapes);
     element.addEventListener("click", function (event) {
       event.preventDefault();
@@ -173,40 +224,64 @@
    * matching the ring to the magnifying glass beside it, and shrinking the stop
    * inside it, turns it back into punctuation.
    */
-  var MARK_SHAPES =
-    '<circle cx="12" cy="12" r="7.25"/>' +
-    '<circle cx="12" cy="12" r="1.75" fill="currentColor" stroke="none"/>';
+  /**
+   * A clock. Quiet is a limit on time, and a clock is the one drawing everybody
+   * already reads as time — which beats a mark that has to be learned, however
+   * much the full stop is the app's own.
+   */
+  var CLOCK_SHAPES =
+    '<circle cx="12" cy="12" r="7.6"/>' +
+    '<line x1="12" y1="12" x2="12" y2="7.6"/>' +
+    '<line x1="12" y1="12" x2="15.6" y2="12"/>';
 
   var GLASS_SHAPES =
     '<circle cx="10.75" cy="10.75" r="7"/>' +
     '<line x1="15.9" y1="15.9" x2="20.5" y2="20.5"/>';
 
   /**
-   * The search Instagram took away, put back where it was.
+   * The two things Quiet puts into the navigation bar.
    *
-   * Its own search tab is the front door to Explore, so it stays shut. This one
-   * opens Quiet's, which returns people and nothing else. The slot is found by
-   * the home button in the navigation bar, and the glass goes immediately after
-   * it — which is exactly where Instagram's own search has always been.
+   * The search Instagram took away, back in the slot its own search occupied —
+   * that tab is the front door to Explore, so it stays shut, and this one opens
+   * Quiet's, which returns people and nothing else. And the clock, at the end,
+   * because settings belong somewhere you can always reach rather than on one
+   * page you have to navigate to first.
+   *
+   * Both are given `flex: 1` so they share the bar the way its own items do
+   * instead of squeezing them.
    */
-  function placeSearch() {
-    var existing = document.getElementById(SEARCH_ID);
-    if (existing && existing.isConnected) return;
+  function placeBar() {
+    if (document.getElementById(SEARCH_ID) && document.getElementById(CLOCK_ID)) return;
 
-    var home = controlNear(function (box) {
-      return window.innerHeight - box.bottom < 120 && box.left < window.innerWidth / 4;
-    });
-    if (!home || !home.parentElement) return;
+    var row = bottomRow();
+    if (!row) return;
+    var share = "flex: 1 1 0; min-width: 44px;";
 
-    var glass = button(
-      SEARCH_ID,
-      window.__quietSearchLabel || "Find someone",
-      GLASS_SHAPES,
-      function () {
-        post({ kind: "search" });
-      }
-    );
-    home.insertAdjacentElement("afterend", glass);
+    if (!document.getElementById(SEARCH_ID)) {
+      var glass = button(
+        SEARCH_ID,
+        window.__quietSearchLabel || "Find someone",
+        GLASS_SHAPES,
+        share,
+        function () {
+          post({ kind: "search" });
+        }
+      );
+      row.items[0].insertAdjacentElement("afterend", glass);
+    }
+
+    if (!document.getElementById(CLOCK_ID)) {
+      var clock = button(
+        CLOCK_ID,
+        window.__quietSettingsLabel || "Quiet settings",
+        CLOCK_SHAPES,
+        share,
+        function () {
+          post({ kind: "settings" });
+        }
+      );
+      row.parent.appendChild(clock);
+    }
   }
 
   /* ── 1. Taps ──────────────────────────────────────────────────────────── */
@@ -292,7 +367,7 @@
       if (main) trimSuggestions(main);
       guardLocation();
       placeMark();
-      placeSearch();
+      placeBar();
     });
   }
 
