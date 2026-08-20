@@ -126,6 +126,63 @@
     }
   }
 
+  /**
+   * The link nearest the top of the screen that goes where `matches` says.
+   */
+  function highest(matches) {
+    var best = null;
+    var bestTop = Infinity;
+    var links = document.querySelectorAll("a[href]");
+    for (var i = 0; i < links.length; i++) {
+      if (!matches(links[i].getAttribute("href") || "")) continue;
+      var box = links[i].getBoundingClientRect();
+      if (box.height === 0) continue;
+      if (box.top < bestTop) {
+        bestTop = box.top;
+        best = links[i];
+      }
+    }
+    return best;
+  }
+
+  /**
+   * Take out the feed's own header.
+   *
+   * Three attempts to make Instagram's header sit below the clock, and it kept
+   * climbing back the moment the page moved. The header holds a wordmark, a
+   * button for posting — which this app cannot do anyway — and the activity
+   * heart, which is a hook by construction. None of it is worth a fourth
+   * attempt, and without it there is nothing pinned to the top of the screen at
+   * all: the collision cannot happen again.
+   *
+   * Only the feed's. It is recognised by the wordmark, a link to "/" in a bar
+   * as wide as the screen that the page has pinned there. A profile or a
+   * conversation carries a back button and a title in its top bar and no link
+   * home, so those are left alone.
+   */
+  function hideFeedHeader() {
+    var wordmark = highest(function (href) { return href === "/"; });
+    if (!wordmark) return;
+
+    var node = wordmark;
+    while (node && node !== document.body) {
+      var box = node.getBoundingClientRect();
+      var position = getComputedStyle(node).position;
+      if (
+        box.top < 90 &&
+        box.width >= window.innerWidth * 0.9 &&
+        box.height <= 160 &&
+        (position === "sticky" || position === "fixed")
+      ) {
+        if (node.getAttribute("data-quiet-hidden") !== "header") {
+          node.setAttribute("data-quiet-hidden", "header");
+        }
+        return;
+      }
+      node = node.parentElement;
+    }
+  }
+
   /* ── What Quiet puts back ────────────────────────────────────────────── */
 
   var MARK_ID = "quiet-mark";
@@ -178,12 +235,44 @@
     return node;
   }
 
+  var asked = false;
+
   /**
-   * Who is signed in.
+   * Who is signed in — asked, not deduced.
    *
-   * The profile entry in that row is a link to `/username/`, which is the only
-   * place the name is written down where Quiet can read it. The app needs it to
-   * offer a profile button of its own, and asks nothing of Instagram to get it.
+   * Two versions of this read the name off a link in the page, and both got it
+   * wrong: the first found the wordmark at the top of the feed, which is also a
+   * link to "/", and walked up to a container holding half the document; the
+   * second was right in principle and still handed somebody a stranger's
+   * profile under a button marked "your profile".
+   *
+   * This is the request Instagram's own settings page makes, run inside
+   * Instagram's page with Instagram's own cookies. It returns the signed-in
+   * name and nothing else. There is nothing left to guess at.
+   */
+  function whoAmI() {
+    if (asked || window.__quietMe) return;
+    asked = true;
+    fetch("/api/v1/web/accounts/edit/web_form_data/", {
+      credentials: "same-origin",
+      headers: { "X-IG-App-ID": window.__quietAppID || "" }
+    })
+      .then(function (response) { return response.ok ? response.json() : null; })
+      .then(function (data) {
+        var name = data && data.form_data && data.form_data.username;
+        if (!name) return;
+        window.__quietMe = name;
+        post({ kind: "me", username: name });
+      })
+      .catch(function () {
+        // Signed out, or the endpoint moved. The row keeps its four entries.
+        asked = false;
+      });
+  }
+
+  /**
+   * The name off the navigation bar, kept only as a second chance for the day
+   * the request above stops answering.
    */
   function learnMe(row) {
     // Only ever from inside the bar. A profile link in the feed belongs to
@@ -210,7 +299,7 @@
   function replaceNav() {
     var row = navRow();
     if (!row) return;
-    learnMe(row);
+    if (!window.__quietMe) learnMe(row);
     if (row.getAttribute("data-quiet-hidden") !== "nav") {
       row.setAttribute("data-quiet-hidden", "nav");
     }
@@ -376,6 +465,8 @@
       var main = document.querySelector("main");
       if (main) trimSuggestions(main);
       guardLocation();
+      whoAmI();
+      hideFeedHeader();
       liftPinned();
       replaceNav();
       placeMark();

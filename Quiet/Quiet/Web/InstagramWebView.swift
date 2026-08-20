@@ -159,17 +159,13 @@ final class WebSurface {
 
         let answer = try? await webView.callAsyncJavaScript(
             body,
-            arguments: ["query": trimmed, "appID": Self.appID],
+            arguments: ["query": trimmed, "appID": WebScripts.appID],
             in: nil,
             contentWorld: .defaultClient
         )
         guard let json = answer as? String, let data = json.data(using: .utf8) else { return nil }
         return try? JSONDecoder().decode([Person].self, from: data)
     }
-
-    /// The identifier Instagram's own web client sends. Without it the newer
-    /// endpoint answers 403 and no explanation.
-    private static let appID = "936619743392459"
 
     fileprivate func adopt(_ webView: WKWebView, missing: [String]) {
         self.webView = webView
