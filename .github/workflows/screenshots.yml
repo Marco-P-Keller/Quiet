@@ -141,7 +141,7 @@ jobs:
         run: |
           set -euo pipefail
           cd shots
-          for f in setup panel limit search curtain \
+          for f in feed setup panel limit search curtain \
                    setup-largest panel-largest limit-largest curtain-largest \
                    setup-dark panel-dark curtain-dark \
                    setup-german panel-german limit-german curtain-german; do
@@ -150,8 +150,11 @@ jobs:
             # so they travel bigger. A layout that fails at the largest text
             # size fails in a detail, and 380 pixels cannot show a detail.
             case "$f" in
-              *-largest) width=760 ;;
-              *)         width=420 ;;
+              # The feed and the accessibility sizes are the two worth looking
+              # at closely: one carries Quiet's own furniture over somebody
+              # else's page, the other is where a layout gives way.
+              feed|*-largest) width=760 ;;
+              *)              width=420 ;;
             esac
             sips -Z "$width" -s format jpeg -s formatOptions 60 "$f.png" --out "$f.jpg" >/dev/null
             echo "----BEGIN $f----"
