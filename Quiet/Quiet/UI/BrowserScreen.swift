@@ -58,7 +58,7 @@ struct BrowserScreen: View {
                 surface: surface,
                 session: session,
                 inset: UIEdgeInsets(
-                    top: topInset + Self.headerHeight,
+                    top: topInset + headerHeight,
                     left: 0,
                     bottom: Self.barHeight + Self.barGap * 2 + bottomInset,
                     right: 0
@@ -69,7 +69,17 @@ struct BrowserScreen: View {
                 cover
             }
 
-            header
+            if !surface.isSigningIn {
+                header
+            } else {
+                // The sign-in page gets the plain band it had: opaque, so
+                // nothing of Instagram's runs under the clock, and silent,
+                // because that page has a wordmark of its own.
+                VStack(spacing: 0) {
+                    Color(uiColor: .systemBackground).frame(height: topInset)
+                    Spacer(minLength: 0)
+                }
+            }
 
             // Over the cover, so it is there from the first frame rather than
             // arriving with the page.
@@ -78,7 +88,7 @@ struct BrowserScreen: View {
             statusBarStrip
 
             overlays
-                .padding(.top, topInset + Self.headerHeight + 8)
+                .padding(.top, topInset + headerHeight + 8)
         }
         .ignoresSafeArea()
         .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: surface.hasLoaded)
@@ -134,7 +144,7 @@ struct BrowserScreen: View {
                 }
                 .padding(.leading, 16)
                 .padding(.trailing, surface.activity == nil ? 16 : 4)
-                .frame(height: Self.headerHeight)
+                .frame(height: Self.titleRow)
             }
             .background(Color(uiColor: .systemBackground))
 
@@ -150,8 +160,11 @@ struct BrowserScreen: View {
 
     /// The title row, beneath the status bar. Forty-four points is the height
     /// of every native bar on iOS, which is what this is pretending to be —
-    /// and, on the feed, roughly what Instagram's own bar was.
-    private static let headerHeight: CGFloat = 44
+    /// and, on the feed, roughly what Instagram's own bar was. Zero while
+    /// somebody is signing in, because there is no header on that page.
+    private var headerHeight: CGFloat { surface.isSigningIn ? 0 : Self.titleRow }
+
+    private static let titleRow: CGFloat = 44
 
     /// Quiet's own paper, held over the web view until the first page settles.
     /// A cold launch should look like the app deciding to start, not like a
