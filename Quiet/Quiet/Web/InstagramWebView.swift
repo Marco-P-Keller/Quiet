@@ -51,22 +51,6 @@ final class WebSurface {
     /// in a photograph rather than an outline of a person.
     private(set) var myFace: UIImage?
 
-    /// Whether the page on screen is one a person signs in on.
-    ///
-    /// True to begin with, because that is where Quiet opens. A signed-in
-    /// session is redirected on to the feed before the first frame is drawn, so
-    /// nobody sees this change — the cover is still over the top while it does.
-    private(set) var isSigningIn = true
-
-    /// Where Instagram's heart went, read out of its own header before that
-    /// header was taken out.
-    ///
-    /// `nil` until a feed has loaded, and the heart in Quiet's header only
-    /// appears once it is known — a button that leads nowhere is worse than a
-    /// button that arrives a second late. Quiet guesses no addresses: this one
-    /// comes from the page itself.
-    private(set) var activity: URL?
-
     /// False until the first page has finished, or failed. While it is false the
     /// browsing screen keeps Quiet's own paper over the top, so a cold launch
     /// shows a considered blank rather than the white rectangle of a web view
@@ -205,19 +189,6 @@ final class WebSurface {
         isBarCollapsed = collapsed
     }
 
-    fileprivate func note(page url: URL?) {
-        let signingIn = url.map(ContentRules.isSignIn) ?? false
-        guard signingIn != isSigningIn else { return }
-        isSigningIn = signingIn
-    }
-
-    fileprivate func note(activity path: String) {
-        guard let url = URL(string: path, relativeTo: ContentRules.feed)?.absoluteURL,
-              url.host == ContentRules.feed.host,
-              activity != url else { return }
-        activity = url
-    }
-
     fileprivate func note(me name: String, picture: String?) {
         if me != name { me = name }
         guard let picture, let data = Data(base64Encoded: picture) else { return }
@@ -227,11 +198,6 @@ final class WebSurface {
     /// Where Quiet's own row can send you.
     func goToFeed() { open(ContentRules.feed) }
     func goToMessages() { open(ContentRules.messages) }
-
-    func goToActivity() {
-        guard let activity else { return }
-        open(activity)
-    }
 
     func goToMyProfile() {
         guard let me, let url = ContentRules.profile(forHandle: me) else { return }
@@ -424,15 +390,7 @@ struct InstagramWebView: UIViewRepresentable {
             return nil
         }
 
-        func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
-            // The moment the new page's address is the real one, rather than
-            // the one that was asked for — a signed-in session asks for the
-            // login form and is given the feed.
-            surface.note(page: webView.url)
-        }
-
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            surface.note(page: webView.url)
             surface.markLoaded()
         }
 
@@ -478,12 +436,6 @@ struct InstagramWebView: UIViewRepresentable {
             case "search":
                 // The magnifying glass, tapped in Quiet's own row.
                 session.isSearchShowing = true
-
-            case "chrome":
-                // The one control in Instagram's header that was nowhere else.
-                if let path = body["activity"] as? String {
-                    surface.note(activity: path)
-                }
 
             case "me":
                 // Read out of Instagram's navigation before it was taken out.

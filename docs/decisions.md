@@ -429,35 +429,34 @@ With a hidden gesture it was necessary. With two icons in a row that never
 moves, it is one more thing to read — and it arrived before the page did, so
 the first thing anybody saw was a bubble on an empty screen.
 
-## Quiet draws the header too
+## Quiet does not draw the header
 
 Five attempts went into leaving Instagram's own header where it was and
 persuading it to stay clear of the clock: a shorter web view, which detached the
 site's header into the middle of the feed; `viewport-fit=cover`, which did
-nothing at all because the stylesheet never consults `env()`; a content inset,
-which is right at rest and wrong the moment you scroll; lifting whatever the
-page had pinned; and finally an opaque band of the app's own behind the status
-bar, which still met the header halfway on an iPhone 15 Pro.
+nothing at all because the stylesheet never consults `env()`; a content inset;
+lifting whatever the page had pinned; and an opaque band of the app's own behind
+the status bar.
 
-The lesson arrived five times: a bar the page sticks to the top of the glass is
-stuck to the top of the glass, and the page has every right to put it there.
+The sixth was to draw the header natively, the way Instagram's iOS app does. It
+lasted one build. The photograph of it settled two things at once.
 
-So Quiet stops negotiating and does what Instagram's own iOS app does — draws
-the header itself, natively, against the safe area, and runs the page
-underneath. The status bar, a title row, a hairline, and the feed below it. It
-cannot collide, because nothing is being positioned against a viewport any more.
+The first: there is no collision to solve. Instagram's header is not stuck to
+the top of the glass at all — it scrolls away with the feed, exactly like the
+app's. Every fix after the content inset was aimed at a problem that had already
+been solved, which is also why the code hunting for a *pinned* header found
+nothing to hide.
 
-The site's header is taken out on the feed only. Every other page's top bar is
-part of that page — the name on a profile, the compose button in the inbox —
-and taking those out would be taking out the page.
+The second: with Instagram's header still there and Quiet's above it, the app
+read as two headers stacked, three points apart. No amount of styling makes that
+right.
 
-Two things in that header were worth keeping. The wordmark is drawn again. The
-heart was nowhere else in Quiet, so its address is read out of the bar before
-the bar goes and handed to the app, which puts the heart back in the header it
-drew. Quiet guesses no addresses: if the page does not offer one, the heart does
-not appear rather than leading nowhere.
+So the app owns the strip behind the clock and nothing else. The header is
+Instagram's own, which carries the controls, the badges and the behaviour, and
+is by definition exactly like Instagram.
 
-What this costs: Quiet's header does not hide as you scroll and Instagram's
-does. Matching that means animating the page's inset in step with a header the
-page knows nothing about — a header and a page disagreeing about where the top
-is, sixty times a second. Still is better than nearly.
+What this costs: Quiet shows Instagram's *website*, so the header is the web
+one — the wordmark with a chevron, a plus and a heart — rather than the app's,
+which centres a feed switcher. Closing that gap would mean rebuilding controls
+that open modals no address can reach. It is the same limit the whole app has,
+in the one place it is most visible.

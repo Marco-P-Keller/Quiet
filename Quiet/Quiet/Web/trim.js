@@ -228,81 +228,6 @@
     }
   }
 
-  /* ── Instagram's own header ───────────────────────────────────────────── */
-
-  /**
-   * The bar Instagram draws along the top of the feed.
-   *
-   * Found by how it is anchored rather than by what it holds: page chrome is
-   * the only thing on Instagram that is stuck to the top of the viewport and
-   * as wide as the window. A post is neither, and a caption cannot become one
-   * by accident.
-   *
-   * Only on the feed. Every other page's top bar is part of that page — the
-   * name on a profile, the compose button in the inbox — and taking those out
-   * would be taking out the page.
-   */
-  function topBar() {
-    if (location.pathname !== "/") return null;
-
-    var marks = document.querySelectorAll('a[href="/"]');
-    for (var i = 0; i < marks.length; i++) {
-      var node = marks[i];
-      var depth = 0;
-      while (node && node !== document.body && depth < 6) {
-        var style = window.getComputedStyle(node);
-        if (style.position === "sticky" || style.position === "fixed") {
-          var box = node.getBoundingClientRect();
-          if (parseFloat(style.top || "999") < 1 &&
-              box.width >= window.innerWidth - 2 &&
-              box.height > 0 && box.height <= 90) {
-            return node;
-          }
-        }
-        node = node.parentElement;
-        depth += 1;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Take Instagram's header out, and keep the one thing in it that was not
-   * already somewhere else.
-   *
-   * Four attempts went into leaving that bar where it was and persuading it to
-   * stay below the clock: a shorter web view, a viewport-fit, a content inset,
-   * and lifting whatever the page had pinned. Each worked in one state and
-   * failed in another, because a bar stuck to the top of the glass is stuck to
-   * the top of the glass and the page has every right to put it there.
-   *
-   * So the app stops negotiating and draws the header itself, the way
-   * Instagram's own app does — which leaves this one to go. Its wordmark is
-   * drawn again above; its link to the inbox is in Quiet's row already. Only
-   * the heart was nowhere else, so its address is read out before the bar goes
-   * and handed to the app, which puts it back in the header it drew.
-   */
-  function takeTopBar() {
-    var bar = topBar();
-    if (!bar) return;
-
-    if (!window.__quietActivity) {
-      var heart = bar.querySelector('a[href^="/accounts/activity"]') ||
-                  bar.querySelector('a[href*="/notifications"]');
-      if (heart) {
-        var href = heart.getAttribute("href");
-        if (href && href.charAt(0) === "/") {
-          window.__quietActivity = href;
-          post({ kind: "chrome", activity: href });
-        }
-      }
-    }
-
-    if (bar.getAttribute("data-quiet-hidden") !== "header") {
-      bar.setAttribute("data-quiet-hidden", "header");
-    }
-  }
-
   /**
    * Is this the signed-in person's own profile?
    *
@@ -465,7 +390,6 @@
       guardLocation();
       whoAmI();
       replaceNav();
-      takeTopBar();
       placeMark();
     });
   }

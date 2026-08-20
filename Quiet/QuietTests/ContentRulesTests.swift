@@ -124,33 +124,6 @@ final class ContentRulesTests: XCTestCase {
         }
     }
 
-    /// The app draws a header on Instagram's pages and must not draw one on the
-    /// page a person signs in on, which has a wordmark of its own in the middle
-    /// of it. Both halves matter: a profile called "login" is not a login page.
-    func testSignInPagesAreRecognised() {
-        for address in [
-            "https://www.instagram.com/accounts/login/",
-            "https://www.instagram.com/accounts/login/?next=%2F",
-            "https://instagram.com/accounts/signup/",
-            "https://www.instagram.com/accounts/emailsignup/",
-            "https://www.instagram.com/accounts/password/reset/",
-            "https://www.instagram.com/accounts/onetap/",
-        ] {
-            XCTAssertTrue(ContentRules.isSignIn(URL(string: address)!), address)
-        }
-
-        for address in [
-            "https://www.instagram.com/",
-            "https://www.instagram.com/direct/inbox/",
-            "https://www.instagram.com/login/",
-            "https://www.instagram.com/accounts/edit/",
-            "https://www.instagram.com/accounts/",
-            "https://example.com/accounts/login/",
-        ] {
-            XCTAssertFalse(ContentRules.isSignIn(URL(string: address)!), address)
-        }
-    }
-
     func testFindSomeoneRefusesThingsThatAreNotUsernames() {
         for typed in ["", "   ", "@", "two words", "someone/../else", String(repeating: "a", count: 31)] {
             XCTAssertNil(ContentRules.profile(forHandle: typed), typed)

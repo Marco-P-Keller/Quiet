@@ -135,19 +135,6 @@ enum ContentRules {
     /// signed-in session is sent straight on to the feed.
     static let home = URL(string: "https://www.instagram.com/accounts/login/")!
 
-    /// Is this one of the pages a person signs in on?
-    ///
-    /// Asked so the app can keep its own header off them. Quiet's header is the
-    /// header of a signed-in Instagram, and Instagram's login page already has
-    /// a wordmark in the middle of it — a second one above it reads as a
-    /// mistake, and there is nothing on that page for a header to title.
-    static func isSignIn(_ url: URL) -> Bool {
-        guard let host = url.host?.lowercased(), isInternal(host: host) else { return false }
-        let path = pathComponents(of: url)
-        guard path.first == "accounts", let second = path.dropFirst().first else { return false }
-        return ["login", "signup", "emailsignup", "password", "onetap"].contains(second)
-    }
-
     /// The feed. Where the home entry in Quiet's row goes — which is not the
     /// same address the app opens on, since that one is the login form.
     static let feed = URL(string: "https://www.instagram.com/")!
