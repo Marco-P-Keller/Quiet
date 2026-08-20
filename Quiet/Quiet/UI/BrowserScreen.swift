@@ -63,6 +63,27 @@ struct BrowserScreen: View {
                 cover
             }
 
+            // The strip behind the clock belongs to the app.
+            //
+            // Four attempts went into asking Instagram to keep its header out
+            // of it: a shorter web view, a viewport-fit, a content inset, and
+            // lifting whatever the page pinned there. Each worked in some state
+            // and failed in another, because a sticky header pins itself to the
+            // top of the glass and the page has every right to do that.
+            //
+            // So the app stops asking. It owns this band the way it owns the
+            // row along the bottom: opaque, in the page's own colour. The page
+            // still starts below it, so the site's header is where it should be
+            // at rest; scrolled, the header slides underneath and out of sight,
+            // which is what it does in Instagram's own app anyway. Nothing can
+            // collide with the clock because nothing of anybody's is drawn
+            // there any more.
+            VStack(spacing: 0) {
+                Color(uiColor: .systemBackground)
+                    .frame(height: topInset)
+                Spacer(minLength: 0)
+            }
+
             // Over the cover, so it is there from the first frame rather than
             // arriving with the page.
             quietBar
@@ -106,9 +127,7 @@ struct BrowserScreen: View {
                 // Only once the page has said who is signed in. A button that
                 // leads nowhere is worse than one that arrives a second late.
                 if surface.me != nil {
-                    barButton("person.crop.circle", Text("Your profile")) {
-                        surface.goToMyProfile()
-                    }
+                    myProfileButton
                 }
             }
             .frame(height: Self.barHeight)
@@ -138,6 +157,31 @@ struct BrowserScreen: View {
     /// The pill, and the air beneath it. Together they are what the page is
     /// asked to keep clear at the bottom.
     private static let barHeight: CGFloat = 52
+
+    /// The last entry, with your own face in it, the way Instagram's row ends.
+    /// An outline of a person stands in until the page has handed one over.
+    private var myProfileButton: some View {
+        Button { surface.goToMyProfile() } label: {
+            Group {
+                if let face = surface.myFace {
+                    Image(uiImage: face)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 27, height: 27)
+                        .clipShape(Circle())
+                        .overlay(Circle().strokeBorder(Color(uiColor: .label).opacity(0.25), lineWidth: 0.5))
+                } else {
+                    Image(systemName: "person.crop.circle")
+                        .font(.system(size: 21, weight: .regular))
+                        .foregroundStyle(Color(uiColor: .label).opacity(0.85))
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("Your profile"))
+    }
     private static let barGap: CGFloat = 10
 
     private func barButton(_ symbol: String, _ label: Text, action: @escaping () -> Void) -> some View {

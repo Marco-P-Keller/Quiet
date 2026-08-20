@@ -8,16 +8,15 @@
  *      say why. Silence would read as a broken page.
  *   2. Hide suggestion blocks, which carry no address of their own and can only
  *      be recognised by their wording.
- *   3. Push whatever the page pins to the top of the screen below the clock.
- *   4. Take out Instagram's navigation bar, having first read the signed-in
+ *   3. Take out Instagram's navigation bar, having first read the signed-in
  *      name out of it, because Quiet carries all five entries in a row of its
  *      own that no stylesheet of Instagram's can reach.
- *   5. Put Quiet's clock beside Instagram's own settings, on your profile.
+ *   4. Put Quiet's clock beside Instagram's own settings, on your profile.
  *      Found by where it sits on the screen rather than by what it is called,
  *      because a corner does not change with the language or with next week's
  *      generated class names. Everything else Quiet needs is in the app's own
  *      row along the bottom, where no stylesheet of Instagram's can reach it.
- *   6. Keep all of it up as the page rewrites itself, because Instagram's web
+ *   5. Keep all of it up as the page rewrites itself, because Instagram's web
  *      client replaces the feed without ever loading a new page.
  *
  * It never reads form fields, and never touches the login page's inputs. Your
@@ -90,99 +89,6 @@
     post({ kind: "refused", surface: surface });
   }
 
-  /* ── The status bar ──────────────────────────────────────────────────── */
-
-  /**
-   * Push whatever the page pins to the top of the screen below the clock.
-   *
-   * The content inset holds the page down while it is at rest, and that is
-   * where two earlier attempts stopped — which is why this looked fixed until
-   * somebody scrolled. A sticky header does not live in the content: it pins
-   * itself to the top of the viewport, and the viewport starts at the top of
-   * the glass. So the moment the feed moved, Instagram's header climbed back
-   * under the clock.
-   *
-   * The element is found by asking what is actually drawn at the very top of
-   * the screen, rather than by guessing at markup — one call, no walking the
-   * document — and only something as wide as the screen is treated as a bar.
-   * Setting its `top` to the same inset makes the two agree: below the clock at
-   * rest, below the clock while scrolling.
-   */
-  function liftPinned() {
-    var inset = window.__quietTopInset || 0;
-    if (!inset) return;
-
-    var stack = document.elementsFromPoint(window.innerWidth / 2, 2);
-    for (var i = 0; i < stack.length; i++) {
-      var element = stack[i];
-      if (element.hasAttribute("data-quiet-lifted")) return;
-      var position = getComputedStyle(element).position;
-      if (position !== "sticky" && position !== "fixed") continue;
-      if (element.getBoundingClientRect().width < window.innerWidth * 0.6) continue;
-
-      element.setAttribute("data-quiet-lifted", "");
-      element.style.setProperty("top", inset + "px", "important");
-      return;
-    }
-  }
-
-  /**
-   * The link nearest the top of the screen that goes where `matches` says.
-   */
-  function highest(matches) {
-    var best = null;
-    var bestTop = Infinity;
-    var links = document.querySelectorAll("a[href]");
-    for (var i = 0; i < links.length; i++) {
-      if (!matches(links[i].getAttribute("href") || "")) continue;
-      var box = links[i].getBoundingClientRect();
-      if (box.height === 0) continue;
-      if (box.top < bestTop) {
-        bestTop = box.top;
-        best = links[i];
-      }
-    }
-    return best;
-  }
-
-  /**
-   * Take out the feed's own header.
-   *
-   * Three attempts to make Instagram's header sit below the clock, and it kept
-   * climbing back the moment the page moved. The header holds a wordmark, a
-   * button for posting — which this app cannot do anyway — and the activity
-   * heart, which is a hook by construction. None of it is worth a fourth
-   * attempt, and without it there is nothing pinned to the top of the screen at
-   * all: the collision cannot happen again.
-   *
-   * Only the feed's. It is recognised by the wordmark, a link to "/" in a bar
-   * as wide as the screen that the page has pinned there. A profile or a
-   * conversation carries a back button and a title in its top bar and no link
-   * home, so those are left alone.
-   */
-  function hideFeedHeader() {
-    var wordmark = highest(function (href) { return href === "/"; });
-    if (!wordmark) return;
-
-    var node = wordmark;
-    while (node && node !== document.body) {
-      var box = node.getBoundingClientRect();
-      var position = getComputedStyle(node).position;
-      if (
-        box.top < 90 &&
-        box.width >= window.innerWidth * 0.9 &&
-        box.height <= 160 &&
-        (position === "sticky" || position === "fixed")
-      ) {
-        if (node.getAttribute("data-quiet-hidden") !== "header") {
-          node.setAttribute("data-quiet-hidden", "header");
-        }
-        return;
-      }
-      node = node.parentElement;
-    }
-  }
-
   /* ── What Quiet puts back ────────────────────────────────────────────── */
 
   var MARK_ID = "quiet-mark";
@@ -191,48 +97,30 @@
   /* ── Instagram's own navigation ───────────────────────────────────────── */
 
   /**
-   * The row along the bottom.
+   * The row along the bottom, found by its shape rather than by its place.
    *
-   * Found by two links that are certainly in it — one to "/" and one to
-   * "/direct/" — and then by taking, for each, the one *lowest on the screen*.
-   * That last part is the whole of it: Instagram's wordmark at the top of the
-   * feed is also a link to "/", and it comes first in the document. Walking up
-   * from the wordmark to something that also contains the messages link lands
-   * on a container holding most of the page, and everything downstream then
-   * reads the wrong thing out of it.
-   *
-   * The guard below says the same thing a second way: a navigation bar has a
-   * handful of links in it, not fifty.
+   * A hidden element has no geometry, and this row is hidden the moment it is
+   * found — so measuring it works exactly once and then never again, which is
+   * why the profile name kept going missing. Structure survives hiding: the
+   * messages link is in it, a link to "/" is in it, and it is small. The depth
+   * limit is what stops the walk from reaching a container holding half the
+   * page, which is the mistake two earlier versions made.
    */
-  function lowest(matches) {
-    var best = null;
-    var bestBottom = -Infinity;
-    var links = document.querySelectorAll("a[href]");
-    for (var i = 0; i < links.length; i++) {
-      if (!matches(links[i].getAttribute("href") || "")) continue;
-      var box = links[i].getBoundingClientRect();
-      if (box.height === 0) continue;
-      if (box.bottom > bestBottom) {
-        bestBottom = box.bottom;
-        best = links[i];
+  function navRow() {
+    var directs = document.querySelectorAll('a[href^="/direct/"]');
+    for (var i = 0; i < directs.length; i++) {
+      var node = directs[i].parentElement;
+      var depth = 0;
+      while (node && node !== document.body && depth < 6) {
+        if (node.querySelector('a[href="/"]') &&
+            node.querySelectorAll("a[href]").length <= 12) {
+          return node;
+        }
+        node = node.parentElement;
+        depth += 1;
       }
     }
-    return best;
-  }
-
-  function navRow() {
-    var home = lowest(function (href) { return href === "/"; });
-    var direct = lowest(function (href) { return href.indexOf("/direct/") === 0; });
-    if (!home || !direct) return null;
-
-    var node = home.parentElement;
-    while (node && node !== document.body && !node.contains(direct)) {
-      node = node.parentElement;
-    }
-    if (!node || node === document.body) return null;
-    // A bar, not a page.
-    if (node.querySelectorAll("a[href]").length > 12) return null;
-    return node;
+    return null;
   }
 
   var asked = false;
@@ -262,7 +150,7 @@
         var name = data && data.form_data && data.form_data.username;
         if (!name) return;
         window.__quietMe = name;
-        post({ kind: "me", username: name });
+        announce(name, (data.form_data && data.form_data.profile_pic_url) || null);
       })
       .catch(function () {
         // Signed out, or the endpoint moved. The row keeps its four entries.
@@ -280,13 +168,48 @@
     // button marked "your profile" is worse than having no button.
     var links = row.querySelectorAll('a[href^="/"]');
     for (var i = 0; i < links.length; i++) {
-      var match = /^\/([A-Za-z0-9._]{1,30})\/?$/.exec(links[i].getAttribute("href") || "");
+      var link = links[i];
+      var match = /^\/([A-Za-z0-9._]{1,30})\/?$/.exec(link.getAttribute("href") || "");
       if (!match) continue;
       if (window.__quietMe === match[1]) return;
       window.__quietMe = match[1];
-      post({ kind: "me", username: match[1] });
+
+      var picture = link.querySelector("img");
+      announce(match[1], picture ? picture.getAttribute("src") : null);
       return;
     }
+  }
+
+  /**
+   * Tell the app who is signed in, with their face if it can be had.
+   *
+   * Instagram's own row ends in a photograph rather than an outline of a
+   * person, and so does Quiet's. The bytes are fetched by the page, as
+   * everything else here is, so the app still asks nobody for anything.
+   */
+  function announce(username, source) {
+    if (!source) {
+      post({ kind: "me", username: username });
+      return;
+    }
+    fetch(source, { credentials: "omit" })
+      .then(function (response) { return response.ok ? response.arrayBuffer() : null; })
+      .then(function (buffer) {
+        if (!buffer || buffer.byteLength > 300000) {
+          post({ kind: "me", username: username });
+          return;
+        }
+        var bytes = new Uint8Array(buffer);
+        var binary = "";
+        for (var i = 0; i < bytes.length; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        post({ kind: "me", username: username, picture: btoa(binary) });
+      })
+      .catch(function () {
+        // A face that will not come is not a reason to lose the button.
+        post({ kind: "me", username: username });
+      });
   }
 
   /**
@@ -466,8 +389,6 @@
       if (main) trimSuggestions(main);
       guardLocation();
       whoAmI();
-      hideFeedHeader();
-      liftPinned();
       replaceNav();
       placeMark();
     });
@@ -502,9 +423,6 @@
   });
 
   window.addEventListener("popstate", schedule);
-  // A header only climbs under the clock once the page moves, so the page
-  // moving is exactly when to look. Cheap: `schedule` waits for a frame.
-  window.addEventListener("scroll", schedule, { passive: true });
 
   new MutationObserver(schedule).observe(document.documentElement, {
     childList: true,

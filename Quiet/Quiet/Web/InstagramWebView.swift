@@ -47,6 +47,10 @@ final class WebSurface {
     /// is why the profile entry in Quiet's row appears a moment after the rest.
     private(set) var me: String?
 
+    /// Your own face, for the last entry in the row — because Instagram's ends
+    /// in a photograph rather than an outline of a person.
+    private(set) var myFace: UIImage?
+
     /// False until the first page has finished, or failed. While it is false the
     /// browsing screen keeps Quiet's own paper over the top, so a cold launch
     /// shows a considered blank rather than the white rectangle of a web view
@@ -185,9 +189,10 @@ final class WebSurface {
         isBarCollapsed = collapsed
     }
 
-    fileprivate func note(me name: String) {
-        guard me != name else { return }
-        me = name
+    fileprivate func note(me name: String, picture: String?) {
+        if me != name { me = name }
+        guard let picture, let data = Data(base64Encoded: picture) else { return }
+        myFace = UIImage(data: data)
     }
 
     /// Where Quiet's own row can send you.
@@ -213,7 +218,7 @@ struct InstagramWebView: UIViewRepresentable {
     }
 
     func makeUIView(context: Context) -> WKWebView {
-        let payload = WebScripts.load(topInset: inset.top)
+        let payload = WebScripts.load()
 
         let controller = WKUserContentController()
         payload.scripts.forEach(controller.addUserScript)
@@ -434,7 +439,9 @@ struct InstagramWebView: UIViewRepresentable {
 
             case "me":
                 // Read out of Instagram's navigation before it was taken out.
-                if let name = body["username"] as? String { surface.note(me: name) }
+                if let name = body["username"] as? String {
+                    surface.note(me: name, picture: body["picture"] as? String)
+                }
 
             default:
                 break
