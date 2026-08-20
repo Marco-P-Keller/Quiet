@@ -86,6 +86,30 @@
     post({ kind: "refused", surface: surface });
   }
 
+  /* ── The page's own frame ────────────────────────────────────────────── */
+
+  /**
+   * Ask the page to lay itself out around the notch.
+   *
+   * Without `viewport-fit=cover`, WebKit reports every `env(safe-area-inset-*)`
+   * as zero, so a site that has taken the trouble to avoid the status bar has
+   * no way to know it is there — and Instagram's header renders underneath the
+   * clock. Adding the one word lets the site's own rules do the work.
+   *
+   * The alternative, which this replaces, was for the app to make the web view
+   * shorter. That worked on a simulator and, on a real phone, detached
+   * Instagram's header and left it floating in the middle of the feed: sticky
+   * positions are laid out against a viewport, and moving the viewport under a
+   * running page is not something to do lightly.
+   */
+  function fitViewport() {
+    var meta = document.querySelector('meta[name="viewport"]');
+    if (!meta) return;
+    var content = meta.getAttribute("content") || "";
+    if (content.indexOf("viewport-fit") !== -1) return;
+    meta.setAttribute("content", content + ", viewport-fit=cover");
+  }
+
   /* ── What Quiet puts back ────────────────────────────────────────────── */
 
   var MARK_ID = "quiet-mark";
@@ -250,10 +274,21 @@
    * Both are given `flex: 1` so they share the bar the way its own items do
    * instead of squeezing them.
    */
-  function placeBar() {
-    if (document.getElementById(SEARCH_ID) && document.getElementById(CLOCK_ID)) return;
+  var toldBar = null;
 
+  function placeBar() {
     var row = bottomRow();
+
+    // Instagram drops its navigation on some screens — messages is the one
+    // people notice. The app puts the two controls somewhere else on those
+    // pages, and can only do that if it is told.
+    var present = !!row;
+    if (present !== toldBar) {
+      toldBar = present;
+      post({ kind: "bar", present: present });
+    }
+
+    if (document.getElementById(SEARCH_ID) && document.getElementById(CLOCK_ID)) return;
     if (!row) return;
     var share = "flex: 1 1 0; min-width: 44px;";
 
@@ -363,6 +398,7 @@
     pending = true;
     requestAnimationFrame(function () {
       pending = false;
+      fitViewport();
       var main = document.querySelector("main");
       if (main) trimSuggestions(main);
       guardLocation();

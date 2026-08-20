@@ -29,8 +29,6 @@ struct BrowserScreen: View {
     /// Twenty points is the shortest status bar any iPhone has; the real height
     /// arrives on the first layout pass.
     @State private var topInset: CGFloat = 20
-    /// The strip Quiet keeps along the bottom, so that Instagram's own
-    /// navigation stops sitting on the home indicator.
     @State private var bottomInset: CGFloat = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -39,19 +37,23 @@ struct BrowserScreen: View {
         // screen. Everything inside is then positioned against the glass, which
         // is what both the strip and the notices want.
         ZStack(alignment: .top) {
-            // The band behind the status bar, in the page's own colour, so the
-            // seam does not show.
+            // The web view is the whole screen again.
+            //
+            // It was held below the status bar for a while, to stop Instagram's
+            // logo rendering under the clock. On a real phone that produced
+            // something far worse: the site's own header detached and floated
+            // into the middle of the feed. Sticky headers are laid out against a
+            // viewport, and shrinking the viewport out from under a page that is
+            // already running is not a thing this app can do carefully enough to
+            // be worth it. The seam is asked for instead, by telling the page
+            // its safe area exists — see `viewport-fit` in trim.js.
             Color(uiColor: .systemBackground)
 
-            // Held below the status bar rather than run underneath it. The page
-            // does not know it is inside an app and lays its header against the
-            // top of whatever it is given, so Instagram's own logo used to sit
-            // under the clock. The bottom still runs to the edge, which is where
-            // the page's own navigation belongs.
-            VStack(spacing: 0) {
-                Color.clear.frame(height: topInset)
-                InstagramWebView(surface: surface, session: session)
-                Color.clear.frame(height: bottomInset)
+            InstagramWebView(surface: surface, session: session)
+
+            // Only when the page has no bar of its own to put them in.
+            if !surface.hasPageBar {
+                quietBar
             }
 
             if !surface.hasLoaded {
@@ -65,6 +67,7 @@ struct BrowserScreen: View {
         }
         .ignoresSafeArea()
         .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: surface.hasLoaded)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: surface.hasPageBar)
         .onAppear {
             topInset = SafeArea.top
             bottomInset = SafeArea.bottom
@@ -79,6 +82,46 @@ struct BrowserScreen: View {
             .ignoresSafeArea()
             .transition(.opacity)
             .accessibilityHidden(true)
+    }
+
+    /// Quiet's own bar, for the pages that have none of their own.
+    ///
+    /// Instagram drops its navigation on some screens — messages is the one
+    /// people notice — and a search and a clock that come and go with somebody
+    /// else's layout are worse than useless. So on those pages Quiet draws the
+    /// two of them itself, in the page's own colours, in the same corner of the
+    /// screen they occupy everywhere else.
+    ///
+    /// Everywhere the page *does* have a bar, these two live inside it, which is
+    /// where they belong: one bar, not two.
+    private var quietBar: some View {
+        VStack(spacing: 0) {
+            Spacer(minLength: 0)
+            Divider().overlay(Color(uiColor: .separator))
+            HStack(spacing: 0) {
+                barButton("magnifyingglass", Text("Find someone")) {
+                    session.isSearchShowing = true
+                }
+                barButton("clock", Text("Quiet settings")) {
+                    session.isPanelShowing = true
+                }
+            }
+            .frame(height: 46)
+            .padding(.bottom, bottomInset)
+            .background(Color(uiColor: .systemBackground))
+        }
+    }
+
+    private func barButton(_ symbol: String, _ label: Text, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 22, weight: .regular))
+                .foregroundStyle(Color(uiColor: .label).opacity(0.85))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
     }
 
     /// Transparent, and exactly as tall as the status bar, so it never sits over

@@ -23,6 +23,13 @@ final class WebSurface {
     /// rather than swallowed.
     private(set) var missingResources: [String] = []
 
+    /// Whether the page Quiet is showing has a navigation bar of its own.
+    ///
+    /// Instagram drops it on some screens. Reported by the trim script, which is
+    /// the only thing that can see the page — and defaulted to true so that a
+    /// bar of Quiet's never flashes up during a load and then leaves again.
+    private(set) var hasPageBar = true
+
     /// False until the first page has finished, or failed. While it is false the
     /// browsing screen keeps Quiet's own paper over the top, so a cold launch
     /// shows a considered blank rather than the white rectangle of a web view
@@ -128,6 +135,11 @@ final class WebSurface {
     /// looking at an empty page with no explanation.
     fileprivate func markLoaded() {
         hasLoaded = true
+    }
+
+    fileprivate func note(pageBar: Bool) {
+        guard pageBar != hasPageBar else { return }
+        hasPageBar = pageBar
     }
 }
 
@@ -299,6 +311,11 @@ struct InstagramWebView: UIViewRepresentable {
             case "search":
                 // The magnifying glass Quiet puts back into the navigation.
                 session.isSearchShowing = true
+
+            case "bar":
+                // Whether this page has a navigation bar at all. When it does
+                // not, the app draws the two controls itself.
+                surface.note(pageBar: body["present"] as? Bool ?? true)
 
             default:
                 break
