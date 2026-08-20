@@ -228,6 +228,21 @@
     }
   }
 
+  var lastPath = null;
+
+  /**
+   * Tell the app where the page went.
+   *
+   * Instagram's client changes the address without loading anything, so the
+   * app's own navigation delegate never hears about it — and the row along the
+   * bottom would go on marking the page you were on three taps ago.
+   */
+  function sayWhere() {
+    if (location.pathname === lastPath) return;
+    lastPath = location.pathname;
+    post({ kind: "where", path: lastPath });
+  }
+
   /**
    * Is this the signed-in person's own profile?
    *
@@ -388,6 +403,7 @@
       var main = document.querySelector("main");
       if (main) trimSuggestions(main);
       guardLocation();
+      sayWhere();
       whoAmI();
       replaceNav();
       placeMark();

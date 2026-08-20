@@ -14,9 +14,15 @@ import UIKit
 /// same place, on every page — including the ones where Instagram draws no bar
 /// at all.
 ///
+/// It marks where you are, the way Instagram's does: the symbol you are
+/// standing on is filled, and a lighter capsule sits behind it. That mark is
+/// most of what makes a row of icons feel like a place rather than a toolbar.
+///
 /// The pill draws itself in while the page moves away under your thumb and
 /// comes back out when it stops. It never leaves, because a control that
-/// disappears is a control you end up hunting for.
+/// disappears is a control you end up hunting for. It sits low, over the home
+/// indicator, and the page runs on beneath it to the bottom edge — a row that
+/// floats and a page that stops under it is the worst of both.
 ///
 /// The two Quiet needed lived inside Instagram's bar for a while, which is
 /// where they belonged and where they twice failed to appear: a row built by
@@ -111,17 +117,41 @@ struct BrowserScreen: View {
             .accessibilityHidden(true)
     }
 
-    /// The pill.
+    /// Where the row says you are.
+    ///
+    /// Instagram's row fills the symbol you are standing on and sets a lighter
+    /// capsule behind it, and that mark is most of what makes a row of icons
+    /// feel like a place rather than a toolbar. Quiet's says the same thing
+    /// about the two screens that are its own.
+    private enum Entry {
+        case home, clock, messages, search, profile
+    }
+
+    private var current: Entry {
+        if session.isPanelShowing { return .clock }
+        if session.isSearchShowing { return .search }
+
+        let path = surface.address?.path ?? "/"
+        if path.hasPrefix("/direct") { return .messages }
+        if let me = surface.me, path == "/\(me)" || path == "/\(me)/" { return .profile }
+        return .home
+    }
+
+    /// The row.
     private var quietBar: some View {
         VStack(spacing: 0) {
             Spacer(minLength: 0)
             HStack(spacing: 0) {
-                barButton("house", Text("Home")) { surface.goToFeed() }
-                barButton("clock", Text("Quiet settings")) {
+                barButton(.home, "house", "house.fill", Text("Home")) {
+                    surface.goToFeed()
+                }
+                barButton(.clock, "clock", "clock.fill", Text("Quiet settings")) {
                     session.isPanelShowing = true
                 }
-                barButton("paperplane", Text("Messages")) { surface.goToMessages() }
-                barButton("magnifyingglass", Text("Find someone")) {
+                barButton(.messages, "paperplane", "paperplane.fill", Text("Messages")) {
+                    surface.goToMessages()
+                }
+                barButton(.search, "magnifyingglass", "magnifyingglass", Text("Find someone")) {
                     session.isSearchShowing = true
                 }
                 // Only once the page has said who is signed in. A button that
@@ -131,16 +161,14 @@ struct BrowserScreen: View {
                 }
             }
             .frame(height: Self.barHeight)
-            .padding(.horizontal, 4)
+            .padding(.horizontal, 6)
             // A pill rather than a bar across the whole screen. It is the app's
             // one piece of furniture; it should sit on the page rather than cut
-            // it off, and the page should be visible either side of it.
+            // it off, and the page should be visible either side of it — and
+            // underneath, which is why nothing below is taken away from it.
             .background(.regularMaterial, in: Capsule())
-            .overlay(
-                Capsule().strokeBorder(Color(uiColor: .separator).opacity(0.6), lineWidth: 0.5)
-            )
-            .shadow(color: .black.opacity(0.18), radius: 14, y: 5)
-            .padding(.horizontal, 26)
+            .shadow(color: .black.opacity(0.22), radius: 16, y: 6)
+            .padding(.horizontal, 22)
             // Drawn in while the page is moving away under your thumb, back out
             // the moment it stops or reverses. It never leaves: a control that
             // disappears is a control you end up hunting for.
@@ -150,7 +178,10 @@ struct BrowserScreen: View {
                 reduceMotion ? nil : .spring(response: 0.34, dampingFraction: 0.86),
                 value: surface.isBarCollapsed
             )
-            .padding(.bottom, bottomInset + Self.barGap)
+            // Low, over the home indicator, the way Instagram's sits. The page
+            // runs on beneath it to the bottom edge of the glass, which is the
+            // whole point of a row that floats.
+            .padding(.bottom, Self.barGap)
         }
     }
 
@@ -161,7 +192,8 @@ struct BrowserScreen: View {
     /// The last entry, with your own face in it, the way Instagram's row ends.
     /// An outline of a person stands in until the page has handed one over.
     private var myProfileButton: some View {
-        Button { surface.goToMyProfile() } label: {
+        let here = current == .profile
+        return Button { surface.goToMyProfile() } label: {
             Group {
                 if let face = surface.myFace {
                     Image(uiImage: face)
@@ -169,31 +201,59 @@ struct BrowserScreen: View {
                         .scaledToFill()
                         .frame(width: 27, height: 27)
                         .clipShape(Circle())
-                        .overlay(Circle().strokeBorder(Color(uiColor: .label).opacity(0.25), lineWidth: 0.5))
+                        .overlay(
+                            Circle().strokeBorder(
+                                Color(uiColor: .label).opacity(here ? 0.95 : 0.25),
+                                lineWidth: here ? 2 : 0.5
+                            )
+                        )
                 } else {
-                    Image(systemName: "person.crop.circle")
-                        .font(.system(size: 21, weight: .regular))
-                        .foregroundStyle(Color(uiColor: .label).opacity(0.85))
+                    Image(systemName: here ? "person.crop.circle.fill" : "person.crop.circle")
+                        .font(.system(size: 24, weight: .regular))
+                        .foregroundStyle(Color(uiColor: .label))
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(mark(here))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text("Your profile"))
+        .accessibilityAddTraits(here ? .isSelected : [])
     }
-    private static let barGap: CGFloat = 16
 
-    private func barButton(_ symbol: String, _ label: Text, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: symbol)
-                .font(.system(size: 21, weight: .regular))
-                .foregroundStyle(Color(uiColor: .label).opacity(0.85))
+    private static let barGap: CGFloat = 12
+
+    private func barButton(
+        _ entry: Entry,
+        _ outline: String,
+        _ solid: String,
+        _ label: Text,
+        action: @escaping () -> Void
+    ) -> some View {
+        let here = current == entry
+        return Button(action: action) {
+            Image(systemName: here ? solid : outline)
+                .font(.system(size: 24, weight: here ? .semibold : .regular))
+                .foregroundStyle(Color(uiColor: .label))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(mark(here))
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(label)
+        .accessibilityAddTraits(here ? .isSelected : [])
+    }
+
+    /// The lighter capsule behind wherever you are.
+    @ViewBuilder
+    private func mark(_ here: Bool) -> some View {
+        if here {
+            Capsule()
+                .fill(Color(uiColor: .label).opacity(0.13))
+                .padding(.vertical, 6)
+                .padding(.horizontal, 2)
+        }
     }
 
     /// Transparent, and exactly as tall as the status bar, so it never sits over

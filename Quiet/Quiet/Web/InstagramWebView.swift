@@ -51,6 +51,14 @@ final class WebSurface {
     /// in a photograph rather than an outline of a person.
     private(set) var myFace: UIImage?
 
+    /// The address on screen.
+    ///
+    /// Kept for one reason: the row along the bottom marks where you are, the
+    /// way Instagram's does, and it cannot mark what it does not know. Read
+    /// when a navigation commits rather than when one is asked for, because a
+    /// signed-in session asks for the login form and is handed the feed.
+    private(set) var address: URL?
+
     /// False until the first page has finished, or failed. While it is false the
     /// browsing screen keeps Quiet's own paper over the top, so a cold launch
     /// shows a considered blank rather than the white rectangle of a web view
@@ -187,6 +195,16 @@ final class WebSurface {
     fileprivate func setBar(collapsed: Bool) {
         guard collapsed != isBarCollapsed else { return }
         isBarCollapsed = collapsed
+    }
+
+    fileprivate func note(path: String) {
+        guard let url = URL(string: path, relativeTo: ContentRules.feed)?.absoluteURL else { return }
+        note(address: url)
+    }
+
+    fileprivate func note(address url: URL?) {
+        guard address != url else { return }
+        address = url
     }
 
     fileprivate func note(me name: String, picture: String?) {
@@ -390,7 +408,12 @@ struct InstagramWebView: UIViewRepresentable {
             return nil
         }
 
+        func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+            surface.note(address: webView.url)
+        }
+
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            surface.note(address: webView.url)
             surface.markLoaded()
         }
 
@@ -436,6 +459,13 @@ struct InstagramWebView: UIViewRepresentable {
             case "search":
                 // The magnifying glass, tapped in Quiet's own row.
                 session.isSearchShowing = true
+
+            case "where":
+                // Instagram's client changes the address without loading
+                // anything, so this is the only way the row learns it moved.
+                if let path = body["path"] as? String {
+                    surface.note(path: path)
+                }
 
             case "me":
                 // Read out of Instagram's navigation before it was taken out.

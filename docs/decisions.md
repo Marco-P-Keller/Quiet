@@ -460,3 +460,26 @@ one — the wordmark with a chevron, a plus and a heart — rather than the app'
 which centres a feed switcher. Closing that gap would mean rebuilding controls
 that open modals no address can reach. It is the same limit the whole app has,
 in the one place it is most visible.
+
+## The row marks where you are
+
+A row of five outlines, none of them filled, is a toolbar. Instagram's is not:
+the symbol you are standing on is solid, and a lighter capsule sits behind it.
+That one difference is most of what makes it read as a place.
+
+So Quiet's does the same, for all five — including the two screens that are the
+app's own, the clock and the search, which are marked while they are open.
+
+It costs a piece of state the app had just thrown away: the address on screen.
+Instagram's client changes it without loading anything, so the navigation
+delegate never hears about it and the row would go on marking the page you were
+on three taps ago. The trimming script says where the page went; that is the
+only reason it says anything about addresses at all.
+
+What this costs: the unread badges. Instagram draws a red dot on messages and on
+your own face, and Quiet does not have those numbers — they are drawn by the row
+that gets hidden, and no address carries them.
+
+The row also sits low now, over the home indicator, where Instagram's sits. The
+page runs on beneath it to the bottom edge of the glass. A row that floats above
+a page that stops underneath it is the worst of both.
