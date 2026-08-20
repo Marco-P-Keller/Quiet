@@ -25,6 +25,12 @@ import UIKit
 /// out — after the signed-in name has been read from it, which is the one thing
 /// only that row knows.
 ///
+/// The top is the app's too. Instagram's iOS app draws its header natively and
+/// runs the page underneath it; Quiet does the same, because five attempts at
+/// letting the site keep its own header taught the same lesson five times — a
+/// bar the page sticks to the top of the glass will sooner or later be under
+/// the clock.
+///
 /// The web view keeps the whole screen and is told which parts of it are spoken
 /// for, so nothing of Quiet's ever covers the page.
 @MainActor
@@ -52,7 +58,7 @@ struct BrowserScreen: View {
                 surface: surface,
                 session: session,
                 inset: UIEdgeInsets(
-                    top: topInset,
+                    top: topInset + Self.headerHeight,
                     left: 0,
                     bottom: Self.barHeight + Self.barGap * 2 + bottomInset,
                     right: 0
@@ -63,26 +69,7 @@ struct BrowserScreen: View {
                 cover
             }
 
-            // The strip behind the clock belongs to the app.
-            //
-            // Four attempts went into asking Instagram to keep its header out
-            // of it: a shorter web view, a viewport-fit, a content inset, and
-            // lifting whatever the page pinned there. Each worked in some state
-            // and failed in another, because a sticky header pins itself to the
-            // top of the glass and the page has every right to do that.
-            //
-            // So the app stops asking. It owns this band the way it owns the
-            // row along the bottom: opaque, in the page's own colour. The page
-            // still starts below it, so the site's header is where it should be
-            // at rest; scrolled, the header slides underneath and out of sight,
-            // which is what it does in Instagram's own app anyway. Nothing can
-            // collide with the clock because nothing of anybody's is drawn
-            // there any more.
-            VStack(spacing: 0) {
-                Color(uiColor: .systemBackground)
-                    .frame(height: topInset)
-                Spacer(minLength: 0)
-            }
+            header
 
             // Over the cover, so it is there from the first frame rather than
             // arriving with the page.
@@ -91,7 +78,7 @@ struct BrowserScreen: View {
             statusBarStrip
 
             overlays
-                .padding(.top, topInset + 8)
+                .padding(.top, topInset + Self.headerHeight + 8)
         }
         .ignoresSafeArea()
         .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: surface.hasLoaded)
@@ -100,6 +87,71 @@ struct BrowserScreen: View {
             bottomInset = SafeArea.bottom
         }
     }
+
+    /// The header, drawn by the app.
+    ///
+    /// Instagram's iOS app puts native chrome across the top: the status bar,
+    /// a title row, a hairline, and the page beneath. Quiet does the same, and
+    /// for the same reason it had to in the end — five attempts went into
+    /// leaving the site's own header in place and persuading it to stay clear
+    /// of the clock, and each worked in one state and failed in another. A bar
+    /// stuck to the top of the glass is stuck to the top of the glass. The page
+    /// is allowed to do that; it just cannot be the app's header while it does.
+    ///
+    /// So the site's header goes (see `takeTopBar` in trim.js) and this one
+    /// takes its place. It cannot collide with anything, because it is drawn
+    /// against the safe area rather than against a viewport, and the page is
+    /// told to start underneath it.
+    ///
+    /// It does not hide as you scroll. Instagram's does, and matching that
+    /// would mean animating the page's inset in step with a header the page
+    /// knows nothing about — a header and a page disagreeing about where the
+    /// top is, sixty times a second. Still is better than nearly.
+    private var header: some View {
+        VStack(spacing: 0) {
+            VStack(spacing: 0) {
+                Color.clear.frame(height: topInset)
+                HStack(spacing: 0) {
+                    Text(verbatim: "Instagram")
+                        .font(.system(size: 24, weight: .semibold))
+                        .foregroundStyle(Color(uiColor: .label))
+                        .accessibilityAddTraits(.isHeader)
+                    Spacer(minLength: 0)
+                    // The heart, and only once the page has said where it goes.
+                    // It is the one control Instagram's header carried that was
+                    // nowhere else in Quiet.
+                    if surface.activity != nil {
+                        Button { surface.goToActivity() } label: {
+                            Image(systemName: "heart")
+                                .font(.system(size: 23, weight: .regular))
+                                .foregroundStyle(Color(uiColor: .label))
+                                .frame(width: 44, height: 44)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text("Notifications"))
+                    }
+                }
+                .padding(.leading, 16)
+                .padding(.trailing, surface.activity == nil ? 16 : 4)
+                .frame(height: Self.headerHeight)
+            }
+            .background(Color(uiColor: .systemBackground))
+
+            // The hairline under a native bar. Half a point, which is one
+            // device pixel on every iPhone Quiet runs on.
+            Rectangle()
+                .fill(Color(uiColor: .separator))
+                .frame(height: 0.5)
+
+            Spacer(minLength: 0)
+        }
+    }
+
+    /// The title row, beneath the status bar. Forty-four points is the height
+    /// of every native bar on iOS, which is what this is pretending to be —
+    /// and, on the feed, roughly what Instagram's own bar was.
+    private static let headerHeight: CGFloat = 44
 
     /// Quiet's own paper, held over the web view until the first page settles.
     /// A cold launch should look like the app deciding to start, not like a

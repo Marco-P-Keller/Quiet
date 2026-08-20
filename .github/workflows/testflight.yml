@@ -182,7 +182,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       # xcodebuild's failures are accurate and unhelpful in equal measure. The
-      # three that actually happen here each have a cause a person can act on,
+      # four that actually happen here each have a cause a person can act on,
       # and each is worth a sentence rather than a search.
       - name: Say what went wrong
         if: failure()
@@ -214,6 +214,25 @@ jobs:
               '**3. The membership is not a paid enrolment.** A free Apple Developer' \
               'account has a team ID and cannot hold a distribution certificate.' \
               'Check **developer.apple.com/account → Membership**.' \
+              >> "$GITHUB_STEP_SUMMARY"
+          elif grep -q "maximum number of certificates" "$log"; then
+            printf '%s\n' \
+              '## The account has no room for another certificate' \
+              '' \
+              'Apple allows a limited number of distribution certificates per team —' \
+              'three — and the team already holds that many, so Xcode could not create' \
+              'the one it needed and then found no profile to sign with. Nothing in' \
+              'this repository can fix that. It is one step, on the account:' \
+              '' \
+              'Go to **developer.apple.com/account → Certificates, Identifiers &' \
+              'Profiles → Certificates**, and revoke an **Apple Distribution**' \
+              'certificate that is not in use — an expired one, or one belonging to a' \
+              'Mac you no longer build from. Revoking does not affect apps already on' \
+              'the App Store or in TestFlight; it only stops that certificate signing' \
+              'anything new.' \
+              '' \
+              'Then run this workflow again. Xcode creates a fresh certificate and a' \
+              'matching profile through the API key, and the archive proceeds.' \
               >> "$GITHUB_STEP_SUMMARY"
           elif grep -q "No suitable application records were found" "$log"; then
             printf '%s\n' \

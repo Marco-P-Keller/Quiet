@@ -51,6 +51,15 @@ final class WebSurface {
     /// in a photograph rather than an outline of a person.
     private(set) var myFace: UIImage?
 
+    /// Where Instagram's heart went, read out of its own header before that
+    /// header was taken out.
+    ///
+    /// `nil` until a feed has loaded, and the heart in Quiet's header only
+    /// appears once it is known — a button that leads nowhere is worse than a
+    /// button that arrives a second late. Quiet guesses no addresses: this one
+    /// comes from the page itself.
+    private(set) var activity: URL?
+
     /// False until the first page has finished, or failed. While it is false the
     /// browsing screen keeps Quiet's own paper over the top, so a cold launch
     /// shows a considered blank rather than the white rectangle of a web view
@@ -189,6 +198,13 @@ final class WebSurface {
         isBarCollapsed = collapsed
     }
 
+    fileprivate func note(activity path: String) {
+        guard let url = URL(string: path, relativeTo: ContentRules.feed)?.absoluteURL,
+              url.host == ContentRules.feed.host,
+              activity != url else { return }
+        activity = url
+    }
+
     fileprivate func note(me name: String, picture: String?) {
         if me != name { me = name }
         guard let picture, let data = Data(base64Encoded: picture) else { return }
@@ -198,6 +214,11 @@ final class WebSurface {
     /// Where Quiet's own row can send you.
     func goToFeed() { open(ContentRules.feed) }
     func goToMessages() { open(ContentRules.messages) }
+
+    func goToActivity() {
+        guard let activity else { return }
+        open(activity)
+    }
 
     func goToMyProfile() {
         guard let me, let url = ContentRules.profile(forHandle: me) else { return }
@@ -436,6 +457,12 @@ struct InstagramWebView: UIViewRepresentable {
             case "search":
                 // The magnifying glass, tapped in Quiet's own row.
                 session.isSearchShowing = true
+
+            case "chrome":
+                // The one control in Instagram's header that was nowhere else.
+                if let path = body["activity"] as? String {
+                    surface.note(activity: path)
+                }
 
             case "me":
                 // Read out of Instagram's navigation before it was taken out.
