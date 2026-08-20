@@ -128,6 +128,14 @@ Drawn by the page, they inherit Instagram's own sizing, spacing and colour, and
 they scroll away with the bars they belong to. The labels come from the app, so
 they are announced in the reader's own language.
 
+Both are drawn as line icons at Instagram's own weight, size and colour, because
+the bars they sit in are a set and anything outside it reads as a fault rather
+than as a control. Quiet's is its full stop set inside a ring — punctuation,
+given a stroke so that it belongs among drawings. The first attempt was a bare
+dot, which at twenty-four points beside a gear looked like dust on the display;
+the second had a wider ring and a larger stop, and read as a record button. The
+proportions were rendered and looked at, not guessed.
+
 The long press is gone. An app used every day should not need a trick, and once
 the visible doors exist the trick is one more thing to explain.
 
