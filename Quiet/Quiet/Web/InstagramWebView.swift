@@ -217,9 +217,47 @@ final class WebSurface {
     func goToFeed() { open(ContentRules.feed) }
     func goToMessages() { open(ContentRules.messages) }
 
+    /// Your own profile.
+    ///
+    /// Instagram's own link first, taken from the row Quiet hides — which is
+    /// hidden rather than removed precisely so it still knows where it goes.
+    /// A name the app read a moment too early builds an address to a stranger
+    /// or to nothing, and this button is the one place in Quiet where that is
+    /// unforgivable.
+    ///
+    /// The address built from the name is the fallback, for the pages that
+    /// carry no such row.
     func goToMyProfile() {
-        guard let me, let url = ContentRules.profile(forHandle: me) else { return }
-        open(url)
+        guard let webView else { return }
+        Task { @MainActor in
+            let answered = try? await webView.evaluateJavaScript(
+                "window.__quietOpenProfile ? window.__quietOpenProfile() : false"
+            )
+            // A string is the address the page went to; anything else means
+            // there was no row to read and the name is all there is.
+            if let went = answered as? String, !went.isEmpty { return }
+            guard let me, let url = ContentRules.profile(forHandle: me) else { return }
+            open(url)
+        }
+    }
+}
+
+/// A web view that says when iOS has worked out how tall the status bar is.
+///
+/// The page has to be told that number — it starts the feed below the clock
+/// with it — and the app has now got it wrong twice from two different
+/// directions. Asking the window gives twenty points until something has been
+/// laid out, and a SwiftUI state that starts at twenty and is corrected on
+/// appear is corrected after the scripts have already been built out of it.
+///
+/// This is the one source that cannot be early: it is UIKit telling the view
+/// that owns the pixels what its own safe area is, at the moment it knows.
+final class QuietWebView: WKWebView {
+    var onSafeArea: ((UIEdgeInsets) -> Void)?
+
+    override func safeAreaInsetsDidChange() {
+        super.safeAreaInsetsDidChange()
+        onSafeArea?(safeAreaInsets)
     }
 }
 
@@ -257,7 +295,11 @@ struct InstagramWebView: UIViewRepresentable {
         // the hooks and among the easiest to remove.
         configuration.mediaTypesRequiringUserActionForPlayback = .all
 
-        let webView = WKWebView(frame: .zero, configuration: configuration)
+        let webView = QuietWebView(frame: .zero, configuration: configuration)
+        webView.onSafeArea = { [weak webView] insets in
+            guard let webView else { return }
+            context.coordinator.learn(top: insets.top, on: webView)
+        }
         webView.navigationDelegate = context.coordinator
         webView.uiDelegate = context.coordinator
         webView.allowsBackForwardNavigationGestures = true
@@ -381,6 +423,22 @@ struct InstagramWebView: UIViewRepresentable {
             let controller = webView.configuration.userContentController
             controller.removeAllUserScripts()
             WebScripts.load(top: top).scripts.forEach(controller.addUserScript)
+        }
+
+        /// A better answer than the one being used, from whichever direction
+        /// it arrives.
+        ///
+        /// Only ever upward. The floor is twenty points, which is the shortest
+        /// status bar any iPhone has, so a source that has not woken up yet
+        /// cannot walk a correct answer back down to its own default — which is
+        /// exactly how a fifty-nine point status bar ended up being told it was
+        /// twenty.
+        func learn(top candidate: CGFloat, on webView: WKWebView) {
+            let next = max(top, candidate)
+            guard next != top else { return }
+            top = next
+            tellEveryPage(webView, top: next)
+            tellThisPage(webView)
         }
 
         /// And the document already on screen, whose scripts have run.

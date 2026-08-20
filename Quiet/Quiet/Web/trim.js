@@ -144,7 +144,8 @@
         var name = data && data.form_data && data.form_data.username;
         if (!name) return;
         window.__quietMe = name;
-        announce(name, (data.form_data && data.form_data.profile_pic_url) || null);
+        var form = data.form_data || {};
+        announce(name, form.profile_pic_url || form.profile_pic_url_hd || null);
       })
       .catch(function () {
         // Signed out, or the endpoint moved. The row keeps its four entries.
@@ -198,6 +199,7 @@
         for (var i = 0; i < bytes.length; i++) {
           binary += String.fromCharCode(bytes[i]);
         }
+        window.__quietFace = true;
         post({ kind: "me", username: username, picture: btoa(binary) });
       })
       .catch(function () {
@@ -220,7 +222,92 @@
     if (row.getAttribute("data-quiet-hidden") !== "nav") {
       row.setAttribute("data-quiet-hidden", "nav");
     }
+    takeUpTheFloor(row);
+    faceFromRow(row);
   }
+
+  var lastFaceTry = 0;
+
+  /**
+   * Second chance at your own face.
+   *
+   * The photograph comes from Instagram's settings endpoint, fetched by the
+   * page — and a fetch to a content delivery network can be refused for
+   * reasons that have nothing to do with being signed in, which leaves the row
+   * ending in an outline of a person instead of a face. The row Quiet hides has
+   * the same photograph already loaded in it.
+   *
+   * Tried again rather than once, because the row is rebuilt as the page moves
+   * and the image may not have arrived the first time. Every five seconds at
+   * most: this is a fallback, not a poll.
+   */
+  function faceFromRow(row) {
+    if (!window.__quietMe || window.__quietFace) return;
+
+    var now = Date.now();
+    if (now - lastFaceTry < 5000) return;
+    lastFaceTry = now;
+
+    var picture = row.querySelector("img[src]");
+    if (picture) announce(window.__quietMe, picture.getAttribute("src"));
+  }
+
+  /**
+   * Take back the space Instagram reserved for the bar that is no longer there.
+   *
+   * Hiding the row with `display: none` takes the row out of the layout and
+   * leaves behind whatever the page had padded *around* it — a floor of forty
+   * or fifty points at the bottom of the feed, kept clear so a fixed bar would
+   * not cover the last post. With the bar gone that floor is a black band under
+   * Quiet's own row, where Instagram runs its next photograph.
+   *
+   * It was blamed on the content inset for three commits. Taking the inset away
+   * did not move it, which is the answer: it was never the app's.
+   *
+   * Only ancestors of the row, only their bottom padding, and only when there
+   * is enough of it to be the reservation rather than a margin somebody chose.
+   */
+  function takeUpTheFloor(row) {
+    var node = row.parentElement;
+    var depth = 0;
+    while (node && node !== document.documentElement && depth < 8) {
+      if (node.getAttribute("data-quiet-floor") === null) {
+        var padding = parseFloat(window.getComputedStyle(node).paddingBottom);
+        if (!isNaN(padding) && padding >= 8) {
+          node.setAttribute("data-quiet-floor", "");
+        }
+      }
+      node = node.parentElement;
+      depth += 1;
+    }
+  }
+
+  /**
+   * Instagram's own way to your profile.
+   *
+   * The app knows the signed-in name and can build the address from it, and
+   * that is one deduction too many for a button marked "your profile" — a name
+   * read a moment too early sends somebody to a stranger, or to a page that
+   * does not exist. The row Quiet hides carries the link Instagram itself uses.
+   * It is hidden, not removed, so it still knows where it goes.
+   */
+  window.__quietOpenProfile = function () {
+    var row = navRow();
+    if (!row) return false;
+
+    var links = row.querySelectorAll('a[href^="/"]');
+    for (var i = 0; i < links.length; i++) {
+      var href = links[i].getAttribute("href") || "";
+      if (/^\/[A-Za-z0-9._]{1,30}\/?$/.test(href) && href !== "/") {
+        location.assign(href);
+        // The address it went to rather than a bare yes, so the app can say
+        // where it sent somebody and a test can check it went to the right
+        // place without implementing navigation.
+        return href;
+      }
+    }
+    return false;
+  };
 
   /**
    * Start the page below the clock, and let it scroll up behind it.

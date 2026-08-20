@@ -190,3 +190,15 @@ body {
 [data-quiet-header]:not([data-quiet-pinned]) {
   position: relative !important;
 }
+
+/* ── The floor under a bar that is no longer there ──────────────────────── */
+/*
+ * Set by trim.js on the ancestors of Instagram's own navigation row. The page
+ * pads the bottom of the feed so a fixed bar cannot cover the last post; with
+ * that bar hidden the padding is a black band under Quiet's own row, where
+ * Instagram runs its next photograph.
+ */
+
+[data-quiet-floor] {
+  padding-bottom: 0 !important;
+}

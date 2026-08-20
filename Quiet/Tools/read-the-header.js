@@ -253,5 +253,49 @@ const GROUPED = `
     true
   );
 
+  /* ── The row along the bottom, and what the page kept clear for it ────── */
+
+  /* Instagram pads the bottom of the feed so a fixed bar cannot cover the last
+   * post. Quiet hides that bar, and the padding stays behind as a black band
+   * under Quiet's own row. It was blamed on the app's content inset for three
+   * commits; taking the inset away did not move it. */
+  const BOTTOM = `
+    <div data-name="floor" style="padding-bottom: 48px">
+      <div data-name="nav">
+        <a href="/">home</a>
+        <a href="/direct/inbox/">messages</a>
+        <a href="/marco/"><img src="face.jpg"></a>
+      </div>
+    </div>
+    <main></main>`;
+
+  const bottom = await page(BOTTOM, FEED);
+  check(
+    "Instagram's own row is hidden",
+    bottom.document.querySelector('[data-name="nav"]').getAttribute("data-quiet-hidden"),
+    "nav"
+  );
+  check(
+    "and the floor it was standing on is taken up with it",
+    bottom.document.querySelector('[data-name="floor"]').hasAttribute("data-quiet-floor"),
+    true
+  );
+
+  /* The button marked "your profile" uses Instagram's own link rather than an
+   * address built from a name the app may have read a moment too early. */
+  // It answers with the address it went to rather than a bare yes, which is
+  // the only way to check *where* somebody was sent in a place that implements
+  // no navigation.
+  check(
+    "your profile goes where Instagram's own link goes",
+    bottom.__quietOpenProfile(),
+    "/marco/"
+  );
+
+  /* A page with no such row has nothing to click, and says so rather than
+   * guessing — the app falls back to the address it built from the name. */
+  const bare = await page(`<main></main>`, FEED);
+  check("with no row to read, it declines", bare.__quietOpenProfile(), false);
+
   process.exit(failures ? 1 : 0);
 })();

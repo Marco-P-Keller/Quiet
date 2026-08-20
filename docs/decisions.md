@@ -646,3 +646,50 @@ by a list of model names that goes stale every September.
 The insets are read from the window when the screen is built rather than
 defaulted and corrected on appear. A wrong first answer used to cost a few
 points of padding; now it would draw the row in the wrong shape for a frame.
+
+## The status bar height comes from the view that owns the pixels
+
+The page has to be told how tall the status bar is — it starts the feed below
+the clock with that number, and the rule that lifts Instagram's pinned bar off
+the clock uses it too. The app has now got it wrong twice, from two directions.
+
+Asking the window answers twenty points until something has been laid out. A
+SwiftUI state that starts at twenty and is corrected on appear is corrected
+after the scripts have been built out of it. Both were in place, both were
+wrong, and the photograph shows the result: no padding at all and a wordmark
+drawn through the battery.
+
+So the number comes from `safeAreaInsetsDidChange` on the web view itself. That
+is UIKit telling the view that owns those pixels what its own safe area is, at
+the moment it knows, and it cannot be early. The value only ever moves upward
+from a floor of twenty, so a source that has not woken up cannot walk a correct
+answer back down to its own default.
+
+## The floor under a bar that is no longer there
+
+Instagram pads the bottom of the feed so its own fixed row cannot cover the last
+post. Quiet hides that row, and `display: none` takes the row out of the layout
+and leaves the padding — a band of nothing under Quiet's own row, where
+Instagram runs its next photograph.
+
+It was blamed on the app's content inset for three commits, and taking the inset
+away did not move it. It was never the app's.
+
+The ancestors of the row are asked what they are padded by, and enough of it is
+taken up. Only ancestors, only the bottom, and only when there is enough of it
+to be a reservation rather than a margin somebody chose.
+
+## Your profile uses Instagram's own link
+
+The app knows the signed-in name and can build the address from it. That is one
+deduction too many for a button marked "your profile": a name read a moment too
+early sends somebody to a stranger, or to a page that does not exist, and this
+is the one button in Quiet where that is unforgivable.
+
+The row Quiet hides carries the link Instagram itself uses, and it is hidden
+rather than removed precisely so it still knows where it goes. The address built
+from the name is the fallback, for pages that carry no such row.
+
+The page answers with the address it went to rather than a bare yes — which is
+also the only way the harness can check *where* somebody was sent, in a place
+that implements no navigation.
