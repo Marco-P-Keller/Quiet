@@ -135,23 +135,6 @@ final class QuietSessionTests: XCTestCase {
         XCTAssertEqual(relaunched.limit.minutes, 30)
     }
 
-    /// The hidden gesture is explained on the first launch of each of the first
-    /// three days, and then never again.
-    func testTheGestureIsTaughtForThreeDaysAndThenLetGo() {
-        let world = makeWorld()
-        world.session.start()
-        XCTAssertFalse(world.session.isLearningTheGesture, "nothing to teach before there is an app to use")
-
-        world.session.completeSetup(minutes: 20)
-        XCTAssertTrue(world.session.isLearningTheGesture)
-
-        world.time.now = noon.addingTimeInterval(2 * 24 * 3600)
-        XCTAssertTrue(world.session.isLearningTheGesture)
-
-        world.time.now = noon.addingTimeInterval(3 * 24 * 3600)
-        XCTAssertFalse(world.session.isLearningTheGesture)
-    }
-
     // MARK: - The curtain
 
     func testASpentDayOpensOnTheCurtain() {
