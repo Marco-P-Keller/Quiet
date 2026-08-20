@@ -10,9 +10,13 @@ import UIKit
 /// to know.
 ///
 /// Quiet carries the whole navigation now: home, search, messages, profile, and
-/// a clock for its own settings. Five entries, one row, always in the same
-/// place, on every page — including the ones where Instagram draws no bar at
-/// all.
+/// a clock for its own settings. Five entries in a floating pill, always in the
+/// same place, on every page — including the ones where Instagram draws no bar
+/// at all.
+///
+/// The pill draws itself in while the page moves away under your thumb and
+/// comes back out when it stops. It never leaves, because a control that
+/// disappears is a control you end up hunting for.
 ///
 /// The two Quiet needed lived inside Instagram's bar for a while, which is
 /// where they belonged and where they twice failed to appear: a row built by
@@ -47,7 +51,12 @@ struct BrowserScreen: View {
             InstagramWebView(
                 surface: surface,
                 session: session,
-                inset: UIEdgeInsets(top: topInset, left: 0, bottom: barHeight + bottomInset, right: 0)
+                inset: UIEdgeInsets(
+                    top: topInset,
+                    left: 0,
+                    bottom: Self.barHeight + Self.barGap * 2 + bottomInset,
+                    right: 0
+                )
             )
 
             if !surface.hasLoaded {
@@ -81,20 +90,10 @@ struct BrowserScreen: View {
             .accessibilityHidden(true)
     }
 
-    /// Quiet's own bar, for the pages that have none of their own.
-    ///
-    /// Instagram drops its navigation on some screens — messages is the one
-    /// people notice — and a search and a clock that come and go with somebody
-    /// else's layout are worse than useless. So on those pages Quiet draws the
-    /// two of them itself, in the page's own colours, in the same corner of the
-    /// screen they occupy everywhere else.
-    ///
-    /// Everywhere the page *does* have a bar, these two live inside it, which is
-    /// where they belong: one bar, not two.
+    /// The pill.
     private var quietBar: some View {
         VStack(spacing: 0) {
             Spacer(minLength: 0)
-            Divider().overlay(Color(uiColor: .separator))
             HStack(spacing: 0) {
                 barButton("house", Text("Home")) { surface.goToFeed() }
                 barButton("magnifyingglass", Text("Find someone")) {
@@ -112,13 +111,34 @@ struct BrowserScreen: View {
                     session.isPanelShowing = true
                 }
             }
-            .frame(height: barHeight)
-            .padding(.bottom, bottomInset)
-            .background(Color(uiColor: .systemBackground))
+            .frame(height: Self.barHeight)
+            .padding(.horizontal, 4)
+            // A pill rather than a bar across the whole screen. It is the app's
+            // one piece of furniture; it should sit on the page rather than cut
+            // it off, and the page should be visible either side of it.
+            .background(.regularMaterial, in: Capsule())
+            .overlay(
+                Capsule().strokeBorder(Color(uiColor: .separator).opacity(0.6), lineWidth: 0.5)
+            )
+            .shadow(color: .black.opacity(0.18), radius: 14, y: 5)
+            .padding(.horizontal, 26)
+            // Drawn in while the page is moving away under your thumb, back out
+            // the moment it stops or reverses. It never leaves: a control that
+            // disappears is a control you end up hunting for.
+            .scaleEffect(surface.isBarCollapsed ? 0.86 : 1, anchor: .bottom)
+            .opacity(surface.isBarCollapsed ? 0.62 : 1)
+            .animation(
+                reduceMotion ? nil : .spring(response: 0.34, dampingFraction: 0.86),
+                value: surface.isBarCollapsed
+            )
+            .padding(.bottom, bottomInset + Self.barGap)
         }
     }
 
-    private let barHeight: CGFloat = 46
+    /// The pill, and the air beneath it. Together they are what the page is
+    /// asked to keep clear at the bottom.
+    private static let barHeight: CGFloat = 52
+    private static let barGap: CGFloat = 10
 
     private func barButton(_ symbol: String, _ label: Text, action: @escaping () -> Void) -> some View {
         Button(action: action) {

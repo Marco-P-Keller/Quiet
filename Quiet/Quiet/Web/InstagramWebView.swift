@@ -23,6 +23,13 @@ final class WebSurface {
     /// rather than swallowed.
     private(set) var missingResources: [String] = []
 
+    /// Whether Quiet's row has drawn itself in, because somebody is reading.
+    ///
+    /// It never leaves — a control that disappears is a control you hunt for —
+    /// but while the page is moving away under your thumb there is no reason
+    /// for it to be at full size.
+    private(set) var isBarCollapsed = false
+
     /// The signed-in username, read out of Instagram's own navigation before
     /// that row is taken out. `nil` until a page carrying it has loaded, which
     /// is why the profile entry in Quiet's row appears a moment after the rest.
@@ -131,6 +138,11 @@ final class WebSurface {
         hasLoaded = true
     }
 
+    fileprivate func setBar(collapsed: Bool) {
+        guard collapsed != isBarCollapsed else { return }
+        isBarCollapsed = collapsed
+    }
+
     fileprivate func note(me name: String) {
         guard me != name else { return }
         me = name
@@ -202,6 +214,7 @@ struct InstagramWebView: UIViewRepresentable {
         webView.scrollView.verticalScrollIndicatorInsets = inset
         webView.load(URLRequest(url: ContentRules.home))
 
+        context.coordinator.watch(webView.scrollView)
         surface.adopt(webView, missing: payload.missing)
         return webView
     }
@@ -222,6 +235,38 @@ struct InstagramWebView: UIViewRepresentable {
 
     @MainActor
     final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
+        /// Watching the page move, so the row can get out of the way a little.
+        ///
+        /// Observed rather than delegated. WKWebView is its own scroll view's
+        /// delegate and uses that seat for real work — scroll-to-top, zoom,
+        /// keyboard avoidance — so taking it away to learn which way a thumb is
+        /// going would be a poor trade.
+        private var scrolling: NSKeyValueObservation?
+        private var lastOffset: CGFloat = 0
+
+        /// How far the page has to move before the row believes it. Small
+        /// enough to feel immediate, large enough that a fingertip resting on
+        /// the glass does not make it flicker.
+        private static let meaningful: CGFloat = 8
+
+        func watch(_ scrollView: UIScrollView) {
+            lastOffset = scrollView.contentOffset.y
+            scrolling = scrollView.observe(\.contentOffset, options: [.new]) { [weak self] view, _ in
+                MainActor.assumeIsolated { self?.scrolled(view) }
+            }
+        }
+
+        private func scrolled(_ scrollView: UIScrollView) {
+            let offset = scrollView.contentOffset.y
+            let delta = offset - lastOffset
+            guard abs(delta) > Self.meaningful else { return }
+            lastOffset = offset
+
+            // At the top of the page there is nothing to get out of the way of.
+            let atTop = offset <= -scrollView.contentInset.top + 4
+            surface.setBar(collapsed: atTop ? false : delta > 0)
+        }
+
         var session: QuietSession
         let surface: WebSurface
 
