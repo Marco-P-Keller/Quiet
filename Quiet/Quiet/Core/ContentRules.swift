@@ -126,7 +126,14 @@ enum ContentRules {
     }
 
     /// Where the app opens, and where the home button goes.
-    static let home = URL(string: "https://www.instagram.com/")!
+    /// Where Quiet opens.
+    ///
+    /// Not `instagram.com`, which serves a signed-out visitor a page whose
+    /// largest element is a button that opens Instagram's own app — the one
+    /// door out that this app exists to close, offered before you have even
+    /// signed in. The login form is what a person came here to use, and a
+    /// signed-in session is sent straight on to the feed.
+    static let home = URL(string: "https://www.instagram.com/accounts/login/")!
 
     /// The profile page for a handle typed into "Find someone". Returns `nil`
     /// for anything that is not a plausible Instagram username, rather than

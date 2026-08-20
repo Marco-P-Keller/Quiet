@@ -111,18 +111,30 @@ taught once at the end of setup, because the panel is rarely needed, and because
 there is a second, fully visible way in on the curtain — the screen you are most
 likely to be on when you want it.
 
-## Search was replaced rather than removed
+## Search is for people, and it lives in the panel
 
 On Instagram's mobile site, search and Explore are the same tab: tapping search
 shows the discovery grid. Blocking the grid means blocking the way to look
-someone up.
+someone up, and hiding the grid with DOM heuristics while leaving the field
+working would be fragile in exactly the way the rest of the app avoids. So the
+tab is blocked outright.
 
-Hiding the grid with DOM heuristics while leaving the search field working would
-be fragile in exactly the way the rest of the app avoids. So the tab is blocked
-outright and the panel has a box that goes straight to `instagram.com/<handle>/`.
+The first answer to what that costs was a box in the panel that went straight to
+`instagram.com/<handle>/`. It was robust — no selectors, nothing to break — and
+it was wrong, which the first hour of real use said plainly: it takes a username
+you already know, spelled exactly, and nobody knows how their friends spell
+themselves.
 
-It only takes a username you already know, which is the honest cost. It is also
-robust: no selectors, no heuristics, nothing to break.
+So the panel does the searching. It asks Instagram the same question Instagram's
+own search asks, from inside Instagram's own page, with the page's own cookies —
+so it is the site's real answer, and Quiet still makes no request of its own.
+What comes back is filtered to people and cut to six. No hashtags, no places, no
+posts, no grid: the objection was never to searching, it was to everything a
+search *page* carries with it.
+
+It is the one part of the app that depends on an endpoint nobody promised to
+keep, so it fails in a way that says so — "Search is not answering" rather than
+"nobody by that name" — and typing an exact name still goes straight there.
 
 ## Hashtag links are left visible but refused
 
@@ -322,3 +334,24 @@ the panel open — through the same store the app writes to, and then gets out o
 the way. It is wrapped in `#if DEBUG` in its entirety: none of it exists in a
 build anybody can install, and it holds no opinion about how the app behaves,
 which is the only thing that makes a rehearsal worth trusting.
+
+## Quiet opens on the login form, not on instagram.com
+
+Signed out, `instagram.com` serves a page whose largest element is a purple
+button that opens Instagram's own app, with "Log In" underneath it in small
+grey letters. That is the one door out this app exists to close, offered before
+you have even signed in — and it was the first thing a new user saw.
+
+Quiet opens at `/accounts/login/`, which is the form a person came to use. A
+signed-in session is sent straight on to the feed.
+
+## The page starts below the status bar
+
+The web view used to run under the status bar, because the strip that opens the
+panel wants to sit against the glass. The page does not know it is inside an
+app: it lays its header against the top of whatever it is given, so Instagram's
+own logo ended up under the clock.
+
+The page now begins below the status bar, and the band above it is painted in
+the page's own background colour so the seam does not show. The bottom still
+runs to the edge, which is where the page's own navigation belongs.

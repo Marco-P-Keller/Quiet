@@ -30,7 +30,19 @@ struct BrowserScreen: View {
         // screen. Everything inside is then positioned against the glass, which
         // is what both the strip and the notices want.
         ZStack(alignment: .top) {
-            InstagramWebView(surface: surface, session: session)
+            // The band behind the status bar, in the page's own colour, so the
+            // seam does not show.
+            Color(uiColor: .systemBackground)
+
+            // Held below the status bar rather than run underneath it. The page
+            // does not know it is inside an app and lays its header against the
+            // top of whatever it is given, so Instagram's own logo used to sit
+            // under the clock. The bottom still runs to the edge, which is where
+            // the page's own navigation belongs.
+            VStack(spacing: 0) {
+                Color.clear.frame(height: topInset)
+                InstagramWebView(surface: surface, session: session)
+            }
 
             if !surface.hasLoaded {
                 cover

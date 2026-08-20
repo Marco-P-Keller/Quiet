@@ -51,6 +51,86 @@
         }
       }
     },
+    "%lld minutes": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "1 minute"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld minutes"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "1 Minute"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Minuten"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld minutes left.": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "One minute left."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld minutes left."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Noch eine Minute."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Noch %lld Minuten."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "Ask for %@ a day": {
       "localizations": {
         "de": {
@@ -171,6 +251,16 @@
         }
       }
     },
+    "Looking…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suche …"
+          }
+        }
+      }
+    },
     "Minutes a day": {
       "localizations": {
         "de": {
@@ -211,6 +301,26 @@
         }
       }
     },
+    "Nobody by that name.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niemand mit diesem Namen."
+          }
+        }
+      }
+    },
+    "Opens this profile": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnet dieses Profil"
+          }
+        }
+      }
+    },
     "Quiet": {
       "localizations": {
         "de": {
@@ -237,16 +347,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Quiet hat kein Konto, keine Server und keine Analyse. Es speichert vier Dinge auf diesem Telefon: dein Limit, den heutigen Stand, den spätesten Zeitpunkt, den es gesehen hat, und den Tag, an dem du es eingerichtet hast."
-          }
-        }
-      }
-    },
-    "Quiet has no search page, because search is where Explore lives. Typing a name goes straight to that profile.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Quiet hat keine Suchseite, denn dort wohnt Explore. Ein eingetippter Name führt direkt zu diesem Profil."
           }
         }
       }
@@ -327,6 +427,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zurückgesetzt um %@. Es zählt nur Zeit, in der Instagram auf dem Bildschirm ist."
+          }
+        }
+      }
+    },
+    "Search is not answering. An exact name still works: type it and tap Go.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Suche antwortet nicht. Ein genauer Name geht trotzdem: eintippen und auf Los tippen."
           }
         }
       }
@@ -471,6 +581,16 @@
         }
       }
     },
+    "Type a name. Quiet searches for people and nothing else — no Explore, no hashtags, no places.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tippe einen Namen. Quiet sucht nach Menschen und sonst nichts — kein Explore, keine Hashtags, keine Orte."
+          }
+        }
+      }
+    },
     "Version %@ (%@)": {
       "localizations": {
         "de": {
@@ -581,6 +701,16 @@
         }
       }
     },
+    "name": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "name"
+          }
+        }
+      }
+    },
     "on %@": {
       "localizations": {
         "de": {
@@ -607,96 +737,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "morgen"
-          }
-        }
-      }
-    },
-    "username": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "benutzername"
-          }
-        }
-      }
-    },
-    "%lld minutes": {
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "1 minute"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld minutes"
-                }
-              }
-            }
-          }
-        },
-        "de": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "1 Minute"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld Minuten"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "%lld minutes left.": {
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "One minute left."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld minutes left."
-                }
-              }
-            }
-          }
-        },
-        "de": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Noch eine Minute."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Noch %lld Minuten."
-                }
-              }
-            }
           }
         }
       }

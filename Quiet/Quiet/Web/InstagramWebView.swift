@@ -3,6 +3,15 @@ import SwiftUI
 import UIKit
 import WebKit
 
+/// Somebody the search found. A name and nothing else: no follower count to
+/// measure yourself against, no picture to load, no "suggested for you".
+struct Person: Identifiable, Decodable, Equatable, Sendable {
+    let username: String
+    let name: String
+
+    var id: String { username }
+}
+
 /// A handle on the live web view, so the rest of the app can send it somewhere
 /// without owning it.
 @MainActor
@@ -49,6 +58,64 @@ final class WebSurface {
             completion()
         }
     }
+
+    /// Who matches this name.
+    ///
+    /// The request is made by Instagram's own page, with the page's own cookies,
+    /// so it is the same search the site would run — and Quiet still makes no
+    /// request of its own, which is a sentence on the About screen that has to
+    /// stay true.
+    ///
+    /// Only people come back. No hashtags, no places, no posts, no grid of
+    /// strangers: the objection to a search *page* was never the searching, it
+    /// was everything such a page carries along with it.
+    ///
+    /// `nil` means the question could not be asked — offline, signed out, or
+    /// Instagram moved the endpoint — which is a different thing from nobody
+    /// being called that, and the panel says the two differently.
+    func people(matching query: String) async -> [Person]? {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.count >= 2, let webView else { return nil }
+
+        let body = """
+        const term = encodeURIComponent(query);
+        const paths = [
+          "/api/v1/web/search/topsearch/?context=blended&query=" + term,
+          "/web/search/topsearch/?context=blended&query=" + term
+        ];
+        for (const path of paths) {
+          try {
+            const response = await fetch(path, {
+              credentials: "same-origin",
+              headers: { "X-IG-App-ID": appID }
+            });
+            if (!response.ok) { continue; }
+            const data = await response.json();
+            const found = (data && data.users) || [];
+            return JSON.stringify(found.slice(0, 6).map(function (entry) {
+              const user = entry.user || {};
+              return { username: user.username || "", name: user.full_name || "" };
+            }).filter(function (person) { return person.username.length > 0; }));
+          } catch (error) {
+            // Try the next shape of the same request, then give up quietly.
+          }
+        }
+        return null;
+        """
+
+        let answer = try? await webView.callAsyncJavaScript(
+            body,
+            arguments: ["query": trimmed, "appID": Self.appID],
+            in: nil,
+            contentWorld: .defaultClient
+        )
+        guard let json = answer as? String, let data = json.data(using: .utf8) else { return nil }
+        return try? JSONDecoder().decode([Person].self, from: data)
+    }
+
+    /// The identifier Instagram's own web client sends. Without it the newer
+    /// endpoint answers 403 and no explanation.
+    private static let appID = "936619743392459"
 
     fileprivate func adopt(_ webView: WKWebView, missing: [String]) {
         self.webView = webView
