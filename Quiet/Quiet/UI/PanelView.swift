@@ -138,6 +138,10 @@ struct PanelView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        // The pill carries a search too, announced by the same name — which is
+        // right for a reader and ambiguous for a test. An identifier is not
+        // spoken aloud and tells the two apart.
+        .accessibilityIdentifier("panel.findSomeone")
     }
 
     // MARK: - About

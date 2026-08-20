@@ -59,8 +59,11 @@ final class SpeaksAloudTests: XCTestCase {
     func testFindingSomeoneIsAScreenYouCanReachAndType() {
         let app = launch("panel")
 
-        let row = app.buttons["Find someone"]
-        XCTAssertTrue(row.waitForExistence(timeout: 30), "The panel must offer it by name")
+        // By identifier, not by name: Quiet's own row carries a search
+        // announced under the same words, which is right for a reader and
+        // ambiguous for a query.
+        let row = app.buttons["panel.findSomeone"]
+        XCTAssertTrue(row.waitForExistence(timeout: 30), "The panel must offer it")
         row.tap()
 
         let field = app.textFields.firstMatch
