@@ -259,10 +259,16 @@ const GROUPED = `
    * post. Quiet hides that bar, and the padding stays behind as a black band
    * under Quiet's own row. It was blamed on the app's content inset for three
    * commits; taking the inset away did not move it. */
+  /* Instagram's own order, which is the whole of the profile bug: `/explore/`
+   * is letters, one to thirty of them, and so is a username. A search for the
+   * first thing shaped like a username finds explore every time — and the app
+   * then refused its own button with "Explore is off in Quiet." */
   const BOTTOM = `
     <div data-name="floor" style="padding-bottom: 48px">
       <div data-name="nav">
         <a href="/">home</a>
+        <a href="/explore/">search</a>
+        <a href="/reels/">reels</a>
         <a href="/direct/inbox/">messages</a>
         <a href="/marco/"><img src="face.jpg"></a>
       </div>
@@ -292,10 +298,31 @@ const GROUPED = `
     "/marco/"
   );
 
+  check(
+    "and the name it reads out of the row is a person, not a place",
+    bottom.__quietMe,
+    "marco"
+  );
+
   /* A page with no such row has nothing to click, and says so rather than
    * guessing — the app falls back to the address it built from the name. */
   const bare = await page(`<main></main>`, FEED);
   check("with no row to read, it declines", bare.__quietOpenProfile(), false);
+
+  /* Every reserved root, one at a time, in the place the profile link sits.
+   * None of them is a person, and a row of nothing but Instagram's own
+   * addresses must answer no rather than pick one. */
+  for (const root of ["explore", "reels", "direct", "accounts", "stories", "p"]) {
+    const only = await page(
+      `<div data-name="nav">
+         <a href="/">home</a>
+         <a href="/direct/inbox/">messages</a>
+         <a href="/${root}/">not a person</a>
+       </div><main></main>`,
+      FEED
+    );
+    check(`/${root}/ is not somebody's profile`, only.__quietOpenProfile(), false);
+  }
 
   process.exit(failures ? 1 : 0);
 })();

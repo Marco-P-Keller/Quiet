@@ -693,3 +693,65 @@ from the name is the fallback, for pages that carry no such row.
 The page answers with the address it went to rather than a bare yes — which is
 also the only way the harness can check *where* somebody was sent, in a place
 that implements no navigation.
+
+## "Explore is off in Quiet."
+
+That sentence, under a button marked "your profile", is the whole of a bug that
+took four builds to corner — and it was one missing line.
+
+Instagram's own row carries `/`, `/explore/`, `/reels/`, `/direct/inbox/` and
+`/yourname/`, in that order. A username is letters, digits, dots and
+underscores, one to thirty of them. So is "explore". The code took the first
+link shaped like a username and found `explore` every single time, so the button
+navigated to Explore and the app refused its own tap with its own rule.
+
+The same loop read the signed-in name, so Quiet believed the name was "explore".
+That is why no photograph ever arrived for the row: it was looking for an avatar
+inside a link that has none.
+
+There is now one rule for "which link in this row is a person", used by both
+readers: the roots Instagram owns are excluded by name, a link carrying a
+photograph is preferred over one that does not, and failing that the last match
+wins rather than the first — because the row ends with you. Six reserved roots
+are checked one at a time in the harness.
+
+## The icons are Instagram's own, drawn by Instagram
+
+Side by side with the real row, SF Symbols are unmistakably somebody else's
+drawings: a different house, a differently tilted paper plane. Redrawing
+Instagram's by hand would be both worse and a liberty.
+
+So the glyphs are taken out of the row the app hides, rasterised by the page
+onto a canvas and handed over as bytes — the same channel the profile picture
+already travels down, so the app still asks nobody for anything.
+
+They arrive with the state they are in rather than as one picture. Instagram
+fills the entry you are standing on and outlines the rest, so a row read on the
+feed gives a filled house and outlines for the others; walk to the inbox and the
+other halves arrive. Both collect themselves as the app is used, and whichever
+has not turned up falls back to the symbol Quiet drew.
+
+Which entry is which is asked of the address, not of the label. `aria-label` is
+translated — Startseite, Suchen, Nachrichten — and a Swiss phone and an American
+one would disagree about which icon is which. An href does not change with the
+language.
+
+The clock has no counterpart, because it is the one thing in that row that is
+Quiet's rather than Instagram's.
+
+## The strip behind the clock, again
+
+It came out once, on the reasoning that whatever the app takes off the top comes
+back as a black band at the bottom. That was wrong twice over: the band at the
+bottom was Instagram's own floor padding, and taking this away did not fix it —
+while three separate attempts at persuading Instagram's pinned bar to sit below
+the clock each came back in a photograph with the wordmark drawn through the
+battery.
+
+So it is back, and this time it is not a guess about somebody else's page.
+Whatever Instagram does with its header, nothing is ever drawn across the time
+and the battery, because the app owns those pixels. If the lift works, the
+header sits just below the strip; if it does not, the header slides underneath
+and out of sight. Neither of those is broken, and that is the point: it is the
+only part of this that does not depend on being right about a stranger's
+stylesheet.

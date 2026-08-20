@@ -85,6 +85,27 @@ struct BrowserScreen: View {
                 cover
             }
 
+            // The strip behind the clock belongs to the app.
+            //
+            // This came out once, on the grounds that whatever the app takes
+            // off the top comes back as a black band at the bottom. That was
+            // wrong twice over: the band at the bottom was Instagram's own
+            // floor padding, and taking this away did not fix it — while three
+            // separate attempts at persuading Instagram's pinned bar to sit
+            // below the clock all came back in a photograph with the wordmark
+            // drawn through the battery.
+            //
+            // So it is back, and it is not a guess. Whatever the page does with
+            // its header, nothing of anybody's is ever drawn across the time
+            // and the battery, because the app owns those pixels. If the lift
+            // works the header sits just below this; if it does not, the header
+            // slides underneath and out of sight. Neither is broken.
+            VStack(spacing: 0) {
+                Color(uiColor: .systemBackground)
+                    .frame(height: topInset)
+                Spacer(minLength: 0)
+            }
+
             // Over the cover, so it is there from the first frame rather than
             // arriving with the page.
             quietBar
@@ -118,7 +139,7 @@ struct BrowserScreen: View {
     /// capsule behind it, and that mark is most of what makes a row of icons
     /// feel like a place rather than a toolbar. Quiet's says the same thing
     /// about the two screens that are its own.
-    private enum Entry {
+    private enum Entry: Hashable {
         case home, clock, messages, search, profile
     }
 
@@ -293,8 +314,7 @@ struct BrowserScreen: View {
     ) -> some View {
         let here = current == entry
         return Button { tap(entry, action) } label: {
-            Image(systemName: here ? solid : outline)
-                .font(.system(size: 24, weight: here ? .semibold : .regular))
+            glyph(entry, here, outline, solid)
                 .foregroundStyle(Color(uiColor: .label))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(mark(here))
@@ -304,6 +324,34 @@ struct BrowserScreen: View {
         .accessibilityLabel(label)
         .accessibilityAddTraits(here ? .isSelected : [])
     }
+
+    /// Instagram's own drawing where the page has handed one over, and Quiet's
+    /// stand-in until it does.
+    ///
+    /// Side by side with the real row, SF Symbols are unmistakably somebody
+    /// else's drawings — a different house, a differently tilted paper plane.
+    /// Redrawing Instagram's by hand would be both worse and a liberty, so
+    /// these are the actual glyphs, taken out of the row the app hides. See
+    /// `sendIcons` in trim.js.
+    ///
+    /// The clock has no counterpart, because it is the one thing here that is
+    /// Quiet's rather than Instagram's.
+    @ViewBuilder
+    private func glyph(_ entry: Entry, _ here: Bool, _ outline: String, _ solid: String) -> some View {
+        if let name = Self.drawnByInstagram[entry], let icon = surface.icon(name, on: here) {
+            Image(uiImage: icon)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 25, height: 25)
+        } else {
+            Image(systemName: here ? solid : outline)
+                .font(.system(size: 24, weight: here ? .semibold : .regular))
+        }
+    }
+
+    private static let drawnByInstagram: [Entry: String] = [
+        .home: "home", .search: "search", .messages: "messages"
+    ]
 
     /// The lighter capsule behind wherever you are.
     ///

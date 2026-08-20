@@ -59,6 +59,19 @@ final class WebSurface {
     /// signed-in session asks for the login form and is handed the feed.
     private(set) var address: URL?
 
+    /// Instagram's own icons, drawn by Instagram.
+    ///
+    /// Keyed "home.on", "home.off" and so on. Instagram fills the entry you are
+    /// standing on and outlines the rest, so a row read on the feed gives a
+    /// filled house and outlines for everything else; walk to the inbox and the
+    /// other halves arrive. Both collect themselves as the app is used, and
+    /// whichever has not turned up yet falls back to the symbol Quiet drew.
+    private(set) var icons: [String: UIImage] = [:]
+
+    func icon(_ entry: String, on: Bool) -> UIImage? {
+        icons[entry + (on ? ".on" : ".off")]
+    }
+
     /// False until the first page has finished, or failed. While it is false the
     /// browsing screen keeps Quiet's own paper over the top, so a cold launch
     /// shows a considered blank rather than the white rectangle of a web view
@@ -205,6 +218,15 @@ final class WebSurface {
     fileprivate func note(address url: URL?) {
         guard address != url else { return }
         address = url
+    }
+
+    fileprivate func note(icon entry: String, picture: String) {
+        guard icons[entry] == nil,
+              let data = Data(base64Encoded: picture),
+              let image = UIImage(data: data) else { return }
+        // A template, so the row tints it with everything else rather than
+        // carrying Instagram's black into a light appearance.
+        icons[entry] = image.withRenderingMode(.alwaysTemplate)
     }
 
     fileprivate func note(me name: String, picture: String?) {
@@ -584,6 +606,13 @@ struct InstagramWebView: UIViewRepresentable {
                 // anything, so this is the only way the row learns it moved.
                 if let path = body["path"] as? String {
                     surface.note(path: path)
+                }
+
+            case "icon":
+                // One glyph out of the row Quiet hides, rasterised by the page.
+                if let entry = body["entry"] as? String,
+                   let picture = body["picture"] as? String {
+                    surface.note(icon: entry, picture: picture)
                 }
 
             case "me":

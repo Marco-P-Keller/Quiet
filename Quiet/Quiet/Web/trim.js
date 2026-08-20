@@ -154,6 +154,47 @@
   }
 
   /**
+   * The roots Instagram owns.
+   *
+   * A username is letters, digits, dots and underscores, one to thirty of them
+   * — and so is "explore". Instagram's own row carries `/`, `/explore/`,
+   * `/reels/`, `/direct/inbox/` and `/yourname/`, in that order, and a search
+   * for the first thing shaped like a username finds `explore` every time.
+   *
+   * That one missing line is the whole of two bugs that took four builds to
+   * corner: a button marked "your profile" that answered "Explore is off in
+   * Quiet", and a signed-in name that was the word explore, which is why no
+   * photograph ever arrived to go in the row.
+   */
+  var NOT_PEOPLE = {
+    explore: true, reels: true, reel: true, direct: true, accounts: true,
+    stories: true, p: true, tv: true, s: true, about: true, legal: true,
+    developer: true, help: true, privacy: true, terms: true, api: true,
+    challenge: true, emails: true, session: true, web: true, graphql: true
+  };
+
+  /**
+   * The one link in this row that leads to a person.
+   *
+   * Instagram's profile entry is the one carrying a photograph, so a link with
+   * an image in it is taken over one without. Failing that, the last match
+   * rather than the first: the row ends with you.
+   */
+  function personIn(row) {
+    var links = row.querySelectorAll('a[href^="/"]');
+    var fallback = null;
+
+    for (var i = 0; i < links.length; i++) {
+      var link = links[i];
+      var match = /^\/([A-Za-z0-9._]{1,30})\/?$/.exec(link.getAttribute("href") || "");
+      if (!match || NOT_PEOPLE[match[1].toLowerCase()]) continue;
+      if (link.querySelector("img")) return link;
+      fallback = link;
+    }
+    return fallback;
+  }
+
+  /**
    * The name off the navigation bar, kept only as a second chance for the day
    * the request above stops answering.
    */
@@ -161,18 +202,15 @@
     // Only ever from inside the bar. A profile link in the feed belongs to
     // whoever posted, and sending somebody to a stranger's profile under a
     // button marked "your profile" is worse than having no button.
-    var links = row.querySelectorAll('a[href^="/"]');
-    for (var i = 0; i < links.length; i++) {
-      var link = links[i];
-      var match = /^\/([A-Za-z0-9._]{1,30})\/?$/.exec(link.getAttribute("href") || "");
-      if (!match) continue;
-      if (window.__quietMe === match[1]) return;
-      window.__quietMe = match[1];
+    var link = personIn(row);
+    if (!link) return;
 
-      var picture = link.querySelector("img");
-      announce(match[1], picture ? picture.getAttribute("src") : null);
-      return;
-    }
+    var name = /^\/([A-Za-z0-9._]{1,30})\/?$/.exec(link.getAttribute("href"))[1];
+    if (window.__quietMe === name) return;
+    window.__quietMe = name;
+
+    var picture = link.querySelector("img");
+    announce(name, picture ? picture.getAttribute("src") : null);
   }
 
   /**
@@ -224,6 +262,114 @@
     }
     takeUpTheFloor(row);
     faceFromRow(row);
+    sendIcons(row);
+  }
+
+  /* ── Instagram's own icons ────────────────────────────────────────────── */
+
+  /**
+   * Which entry in Instagram's row leads where.
+   *
+   * Asked of the address rather than of the label. `aria-label` is translated —
+   * "Startseite", "Suchen", "Nachrichten" — and a Swiss phone and an American
+   * one would disagree about which icon is which. An href does not change with
+   * the language.
+   */
+  var ENTRIES = [
+    { name: "home", test: function (href) { return href === "/"; } },
+    { name: "search", test: function (href) { return href.indexOf("/explore") === 0; } },
+    { name: "messages", test: function (href) { return href.indexOf("/direct") === 0; } }
+  ];
+
+  /** What has already been sent, so the same picture is not drawn twice. */
+  var sent = {};
+
+  /**
+   * Hand the app Instagram's own icons, drawn by Instagram.
+   *
+   * Quiet's row stood in SF Symbols for a while, and side by side with the real
+   * thing they are unmistakably somebody else's drawings: a different house, a
+   * differently tilted paper plane. Redrawing Instagram's by hand would be
+   * both worse and a liberty.
+   *
+   * These are the actual glyphs, taken out of the row the app hides, rasterised
+   * by the page onto a canvas and handed over as bytes — the same channel your
+   * profile picture already travels down, so the app still asks nobody for
+   * anything.
+   *
+   * Sent with the state they are in rather than as one picture. Instagram fills
+   * the entry you are standing on and outlines the rest, so a row photographed
+   * on the feed gives a filled house and four outlines. Walk to the inbox and
+   * the outlined house and the filled paper plane arrive. Both halves collect
+   * themselves as you use the app, and whichever has not arrived falls back to
+   * the symbol Quiet drew.
+   */
+  function sendIcons(row) {
+    var here = location.pathname;
+
+    for (var i = 0; i < ENTRIES.length; i++) {
+      var entry = ENTRIES[i];
+      var link = null;
+      var links = row.querySelectorAll('a[href^="/"]');
+      for (var j = 0; j < links.length; j++) {
+        if (entry.test(links[j].getAttribute("href") || "")) { link = links[j]; break; }
+      }
+      if (!link) continue;
+
+      var on = entry.test(here);
+      var key = entry.name + (on ? ".on" : ".off");
+      if (sent[key]) continue;
+
+      var glyph = link.querySelector("svg");
+      if (!glyph) continue;
+
+      sent[key] = true;
+      draw(glyph, key);
+    }
+  }
+
+  /**
+   * One SVG, rasterised.
+   *
+   * Through a data URL rather than through the DOM, because an image built from
+   * a data URL carries no other origin with it and leaves the canvas readable.
+   * Anything that goes wrong here — no canvas, a glyph that will not parse —
+   * gives back the key so it can be tried again, and the row keeps the symbol
+   * it already has.
+   */
+  function draw(glyph, key) {
+    var text;
+    try {
+      var copy = glyph.cloneNode(true);
+      copy.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      // Instagram sizes its glyphs with attributes and its stylesheet both, and
+      // a stylesheet does not travel inside a data URL.
+      copy.setAttribute("width", "24");
+      copy.setAttribute("height", "24");
+      if (!copy.getAttribute("viewBox")) copy.setAttribute("viewBox", "0 0 24 24");
+      text = new XMLSerializer().serializeToString(copy);
+    } catch (error) {
+      sent[key] = false;
+      return;
+    }
+
+    var picture = new Image();
+    picture.onload = function () {
+      try {
+        var canvas = document.createElement("canvas");
+        canvas.width = 72;
+        canvas.height = 72;
+        var ink = canvas.getContext("2d");
+        if (!ink) { sent[key] = false; return; }
+        ink.drawImage(picture, 0, 0, 72, 72);
+        post({ kind: "icon", entry: key, picture: canvas.toDataURL("image/png").split(",")[1] });
+      } catch (error) {
+        sent[key] = false;
+      }
+    };
+    picture.onerror = function () { sent[key] = false; };
+    picture.src = "data:image/svg+xml;base64," +
+      btoa(unescape(encodeURIComponent(text)));
   }
 
   var lastFaceTry = 0;
@@ -295,18 +441,15 @@
     var row = navRow();
     if (!row) return false;
 
-    var links = row.querySelectorAll('a[href^="/"]');
-    for (var i = 0; i < links.length; i++) {
-      var href = links[i].getAttribute("href") || "";
-      if (/^\/[A-Za-z0-9._]{1,30}\/?$/.test(href) && href !== "/") {
-        location.assign(href);
-        // The address it went to rather than a bare yes, so the app can say
-        // where it sent somebody and a test can check it went to the right
-        // place without implementing navigation.
-        return href;
-      }
-    }
-    return false;
+    var link = personIn(row);
+    if (!link) return false;
+
+    var href = link.getAttribute("href");
+    location.assign(href);
+    // The address it went to rather than a bare yes, so the app can say where
+    // it sent somebody and a test can check it went to the right place without
+    // implementing navigation.
+    return href;
   };
 
   /**
