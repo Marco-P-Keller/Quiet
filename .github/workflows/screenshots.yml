@@ -139,39 +139,53 @@ jobs:
       # about a shape is worth exactly what a picture of it is worth. The same
       # build installs on any simulator, so this costs a boot and nothing else.
       #
-      # Not fatal if no such simulator is on the runner: the images simply do
-      # not appear, and the preview loop skips what is not there. A missing
-      # photograph is better than a red run about somebody else's image.
+      # Never fatal, and never quiet about why. The first version of this step
+      # died in four seconds and said nothing, which is worse than not taking
+      # the photograph: a red run that means nothing trains you to ignore red
+      # runs. Every command reports, and the step cannot fail.
       - name: Photograph a phone with a home button
         if: always()
+        continue-on-error: true
         timeout-minutes: 15
         run: |
-          set -euo pipefail
+          set +e
+          # By identifier rather than by name: a name has spaces, a generation
+          # in brackets, and a different spelling every year.
           small=$(xcrun simctl list devices available \
-            | sed -n 's/^ *\(iPhone SE[^(]*\) (.*/\1/p' | sed 's/ *$//' | tail -1)
+            | grep -m1 "iPhone SE" \
+            | sed -n 's/.*(\([0-9A-F-]\{36\}\)).*/\1/p')
           if [ -z "$small" ]; then
-            echo "No iPhone SE simulator on this runner; skipping."
+            echo "No iPhone SE on this runner. Available:"
+            xcrun simctl list devices available | grep iPhone || true
+            exit 0
+          fi
+          echo "Using $small"
+
+          xcrun simctl shutdown all
+          echo "shutdown all: $?"
+          xcrun simctl boot "$small"
+          echo "boot: $?"
+          xcrun simctl bootstatus "$small" -b
+          echo "bootstatus: $?"
+
+          app="DerivedData/Build/Products/Debug-iphonesimulator/Quiet.app"
+          xcrun simctl install "$small" "$app"
+          if [ $? -ne 0 ]; then
+            echo "Could not install on the SE; leaving it."
             exit 0
           fi
 
-          echo "Booting $small"
-          xcrun simctl shutdown "${{ steps.sim.outputs.device }}" >/dev/null 2>&1 || true
-          xcrun simctl boot "$small" || true
-          xcrun simctl bootstatus "$small" -b
-
-          app="DerivedData/Build/Products/Debug-iphonesimulator/Quiet.app"
-          xcrun simctl install booted "$app"
-
           shoot () {
-            local name="$1" scene="$2"
-            xcrun simctl terminate booted com.connexa.quiet >/dev/null 2>&1 || true
-            xcrun simctl launch booted com.connexa.quiet -QuietRehearsal "$scene" >/dev/null
-            if [ "$scene" = "browsing" ]; then sleep 14; else sleep 6; fi
-            xcrun simctl io booted screenshot --type=png "shots/$name.png"
+            xcrun simctl terminate "$small" com.connexa.quiet >/dev/null 2>&1
+            xcrun simctl launch "$small" com.connexa.quiet -QuietRehearsal "$2" >/dev/null
+            [ "$2" = "browsing" ] && sleep 14 || sleep 6
+            xcrun simctl io "$small" screenshot --type=png "shots/$1.png"
+            echo "$1: $?"
           }
 
           shoot feed-home-button  browsing
           shoot setup-home-button fresh
+          exit 0
 
       # Small enough to travel through a log, large enough to judge a layout.
       - name: Look at them
