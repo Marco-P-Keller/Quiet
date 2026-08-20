@@ -47,7 +47,12 @@ div[role="button"]:has(> svg[aria-label="Reels"]) {
 
 /* ── Anything the script has identified by its wording ──────────────────── */
 /*
- * Set by trim.js on suggestion blocks, which carry no address of their own.
+ * Set by trim.js on suggestion blocks, which carry no address of their own,
+ * and on Instagram's own navigation bar, which Quiet replaces with a row of
+ * five it draws itself. Hidden rather than removed: the signed-in name is read
+ * out of that row, and `display: none` leaves the addresses in the document
+ * where they can still be read.
+ *
  * Kept as an attribute rather than an inline style so that what Quiet has
  * touched stays visible in the inspector.
  */

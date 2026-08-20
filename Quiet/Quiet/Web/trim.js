@@ -8,12 +8,15 @@
  *      say why. Silence would read as a broken page.
  *   2. Hide suggestion blocks, which carry no address of their own and can only
  *      be recognised by their wording.
- *   3. Put Quiet's clock beside Instagram's own settings, on your profile.
+ *   3. Take out Instagram's navigation bar, having first read the signed-in
+ *      name out of it, because Quiet carries all five entries in a row of its
+ *      own that no stylesheet of Instagram's can reach.
+ *   4. Put Quiet's clock beside Instagram's own settings, on your profile.
  *      Found by where it sits on the screen rather than by what it is called,
  *      because a corner does not change with the language or with next week's
  *      generated class names. Everything else Quiet needs is in the app's own
  *      row along the bottom, where no stylesheet of Instagram's can reach it.
- *   4. Keep all of it up as the page rewrites itself, because Instagram's web
+ *   5. Keep all of it up as the page rewrites itself, because Instagram's web
  *      client replaces the feed without ever loading a new page.
  *
  * It never reads form fields, and never touches the login page's inputs. Your
@@ -90,6 +93,68 @@
 
   var MARK_ID = "quiet-mark";
   var OURS = { "quiet-mark": true };
+
+  /* ── Instagram's own navigation ───────────────────────────────────────── */
+
+  /**
+   * The row along the bottom, found by what is *in* it rather than by where it
+   * sits: a link to "/" and a link to "/direct/". Both are addresses, so both
+   * survive translation, and neither depends on the row being on screen — which
+   * matters, because the row is about to be hidden and a hidden element has no
+   * geometry to measure.
+   */
+  function navRow() {
+    var home = null;
+    var direct = null;
+    var links = document.querySelectorAll("a[href]");
+    for (var i = 0; i < links.length; i++) {
+      var href = links[i].getAttribute("href") || "";
+      if (!home && href === "/") home = links[i];
+      if (!direct && href.indexOf("/direct/") === 0) direct = links[i];
+    }
+    if (!home || !direct) return null;
+
+    var node = home.parentElement;
+    while (node && node !== document.body && !node.contains(direct)) {
+      node = node.parentElement;
+    }
+    return node && node !== document.body ? node : null;
+  }
+
+  /**
+   * Who is signed in.
+   *
+   * The profile entry in that row is a link to `/username/`, which is the only
+   * place the name is written down where Quiet can read it. The app needs it to
+   * offer a profile button of its own, and asks nothing of Instagram to get it.
+   */
+  function learnMe(row) {
+    if (window.__quietMe) return;
+    var links = row.querySelectorAll('a[href^="/"]');
+    for (var i = 0; i < links.length; i++) {
+      var match = /^\/([A-Za-z0-9._]{1,30})\/?$/.exec(links[i].getAttribute("href") || "");
+      if (!match) continue;
+      window.__quietMe = match[1];
+      post({ kind: "me", username: match[1] });
+      return;
+    }
+  }
+
+  /**
+   * Quiet's row carries all five entries, so Instagram's is one bar too many.
+   *
+   * Hidden rather than removed: the name is read out of it on every page, and
+   * `display: none` leaves the addresses in the document where they can still
+   * be read.
+   */
+  function replaceNav() {
+    var row = navRow();
+    if (!row) return;
+    learnMe(row);
+    if (row.getAttribute("data-quiet-hidden") !== "nav") {
+      row.setAttribute("data-quiet-hidden", "nav");
+    }
+  }
 
   /**
    * Is this the signed-in person's own profile?
@@ -251,6 +316,7 @@
       var main = document.querySelector("main");
       if (main) trimSuggestions(main);
       guardLocation();
+      replaceNav();
       placeMark();
     });
   }

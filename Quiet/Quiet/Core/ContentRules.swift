@@ -135,6 +135,13 @@ enum ContentRules {
     /// signed-in session is sent straight on to the feed.
     static let home = URL(string: "https://www.instagram.com/accounts/login/")!
 
+    /// The feed. Where the home entry in Quiet's row goes — which is not the
+    /// same address the app opens on, since that one is the login form.
+    static let feed = URL(string: "https://www.instagram.com/")!
+
+    /// Where the messages live.
+    static let messages = URL(string: "https://www.instagram.com/direct/inbox/")!
+
     /// The profile page for a handle typed into "Find someone". Returns `nil`
     /// for anything that is not a plausible Instagram username, rather than
     /// sending the person to a 404.

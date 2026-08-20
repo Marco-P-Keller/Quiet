@@ -398,22 +398,29 @@ defines, and it is the same mechanism a browser uses to make room for its own
 toolbars. The page keeps the whole screen and is told that the top belongs to
 the status bar and the bottom to Quiet's own row.
 
-## One row of Quiet's own, along the bottom
+## Quiet carries the navigation
 
 The search and the clock belonged inside Instagram's navigation bar, and that is
-where they twice failed to appear: a bar built by somebody else, out of
-generated class names, in a layout with no room for a fourth child. Both times
-the failure was silent, which is the worst part — the app looked finished and
-had no controls.
+where they twice failed to appear: a row built by somebody else, out of
+generated class names, with no room for a fourth child. Both failures were
+silent — the app came back looking finished, with no controls at all.
 
-They now live in a row of Quiet's own, always, on every page. It costs a second
-line at the bottom of the screen on the pages where Instagram draws one too, and
-buys a control that is always in the same place and cannot be taken away by
-somebody else's stylesheet. A control you cannot find is worth less than one in
-a slightly worse place.
+Then they had a row of Quiet's own and Instagram still had its, which is one bar
+too many and reads as a mistake even when both work.
 
-The clock beside Instagram's own settings, on your profile, stays: that one
-works, and settings belong where settings already are.
+So Quiet carries all five: home, search, messages, profile, and the clock for
+its own settings. Instagram's row is hidden — after the signed-in name has been
+read out of it, which is the one thing only that row knows and the only way a
+profile button can exist at all. It is hidden rather than removed, so the name
+can be read again on the next page.
+
+The row is found by what is *in* it rather than by where it sits: a link to `/`
+and a link to `/direct/`. Both are addresses, so both survive translation, and
+neither needs the row to be on screen — which matters, because a hidden element
+has no geometry left to measure.
+
+What this costs: the unread badge on messages. Instagram draws that number and
+Quiet does not have it.
 
 ## No first-run hint
 

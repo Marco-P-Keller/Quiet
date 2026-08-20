@@ -23,6 +23,11 @@ final class WebSurface {
     /// rather than swallowed.
     private(set) var missingResources: [String] = []
 
+    /// The signed-in username, read out of Instagram's own navigation before
+    /// that row is taken out. `nil` until a page carrying it has loaded, which
+    /// is why the profile entry in Quiet's row appears a moment after the rest.
+    private(set) var me: String?
+
     /// False until the first page has finished, or failed. While it is false the
     /// browsing screen keeps Quiet's own paper over the top, so a cold launch
     /// shows a considered blank rather than the white rectangle of a web view
@@ -31,10 +36,6 @@ final class WebSurface {
 
     func open(_ url: URL) {
         webView?.load(URLRequest(url: url))
-    }
-
-    func goHome() {
-        open(ContentRules.home)
     }
 
     /// What a tap on the status bar has always done.
@@ -54,7 +55,7 @@ final class WebSurface {
             ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
             modifiedSince: .distantPast
         ) { [weak self] in
-            self?.goHome()
+            self?.open(ContentRules.home)
             completion()
         }
     }
@@ -128,6 +129,20 @@ final class WebSurface {
     /// looking at an empty page with no explanation.
     fileprivate func markLoaded() {
         hasLoaded = true
+    }
+
+    fileprivate func note(me name: String) {
+        guard me != name else { return }
+        me = name
+    }
+
+    /// Where Quiet's own row can send you.
+    func goToFeed() { open(ContentRules.feed) }
+    func goToMessages() { open(ContentRules.messages) }
+
+    func goToMyProfile() {
+        guard let me, let url = ContentRules.profile(forHandle: me) else { return }
+        open(url)
     }
 }
 
@@ -325,6 +340,10 @@ struct InstagramWebView: UIViewRepresentable {
             case "search":
                 // The magnifying glass, tapped in Quiet's own row.
                 session.isSearchShowing = true
+
+            case "me":
+                // Read out of Instagram's navigation before it was taken out.
+                if let name = body["username"] as? String { surface.note(me: name) }
 
             default:
                 break

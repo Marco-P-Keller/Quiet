@@ -9,14 +9,17 @@ import UIKit
 /// watch. What time is left is in the panel, for the moments you actually want
 /// to know.
 ///
-/// Quiet keeps one row of its own along the bottom: a search, and a clock for
-/// its settings. Two icons, always in the same place, on every page.
+/// Quiet carries the whole navigation now: home, search, messages, profile, and
+/// a clock for its own settings. Five entries, one row, always in the same
+/// place, on every page — including the ones where Instagram draws no bar at
+/// all.
 ///
-/// They lived inside Instagram's own navigation for a while, which is where
-/// they belonged and where they twice failed to appear — a bar built by
-/// somebody else, out of generated class names, in a layout that has no room
-/// for a fourth child. Reliability wins that argument. A control you cannot
-/// find is worth less than one in a slightly worse place.
+/// The two Quiet needed lived inside Instagram's bar for a while, which is
+/// where they belonged and where they twice failed to appear: a row built by
+/// somebody else, out of generated class names, with no room for a fourth
+/// child. Two silent failures is the argument settled. Instagram's row is taken
+/// out — after the signed-in name has been read from it, which is the one thing
+/// only that row knows.
 ///
 /// The web view keeps the whole screen and is told which parts of it are spoken
 /// for, so nothing of Quiet's ever covers the page.
@@ -93,8 +96,17 @@ struct BrowserScreen: View {
             Spacer(minLength: 0)
             Divider().overlay(Color(uiColor: .separator))
             HStack(spacing: 0) {
+                barButton("house", Text("Home")) { surface.goToFeed() }
                 barButton("magnifyingglass", Text("Find someone")) {
                     session.isSearchShowing = true
+                }
+                barButton("paperplane", Text("Messages")) { surface.goToMessages() }
+                // Only once the page has said who is signed in. A button that
+                // leads nowhere is worse than one that arrives a second late.
+                if surface.me != nil {
+                    barButton("person.crop.circle", Text("Your profile")) {
+                        surface.goToMyProfile()
+                    }
                 }
                 barButton("clock", Text("Quiet settings")) {
                     session.isPanelShowing = true
@@ -111,7 +123,7 @@ struct BrowserScreen: View {
     private func barButton(_ symbol: String, _ label: Text, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: 22, weight: .regular))
+                .font(.system(size: 21, weight: .regular))
                 .foregroundStyle(Color(uiColor: .label).opacity(0.85))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())

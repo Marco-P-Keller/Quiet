@@ -221,6 +221,16 @@
         }
       }
     },
+    "Home": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start"
+          }
+        }
+      }
+    },
     "How much Instagram\ndo you want in a day?": {
       "localizations": {
         "de": {
@@ -257,6 +267,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Suche …"
+          }
+        }
+      }
+    },
+    "Messages": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nachrichten"
           }
         }
       }
@@ -677,6 +697,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dein Limit ist jetzt %@ am Tag."
+          }
+        }
+      }
+    },
+    "Your profile": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Profil"
           }
         }
       }
