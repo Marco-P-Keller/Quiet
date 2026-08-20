@@ -3,13 +3,25 @@ import SwiftUI
 import UIKit
 import WebKit
 
-/// Somebody the search found. A name and nothing else: no follower count to
-/// measure yourself against, no picture to load, no "suggested for you".
+/// Somebody the search found: a name, a name, and a face.
+///
+/// No follower count — that is a number to measure yourself against and it has
+/// no business in a list of people you already know. The picture is here
+/// because a row of names is a spreadsheet, and finding a friend is something
+/// you do by recognising them.
 struct Person: Identifiable, Decodable, Equatable, Sendable {
     let username: String
     let name: String
+    /// The profile picture, base64, fetched by the page. Empty when the image
+    /// could not be had — a monogram stands in, rather than a hole.
+    var picture: String?
 
     var id: String { username }
+
+    var image: UIImage? {
+        guard let picture, let data = Data(base64Encoded: picture) else { return nil }
+        return UIImage(data: data)
+    }
 }
 
 /// A handle on the live web view, so the rest of the app can send it somewhere
@@ -91,6 +103,29 @@ final class WebSurface {
           "/api/v1/web/search/topsearch/?context=blended&query=" + term,
           "/web/search/topsearch/?context=blended&query=" + term
         ];
+
+        // The face, fetched by the page from the same place the page would
+        // fetch it, and handed over as bytes. Quiet still asks nobody for
+        // anything. A picture that will not come is not an error worth
+        // reporting — the list stands in a letter instead.
+        async function face(url) {
+          if (!url) { return ""; }
+          try {
+            const response = await fetch(url, { credentials: "omit" });
+            if (!response.ok) { return ""; }
+            const buffer = await response.arrayBuffer();
+            if (buffer.byteLength > 300000) { return ""; }
+            const bytes = new Uint8Array(buffer);
+            let binary = "";
+            for (let i = 0; i < bytes.length; i++) {
+              binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary);
+          } catch (error) {
+            return "";
+          }
+        }
+
         for (const path of paths) {
           try {
             const response = await fetch(path, {
@@ -100,10 +135,21 @@ final class WebSurface {
             if (!response.ok) { continue; }
             const data = await response.json();
             const found = (data && data.users) || [];
-            return JSON.stringify(found.slice(0, 6).map(function (entry) {
-              const user = entry.user || {};
-              return { username: user.username || "", name: user.full_name || "" };
-            }).filter(function (person) { return person.username.length > 0; }));
+            const people = found.slice(0, 6)
+              .map(function (entry) { return entry.user || {}; })
+              .filter(function (user) { return (user.username || "").length > 0; });
+            // All six at once. One after another is six round trips of
+            // waiting for a list somebody is watching appear.
+            const faces = await Promise.all(people.map(function (user) {
+              return face(user.profile_pic_url);
+            }));
+            return JSON.stringify(people.map(function (user, index) {
+              return {
+                username: user.username,
+                name: user.full_name || "",
+                picture: faces[index]
+              };
+            }));
           } catch (error) {
             // Try the next shape of the same request, then give up quietly.
           }

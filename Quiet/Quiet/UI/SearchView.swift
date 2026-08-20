@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Finding a person.
 ///
@@ -101,17 +102,21 @@ struct SearchView: View {
                     Button {
                         open(person.username)
                     } label: {
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(person.username)
-                                .font(.quietBody)
-                            if !person.name.isEmpty {
-                                Text(person.name)
-                                    .font(.quietSmall)
-                                    .foregroundStyle(Paper.inkSoft)
+                        HStack(spacing: 13) {
+                            face(of: person)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(person.username)
+                                    .font(.quietBody)
+                                if !person.name.isEmpty {
+                                    Text(person.name)
+                                        .font(.quietSmall)
+                                        .foregroundStyle(Paper.inkSoft)
+                                }
                             }
+                            Spacer(minLength: 0)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.vertical, 14)
+                        .padding(.vertical, 11)
                         .padding(.horizontal, 28)
                         .contentShape(Rectangle())
                     }
@@ -120,10 +125,35 @@ struct SearchView: View {
 
                     Divider()
                         .overlay(Paper.rule)
-                        .padding(.horizontal, 28)
+                        .padding(.leading, 85)
                 }
             }
             .padding(.top, 14)
+        }
+    }
+
+    /// The face, or the letter that stands in for one.
+    ///
+    /// A picture that will not load is not worth an error or an empty ring: the
+    /// first letter of the name, set on paper, is a perfectly good way to tell
+    /// six rows apart.
+    @ViewBuilder
+    private func face(of person: Person) -> some View {
+        if let image = person.image {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 44, height: 44)
+                .clipShape(Circle())
+        } else {
+            Circle()
+                .fill(Paper.ink.opacity(0.08))
+                .frame(width: 44, height: 44)
+                .overlay(
+                    Text(String(person.username.prefix(1)).uppercased())
+                        .font(.quietBody)
+                        .foregroundStyle(Paper.inkSoft)
+                )
         }
     }
 
