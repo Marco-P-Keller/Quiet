@@ -156,9 +156,10 @@ The parts that are easy to skip and obvious once missing:
 * **Dynamic Type everywhere.** Every size is a system text style; nothing is set
   in fixed points. Setup and the limit screen are built around scroll views with
   the action pinned to the bottom, so they still work at the largest settings.
-* **VoiceOver reaches the hidden gesture.** The status-bar strip is a labelled
-  element with a button's trait and responds to a double tap — otherwise the
-  panel would be unreachable while browsing.
+* **The way into the panel is a button, not only a gesture.** Quiet's mark sits
+  in the bottom corner of a strip the app keeps for itself, so it covers nothing
+  and is in the same place on every screen. VoiceOver announces it as *Quiet
+  settings*; the long press on the status bar remains as a shortcut.
 * **Reduce Motion is honoured** by every animation in the app.
 * **A cover, not a spinner.** Quiet's own paper sits over the web view until the
   first page settles, then cross-fades, so a cold launch never shows a blank
@@ -235,8 +236,9 @@ Everything above was checked logged out.
 Quiet runs on Instagram's mobile site, so pages load a beat slower than the
 official app and some things are missing: posting, most of the camera, and
 anything Instagram ships only in its own client. Reels sent to you in a DM will
-not open. There is no search page, because search is where Explore lives — the
-panel has a box that goes straight to a username instead.
+not open. Instagram's search tab is where Explore
+lives, so it is gone — the panel searches for people instead, and returns
+people only.
 
 If you want every feature Instagram ships, keep using Instagram. This is for
 seeing what your friends posted and then putting the phone down.

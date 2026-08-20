@@ -96,20 +96,27 @@ no analytics of any kind. An app about attention should not be sending push
 notifications, and an app that tells you it has no tracking should be able to
 prove it by having no networking code at all.
 
-## The panel opens with a long press on the status bar
+## The panel opens from a mark in the corner, and from the status bar
 
-Quiet draws nothing over the page — no toolbar, no floating button, no
-address bar. That leaves the question of where settings live.
+The first version had one way in: a long press on the status bar. It is the
+right *shortcut* — that strip belongs to the phone rather than to the site, so
+nothing on the page competes for it, and a haptic at the moment it takes makes
+it feel like a control instead of a guess.
 
-The status bar is the one strip of the screen that belongs to the phone rather
-than to the page, so a transparent strip exactly that tall can take a long press
-without ever covering something tappable. A plain tap still scrolls to the top,
-as it always has.
+As the only way in it was wrong, and an hour of real use said so. A hidden
+gesture is a gesture most people never learn, and this app is meant to be opened
+every day by someone who should not have to remember a trick.
 
-Hidden gestures are usually a mistake. This one is acceptable because it is
-taught once at the end of setup, because the panel is rarely needed, and because
-there is a second, fully visible way in on the curtain — the screen you are most
-likely to be on when you want it.
+So Quiet keeps a strip along the bottom of the screen — on a modern phone it is
+space the page was overlapping anyway — and puts its own mark in the corner of
+it: the same full stop as the icon, five points across, at thirty percent. It
+covers nothing, it never moves, it is in the same corner on every screen, and
+the touch area is a corner the width of a thumb. Faint enough to disappear while
+you are reading, dark enough to find when you are looking for it.
+
+It is also the honest answer for VoiceOver. The accessibility element that used
+to stand in for the gesture was findable by a screen reader and by nobody's eye;
+now there is a real button, and the two agree.
 
 ## Search is for people, and it lives in the panel
 
