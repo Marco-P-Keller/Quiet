@@ -379,13 +379,30 @@ you have even signed in — and it was the first thing a new user saw.
 Quiet opens at `/accounts/login/`, which is the form a person came to use. A
 signed-in session is sent straight on to the feed.
 
-## The page starts below the status bar
+## The page is asked to avoid the notch, not made shorter
 
-The web view used to run under the status bar, because the strip that opens the
-panel wants to sit against the glass. The page does not know it is inside an
-app: it lays its header against the top of whatever it is given, so Instagram's
-own logo ended up under the clock.
+Instagram's header rendered underneath the clock, because a page does not know
+it is inside an app: it lays its header against the top of whatever it is given.
 
-The page now begins below the status bar, and the band above it is painted in
-the page's own background colour so the seam does not show. The bottom still
-runs to the edge, which is where the page's own navigation belongs.
+The first fix was to give it less — hold the web view below the status bar. On a
+simulator that looked right. On a real phone it detached Instagram's own header
+and left it floating in the middle of the feed. Sticky positions are laid out
+against a viewport, and moving the viewport out from under a page that is
+already running is not something this app can do carefully enough to be worth
+it.
+
+The page is asked instead. Without `viewport-fit=cover` in the viewport meta,
+WebKit reports every `env(safe-area-inset-*)` as zero, so a site that has taken
+the trouble to avoid the status bar cannot tell that it is there. Adding the one
+word lets Instagram's own rules do the work, and the app resizes nothing.
+
+## One bar, except where there is none
+
+Quiet's search and clock live inside Instagram's own navigation bar. On the
+screens where Instagram drops that bar — messages is the one people notice —
+they would vanish with it, and controls that come and go with somebody else's
+layout are worse than no controls at all: you stop trusting the corner.
+
+So the script says whether the page has a bar, and on the pages that do not, the
+app draws the two of them itself, in the page's own colours, in the same corner
+of the screen they occupy everywhere else. One bar, never two.
