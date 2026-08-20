@@ -60,3 +60,20 @@ div[role="button"]:has(> svg[aria-label="Reels"]) {
 [data-quiet-hidden] {
   display: none !important;
 }
+
+/* ── Room for the clock ─────────────────────────────────────────────────── */
+/*
+ * The app hands the page the entire screen, so the first thing in the feed
+ * would be drawn under the status bar. This starts the document below it and
+ * lets the whole page scroll up behind it, which is what Instagram's own app
+ * does — and, unlike a content inset, it takes nothing off the bottom of the
+ * page, where the next photograph belongs.
+ *
+ * The height comes from the app, in `WebScripts.load(top:)`, because only the
+ * app knows how tall this phone's status bar is. Zero until it arrives, so a
+ * page that loads before the value does is merely flush rather than broken.
+ */
+
+body {
+  padding-top: var(--quiet-top, 0px) !important;
+}

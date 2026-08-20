@@ -236,7 +236,7 @@ struct InstagramWebView: UIViewRepresentable {
     }
 
     func makeUIView(context: Context) -> WKWebView {
-        let payload = WebScripts.load()
+        let payload = WebScripts.load(top: inset.top)
 
         let controller = WKUserContentController()
         payload.scripts.forEach(controller.addUserScript)
@@ -259,26 +259,27 @@ struct InstagramWebView: UIViewRepresentable {
         webView.backgroundColor = .systemBackground
         webView.scrollView.backgroundColor = .systemBackground
 
-        // The page is given the whole screen and told which parts of it are
-        // spoken for, rather than being given a smaller screen.
+        // The page is given the whole screen. All of it.
         //
-        // This is the third attempt at the same half-inch of glass. Instagram
-        // lays its header against the top of whatever it is given, so it ended
-        // up under the clock. Making the web view shorter fixed that and
-        // detached the site's own header into the middle of the feed, because a
-        // sticky position is laid out against a viewport. Asking the page to
-        // respect the safe area, with viewport-fit, did nothing at all — the
-        // site's stylesheet does not consult it.
+        // Seven attempts went into the half-inch of glass above the feed, and
+        // every one of them took something away from the page in order to keep
+        // the clock legible — a shorter view, a viewport-fit, a content inset,
+        // a band of the app's own drawn over the top. The photograph that
+        // settled it shows why they were all wrong: whatever is taken off the
+        // top comes back as a black strip at the bottom, above the row, where
+        // Instagram runs its next photograph.
         //
-        // A content inset changes neither the viewport nor the frame. WebKit
-        // positions fixed elements against the unobscured rect, which is what
-        // this defines, and it is the same mechanism a browser uses for its own
-        // toolbars.
+        // So nothing is taken. The web view owns every pixel, the page fills
+        // it, and content runs behind the status bar and beneath the row the
+        // way it does in Instagram's own app. What keeps the clock legible is
+        // a top padding on the document itself, handed to the page in
+        // `WebScripts.load(top:)`: the first thing in the feed starts below the
+        // status bar and scrolls up behind it. That is what Instagram does, and
+        // it is a property of the page rather than of the view.
         webView.scrollView.contentInsetAdjustmentBehavior = .never
-        // Only the top. The pill floats *over* the page, the way Instagram's
-        // own does — insetting the bottom as well left a band of black beneath
-        // it where the page had simply been told to stop.
-        webView.scrollView.contentInset = UIEdgeInsets(top: inset.top, left: 0, bottom: 0, right: 0)
+        webView.scrollView.contentInset = .zero
+        // The indicator is the one thing that should still respect the app's
+        // furniture: a scroll bar running under the row reads as a fault.
         webView.scrollView.verticalScrollIndicatorInsets = inset
         webView.load(URLRequest(url: ContentRules.home))
 
@@ -288,10 +289,22 @@ struct InstagramWebView: UIViewRepresentable {
     }
 
     func updateUIView(_ webView: WKWebView, context: Context) {
-        let top = UIEdgeInsets(top: inset.top, left: 0, bottom: 0, right: 0)
-        if webView.scrollView.contentInset != top {
-            webView.scrollView.contentInset = top
+        if webView.scrollView.verticalScrollIndicatorInsets != inset {
             webView.scrollView.verticalScrollIndicatorInsets = inset
+        }
+        // The injected script carries whatever the status bar height was when
+        // the view was made, and on the first pass that is still the twenty
+        // points the screen starts with rather than this phone's real one. The
+        // page is told again, on the page, as soon as the real number arrives.
+        if context.coordinator.top != inset.top {
+            context.coordinator.top = inset.top
+            let points = Int(inset.top.rounded())
+            webView.evaluateJavaScript(
+                """
+                window.__quietTop = \(points);
+                document.documentElement.style.setProperty("--quiet-top", "\(points)px");
+                """
+            )
         }
         context.coordinator.session = session
     }
@@ -338,6 +351,8 @@ struct InstagramWebView: UIViewRepresentable {
 
         var session: QuietSession
         let surface: WebSurface
+        /// The status bar height the page has been told about.
+        var top: CGFloat = 0
 
         init(session: QuietSession, surface: WebSurface) {
             self.session = session

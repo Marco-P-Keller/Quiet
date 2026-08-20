@@ -228,6 +228,24 @@
     }
   }
 
+  /**
+   * Start the page below the clock, and let it scroll up behind it.
+   *
+   * The app gives the page the whole screen — see `InstagramWebView` for the
+   * seven attempts at doing anything else — so without this the first post
+   * would be drawn under the status bar at rest. A padding on the document
+   * puts the first thing in the feed below it and lets everything scroll up
+   * behind it, which is exactly what Instagram's own app does.
+   *
+   * Set as a custom property rather than a style, so the rule that uses it
+   * lives in trim.css with every other rule, where it can be read.
+   */
+  function makeRoom() {
+    var top = window.__quietTop;
+    if (!top) return;
+    document.documentElement.style.setProperty("--quiet-top", top + "px");
+  }
+
   var lastPath = null;
 
   /**
@@ -402,6 +420,7 @@
       pending = false;
       var main = document.querySelector("main");
       if (main) trimSuggestions(main);
+      makeRoom();
       guardLocation();
       sayWhere();
       whoAmI();

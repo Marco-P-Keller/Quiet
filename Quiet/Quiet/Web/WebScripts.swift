@@ -24,7 +24,16 @@ enum WebScripts {
         var missing: [String]
     }
 
-    static func load(from bundle: Bundle = .main) -> Payload {
+    /// - Parameter top: the height of the status bar, in points.
+    ///
+    ///   The page is given the whole screen, so the first thing in the document
+    ///   would otherwise be drawn under the clock. Instagram's own app solves
+    ///   this by starting its content below the status bar and letting it
+    ///   scroll up behind it, and that is a property of the *page*, not of the
+    ///   view it is drawn in — which is why it is handed over as a number here
+    ///   rather than taken out of the web view as an inset. An inset shortens
+    ///   what the page is given; this does not.
+    static func load(from bundle: Bundle = .main, top: CGFloat) -> Payload {
         var scripts: [WKUserScript] = []
         var missing: [String] = []
 
@@ -40,6 +49,7 @@ enum WebScripts {
         scripts.append(userScript(source: """
         window.__quietSettingsLabel = \(quoted(String(localized: "Quiet settings")));
         window.__quietAppID = \(quoted(WebScripts.appID));
+        window.__quietTop = \(Int(top.rounded()));
         """))
 
         if let js = text(named: "trim", extension: "js", in: bundle) {

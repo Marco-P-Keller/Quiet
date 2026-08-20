@@ -31,10 +31,15 @@ import UIKit
 /// out — after the signed-in name has been read from it, which is the one thing
 /// only that row knows.
 ///
-/// The top stays Instagram's. The app owns the strip behind the clock and
-/// nothing more: a title row of Quiet's own was tried for exactly one build and
-/// was wrong on sight, because Instagram draws its own header directly beneath
-/// it and two headers stacked is not what any app looks like.
+/// The top stays Instagram's, and so does every pixel of the glass. A title row
+/// of Quiet's own was tried for exactly one build and was wrong on sight; the
+/// opaque band behind the clock that replaced it was wrong for a subtler
+/// reason, which took a photograph to see — whatever the app takes off the top
+/// of the page comes back as a black strip along the bottom, above the row,
+/// where Instagram runs its next photograph.
+///
+/// So the page gets all of it, and starts itself below the clock. See
+/// `InstagramWebView` and trim.css.
 ///
 /// The web view keeps the whole screen and is told which parts of it are spoken
 /// for, so nothing of Quiet's ever covers the page.
@@ -56,9 +61,10 @@ struct BrowserScreen: View {
         ZStack(alignment: .top) {
             Color(uiColor: .systemBackground)
 
-            // The whole screen, with the parts that are spoken for declared as
-            // an inset rather than taken away. See `InstagramWebView` for what
-            // the two attempts before this one did to Instagram's header.
+            // The whole screen, and nothing taken off it. The two numbers are
+            // what Quiet's own furniture occupies; the web view uses them for
+            // the scroll indicator and hands the top one to the page, which
+            // starts itself below the clock. See `InstagramWebView`.
             InstagramWebView(
                 surface: surface,
                 session: session,
@@ -72,22 +78,6 @@ struct BrowserScreen: View {
 
             if !surface.hasLoaded {
                 cover
-            }
-
-            // The strip behind the clock belongs to the app: opaque, in the
-            // page's own colour, so nothing of Instagram's is ever read across
-            // the time and the battery.
-            //
-            // Nothing else up here does. A title row of Quiet's own lived here
-            // for one build and was wrong on sight — Instagram draws its own
-            // header three points below it, so the app read as two headers
-            // stacked. Instagram's is the one that belongs: it carries the
-            // controls, the badges and the behaviour, and it is by definition
-            // exactly like Instagram.
-            VStack(spacing: 0) {
-                Color(uiColor: .systemBackground)
-                    .frame(height: topInset)
-                Spacer(minLength: 0)
             }
 
             // Over the cover, so it is there from the first frame rather than

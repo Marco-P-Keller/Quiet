@@ -483,3 +483,30 @@ that gets hidden, and no address carries them.
 The row also sits low now, over the home indicator, where Instagram's sits. The
 page runs on beneath it to the bottom edge of the glass. A row that floats above
 a page that stops underneath it is the worst of both.
+
+## The page gets the whole screen
+
+Seven attempts went into the half-inch of glass above the feed. A shorter web
+view, a `viewport-fit`, a content inset, lifting whatever the page had pinned, a
+native header, an opaque band behind the status bar. Every one of them took
+something away from the page so the clock would stay legible.
+
+A photograph with two circles drawn on it showed what they all had in common:
+whatever is taken off the top comes back as a black strip along the bottom,
+above the row, exactly where Instagram runs its next photograph. The two
+complaints — "the black bar at the top" and "there must be content under the
+navigation bar" — were one fault seen from both ends.
+
+So nothing is taken. The web view owns every pixel, the page fills it, and
+content runs behind the status bar and beneath the row the way it does in
+Instagram's own app.
+
+What keeps the clock legible is a padding on the document, not an inset on the
+view: the first thing in the feed starts below the status bar and scrolls up
+behind it. The height is handed to the page by the app, because only the app
+knows how tall this phone's status bar is — twice, in fact, since the first
+injection happens before the real number is known and the page is told again on
+the page as soon as it is.
+
+The scroll indicator is the one thing that still respects the app's furniture. A
+scroll bar running under the row reads as a fault.
