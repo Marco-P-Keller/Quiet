@@ -21,8 +21,19 @@ struct RootView: View {
         content
             .animation(reduceMotion ? nil : .easeInOut(duration: 0.3), value: session.screen)
             .sheet(isPresented: $session.isPanelShowing) {
-                PanelView(session: session, surface: surface) {
-                    session.isPanelShowing = false
+                PanelView(
+                    session: session,
+                    surface: surface,
+                    onFindSomeone: {
+                        session.isPanelShowing = false
+                        session.isSearchShowing = true
+                    },
+                    onDismiss: { session.isPanelShowing = false }
+                )
+            }
+            .sheet(isPresented: $session.isSearchShowing) {
+                SearchView(surface: surface) { url in
+                    surface.open(url)
                 }
             }
             .task {
@@ -31,7 +42,7 @@ struct RootView: View {
                 Rehearsal.open(session)
                 #endif
                 if session.screen == .browsing, session.isLearningTheGesture {
-                    teachTheGesture()
+                    sayWhereQuietIs()
                 }
             }
             .onChange(of: scenePhase, initial: true) { _, phase in
@@ -52,7 +63,7 @@ struct RootView: View {
         case .setup:
             SetupView { minutes in
                 session.completeSetup(minutes: minutes)
-                teachTheGesture()
+                sayWhereQuietIs()
             }
 
         case .browsing:
@@ -60,9 +71,7 @@ struct RootView: View {
                 session: session,
                 surface: surface,
                 isHintShowing: isHintShowing
-            ) {
-                session.isPanelShowing = true
-            }
+            )
 
         case .spent:
             CurtainView(
@@ -76,10 +85,10 @@ struct RootView: View {
         }
     }
 
-    /// The app has one hidden gesture and no tutorial; this is the whole of it.
-    /// Shown right after setup, and again on the first launch of each of the
-    /// next two days, after which the app assumes you have it.
-    private func teachTheGesture() {
+    /// The app has no tutorial; this is the whole of it. One sentence saying
+    /// where Quiet's own settings are, shown after setup and again on the first
+    /// launch of each of the next two days, after which it assumes you know.
+    private func sayWhereQuietIs() {
         isHintShowing = true
         Task {
             try? await Task.sleep(for: Self.hintDuration)

@@ -293,8 +293,12 @@ struct InstagramWebView: UIViewRepresentable {
                 session.report(surface)
 
             case "settings":
-                // Quiet's mark, tapped on your own profile.
+                // Quiet's mark, tapped beside Instagram's own settings.
                 session.isPanelShowing = true
+
+            case "search":
+                // The magnifying glass Quiet puts back into the navigation.
+                session.isSearchShowing = true
 
             default:
                 break

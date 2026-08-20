@@ -8,13 +8,9 @@ import SwiftUI
 struct PanelView: View {
     let session: QuietSession
     let surface: WebSurface
+    var onFindSomeone: () -> Void
     var onDismiss: () -> Void
 
-    @State private var handle = ""
-    @State private var handleProblem: String?
-    @State private var found: [Person] = []
-    @State private var search = Search.idle
-    @State private var searching: Task<Void, Never>?
     @State private var isConfirmingSignOut = false
     @State private var isChangingLimit = false
 
@@ -127,152 +123,21 @@ struct PanelView: View {
 
     // MARK: - Find someone
 
-    /// What the search is doing, which the panel has to be able to say.
-    private enum Search: Equatable {
-        /// Nothing typed yet.
-        case idle
-        /// Typed, and the page has been asked.
-        case asking
-        /// Asked and answered — `found` holds the answer, empty or not.
-        case answered
-        /// Could not ask at all: offline, signed out, or the endpoint moved.
-        /// A different thing from nobody being called that.
-        case unavailable
-    }
-
     private var findSomeone: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Find someone")
-                .font(.quietBody)
-
-            HStack(spacing: 10) {
-                Text("@")
+        Button {
+            onFindSomeone()
+        } label: {
+            HStack {
+                Text("Find someone")
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.quietSmall.weight(.semibold))
                     .foregroundStyle(Paper.inkSoft)
-                TextField("name", text: $handle)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .submitLabel(.go)
-                    .onSubmit(open)
-                    .onChange(of: handle) { handleProblem = nil; look() }
-                Button("Go", action: open)
-                    .font(.quietAction)
-                    .disabled(trimmedHandle.isEmpty)
             }
             .font(.quietBody)
-            .padding(.vertical, 12)
-            .padding(.horizontal, 14)
-            .background(Paper.ink.opacity(0.05))
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-
-            if !found.isEmpty {
-                results
-            }
-
-            // Said here rather than as a floating notice: the panel is covering
-            // the screen a notice would appear on, and an answer nobody can see
-            // is the same as no answer.
-            if let sentence = explanation {
-                Text(sentence)
-                    .font(.quietSmall)
-                    .foregroundStyle(Paper.inkSoft)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+            .contentShape(Rectangle())
         }
-        .onDisappear { searching?.cancel() }
-    }
-
-    private var results: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ForEach(Array(found.enumerated()), id: \.element.id) { index, person in
-                if index > 0 {
-                    Divider().overlay(Paper.rule)
-                }
-                Button {
-                    go(to: person.username)
-                } label: {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(person.username)
-                            .font(.quietBody)
-                        if !person.name.isEmpty {
-                            Text(person.name)
-                                .font(.quietSmall)
-                                .foregroundStyle(Paper.inkSoft)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.vertical, 10)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityHint(Text("Opens this profile"))
-            }
-        }
-    }
-
-    /// One sentence under the field, or none when the answer is the list itself.
-    private var explanation: String? {
-        if let handleProblem { return handleProblem }
-        switch search {
-        case .idle:
-            return String(localized: "Type a name. Quiet searches for people and nothing else — no Explore, no hashtags, no places.")
-        case .asking:
-            return found.isEmpty ? String(localized: "Looking…") : nil
-        case .answered:
-            return found.isEmpty ? String(localized: "Nobody by that name.") : nil
-        case .unavailable:
-            return String(localized: "Search is not answering. An exact name still works: type it and tap Go.")
-        }
-    }
-
-    /// Ask a moment after the typing stops, not on every letter. Instagram is
-    /// being asked a real question here and there is no reason to ask it six
-    /// times for one name.
-    private func look() {
-        searching?.cancel()
-        let query = trimmedHandle
-        guard query.count >= 2 else {
-            found = []
-            search = .idle
-            return
-        }
-        search = .asking
-        searching = Task {
-            try? await Task.sleep(for: .milliseconds(350))
-            guard !Task.isCancelled else { return }
-            let people = await surface.people(matching: query)
-            guard !Task.isCancelled else { return }
-            found = people ?? []
-            search = people == nil ? .unavailable : .answered
-        }
-    }
-
-    private func go(to username: String) {
-        guard let url = ContentRules.profile(forHandle: username) else { return }
-        surface.open(url)
-        reset()
-        onDismiss()
-    }
-
-    private func reset() {
-        searching?.cancel()
-        handle = ""
-        handleProblem = nil
-        found = []
-        search = .idle
-    }
-
-    private var trimmedHandle: String {
-        handle.trimmingCharacters(in: .whitespaces)
-    }
-
-    private func open() {
-        guard let url = ContentRules.profile(forHandle: handle) else {
-            handleProblem = String(localized: "That doesn't look like a username.")
-            return
-        }
-        surface.open(url)
-        reset()
-        onDismiss()
+        .buttonStyle(.plain)
     }
 
     // MARK: - About

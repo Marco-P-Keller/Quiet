@@ -49,34 +49,34 @@ final class SpeaksAloudTests: XCTestCase {
         XCTAssertFalse(commit.label.isEmpty)
     }
 
-    /// Quiet's own settings have to be reachable from a page it does not own.
+    /// Finding someone is a screen of its own, and it has to be reachable and
+    /// usable without seeing it.
     ///
-    /// On your own profile the trim script puts a mark beside Instagram's
-    /// settings, which is a real button in the page — but only there, and only
-    /// signed in, so a runner never sees it. Everywhere else the way in is a
-    /// long press on the status bar, and a gesture is invisible to a screen
-    /// reader. Hence the element that stands in for it, asserted here: findable
-    /// by name, described, and carrying a button's trait, which is everything
-    /// VoiceOver needs to offer it.
-    ///
-    /// The opening is then driven through the press. XCUITest synthesises
-    /// touches, not accessibility activations, and a plain touch on this strip
-    /// is a touch on the status bar: it scrolls the page to the top, which is
-    /// what it should do and is not what is being tested here.
-    func testThePanelIsReachableWithoutTheGesture() {
-        let app = launch("browsing")
+    /// The two doors a person actually uses are in the page — the mark beside
+    /// Instagram's settings, and the glass back in the navigation — and neither
+    /// exists to a runner that cannot sign in. The door this can check is the
+    /// one in the panel, and it leads to the same screen.
+    func testFindingSomeoneIsAScreenYouCanReachAndType() {
+        let app = launch("panel")
 
-        let wayIn = app.buttons["Quiet settings"]
-        XCTAssertTrue(
-            wayIn.waitForExistence(timeout: 30),
-            "A gesture is invisible to VoiceOver, so something must stand in for it"
-        )
-        XCTAssertEqual(wayIn.label, "Quiet settings", "and it must be announced by name")
+        let row = app.buttons["Find someone"]
+        XCTAssertTrue(row.waitForExistence(timeout: 30), "The panel must offer it by name")
+        row.tap()
 
-        wayIn.press(forDuration: 0.6)
+        let field = app.textFields.firstMatch
+        XCTAssertTrue(field.waitForExistence(timeout: 10), "It must open on a field ready to type in")
+        field.typeText("quiet")
+
+        // What comes back needs a signed-in session, which a runner does not
+        // have. What must happen either way is that the screen says which of
+        // the two it is rather than sitting silent.
+        let answer = app.staticTexts.matching(
+            NSPredicate(format: "label CONTAINS[c] %@ OR label CONTAINS[c] %@ OR label CONTAINS[c] %@",
+                        "Looking", "Nobody", "not answering")
+        ).firstMatch
         XCTAssertTrue(
-            app.buttons["Done"].waitForExistence(timeout: 10),
-            "Holding it must open the panel"
+            answer.waitForExistence(timeout: 15),
+            "A search that answers nothing must still say so"
         )
     }
 

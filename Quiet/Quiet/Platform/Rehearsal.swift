@@ -32,6 +32,8 @@ enum Rehearsal {
         case panel
         /// Browsing, with the limit screen open.
         case limit
+        /// Browsing, with the search screen open.
+        case search
     }
 
     /// The scene named on the command line, if there is one.
@@ -72,11 +74,14 @@ enum Rehearsal {
         )
     }
 
-    /// The two scenes that are places in the app rather than states of the day.
+    /// The scenes that are places in the app rather than states of the day.
     @MainActor
     static func open(_ session: QuietSession) {
-        guard let scene, scene == .panel || scene == .limit else { return }
-        session.isPanelShowing = true
+        switch scene {
+        case .panel, .limit: session.isPanelShowing = true
+        case .search: session.isSearchShowing = true
+        default: break
+        }
     }
 
     static var opensLimit: Bool { scene == .limit }

@@ -98,16 +98,9 @@ struct QuietButton: View {
 
 /// The one piece of physical feedback in the app.
 ///
-/// A long press that does nothing until a sheet appears feels broken, because
-/// you cannot tell whether you held it long enough. One soft tap at the moment
-/// it takes is what every long press on iOS does, and the reason it feels like
-/// a control rather than a guess.
+/// The app speaks to the hand exactly once.
 @MainActor
 enum Feedback {
-    static func gestureRecognised() {
-        UIImpactFeedbackGenerator(style: .soft).impactOccurred()
-    }
-
     /// The curtain, arriving while you are looking at the page.
     ///
     /// The same argument as above, for the same reason: a screen that replaces

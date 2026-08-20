@@ -96,33 +96,40 @@ no analytics of any kind. An app about attention should not be sending push
 notifications, and an app that tells you it has no tracking should be able to
 prove it by having no networking code at all.
 
-## Quiet's mark sits beside Instagram's settings, on your profile only
+## Everything Quiet adds to the page is added *to* the page
 
-The first version had one way in: a long press on the status bar. It is the
-right *shortcut* — that strip belongs to the phone rather than to the site, so
-nothing on the page competes for it, and a haptic at the moment it takes makes
-it feel like a control instead of a guess. As the only way in it was wrong: a
-hidden gesture is a gesture most people never learn.
+There were three attempts at this and the first two were wrong in the same way:
+they had the app draw something over somebody else's screen.
 
-The second version put a faint dot in a corner the app kept for itself. It was
-always visible, which was the point, and always *there*, which was the problem —
-a mark of Quiet's floating over somebody else's page on every screen, including
-all the ones where nobody was looking for it.
+First a long press on the status bar. It worked, and it was a trick you had to
+be told about — so most people would never have it. Then a faint dot in a corner
+the app kept for itself: always visible, which was the point, and always
+*there*, floating over the feed on every screen including all the ones where
+nobody was looking for it.
 
-Settings belong where settings already are. The trim script now puts the mark —
-the same full stop as the icon — immediately after Instagram's own settings
-control, and only there. It is found by where that control goes rather than by
-what it says: `/accounts/edit/` is a URL, and a URL is the same in every
-language while "Settings" is not. That one selector answers both questions at
-once, because the control only exists on your own profile.
+The answer was to stop drawing. The trim script puts two things into the page
+itself, in the two places Instagram left empty:
 
-Drawn by the page rather than by the app, so it sits at whatever size and
-spacing Instagram is using today instead of at a coordinate somebody guessed,
-and it scrolls away with the header it belongs to.
+* **A full stop beside Instagram's settings**, on your own profile and nowhere
+  else. Settings belong where settings already are.
+* **The search, back in the slot Instagram's own search used to occupy.** Its
+  search tab is the front door to Explore, so it stays shut; this one opens
+  Quiet's, which returns people and nothing else.
 
-The cost is stated rather than hidden: on every other screen the way in is still
-the gesture. So the status-bar strip keeps its accessibility element, because a
-gesture is invisible to a screen reader, and the first-run hint names both.
+Both are found by **where they are on the screen** rather than by what they are
+called: a control in the top-left corner, and the home button in the bar along
+the bottom. Names are translated and class names are generated afresh every
+week; a corner is a corner. The first version looked for a link to
+`/accounts/edit/` and found the *Edit profile* button halfway down the page,
+which is exactly the kind of near-miss a selector gives you and a corner does
+not.
+
+Drawn by the page, they inherit Instagram's own sizing, spacing and colour, and
+they scroll away with the bars they belong to. The labels come from the app, so
+they are announced in the reader's own language.
+
+The long press is gone. An app used every day should not need a trick, and once
+the visible doors exist the trick is one more thing to explain.
 
 ## Search is for people, and it lives in the panel
 

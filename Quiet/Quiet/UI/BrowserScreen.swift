@@ -9,23 +9,22 @@ import UIKit
 /// watch. What time is left is in the panel, for the moments you actually want
 /// to know.
 ///
-/// There are two ways into the panel.
+/// Quiet draws nothing over Instagram. Everything it adds to the page is added
+/// *to* the page, by the trim script, in the two places Instagram left empty: a
+/// full stop beside the settings on your own profile, and the search Instagram
+/// took away, back in the slot it used to occupy.
 ///
-/// A long press on the status bar — the one strip of the screen that belongs to
-/// the phone rather than to the site — answered with a haptic so it never feels
-/// like a guess. And, on your own profile, a full stop beside Instagram's own
-/// settings, which the trim script puts there: settings belong where settings
-/// already are, and nowhere else, so nothing of Quiet's sits over the feed.
+/// There was a long press on the status bar for a while. It worked, and it was
+/// still a trick you had to be told about, so it is gone. Settings live where
+/// settings live.
 ///
-/// The strip along the bottom stays. It began as somewhere to put a mark and
-/// earned its place for a duller reason: without it the site's own navigation
-/// sits on the home indicator.
+/// The strip along the bottom stays, for a duller reason than the one it was
+/// added for: without it the site's own navigation sits on the home indicator.
 @MainActor
 struct BrowserScreen: View {
     let session: QuietSession
     let surface: WebSurface
     var isHintShowing: Bool
-    var onOpenPanel: () -> Void
 
     /// Twenty points is the shortest status bar any iPhone has; the real height
     /// arrives on the first layout pass.
@@ -83,26 +82,15 @@ struct BrowserScreen: View {
     }
 
     /// Transparent, and exactly as tall as the status bar, so it never sits over
-    /// anything on the page that can be tapped. A tap still does what a tap on
-    /// the status bar has always done.
+    /// anything on the page that can be tapped. A tap does what a tap on the
+    /// status bar has always done, and nothing else: there is no hidden gesture
+    /// here any more.
     private var statusBarStrip: some View {
         Color.clear
             .frame(height: topInset)
             .contentShape(Rectangle())
             .onTapGesture { surface.scrollToTop() }
-            .onLongPressGesture(minimumDuration: 0.45) {
-                Feedback.gestureRecognised()
-                onOpenPanel()
-            }
-            // The mark on the profile is a button in the page, which VoiceOver
-            // reads — but only on that one page. Everywhere else this strip is
-            // the only way in, and a gesture is invisible to a screen reader,
-            // so it carries a label of its own and answers a double tap.
-            .accessibilityElement()
-            .accessibilityLabel(Text("Quiet settings"))
-            .accessibilityHint(Text("Your time today, your daily limit, and finding someone"))
-            .accessibilityAddTraits(.isButton)
-            .accessibilityAction { onOpenPanel() }
+            .accessibilityHidden(true)
     }
 
     private var overlays: some View {
@@ -125,7 +113,7 @@ struct BrowserScreen: View {
     }
 
     private var hint: some View {
-        Text("Touch and hold the top edge for Quiet's settings, or use the dot on your profile.")
+        Text("Quiet's settings are on your profile, beside Instagram's own.")
             .font(.quietSmall)
             .foregroundStyle(Paper.page)
             .padding(.horizontal, 14)

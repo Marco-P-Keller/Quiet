@@ -99,6 +99,7 @@ jobs:
           shoot setup   fresh
           shoot panel   panel
           shoot limit   limit
+          shoot search  search
           shoot curtain spent
           shoot feed    browsing
 
@@ -140,7 +141,7 @@ jobs:
         run: |
           set -euo pipefail
           cd shots
-          for f in setup panel limit curtain \
+          for f in setup panel limit search curtain \
                    setup-largest panel-largest limit-largest curtain-largest \
                    setup-dark panel-dark curtain-dark \
                    setup-german panel-german limit-german curtain-german; do

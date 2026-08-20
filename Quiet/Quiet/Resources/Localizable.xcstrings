@@ -161,6 +161,16 @@
         }
       }
     },
+    "Clear": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Löschen"
+          }
+        }
+      }
+    },
     "Continue": {
       "localizations": {
         "de": {
@@ -207,16 +217,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Jemanden finden"
-          }
-        }
-      }
-    },
-    "Go": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Los"
           }
         }
       }
@@ -411,6 +411,16 @@
         }
       }
     },
+    "Quiet's settings are on your profile, beside Instagram's own.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiets Einstellungen sind auf deinem Profil, neben denen von Instagram."
+          }
+        }
+      }
+    },
     "Reels are off in Quiet.": {
       "localizations": {
         "de": {
@@ -431,12 +441,12 @@
         }
       }
     },
-    "Search is not answering. An exact name still works: type it and tap Go.": {
+    "Search is not answering. An exact name still works: type it and press search.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die Suche antwortet nicht. Ein genauer Name geht trotzdem: eintippen und auf Los tippen."
+            "value": "Die Suche antwortet nicht. Ein genauer Name geht trotzdem: eintippen und auf Suchen drücken."
           }
         }
       }
@@ -567,16 +577,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Das ist dein Limit."
-          }
-        }
-      }
-    },
-    "Touch and hold the top edge for Quiet's settings, or use the dot on your profile.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Oberen Rand halten für Quiets Einstellungen — oder den Punkt auf deinem Profil."
           }
         }
       }

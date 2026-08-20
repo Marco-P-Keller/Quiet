@@ -35,6 +35,12 @@ final class QuietSession {
         didSet { syncCounting() }
     }
 
+    /// Bound to the search sheet. The clock stops here too: looking for somebody
+    /// is not the same as reading about them.
+    var isSearchShowing = false {
+        didSet { syncCounting() }
+    }
+
     private let store: any StateStore
     private let clock: MonotonicClock
     private let calendar: Calendar
@@ -136,12 +142,12 @@ final class QuietSession {
     /// the red banner waited for some unrelated redraw to appear.
     private(set) var isMemoryReliable = true
 
-    /// Whether the app should still point out the gesture that opens the panel.
+    /// Whether the app should still say where its own settings are.
     ///
-    /// A hidden gesture explained exactly once, on the busiest screen of the
-    /// first run, is a gesture most people will not have. Quiet repeats it on
-    /// the first launch of each of the first three days and then stops, which
-    /// costs no extra stored state: the day setup finished is already known.
+    /// Anything explained exactly once, on the busiest screen of the first run,
+    /// is a thing most people will not have heard. Quiet repeats it on the first
+    /// launch of each of the first three days and then stops, which costs no
+    /// extra stored state: the day setup finished is already known.
     var isLearningTheGesture: Bool {
         guard let setupDay else { return false }
         return setupDay.days(to: today) < Self.teachingDays
@@ -219,11 +225,11 @@ final class QuietSession {
 
     /// Whether the time being spent is time on Instagram.
     private var shouldCount: Bool {
-        shouldTick && screen == .browsing && !isPanelShowing
+        shouldTick && screen == .browsing && !isPanelShowing && !isSearchShowing
     }
 
     /// Start or stop the ticker to match `shouldCount`. Never reentrant: nothing
-    /// it calls changes `screen`, `isForeground` or `isPanelShowing`.
+    /// it calls changes `screen`, `isForeground`, or either sheet's flag.
     private func syncCounting() {
         if shouldTick {
             guard ticker == nil else { return }

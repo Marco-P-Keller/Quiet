@@ -8,8 +8,11 @@
  *      say why. Silence would read as a broken page.
  *   2. Hide suggestion blocks, which carry no address of their own and can only
  *      be recognised by their wording.
- *   3. Put Quiet's own mark beside Instagram's settings, on your profile and
- *      nowhere else, so the app has a visible door that is not a gesture.
+ *   3. Put back the two things Quiet needs the page to carry: its own mark
+ *      beside Instagram's settings on your profile, and a search in the slot
+ *      Instagram's own search used to occupy. Both are found by where they sit
+ *      on the screen rather than by what they are called, because a corner does
+ *      not change with the language or with next week's class names.
  *   4. Keep all of it up as the page rewrites itself, because Instagram's web
  *      client replaces the feed without ever loading a new page.
  *
@@ -83,61 +86,124 @@
     post({ kind: "refused", surface: surface });
   }
 
-  /* ── Quiet's own mark ─────────────────────────────────────────────────── */
+  /* ── What Quiet puts back ────────────────────────────────────────────── */
 
   var MARK_ID = "quiet-mark";
+  var SEARCH_ID = "quiet-search";
 
   /**
-   * Instagram's settings control on your own profile.
+   * Is this the signed-in person's own profile?
    *
-   * Found by where it goes rather than by what it says: /accounts/edit/ is a
-   * URL, and a URL is the same in every language, while "Settings" is not.
-   * It is also only ever on your own profile, which is exactly where the mark
-   * is wanted and nowhere else — so this one selector answers both questions.
+   * Asked by where a link goes rather than by what it says: /accounts/edit/ is
+   * a URL, and a URL is the same in every language while "Edit profile" is not.
+   * It only exists on your own profile, which is the question.
    */
-  function settingsControl() {
-    return document.querySelector('a[href*="/accounts/edit"]');
+  function isOwnProfile() {
+    return !!document.querySelector('a[href*="/accounts/edit"]');
   }
 
   /**
-   * A full stop, the same one on the app's icon, beside Instagram's own
-   * settings. Drawn by the page rather than by the app so that it sits where
-   * the page decides, at whatever size and spacing Instagram is using today,
-   * instead of at a coordinate somebody guessed.
+   * The control nearest a corner of the screen.
+   *
+   * Instagram's own settings and its navigation are found by where they *are*,
+   * not by what they are called or which generated class they carry this week.
+   * Both of those change; a settings control in the top-left corner and a
+   * navigation bar along the bottom have not changed in the life of the site.
+   */
+  function controlNear(test) {
+    var candidates = document.querySelectorAll('a[href], button, [role="button"], [role="link"]');
+    for (var i = 0; i < candidates.length; i++) {
+      var element = candidates[i];
+      if (element.id === MARK_ID || element.id === SEARCH_ID) continue;
+      var box = element.getBoundingClientRect();
+      if (box.width < 16 || box.height < 16 || box.width > 120) continue;
+      if (test(box)) return element;
+    }
+    return null;
+  }
+
+  function button(id, label, onPress) {
+    var element = document.createElement("button");
+    element.id = id;
+    element.type = "button";
+    element.setAttribute("aria-label", label);
+    // `all: unset` first, so none of Instagram's own button styling comes with
+    // it, and nothing of ours leaks the other way.
+    element.style.cssText =
+      "all: unset; display: inline-flex; align-items: center; justify-content: center;" +
+      "cursor: pointer; vertical-align: middle; color: inherit;";
+    element.addEventListener("click", function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      onPress();
+    });
+    return element;
+  }
+
+  /**
+   * A full stop — the same one on the app's icon — beside Instagram's settings,
+   * on your own profile and nowhere else. Drawn by the page rather than by the
+   * app so it sits at whatever size and spacing Instagram is using today, and
+   * scrolls away with the header it belongs to.
    */
   function placeMark() {
-    var anchor = settingsControl();
     var existing = document.getElementById(MARK_ID);
-
-    if (!anchor) {
+    if (!isOwnProfile()) {
       if (existing) existing.remove();
       return;
     }
-    if (existing && existing.previousElementSibling === anchor) return;
-    if (existing) existing.remove();
+    if (existing && existing.isConnected) return;
+    // Only while the header is actually at the top of the screen, or the
+    // "top-left corner" is whatever happens to have scrolled into it.
+    if (window.scrollY > 40) return;
 
-    var mark = document.createElement("button");
-    mark.id = MARK_ID;
-    mark.type = "button";
-    mark.setAttribute("aria-label", window.__quietSettingsLabel || "Quiet settings");
-    // `all: unset` first, so none of Instagram's button styling comes with it.
-    mark.style.cssText =
-      "all: unset; display: inline-flex; align-items: center; justify-content: center;" +
-      "width: 34px; height: 34px; cursor: pointer; vertical-align: middle;";
+    var settings = controlNear(function (box) {
+      return box.top < 90 && box.left < 90;
+    });
+    if (!settings || !settings.parentElement) return;
+
+    var mark = button(MARK_ID, window.__quietSettingsLabel || "Quiet settings", function () {
+      post({ kind: "settings" });
+    });
+    mark.style.cssText += "width: 34px; height: 34px;";
 
     var dot = document.createElement("span");
     dot.style.cssText =
       "display: block; width: 6px; height: 6px; border-radius: 50%;" +
-      "background: currentColor; opacity: 0.35;";
+      "background: currentColor; opacity: 0.4;";
     mark.appendChild(dot);
 
-    mark.addEventListener("click", function (event) {
-      event.preventDefault();
-      event.stopPropagation();
-      post({ kind: "settings" });
-    });
+    settings.insertAdjacentElement("afterend", mark);
+  }
 
-    anchor.insertAdjacentElement("afterend", mark);
+  /**
+   * The search Instagram took away, put back where it was.
+   *
+   * Its own search tab is the front door to Explore, so it stays shut. This one
+   * opens Quiet's, which returns people and nothing else. The slot is found by
+   * the home button in the navigation bar, and the glass goes immediately after
+   * it — which is exactly where Instagram's own search has always been.
+   */
+  function placeSearch() {
+    var existing = document.getElementById(SEARCH_ID);
+    if (existing && existing.isConnected) return;
+
+    var home = controlNear(function (box) {
+      return window.innerHeight - box.bottom < 120 && box.left < window.innerWidth / 4;
+    });
+    if (!home || !home.parentElement) return;
+
+    var glass = button(SEARCH_ID, window.__quietSearchLabel || "Find someone", function () {
+      post({ kind: "search" });
+    });
+    glass.style.cssText += "width: 44px; height: 44px;";
+    glass.innerHTML =
+      '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+      '<circle cx="10.5" cy="10.5" r="7" stroke="currentColor" stroke-width="2"/>' +
+      '<line x1="15.8" y1="15.8" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
+      "</svg>";
+
+    home.insertAdjacentElement("afterend", glass);
   }
 
   /* ── 1. Taps ──────────────────────────────────────────────────────────── */
@@ -223,6 +289,7 @@
       if (main) trimSuggestions(main);
       guardLocation();
       placeMark();
+      placeSearch();
     });
   }
 
