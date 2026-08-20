@@ -176,8 +176,9 @@ it on a simulator and photographs it. The current state:
 
 ```
 ** BUILD SUCCEEDED **
-Executed 62 tests, with 0 failures        (rules, clock, ledger, session)
-Executed 1 test,  with 0 failures         (setup → Instagram → relaunch)
+Executed 65 tests, with 0 failures        (rules, clock, ledger, session)
+Executed 5 tests, with 0 failures         (setup → Instagram → relaunch,
+                                           and every screen driven by name)
 ```
 
 No errors and no warnings in Quiet's own sources. The workflow is
