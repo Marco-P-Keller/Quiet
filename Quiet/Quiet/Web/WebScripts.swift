@@ -30,6 +30,13 @@ enum WebScripts {
             missing.append("trim.css")
         }
 
+        // The one string the page needs from the app. Injected before the trim
+        // runs, so the mark it draws is announced in the reader's own language
+        // rather than in the language this file happens to be written in.
+        scripts.append(userScript(source: """
+        window.__quietSettingsLabel = \(quoted(String(localized: "Quiet settings")));
+        """))
+
         if let js = text(named: "trim", extension: "js", in: bundle) {
             scripts.append(userScript(source: js))
         } else {

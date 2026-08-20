@@ -551,16 +551,6 @@
         }
       }
     },
-    "The dot in the corner opens Quiet's settings.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Der Punkt in der Ecke öffnet Quiets Einstellungen."
-          }
-        }
-      }
-    },
     "This clears the Instagram session from this app. Your daily limit stays as it is.": {
       "localizations": {
         "de": {
@@ -577,6 +567,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Das ist dein Limit."
+          }
+        }
+      }
+    },
+    "Touch and hold the top edge for Quiet's settings, or use the dot on your profile.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oberen Rand halten für Quiets Einstellungen — oder den Punkt auf deinem Profil."
           }
         }
       }

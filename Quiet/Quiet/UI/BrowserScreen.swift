@@ -9,15 +9,17 @@ import UIKit
 /// watch. What time is left is in the panel, for the moments you actually want
 /// to know.
 ///
-/// There are two ways into the panel, and neither of them is on the page.
+/// There are two ways into the panel.
 ///
 /// A long press on the status bar — the one strip of the screen that belongs to
 /// the phone rather than to the site — answered with a haptic so it never feels
-/// like a guess. And a full stop, the app's own mark, in the strip along the
-/// bottom that Quiet keeps for itself. The mark is small and faint on purpose:
-/// it has to be findable on the fiftieth day and invisible on the fifty-first.
-/// A hidden gesture is a gesture most people never learn, and this app is used
-/// every day by someone who should not have to remember a trick.
+/// like a guess. And, on your own profile, a full stop beside Instagram's own
+/// settings, which the trim script puts there: settings belong where settings
+/// already are, and nowhere else, so nothing of Quiet's sits over the feed.
+///
+/// The strip along the bottom stays. It began as somewhere to put a mark and
+/// earned its place for a duller reason: without it the site's own navigation
+/// sits on the home indicator.
 @MainActor
 struct BrowserScreen: View {
     let session: QuietSession
@@ -28,11 +30,9 @@ struct BrowserScreen: View {
     /// Twenty points is the shortest status bar any iPhone has; the real height
     /// arrives on the first layout pass.
     @State private var topInset: CGFloat = 20
-    /// The strip Quiet keeps along the bottom. On a phone with a home indicator
-    /// it is space the page was overlapping anyway; on an older one it is a
-    /// margin the app pays for, because the mark has to live somewhere that is
-    /// never somebody else's content.
-    @State private var bottomInset: CGFloat = 24
+    /// The strip Quiet keeps along the bottom, so that Instagram's own
+    /// navigation stops sitting on the home indicator.
+    @State private var bottomInset: CGFloat = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -64,12 +64,11 @@ struct BrowserScreen: View {
             overlays
                 .padding(.top, topInset + 8)
         }
-        .overlay(alignment: .bottomLeading) { mark }
         .ignoresSafeArea()
         .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: surface.hasLoaded)
         .onAppear {
             topInset = SafeArea.top
-            bottomInset = max(SafeArea.bottom, 24)
+            bottomInset = SafeArea.bottom
         }
     }
 
@@ -81,28 +80,6 @@ struct BrowserScreen: View {
             .ignoresSafeArea()
             .transition(.opacity)
             .accessibilityHidden(true)
-    }
-
-    /// The app's own mark, and the only thing Quiet draws on top of Instagram.
-    ///
-    /// A full stop, the same one on the icon, in the strip along the bottom that
-    /// belongs to the app rather than to the page — so it covers nothing, moves
-    /// never, and is in the same corner on every screen. Faint enough to
-    /// disappear while you are reading, dark enough to find when you are looking
-    /// for it.
-    private var mark: some View {
-        Button(action: onOpenPanel) {
-            Circle()
-                .fill(Color(uiColor: .label).opacity(0.3))
-                .frame(width: 5, height: 5)
-                // The touch area is a corner the whole width of a thumb, which
-                // is the one target on a phone that needs no aim at all.
-                .frame(width: 64, height: bottomInset, alignment: .center)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(Text("Quiet settings"))
-        .accessibilityHint(Text("Your time today, your daily limit, and finding someone"))
     }
 
     /// Transparent, and exactly as tall as the status bar, so it never sits over
@@ -117,10 +94,15 @@ struct BrowserScreen: View {
                 Feedback.gestureRecognised()
                 onOpenPanel()
             }
-            // Nothing to announce: this is a shortcut for a finger that already
-            // knows it is here. The way in that VoiceOver offers is the mark at
-            // the bottom, which is a real button and says what it does.
-            .accessibilityHidden(true)
+            // The mark on the profile is a button in the page, which VoiceOver
+            // reads — but only on that one page. Everywhere else this strip is
+            // the only way in, and a gesture is invisible to a screen reader,
+            // so it carries a label of its own and answers a double tap.
+            .accessibilityElement()
+            .accessibilityLabel(Text("Quiet settings"))
+            .accessibilityHint(Text("Your time today, your daily limit, and finding someone"))
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { onOpenPanel() }
     }
 
     private var overlays: some View {
@@ -143,7 +125,7 @@ struct BrowserScreen: View {
     }
 
     private var hint: some View {
-        Text("The dot in the corner opens Quiet's settings.")
+        Text("Touch and hold the top edge for Quiet's settings, or use the dot on your profile.")
             .font(.quietSmall)
             .foregroundStyle(Paper.page)
             .padding(.horizontal, 14)

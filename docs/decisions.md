@@ -96,27 +96,33 @@ no analytics of any kind. An app about attention should not be sending push
 notifications, and an app that tells you it has no tracking should be able to
 prove it by having no networking code at all.
 
-## The panel opens from a mark in the corner, and from the status bar
+## Quiet's mark sits beside Instagram's settings, on your profile only
 
 The first version had one way in: a long press on the status bar. It is the
 right *shortcut* — that strip belongs to the phone rather than to the site, so
 nothing on the page competes for it, and a haptic at the moment it takes makes
-it feel like a control instead of a guess.
+it feel like a control instead of a guess. As the only way in it was wrong: a
+hidden gesture is a gesture most people never learn.
 
-As the only way in it was wrong, and an hour of real use said so. A hidden
-gesture is a gesture most people never learn, and this app is meant to be opened
-every day by someone who should not have to remember a trick.
+The second version put a faint dot in a corner the app kept for itself. It was
+always visible, which was the point, and always *there*, which was the problem —
+a mark of Quiet's floating over somebody else's page on every screen, including
+all the ones where nobody was looking for it.
 
-So Quiet keeps a strip along the bottom of the screen — on a modern phone it is
-space the page was overlapping anyway — and puts its own mark in the corner of
-it: the same full stop as the icon, five points across, at thirty percent. It
-covers nothing, it never moves, it is in the same corner on every screen, and
-the touch area is a corner the width of a thumb. Faint enough to disappear while
-you are reading, dark enough to find when you are looking for it.
+Settings belong where settings already are. The trim script now puts the mark —
+the same full stop as the icon — immediately after Instagram's own settings
+control, and only there. It is found by where that control goes rather than by
+what it says: `/accounts/edit/` is a URL, and a URL is the same in every
+language while "Settings" is not. That one selector answers both questions at
+once, because the control only exists on your own profile.
 
-It is also the honest answer for VoiceOver. The accessibility element that used
-to stand in for the gesture was findable by a screen reader and by nobody's eye;
-now there is a real button, and the two agree.
+Drawn by the page rather than by the app, so it sits at whatever size and
+spacing Instagram is using today instead of at a coordinate somebody guessed,
+and it scrolls away with the header it belongs to.
+
+The cost is stated rather than hidden: on every other screen the way in is still
+the gesture. So the status-bar strip keeps its accessibility element, because a
+gesture is invisible to a screen reader, and the first-run hint names both.
 
 ## Search is for people, and it lives in the panel
 

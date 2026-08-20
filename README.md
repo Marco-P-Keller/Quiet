@@ -156,10 +156,11 @@ The parts that are easy to skip and obvious once missing:
 * **Dynamic Type everywhere.** Every size is a system text style; nothing is set
   in fixed points. Setup and the limit screen are built around scroll views with
   the action pinned to the bottom, so they still work at the largest settings.
-* **The way into the panel is a button, not only a gesture.** Quiet's mark sits
-  in the bottom corner of a strip the app keeps for itself, so it covers nothing
-  and is in the same place on every screen. VoiceOver announces it as *Quiet
-  settings*; the long press on the status bar remains as a shortcut.
+* **The way into the panel is a button as well as a gesture.** On your own
+  profile the trim script puts Quiet's mark beside Instagram's own settings, so
+  the app draws nothing over anybody's feed. Everywhere else it is the long
+  press, and the status-bar strip carries a labelled accessibility element
+  because a gesture is invisible to a screen reader.
 * **Reduce Motion is honoured** by every animation in the app.
 * **A cover, not a spinner.** Quiet's own paper sits over the web view until the
   first page settles, then cross-fades, so a cold launch never shows a blank

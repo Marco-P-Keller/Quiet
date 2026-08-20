@@ -8,7 +8,9 @@
  *      say why. Silence would read as a broken page.
  *   2. Hide suggestion blocks, which carry no address of their own and can only
  *      be recognised by their wording.
- *   3. Keep doing both as the page rewrites itself, because Instagram's web
+ *   3. Put Quiet's own mark beside Instagram's settings, on your profile and
+ *      nowhere else, so the app has a visible door that is not a gesture.
+ *   4. Keep all of it up as the page rewrites itself, because Instagram's web
  *      client replaces the feed without ever loading a new page.
  *
  * It never reads form fields, and never touches the login page's inputs. Your
@@ -69,15 +71,73 @@
     return null;
   }
 
-  function tell(surface) {
+  function post(message) {
     try {
-      window.webkit.messageHandlers.quiet.postMessage({
-        kind: "refused",
-        surface: surface,
-      });
+      window.webkit.messageHandlers.quiet.postMessage(message);
     } catch (error) {
-      /* The app is not listening. Refusing the tap still worked. */
+      /* The app is not listening. Whatever we just did still happened. */
     }
+  }
+
+  function tell(surface) {
+    post({ kind: "refused", surface: surface });
+  }
+
+  /* ── Quiet's own mark ─────────────────────────────────────────────────── */
+
+  var MARK_ID = "quiet-mark";
+
+  /**
+   * Instagram's settings control on your own profile.
+   *
+   * Found by where it goes rather than by what it says: /accounts/edit/ is a
+   * URL, and a URL is the same in every language, while "Settings" is not.
+   * It is also only ever on your own profile, which is exactly where the mark
+   * is wanted and nowhere else — so this one selector answers both questions.
+   */
+  function settingsControl() {
+    return document.querySelector('a[href*="/accounts/edit"]');
+  }
+
+  /**
+   * A full stop, the same one on the app's icon, beside Instagram's own
+   * settings. Drawn by the page rather than by the app so that it sits where
+   * the page decides, at whatever size and spacing Instagram is using today,
+   * instead of at a coordinate somebody guessed.
+   */
+  function placeMark() {
+    var anchor = settingsControl();
+    var existing = document.getElementById(MARK_ID);
+
+    if (!anchor) {
+      if (existing) existing.remove();
+      return;
+    }
+    if (existing && existing.previousElementSibling === anchor) return;
+    if (existing) existing.remove();
+
+    var mark = document.createElement("button");
+    mark.id = MARK_ID;
+    mark.type = "button";
+    mark.setAttribute("aria-label", window.__quietSettingsLabel || "Quiet settings");
+    // `all: unset` first, so none of Instagram's button styling comes with it.
+    mark.style.cssText =
+      "all: unset; display: inline-flex; align-items: center; justify-content: center;" +
+      "width: 34px; height: 34px; cursor: pointer; vertical-align: middle;";
+
+    var dot = document.createElement("span");
+    dot.style.cssText =
+      "display: block; width: 6px; height: 6px; border-radius: 50%;" +
+      "background: currentColor; opacity: 0.35;";
+    mark.appendChild(dot);
+
+    mark.addEventListener("click", function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      post({ kind: "settings" });
+    });
+
+    anchor.insertAdjacentElement("afterend", mark);
   }
 
   /* ── 1. Taps ──────────────────────────────────────────────────────────── */
@@ -150,7 +210,7 @@
     }
   }
 
-  /* ── 3. Keep up with the page ─────────────────────────────────────────── */
+  /* ── 4. Keep up with the page ─────────────────────────────────────────── */
 
   var pending = false;
 
@@ -162,6 +222,7 @@
       var main = document.querySelector("main");
       if (main) trimSuggestions(main);
       guardLocation();
+      placeMark();
     });
   }
 

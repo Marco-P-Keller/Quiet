@@ -49,27 +49,34 @@ final class SpeaksAloudTests: XCTestCase {
         XCTAssertFalse(commit.label.isEmpty)
     }
 
-    /// The way into the panel has to be a real thing, not only a gesture.
+    /// Quiet's own settings have to be reachable from a page it does not own.
     ///
-    /// It used to be a press on the status bar and nothing else, with an
-    /// accessibility element standing in for it — findable by VoiceOver and by
-    /// nobody's eye. The mark in the bottom corner is a plain button, which is
-    /// what makes this test able to do what a person does: find it by name, tap
-    /// it, and get the panel.
+    /// On your own profile the trim script puts a mark beside Instagram's
+    /// settings, which is a real button in the page — but only there, and only
+    /// signed in, so a runner never sees it. Everywhere else the way in is a
+    /// long press on the status bar, and a gesture is invisible to a screen
+    /// reader. Hence the element that stands in for it, asserted here: findable
+    /// by name, described, and carrying a button's trait, which is everything
+    /// VoiceOver needs to offer it.
+    ///
+    /// The opening is then driven through the press. XCUITest synthesises
+    /// touches, not accessibility activations, and a plain touch on this strip
+    /// is a touch on the status bar: it scrolls the page to the top, which is
+    /// what it should do and is not what is being tested here.
     func testThePanelIsReachableWithoutTheGesture() {
         let app = launch("browsing")
 
         let wayIn = app.buttons["Quiet settings"]
         XCTAssertTrue(
             wayIn.waitForExistence(timeout: 30),
-            "The way into Quiet's own settings must exist as a button"
+            "A gesture is invisible to VoiceOver, so something must stand in for it"
         )
-        XCTAssertEqual(wayIn.label, "Quiet settings", "and be announced by name")
-        wayIn.tap()
+        XCTAssertEqual(wayIn.label, "Quiet settings", "and it must be announced by name")
 
+        wayIn.press(forDuration: 0.6)
         XCTAssertTrue(
             app.buttons["Done"].waitForExistence(timeout: 10),
-            "Tapping it must open the panel"
+            "Holding it must open the panel"
         )
     }
 

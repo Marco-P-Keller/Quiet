@@ -279,11 +279,26 @@ struct InstagramWebView: UIViewRepresentable {
         }
 
         fileprivate func receive(_ message: WKScriptMessage) {
-            guard let body = message.body as? [String: Any],
-                  body["kind"] as? String == "refused",
-                  let name = body["surface"] as? String,
-                  let surface = BlockedSurface(rawValue: name) else { return }
-            session.report(surface)
+            // Only the page a person is looking at may say anything. The script
+            // runs in every frame so that an embedded player never gets to
+            // appear first, which means an advert's frame can post too.
+            guard message.frameInfo.isMainFrame,
+                  let body = message.body as? [String: Any],
+                  let kind = body["kind"] as? String else { return }
+
+            switch kind {
+            case "refused":
+                guard let name = body["surface"] as? String,
+                      let surface = BlockedSurface(rawValue: name) else { return }
+                session.report(surface)
+
+            case "settings":
+                // Quiet's mark, tapped on your own profile.
+                session.isPanelShowing = true
+
+            default:
+                break
+            }
         }
     }
 }
