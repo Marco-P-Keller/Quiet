@@ -51,6 +51,12 @@ async function page(html, url, head) {
   }
   const win = dom.window;
   installBoxes(win);
+  // The one question trim.js asks of the screen rather than of the markup.
+  // jsdom paints nothing, so the fixture says what is under the point: any
+  // element carrying data-at-top, outermost last, as the browser answers.
+  win.document.elementsFromPoint = function () {
+    return Array.prototype.slice.call(win.document.querySelectorAll("[data-at-top]"));
+  };
   // Every frame the script asks for, taken immediately, so a test can say
   // "and then the page rewrote itself" and see the result on the next line.
   const frames = [];
@@ -324,14 +330,75 @@ const GROUPED = `
     check(`/${root}/ is not somebody's profile`, only.__quietOpenProfile(), false);
   }
 
-  /* The heart's address, handed to the app because the bar it lives in is
-   * behind the app's own strip at every scroll position. */
-  const posted = [];
-  const withHeart = await page(GROUPED, FEED);
+  /* ── What is drawn at the top of the glass ───────────────────────────── */
+
+  /* Four builds went into finding Instagram's header by something *in* it — a
+   * link to the activity feed, a link home, a wordmark — and on the real site
+   * it found nothing every time. This asks the browser what is painted at the
+   * top instead, which is a question about the screen rather than about
+   * somebody else's markup. */
+  const atTop = (html) =>
+    page(html, FEED).then((win) => {
+      const found = win.document.querySelector("[data-quiet-pinned]");
+      return found ? found.getAttribute("data-name") : null;
+    });
+
   check(
-    "the heart's address is read out of the bar and handed over",
-    withHeart.__quietActivity,
-    "/accounts/activity/"
+    "whatever is pinned to the top of the glass is moved off the clock",
+    await atTop(`
+      <div data-name="sticky" data-at-top style="position: sticky; top: 0px"
+           data-box="0,0,390,46">bar</div>
+      <main></main>`),
+    "sticky"
+  );
+
+  check(
+    "and a fixed one is the same thing by another name",
+    await atTop(`
+      <div data-name="fixed" data-at-top style="position: fixed; top: 0px"
+           data-box="0,0,390,46">bar</div>
+      <main></main>`),
+    "fixed"
+  );
+
+  check(
+    "something merely at the top of the document is left where it is",
+    await atTop(`
+      <div data-name="flowing" data-at-top data-box="0,0,390,46">bar</div>
+      <main></main>`),
+    null
+  );
+
+  check(
+    "a wrapper as tall as the page is not a bar and is not moved",
+    await atTop(`
+      <div data-name="whole" data-at-top style="position: sticky; top: 0px"
+           data-box="0,0,390,800">everything</div>
+      <main></main>`),
+    null
+  );
+
+  check(
+    "nor is something pinned further down the screen",
+    await atTop(`
+      <div data-name="lower" data-at-top style="position: sticky; top: 120px"
+           data-box="0,120,390,46">bar</div>
+      <main></main>`),
+    null
+  );
+
+  /* The bar is found through whatever the page has wrapped it in: the browser
+   * answers with the whole stack under the point, and only one of them is
+   * pinned. */
+  check(
+    "the pinned one is picked out of the stack under the point",
+    await atTop(`
+      <div data-name="outer" data-at-top data-box="0,0,390,900">
+        <div data-name="pinned" data-at-top style="position: sticky; top: 0px"
+             data-box="0,0,390,46">bar</div>
+      </div>
+      <main></main>`),
+    "pinned"
   );
 
   process.exit(failures ? 1 : 0);

@@ -708,18 +708,7 @@
 
     var heart = bar.querySelector(ACTIVITY);
     var mark = bar.querySelector('a[href="/"]');
-    if (!heart) return;
-
-    // Instagram's own bar is behind the app's strip at every scroll position,
-    // and the heart went with it. It is the one control in that bar that is
-    // nowhere else in Quiet, so its address is handed over and the app draws
-    // the heart itself. Said once: the bar is rebuilt as the page moves.
-    if (!window.__quietActivity) {
-      window.__quietActivity = heart.getAttribute("href");
-      post({ kind: "chrome", activity: window.__quietActivity });
-    }
-
-    if (!mark) return;
+    if (!heart || !mark) return;
 
     var plus = createControl(bar, mark, heart);
     if (!plus) return;
@@ -749,8 +738,70 @@
    */
   function liftHeader() {
     var bar = headerBar();
-    if (!bar) return;
-    liftPinned(bar);
+    if (bar) liftPinned(bar);
+    liftWhateverIsUpThere();
+  }
+
+  /**
+   * Ask the browser what is drawn at the top of the glass, and move it down.
+   *
+   * Every version of this before now went looking for Instagram's header by
+   * something *in* it — a link to the activity feed, a link home, a wordmark.
+   * The photographs say that search finds nothing on the real site: the header
+   * never moved, the app's strip covered it, and the row the app drew in its
+   * place stayed empty because there was no heart to take out of a bar nobody
+   * had found. Four builds of that.
+   *
+   * The heart is a button, or the address changed, or the class names did.
+   * Whichever it was, the mistake was the same each time: asking a question
+   * about Instagram's markup, which is somebody else's and changes weekly.
+   *
+   * This asks a question about the screen. What is painted four points from the
+   * top, in the middle? The browser answers with the stack of elements under
+   * that point, outermost last. Whatever in it is pinned there — sticky or
+   * fixed, against the top, and short enough to be a bar rather than the page —
+   * is the thing that would otherwise be drawn across the clock. It is moved to
+   * the bottom of the clock by trim.css.
+   *
+   * There is nothing here about Instagram at all, which is the point. It works
+   * on the feed, on a profile, in the inbox, and on whatever they ship next
+   * Tuesday.
+   *
+   * Once lifted it is no longer at that point, so it is not found again and not
+   * lifted twice. A page that rewrites itself gets a new element, and that one
+   * is lifted in its turn.
+   */
+  function liftWhateverIsUpThere() {
+    if (!document.elementsFromPoint) return;
+
+    var middle = Math.round((window.innerWidth || 390) / 2);
+    var stack = document.elementsFromPoint(middle, 4);
+    if (!stack) return;
+
+    for (var i = 0; i < stack.length; i++) {
+      var node = stack[i];
+      if (!node || node === document.body || node === document.documentElement) continue;
+      if (node.getAttribute && node.getAttribute("data-quiet-pinned") !== null) return;
+      // Nothing of Quiet's is pinned to the top, but a control it added to
+      // somebody else's bar must never be mistaken for the bar.
+      if (node.id && node.id.indexOf("quiet-") === 0) continue;
+
+      var style = window.getComputedStyle(node);
+      if (style.position !== "sticky" && style.position !== "fixed") continue;
+
+      var top = parseFloat(style.top);
+      // `auto` parses to nothing, and something pinned to the bottom is not
+      // what is over the clock.
+      if (isNaN(top) || top > 1) continue;
+
+      var box = node.getBoundingClientRect();
+      // A bar, not the page. Instagram's header is about forty-five points; a
+      // wrapper as tall as the screen is not a header and must not be moved.
+      if (box.height > 140 || box.height < 8) continue;
+
+      node.setAttribute("data-quiet-pinned", "");
+      return;
+    }
   }
 
   /* ── 1. Taps ──────────────────────────────────────────────────────────── */

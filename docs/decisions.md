@@ -784,3 +784,39 @@ there, so the page is always told the same number and the feed never jumps as
 the app learns things. The heart appears in it once the page has said where it
 goes — `/accounts/activity/`, read out of Instagram's own bar. Quiet guesses no
 addresses.
+
+## Ask the screen, not the markup
+
+Four builds went into finding Instagram's header by something *in* it: a link to
+the activity feed, a link home, a wordmark, a set of class names. On the real
+site each of those found nothing at all — which is why the header never moved,
+why the app's strip has been covering it, and why the row the app drew in its
+place came back in a photograph as a hundred points of empty black. There was no
+heart to take out of a bar nobody had found.
+
+The heart is a button now, or the address changed, or the class names did. It
+does not matter which. The mistake was the same every time: asking a question
+about somebody else's markup, which is theirs and changes weekly.
+
+So the question changed. What is painted four points from the top of the glass,
+in the middle? The browser answers with the whole stack of elements under that
+point. Whatever in it is pinned there — sticky or fixed, against the top, and
+short enough to be a bar rather than the page — is the thing that would be drawn
+across the clock, and it is moved to the bottom of the clock.
+
+There is nothing about Instagram in that at all, which is the point. It holds on
+the feed, on a profile, in the inbox, and on whatever they ship next Tuesday.
+Once lifted the bar is no longer under that point, so it is never lifted twice;
+a page that rewrites itself gets a new element and that one is lifted in turn.
+
+Six checks in the harness, on a stub that answers the same question the browser
+does: a sticky bar and a fixed bar are moved, one merely at the top of the
+document is left alone, a wrapper as tall as the page is not a bar, something
+pinned further down is not over the clock, and the bar is found through whatever
+the page has wrapped it in.
+
+With that, the strip goes back to being exactly as tall as the status bar and
+Instagram's own header sits directly beneath it — with its own wordmark, its own
+plus and its own heart, in its own place. The app draws no header of its own,
+which is the third time this project has arrived at that answer and the first
+time it can be relied on.

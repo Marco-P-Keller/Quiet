@@ -74,7 +74,7 @@ struct BrowserScreen: View {
                 surface: surface,
                 session: session,
                 inset: UIEdgeInsets(
-                    top: topInset + Self.headerRow,
+                    top: topInset,
                     left: 0,
                     bottom: furniture,
                     right: 0
@@ -111,16 +111,9 @@ struct BrowserScreen: View {
             // slides underneath and out of sight. Neither is broken.
             VStack(spacing: 0) {
                 Color(uiColor: .systemBackground)
-                    .frame(height: topInset + Self.headerRow)
-                // The hairline under a native bar. Half a point, which is one
-                // device pixel on every iPhone Quiet runs on.
-                Rectangle()
-                    .fill(Color(uiColor: .separator))
-                    .frame(height: 0.5)
+                    .frame(height: topInset)
                 Spacer(minLength: 0)
             }
-
-            heart
 
             // Over the cover, so it is there from the first frame rather than
             // arriving with the page.
@@ -148,44 +141,6 @@ struct BrowserScreen: View {
             .transition(.opacity)
             .accessibilityHidden(true)
     }
-
-    /// The heart, in a row of its own beneath the strip.
-    ///
-    /// Instagram's own header is behind that strip at every scroll position —
-    /// it pins itself to the top of the glass, and three attempts at persuading
-    /// it not to all came back in a photograph. Hidden is the right outcome:
-    /// nothing is ever drawn through the clock. But the heart went with it, and
-    /// the heart was the one thing in that bar that is nowhere else in Quiet.
-    ///
-    /// So the app draws it. The row is always here, so the page is always told
-    /// the same number and the feed never jumps; the heart appears in it once
-    /// the page has said where it goes. Quiet guesses no addresses.
-    private var heart: some View {
-        VStack(spacing: 0) {
-            Color.clear.frame(height: topInset)
-            HStack(spacing: 0) {
-                Spacer(minLength: 0)
-                if surface.activity != nil {
-                    Button { Touch.tick(); surface.goToActivity() } label: {
-                        Image(systemName: "heart")
-                            .font(.system(size: 23, weight: .regular))
-                            .foregroundStyle(Color(uiColor: .label))
-                            .frame(width: 44, height: 44)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(Text("Notifications"))
-                }
-            }
-            .padding(.trailing, 6)
-            .frame(height: Self.headerRow)
-            Spacer(minLength: 0)
-        }
-    }
-
-    /// The row under the strip. Forty-four points, which is the height of every
-    /// bar on iOS and about what Instagram's own is.
-    private static let headerRow: CGFloat = 44
 
     /// Where the row says you are.
     ///
