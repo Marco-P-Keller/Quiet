@@ -608,3 +608,18 @@ the page as soon as it is.
 
 The scroll indicator is the one thing that still respects the app's furniture. A
 scroll bar running under the row reads as a fault.
+
+## The row answers the finger
+
+Two things every tab bar on iOS has done since there were tab bars, Instagram's
+included, and neither of which Quiet's row did.
+
+A tap on the entry you are already standing on takes you to the top of it,
+rather than loading the page you are already looking at all over again.
+
+And every tap gives a tick under the thumb — light, and from a generator that is
+kept alive and told to get ready, because an impact asked for cold arrives late
+enough to feel like it belongs to a different tap.
+
+Neither is visible in a screenshot. Both are most of what "it doesn't feel the
+same" means when somebody says it about a row of icons that already looks right.

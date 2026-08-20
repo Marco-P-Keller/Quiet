@@ -183,7 +183,7 @@ struct BrowserScreen: View {
     /// An outline of a person stands in until the page has handed one over.
     private var myProfileButton: some View {
         let here = current == .profile
-        return Button { surface.goToMyProfile() } label: {
+        return Button { tap(.profile, { surface.goToMyProfile() }) } label: {
             Group {
                 if let face = surface.myFace {
                     Image(uiImage: face)
@@ -214,6 +214,25 @@ struct BrowserScreen: View {
 
     private static let barGap: CGFloat = 12
 
+    /// What a tap on the row does.
+    ///
+    /// Tapping the entry you are already standing on takes you to the top of
+    /// it, rather than loading the page you are looking at all over again. Every
+    /// tab bar on iOS has done this since there were tab bars, Instagram's
+    /// included, and its absence is the kind of thing nobody reports and
+    /// everybody feels.
+    ///
+    /// And every tap gives a tick under the thumb. Instagram's row does; a row
+    /// that does not answer the finger reads as a picture of a row.
+    private func tap(_ entry: Entry, _ action: () -> Void) {
+        Touch.tick()
+        if current == entry {
+            surface.scrollToTop()
+        } else {
+            action()
+        }
+    }
+
     private func barButton(
         _ entry: Entry,
         _ outline: String,
@@ -222,7 +241,7 @@ struct BrowserScreen: View {
         action: @escaping () -> Void
     ) -> some View {
         let here = current == entry
-        return Button(action: action) {
+        return Button { tap(entry, action) } label: {
             Image(systemName: here ? solid : outline)
                 .font(.system(size: 24, weight: here ? .semibold : .regular))
                 .foregroundStyle(Color(uiColor: .label))
@@ -290,6 +309,25 @@ struct BrowserScreen: View {
             .background(Color.red.opacity(0.9))
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .padding(.horizontal, 20)
+    }
+}
+
+/// The tick under the thumb.
+///
+/// One generator, kept alive and told to get ready, because an impact asked for
+/// cold arrives late enough to feel like a different tap. Light, because this is
+/// a row of five and not a decision.
+@MainActor
+enum Touch {
+    private static let generator: UIImpactFeedbackGenerator = {
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.prepare()
+        return generator
+    }()
+
+    static func tick() {
+        generator.impactOccurred(intensity: 0.7)
+        generator.prepare()
     }
 }
 
