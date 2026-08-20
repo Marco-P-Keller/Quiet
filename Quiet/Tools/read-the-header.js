@@ -324,5 +324,15 @@ const GROUPED = `
     check(`/${root}/ is not somebody's profile`, only.__quietOpenProfile(), false);
   }
 
+  /* The heart's address, handed to the app because the bar it lives in is
+   * behind the app's own strip at every scroll position. */
+  const posted = [];
+  const withHeart = await page(GROUPED, FEED);
+  check(
+    "the heart's address is read out of the bar and handed over",
+    withHeart.__quietActivity,
+    "/accounts/activity/"
+  );
+
   process.exit(failures ? 1 : 0);
 })();

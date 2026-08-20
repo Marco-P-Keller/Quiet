@@ -708,7 +708,18 @@
 
     var heart = bar.querySelector(ACTIVITY);
     var mark = bar.querySelector('a[href="/"]');
-    if (!heart || !mark) return;
+    if (!heart) return;
+
+    // Instagram's own bar is behind the app's strip at every scroll position,
+    // and the heart went with it. It is the one control in that bar that is
+    // nowhere else in Quiet, so its address is handed over and the app draws
+    // the heart itself. Said once: the bar is rebuilt as the page moves.
+    if (!window.__quietActivity) {
+      window.__quietActivity = heart.getAttribute("href");
+      post({ kind: "chrome", activity: window.__quietActivity });
+    }
+
+    if (!mark) return;
 
     var plus = createControl(bar, mark, heart);
     if (!plus) return;

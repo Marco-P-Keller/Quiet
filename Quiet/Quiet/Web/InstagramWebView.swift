@@ -59,6 +59,15 @@ final class WebSurface {
     /// signed-in session asks for the login form and is handed the feed.
     private(set) var address: URL?
 
+    /// Where Instagram's heart goes, read out of its own header.
+    ///
+    /// That header is behind the app's strip at every scroll position, which is
+    /// the right outcome — nothing is ever drawn through the clock — except
+    /// that the heart went with it, and the heart is the one control in that
+    /// bar that is nowhere else in Quiet. So the app draws it, and only once
+    /// the page has said where it goes. Quiet guesses no addresses.
+    private(set) var activity: URL?
+
     /// Instagram's own icons, drawn by Instagram.
     ///
     /// Keyed "home.on", "home.off" and so on. Instagram fills the entry you are
@@ -220,6 +229,13 @@ final class WebSurface {
         address = url
     }
 
+    fileprivate func note(activity path: String) {
+        guard let url = URL(string: path, relativeTo: ContentRules.feed)?.absoluteURL,
+              url.host == ContentRules.feed.host,
+              activity != url else { return }
+        activity = url
+    }
+
     fileprivate func note(icon entry: String, picture: String) {
         guard icons[entry] == nil,
               let data = Data(base64Encoded: picture),
@@ -249,6 +265,11 @@ final class WebSurface {
     ///
     /// The address built from the name is the fallback, for the pages that
     /// carry no such row.
+    func goToActivity() {
+        guard let activity else { return }
+        open(activity)
+    }
+
     func goToMyProfile() {
         guard let webView else { return }
         Task { @MainActor in
@@ -606,6 +627,12 @@ struct InstagramWebView: UIViewRepresentable {
                 // anything, so this is the only way the row learns it moved.
                 if let path = body["path"] as? String {
                     surface.note(path: path)
+                }
+
+            case "chrome":
+                // The heart, out of a bar nobody can see any more.
+                if let path = body["activity"] as? String {
+                    surface.note(activity: path)
                 }
 
             case "icon":

@@ -74,12 +74,21 @@ struct BrowserScreen: View {
                 surface: surface,
                 session: session,
                 inset: UIEdgeInsets(
-                    top: topInset,
+                    top: topInset + Self.headerRow,
                     left: 0,
                     bottom: furniture,
                     right: 0
                 )
             )
+            // Said again here, on the view itself.
+            //
+            // The stack already ignores it, and the photograph says that was
+            // not enough: the page stopped thirty-four points above the bottom
+            // of the glass — the home indicator, to the point — with the row
+            // floating over a black band instead of over Instagram's next
+            // photograph. A representable inside an `ignoresSafeArea` stack is
+            // not reliably given the whole of it. Said twice, it is.
+            .ignoresSafeArea()
 
             if !surface.hasLoaded {
                 cover
@@ -102,9 +111,16 @@ struct BrowserScreen: View {
             // slides underneath and out of sight. Neither is broken.
             VStack(spacing: 0) {
                 Color(uiColor: .systemBackground)
-                    .frame(height: topInset)
+                    .frame(height: topInset + Self.headerRow)
+                // The hairline under a native bar. Half a point, which is one
+                // device pixel on every iPhone Quiet runs on.
+                Rectangle()
+                    .fill(Color(uiColor: .separator))
+                    .frame(height: 0.5)
                 Spacer(minLength: 0)
             }
+
+            heart
 
             // Over the cover, so it is there from the first frame rather than
             // arriving with the page.
@@ -132,6 +148,44 @@ struct BrowserScreen: View {
             .transition(.opacity)
             .accessibilityHidden(true)
     }
+
+    /// The heart, in a row of its own beneath the strip.
+    ///
+    /// Instagram's own header is behind that strip at every scroll position —
+    /// it pins itself to the top of the glass, and three attempts at persuading
+    /// it not to all came back in a photograph. Hidden is the right outcome:
+    /// nothing is ever drawn through the clock. But the heart went with it, and
+    /// the heart was the one thing in that bar that is nowhere else in Quiet.
+    ///
+    /// So the app draws it. The row is always here, so the page is always told
+    /// the same number and the feed never jumps; the heart appears in it once
+    /// the page has said where it goes. Quiet guesses no addresses.
+    private var heart: some View {
+        VStack(spacing: 0) {
+            Color.clear.frame(height: topInset)
+            HStack(spacing: 0) {
+                Spacer(minLength: 0)
+                if surface.activity != nil {
+                    Button { Touch.tick(); surface.goToActivity() } label: {
+                        Image(systemName: "heart")
+                            .font(.system(size: 23, weight: .regular))
+                            .foregroundStyle(Color(uiColor: .label))
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text("Notifications"))
+                }
+            }
+            .padding(.trailing, 6)
+            .frame(height: Self.headerRow)
+            Spacer(minLength: 0)
+        }
+    }
+
+    /// The row under the strip. Forty-four points, which is the height of every
+    /// bar on iOS and about what Instagram's own is.
+    private static let headerRow: CGFloat = 44
 
     /// Where the row says you are.
     ///

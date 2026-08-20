@@ -755,3 +755,32 @@ header sits just below the strip; if it does not, the header slides underneath
 and out of sight. Neither of those is broken, and that is the point: it is the
 only part of this that does not depend on being right about a stranger's
 stylesheet.
+
+## Said twice: the web view gets the whole glass
+
+The photograph shows the page stopping thirty-four points above the bottom of
+the screen — the home indicator, to the point — with the row floating over a
+black band instead of over Instagram's next photograph. The same thirty-four
+points explain the top, where the strip and the page happened to agree.
+
+The stack already ignores the safe area. A `UIViewRepresentable` inside such a
+stack is not reliably given the whole of it, and the fix is one line on the view
+itself. Said twice, it holds. This had been diagnosed three other ways first —
+a content inset, Instagram's floor padding, a viewport — and only the second of
+those was a real fault.
+
+## The heart belongs to the app now
+
+Instagram's own header is behind the strip at every scroll position. That is the
+right outcome: three attempts at persuading a bar it pins to the top of the
+glass to sit lower each came back in a photograph with the wordmark through the
+battery, and hidden means nothing is ever drawn across the clock.
+
+But the heart went with it, and the heart was the one control in that bar that
+is nowhere else in Quiet.
+
+So the app draws it, in a row of its own beneath the strip. The row is always
+there, so the page is always told the same number and the feed never jumps as
+the app learns things. The heart appears in it once the page has said where it
+goes — `/accounts/activity/`, read out of Instagram's own bar. Quiet guesses no
+addresses.
