@@ -10,6 +10,11 @@ on:
         description: "What is this build for? (appears in the run title)"
         required: false
         default: "TestFlight"
+      reclaim:
+        description: "Revoke the oldest Apple Development certificate first (only if the account is full)"
+        type: boolean
+        required: false
+        default: false
 
 concurrency:
   group: testflight
@@ -102,6 +107,34 @@ jobs:
           printf '%s\n' "$KEY" > "$path"
           chmod 600 "$path"
           echo "path=$path" >> "$GITHUB_OUTPUT"
+          # What this run creates on the account, this run gives back. The
+          # cleanup below needs to know where "this run" starts, and a
+          # timestamp taken before anything is signed is the whole of it.
+          echo "SIGNING_SINCE=$(date -u +%s)" >> "$GITHUB_ENV"
+
+      # One virtual environment, used by both ends of the run. Nothing here
+      # touches the build; if it fails, the archive still goes ahead and the
+      # account simply keeps the certificate.
+      - name: A way to talk to App Store Connect
+        id: asc
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          python3 -m venv "$RUNNER_TEMP/asc"
+          "$RUNNER_TEMP/asc/bin/pip" install --quiet "pyjwt[crypto]"
+
+      # Only when the box was ticked. It revokes something, so it is a decision
+      # taken per run by the person who owns the account — the same reasoning
+      # that makes this whole workflow a button rather than a push.
+      - name: Make room for a certificate
+        if: inputs.reclaim && steps.asc.outcome == 'success'
+        env:
+          KEY_PATH: ${{ steps.key.outputs.path }}
+          KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ISSUER: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          "$RUNNER_TEMP/asc/bin/python" \
+            "$GITHUB_WORKSPACE/.github/scripts/certificates.py" reclaim
 
       # The run number, so App Store Connect never sees a build number twice.
       # It only ever goes up, which is the one thing it has to do.
@@ -166,6 +199,27 @@ jobs:
             | sed "s|$GITHUB_WORKSPACE/||g" \
             | grep -E "error:|warning:|Upload|\*\* EXPORT"
 
+      # Xcode cannot reuse a certificate whose private key it does not have,
+      # and a fresh runner never has one — so every upload asks App Store
+      # Connect for a new one. Apple allows two of the development kind. Three
+      # runs and the account is full, which is precisely how two runs failed:
+      # not on the app, on a slot.
+      #
+      # So the run hands back what it borrowed, whether it got as far as an
+      # upload or not. See .github/scripts/certificates.py for what it will and
+      # will not touch. It never fails the run: a certificate left behind is
+      # tomorrow's problem, and a red tick on a build that reached TestFlight is
+      # a lie.
+      - name: Give the certificate back
+        if: always() && steps.asc.outcome == 'success'
+        env:
+          KEY_PATH: ${{ steps.key.outputs.path }}
+          KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ISSUER: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          "$RUNNER_TEMP/asc/bin/python" \
+            "$GITHUB_WORKSPACE/.github/scripts/certificates.py" return
+
       - name: Say what went up
         if: success()
         run: |
@@ -219,20 +273,26 @@ jobs:
             printf '%s\n' \
               '## The account has no room for another certificate' \
               '' \
-              'Apple allows a limited number of distribution certificates per team —' \
-              'three — and the team already holds that many, so Xcode could not create' \
-              'the one it needed and then found no profile to sign with. Nothing in' \
-              'this repository can fix that. It is one step, on the account:' \
+              'Apple allows two **Apple Development** certificates per membership, and' \
+              'the account holds two — so Xcode could not create the one it archives' \
+              'with, and then found no profile to sign against. Read the second error' \
+              'line: it asks for a *development* profile, not a distribution one.' \
               '' \
-              'Go to **developer.apple.com/account → Certificates, Identifiers &' \
-              'Profiles → Certificates**, and revoke an **Apple Distribution**' \
-              'certificate that is not in use — an expired one, or one belonging to a' \
-              'Mac you no longer build from. Revoking does not affect apps already on' \
-              'the App Store or in TestFlight; it only stops that certificate signing' \
-              'anything new.' \
+              'Every run now gives back the certificate it created, so the account' \
+              'should not fill up again. If it is full now, it filled up before that' \
+              'existed, and there are two ways to empty it.' \
               '' \
-              'Then run this workflow again. Xcode creates a fresh certificate and a' \
-              'matching profile through the API key, and the archive proceeds.' \
+              '**From here:** run this workflow again with **Revoke the oldest Apple' \
+              'Development certificate first** ticked. It frees one slot and then' \
+              'builds.' \
+              '' \
+              '**From Apple:** developer.apple.com/account → **Certificates,' \
+              'Identifiers & Profiles → Certificates**, and revoke an **Apple' \
+              'Development** certificate.' \
+              '' \
+              'Either way, nothing already on the App Store or in TestFlight is' \
+              'affected — Apple re-signs what it distributes. Revoking only stops that' \
+              'certificate signing anything new.' \
               >> "$GITHUB_STEP_SUMMARY"
           elif grep -q "No suitable application records were found" "$log"; then
             printf '%s\n' \
