@@ -97,28 +97,48 @@
   /* ── Instagram's own navigation ───────────────────────────────────────── */
 
   /**
-   * The row along the bottom, found by what is *in* it rather than by where it
-   * sits: a link to "/" and a link to "/direct/". Both are addresses, so both
-   * survive translation, and neither depends on the row being on screen — which
-   * matters, because the row is about to be hidden and a hidden element has no
-   * geometry to measure.
+   * The row along the bottom.
+   *
+   * Found by two links that are certainly in it — one to "/" and one to
+   * "/direct/" — and then by taking, for each, the one *lowest on the screen*.
+   * That last part is the whole of it: Instagram's wordmark at the top of the
+   * feed is also a link to "/", and it comes first in the document. Walking up
+   * from the wordmark to something that also contains the messages link lands
+   * on a container holding most of the page, and everything downstream then
+   * reads the wrong thing out of it.
+   *
+   * The guard below says the same thing a second way: a navigation bar has a
+   * handful of links in it, not fifty.
    */
-  function navRow() {
-    var home = null;
-    var direct = null;
+  function lowest(matches) {
+    var best = null;
+    var bestBottom = -Infinity;
     var links = document.querySelectorAll("a[href]");
     for (var i = 0; i < links.length; i++) {
-      var href = links[i].getAttribute("href") || "";
-      if (!home && href === "/") home = links[i];
-      if (!direct && href.indexOf("/direct/") === 0) direct = links[i];
+      if (!matches(links[i].getAttribute("href") || "")) continue;
+      var box = links[i].getBoundingClientRect();
+      if (box.height === 0) continue;
+      if (box.bottom > bestBottom) {
+        bestBottom = box.bottom;
+        best = links[i];
+      }
     }
+    return best;
+  }
+
+  function navRow() {
+    var home = lowest(function (href) { return href === "/"; });
+    var direct = lowest(function (href) { return href.indexOf("/direct/") === 0; });
     if (!home || !direct) return null;
 
     var node = home.parentElement;
     while (node && node !== document.body && !node.contains(direct)) {
       node = node.parentElement;
     }
-    return node && node !== document.body ? node : null;
+    if (!node || node === document.body) return null;
+    // A bar, not a page.
+    if (node.querySelectorAll("a[href]").length > 12) return null;
+    return node;
   }
 
   /**
@@ -129,11 +149,14 @@
    * offer a profile button of its own, and asks nothing of Instagram to get it.
    */
   function learnMe(row) {
-    if (window.__quietMe) return;
+    // Only ever from inside the bar. A profile link in the feed belongs to
+    // whoever posted, and sending somebody to a stranger's profile under a
+    // button marked "your profile" is worse than having no button.
     var links = row.querySelectorAll('a[href^="/"]');
     for (var i = 0; i < links.length; i++) {
       var match = /^\/([A-Za-z0-9._]{1,30})\/?$/.exec(links[i].getAttribute("href") || "");
       if (!match) continue;
+      if (window.__quietMe === match[1]) return;
       window.__quietMe = match[1];
       post({ kind: "me", username: match[1] });
       return;
