@@ -135,13 +135,52 @@ jobs:
 
           file shots/*.png | sed 's|.*/||'
 
+      # The row is a different shape on a phone with a home button, and a claim
+      # about a shape is worth exactly what a picture of it is worth. The same
+      # build installs on any simulator, so this costs a boot and nothing else.
+      #
+      # Not fatal if no such simulator is on the runner: the images simply do
+      # not appear, and the preview loop skips what is not there. A missing
+      # photograph is better than a red run about somebody else's image.
+      - name: Photograph a phone with a home button
+        if: always()
+        timeout-minutes: 15
+        run: |
+          set -euo pipefail
+          small=$(xcrun simctl list devices available \
+            | sed -n 's/^ *\(iPhone SE[^(]*\) (.*/\1/p' | sed 's/ *$//' | tail -1)
+          if [ -z "$small" ]; then
+            echo "No iPhone SE simulator on this runner; skipping."
+            exit 0
+          fi
+
+          echo "Booting $small"
+          xcrun simctl shutdown "${{ steps.sim.outputs.device }}" >/dev/null 2>&1 || true
+          xcrun simctl boot "$small" || true
+          xcrun simctl bootstatus "$small" -b
+
+          app="DerivedData/Build/Products/Debug-iphonesimulator/Quiet.app"
+          xcrun simctl install booted "$app"
+
+          shoot () {
+            local name="$1" scene="$2"
+            xcrun simctl terminate booted com.connexa.quiet >/dev/null 2>&1 || true
+            xcrun simctl launch booted com.connexa.quiet -QuietRehearsal "$scene" >/dev/null
+            if [ "$scene" = "browsing" ]; then sleep 14; else sleep 6; fi
+            xcrun simctl io booted screenshot --type=png "shots/$name.png"
+          }
+
+          shoot feed-home-button  browsing
+          shoot setup-home-button fresh
+
       # Small enough to travel through a log, large enough to judge a layout.
       - name: Look at them
         if: always()
         run: |
           set -euo pipefail
           cd shots
-          for f in feed setup panel limit search curtain \
+          for f in feed feed-home-button setup setup-home-button \
+                   panel limit search curtain \
                    setup-largest panel-largest limit-largest curtain-largest \
                    setup-dark panel-dark curtain-dark \
                    setup-german panel-german limit-german curtain-german; do
@@ -153,7 +192,7 @@ jobs:
               # The feed and the accessibility sizes are the two worth looking
               # at closely: one carries Quiet's own furniture over somebody
               # else's page, the other is where a layout gives way.
-              feed|*-largest) width=760 ;;
+              feed|feed-home-button|*-largest) width=760 ;;
               *)              width=420 ;;
             esac
             sips -Z "$width" -s format jpeg -s formatOptions 60 "$f.png" --out "$f.jpg" >/dev/null
