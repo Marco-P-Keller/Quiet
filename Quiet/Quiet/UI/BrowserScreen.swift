@@ -57,6 +57,16 @@ struct BrowserScreen: View {
     /// window has laid nothing out yet and answers zero.
     @State private var topInset: CGFloat = SafeArea.top
     @State private var bottomInset: CGFloat = SafeArea.bottom
+
+    /// The whole glass, in points.
+    ///
+    /// The web view is given this as a frame outright rather than being left to
+    /// fill a stack that has been told to ignore the safe area. Twice now a
+    /// photograph has shown the page stopping thirty-four points short of the
+    /// bottom — the home indicator, to the point — with the row floating over a
+    /// black band instead of over the next photograph. Ignoring the safe area
+    /// is a request. A size is not.
+    @State private var glass: CGSize = SafeArea.glass
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -79,6 +89,10 @@ struct BrowserScreen: View {
                     bottom: furniture,
                     right: 0
                 )
+            )
+            .frame(
+                width: glass.width > 0 ? glass.width : nil,
+                height: glass.height > 0 ? glass.height : nil
             )
             // Said again here, on the view itself.
             //
@@ -129,6 +143,7 @@ struct BrowserScreen: View {
         .onAppear {
             topInset = SafeArea.top
             bottomInset = SafeArea.bottom
+            glass = SafeArea.glass
         }
     }
 
@@ -453,11 +468,18 @@ enum SafeArea {
     static var top: CGFloat { insets?.top ?? 20 }
     static var bottom: CGFloat { insets?.bottom ?? 0 }
 
-    private static var insets: UIEdgeInsets? {
+    /// The window's own size, which is the screen: Quiet has one window and no
+    /// split view. Zero when there is no window yet, and a zero is read as "no
+    /// opinion" rather than as a size, so nothing is squashed by an early
+    /// answer.
+    static var glass: CGSize { window?.bounds.size ?? .zero }
+
+    private static var insets: UIEdgeInsets? { window?.safeAreaInsets }
+
+    private static var window: UIWindow? {
         UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
             .flatMap(\.windows)
-            .first { $0.isKeyWindow }?
-            .safeAreaInsets
+            .first { $0.isKeyWindow }
     }
 }

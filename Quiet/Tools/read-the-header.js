@@ -401,5 +401,25 @@ const GROUPED = `
     "pinned"
   );
 
+  /* The reservation is there whether or not there is a row to walk up from.
+   * On a page where Instagram draws no bottom bar, the padding it keeps for one
+   * is still a black band under a row that floats. */
+  const floored = await page(
+    `<main data-name="feed" style="padding-bottom: 60px"></main>`,
+    FEED
+  );
+  check(
+    "the feed's own floor is taken up with no row in sight",
+    floored.document.querySelector('[data-name="feed"]').hasAttribute("data-quiet-floor"),
+    true
+  );
+
+  const unfloored = await page(`<main data-name="feed"></main>`, FEED);
+  check(
+    "and a page that reserved nothing is left alone",
+    unfloored.document.querySelector('[data-name="feed"]').hasAttribute("data-quiet-floor"),
+    false
+  );
+
   process.exit(failures ? 1 : 0);
 })();

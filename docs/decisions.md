@@ -820,3 +820,33 @@ Instagram's own header sits directly beneath it — with its own wordmark, its o
 plus and its own heart, in its own place. The app draws no header of its own,
 which is the third time this project has arrived at that answer and the first
 time it can be relied on.
+
+## A size, not a request
+
+Twice a photograph has shown the page stopping thirty-four points above the
+bottom of the glass — the home indicator, to the point — with the row floating
+over a black band instead of over Instagram's next photograph. Both times the
+answer was to ask SwiftUI more politely to ignore the safe area, on the stack
+and then on the view as well.
+
+Ignoring the safe area is a request. A size is not. The web view is now given
+the window's own bounds as a frame outright, inside a stack aligned to the top,
+so it covers the glass whatever the layout system decides it would have
+preferred. A zero is read as "no opinion" rather than as a size, so an early
+answer never squashes it.
+
+## And the page's own idea of what it owes the bottom
+
+Two things put a black band down there besides the frame.
+
+The padding Instagram reserves for the bar Quiet hides — now taken up wherever
+it is, not only on the ancestors of a row that some pages do not have.
+
+And `env(safe-area-inset-bottom)`, which reads zero until a page asks for
+`viewport-fit=cover` — which Quiet asks for, on Instagram's behalf, so that the
+rule keeping the header off the clock can see the notch. Switching it on for the
+top switched on every rule that consults it at the bottom. That is a black band
+this project turned on itself, three commits after complaining about one.
+
+Both are refused now, on `html` and `body` and on anything found holding a floor
+worth eight points or more.

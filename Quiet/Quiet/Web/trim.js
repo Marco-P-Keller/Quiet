@@ -414,17 +414,35 @@
    * is enough of it to be the reservation rather than a margin somebody chose.
    */
   function takeUpTheFloor(row) {
+    // The feed's own container, whether or not it is an ancestor of the row.
+    // On the pages where Instagram draws no bottom bar there is no row to walk
+    // up from, and the reservation is there all the same.
+    var main = document.querySelector("main");
+    if (main) {
+      markFloor(main);
+      markFloor(main.parentElement);
+      markFloor(main.firstElementChild);
+    }
+
     var node = row.parentElement;
     var depth = 0;
     while (node && node !== document.documentElement && depth < 8) {
-      if (node.getAttribute("data-quiet-floor") === null) {
-        var padding = parseFloat(window.getComputedStyle(node).paddingBottom);
-        if (!isNaN(padding) && padding >= 8) {
-          node.setAttribute("data-quiet-floor", "");
-        }
-      }
+      markFloor(node);
       node = node.parentElement;
       depth += 1;
+    }
+  }
+
+  /** Enough bottom padding to be a reservation rather than a choice. */
+  function markFloor(node) {
+    if (!node || node.nodeType !== 1) return;
+    if (node.getAttribute("data-quiet-floor") !== null) return;
+
+    var style = window.getComputedStyle(node);
+    var padding = parseFloat(style.paddingBottom);
+    var margin = parseFloat(style.marginBottom);
+    if ((!isNaN(padding) && padding >= 8) || (!isNaN(margin) && margin >= 8)) {
+      node.setAttribute("data-quiet-floor", "");
     }
   }
 
@@ -887,6 +905,7 @@
       if (main) trimSuggestions(main);
       coverTheGlass();
       makeRoom();
+      takeUpTheFloor(document.body);
       guardLocation();
       sayWhere();
       whoAmI();

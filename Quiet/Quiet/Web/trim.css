@@ -201,4 +201,26 @@ body {
 
 [data-quiet-floor] {
   padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/*
+ * And the page itself, whatever it thinks it owes the bottom of the screen.
+ *
+ * Quiet's row floats over the page rather than cutting it off, so there is
+ * nothing down there to keep clear of. Two things put a black band there
+ * anyway: the padding Instagram reserves for the bar Quiet hides, and
+ * `env(safe-area-inset-bottom)`, which reads zero until a page asks for
+ * `viewport-fit=cover` — and Quiet asks for it, on this page's behalf, so that
+ * the rule keeping the header off the clock can see the notch. Turning it on
+ * for the top switched on every rule that consults it at the bottom.
+ *
+ * The row is drawn by the app, over the top of all of this, and the page is
+ * meant to run on underneath it to the edge of the glass.
+ */
+
+html,
+body {
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
 }
