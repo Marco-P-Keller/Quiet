@@ -23,13 +23,6 @@ final class WebSurface {
     /// rather than swallowed.
     private(set) var missingResources: [String] = []
 
-    /// Whether the page Quiet is showing has a navigation bar of its own.
-    ///
-    /// Instagram drops it on some screens. Reported by the trim script, which is
-    /// the only thing that can see the page — and defaulted to true so that a
-    /// bar of Quiet's never flashes up during a load and then leaves again.
-    private(set) var hasPageBar = true
-
     /// False until the first page has finished, or failed. While it is false the
     /// browsing screen keeps Quiet's own paper over the top, so a cold launch
     /// shows a considered blank rather than the white rectangle of a web view
@@ -136,17 +129,15 @@ final class WebSurface {
     fileprivate func markLoaded() {
         hasLoaded = true
     }
-
-    fileprivate func note(pageBar: Bool) {
-        guard pageBar != hasPageBar else { return }
-        hasPageBar = pageBar
-    }
 }
 
 /// Instagram, minus the parts that were built to keep you there.
 struct InstagramWebView: UIViewRepresentable {
     let surface: WebSurface
     let session: QuietSession
+    /// How much of the top and bottom of the screen belongs to somebody else —
+    /// the status bar above, Quiet's own row of controls below.
+    var inset: UIEdgeInsets
 
     func makeCoordinator() -> Coordinator {
         Coordinator(session: session, surface: surface)
@@ -175,6 +166,25 @@ struct InstagramWebView: UIViewRepresentable {
         webView.customUserAgent = UserAgent.mobileSafari(systemVersion: UIDevice.current.systemVersion)
         webView.backgroundColor = .systemBackground
         webView.scrollView.backgroundColor = .systemBackground
+
+        // The page is given the whole screen and told which parts of it are
+        // spoken for, rather than being given a smaller screen.
+        //
+        // This is the third attempt at the same half-inch of glass. Instagram
+        // lays its header against the top of whatever it is given, so it ended
+        // up under the clock. Making the web view shorter fixed that and
+        // detached the site's own header into the middle of the feed, because a
+        // sticky position is laid out against a viewport. Asking the page to
+        // respect the safe area, with viewport-fit, did nothing at all — the
+        // site's stylesheet does not consult it.
+        //
+        // A content inset changes neither the viewport nor the frame. WebKit
+        // positions fixed elements against the unobscured rect, which is what
+        // this defines, and it is the same mechanism a browser uses for its own
+        // toolbars.
+        webView.scrollView.contentInsetAdjustmentBehavior = .never
+        webView.scrollView.contentInset = inset
+        webView.scrollView.verticalScrollIndicatorInsets = inset
         webView.load(URLRequest(url: ContentRules.home))
 
         surface.adopt(webView, missing: payload.missing)
@@ -182,6 +192,10 @@ struct InstagramWebView: UIViewRepresentable {
     }
 
     func updateUIView(_ webView: WKWebView, context: Context) {
+        if webView.scrollView.contentInset != inset {
+            webView.scrollView.contentInset = inset
+            webView.scrollView.verticalScrollIndicatorInsets = inset
+        }
         context.coordinator.session = session
     }
 
@@ -309,13 +323,8 @@ struct InstagramWebView: UIViewRepresentable {
                 session.isPanelShowing = true
 
             case "search":
-                // The magnifying glass Quiet puts back into the navigation.
+                // The magnifying glass, tapped in Quiet's own row.
                 session.isSearchShowing = true
-
-            case "bar":
-                // Whether this page has a navigation bar at all. When it does
-                // not, the app draws the two controls itself.
-                surface.note(pageBar: body["present"] as? Bool ?? true)
 
             default:
                 break

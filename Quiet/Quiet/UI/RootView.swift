@@ -7,13 +7,8 @@ struct RootView: View {
     let session: QuietSession
 
     @State private var surface = WebSurface()
-    @State private var isHintShowing = false
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    /// How long the one-time hint about the top edge stays up. Long enough to
-    /// read twice, short enough not to be in the way.
-    private static let hintDuration: Duration = .seconds(6)
 
     var body: some View {
         @Bindable var session = session
@@ -41,9 +36,6 @@ struct RootView: View {
                 #if DEBUG
                 Rehearsal.open(session)
                 #endif
-                if session.screen == .browsing, session.isLearningTheGesture {
-                    sayWhereQuietIs()
-                }
             }
             .onChange(of: scenePhase, initial: true) { _, phase in
                 session.setForeground(phase == .active)
@@ -63,15 +55,10 @@ struct RootView: View {
         case .setup:
             SetupView { minutes in
                 session.completeSetup(minutes: minutes)
-                sayWhereQuietIs()
             }
 
         case .browsing:
-            BrowserScreen(
-                session: session,
-                surface: surface,
-                isHintShowing: isHintShowing
-            )
+            BrowserScreen(session: session, surface: surface)
 
         case .spent:
             CurtainView(
@@ -85,14 +72,4 @@ struct RootView: View {
         }
     }
 
-    /// The app has no tutorial; this is the whole of it. One sentence saying
-    /// where Quiet's own settings are, shown after setup and again on the first
-    /// launch of each of the next two days, after which it assumes you know.
-    private func sayWhereQuietIs() {
-        isHintShowing = true
-        Task {
-            try? await Task.sleep(for: Self.hintDuration)
-            isHintShowing = false
-        }
-    }
 }

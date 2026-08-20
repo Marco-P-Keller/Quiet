@@ -142,19 +142,6 @@ final class QuietSession {
     /// the red banner waited for some unrelated redraw to appear.
     private(set) var isMemoryReliable = true
 
-    /// Whether the app should still say where its own settings are.
-    ///
-    /// Anything explained exactly once, on the busiest screen of the first run,
-    /// is a thing most people will not have heard. Quiet repeats it on the first
-    /// launch of each of the first three days and then stops, which costs no
-    /// extra stored state: the day setup finished is already known.
-    var isLearningTheGesture: Bool {
-        guard let setupDay else { return false }
-        return setupDay.days(to: today) < Self.teachingDays
-    }
-
-    private static let teachingDays = 3
-
     // MARK: - Changing the limit
 
     /// What would happen if this number were asked for, without asking for it.

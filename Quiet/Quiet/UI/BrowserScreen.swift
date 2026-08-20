@@ -9,22 +9,21 @@ import UIKit
 /// watch. What time is left is in the panel, for the moments you actually want
 /// to know.
 ///
-/// Quiet draws nothing over Instagram. Everything it adds to the page is added
-/// *to* the page, by the trim script, in the two places Instagram left empty: a
-/// full stop beside the settings on your own profile, and the search Instagram
-/// took away, back in the slot it used to occupy.
+/// Quiet keeps one row of its own along the bottom: a search, and a clock for
+/// its settings. Two icons, always in the same place, on every page.
 ///
-/// There was a long press on the status bar for a while. It worked, and it was
-/// still a trick you had to be told about, so it is gone. Settings live where
-/// settings live.
+/// They lived inside Instagram's own navigation for a while, which is where
+/// they belonged and where they twice failed to appear — a bar built by
+/// somebody else, out of generated class names, in a layout that has no room
+/// for a fourth child. Reliability wins that argument. A control you cannot
+/// find is worth less than one in a slightly worse place.
 ///
-/// The strip along the bottom stays, for a duller reason than the one it was
-/// added for: without it the site's own navigation sits on the home indicator.
+/// The web view keeps the whole screen and is told which parts of it are spoken
+/// for, so nothing of Quiet's ever covers the page.
 @MainActor
 struct BrowserScreen: View {
     let session: QuietSession
     let surface: WebSurface
-    var isHintShowing: Bool
 
     /// Twenty points is the shortest status bar any iPhone has; the real height
     /// arrives on the first layout pass.
@@ -37,28 +36,24 @@ struct BrowserScreen: View {
         // screen. Everything inside is then positioned against the glass, which
         // is what both the strip and the notices want.
         ZStack(alignment: .top) {
-            // The web view is the whole screen again.
-            //
-            // It was held below the status bar for a while, to stop Instagram's
-            // logo rendering under the clock. On a real phone that produced
-            // something far worse: the site's own header detached and floated
-            // into the middle of the feed. Sticky headers are laid out against a
-            // viewport, and shrinking the viewport out from under a page that is
-            // already running is not a thing this app can do carefully enough to
-            // be worth it. The seam is asked for instead, by telling the page
-            // its safe area exists — see `viewport-fit` in trim.js.
             Color(uiColor: .systemBackground)
 
-            InstagramWebView(surface: surface, session: session)
-
-            // Only when the page has no bar of its own to put them in.
-            if !surface.hasPageBar {
-                quietBar
-            }
+            // The whole screen, with the parts that are spoken for declared as
+            // an inset rather than taken away. See `InstagramWebView` for what
+            // the two attempts before this one did to Instagram's header.
+            InstagramWebView(
+                surface: surface,
+                session: session,
+                inset: UIEdgeInsets(top: topInset, left: 0, bottom: barHeight + bottomInset, right: 0)
+            )
 
             if !surface.hasLoaded {
                 cover
             }
+
+            // Over the cover, so it is there from the first frame rather than
+            // arriving with the page.
+            quietBar
 
             statusBarStrip
 
@@ -67,7 +62,6 @@ struct BrowserScreen: View {
         }
         .ignoresSafeArea()
         .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: surface.hasLoaded)
-        .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: surface.hasPageBar)
         .onAppear {
             topInset = SafeArea.top
             bottomInset = SafeArea.bottom
@@ -78,7 +72,7 @@ struct BrowserScreen: View {
     /// A cold launch should look like the app deciding to start, not like a
     /// blank browser.
     private var cover: some View {
-        Paper.page
+        Color(uiColor: .systemBackground)
             .ignoresSafeArea()
             .transition(.opacity)
             .accessibilityHidden(true)
@@ -106,11 +100,13 @@ struct BrowserScreen: View {
                     session.isPanelShowing = true
                 }
             }
-            .frame(height: 46)
+            .frame(height: barHeight)
             .padding(.bottom, bottomInset)
             .background(Color(uiColor: .systemBackground))
         }
     }
+
+    private let barHeight: CGFloat = 46
 
     private func barButton(_ symbol: String, _ label: Text, action: @escaping () -> Void) -> some View {
         Button(action: action) {
@@ -141,9 +137,6 @@ struct BrowserScreen: View {
             if let notice = session.notice {
                 NoticeView(notice: notice) { session.dismissNotice(token: $0) }
             }
-            if isHintShowing {
-                hint
-            }
             if !surface.missingResources.isEmpty {
                 alarm("Quiet is missing \(surface.missingResources.joined(separator: " and ")). Reinstall from a clean build.")
             }
@@ -152,18 +145,6 @@ struct BrowserScreen: View {
             }
         }
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: session.notice)
-        .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: isHintShowing)
-    }
-
-    private var hint: some View {
-        Text("Quiet's settings are on your profile, beside Instagram's own.")
-            .font(.quietSmall)
-            .foregroundStyle(Paper.page)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 9)
-            .background(Paper.ink.opacity(0.85))
-            .clipShape(Capsule())
-            .transition(.opacity)
     }
 
     /// The only red in the app.

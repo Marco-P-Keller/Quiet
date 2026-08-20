@@ -35,7 +35,6 @@ enum WebScripts {
         // rather than in the language this file happens to be written in.
         scripts.append(userScript(source: """
         window.__quietSettingsLabel = \(quoted(String(localized: "Quiet settings")));
-        window.__quietSearchLabel = \(quoted(String(localized: "Find someone")));
         """))
 
         if let js = text(named: "trim", extension: "js", in: bundle) {

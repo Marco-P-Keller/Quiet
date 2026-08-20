@@ -379,30 +379,45 @@ you have even signed in — and it was the first thing a new user saw.
 Quiet opens at `/accounts/login/`, which is the form a person came to use. A
 signed-in session is sent straight on to the feed.
 
-## The page is asked to avoid the notch, not made shorter
+## The page keeps the whole screen and is told what is spoken for
 
-Instagram's header rendered underneath the clock, because a page does not know
-it is inside an app: it lays its header against the top of whatever it is given.
+Three attempts at the same half-inch of glass, and the first two are worth
+writing down because they are both reasonable and both wrong.
 
-The first fix was to give it less — hold the web view below the status bar. On a
-simulator that looked right. On a real phone it detached Instagram's own header
-and left it floating in the middle of the feed. Sticky positions are laid out
-against a viewport, and moving the viewport out from under a page that is
-already running is not something this app can do carefully enough to be worth
-it.
+Instagram lays its header against the top of whatever it is given, so it ended
+up under the clock. **Making the web view shorter** fixed that, and on a real
+phone detached the site's own header into the middle of the feed — a sticky
+position is laid out against a viewport, and the viewport had moved out from
+under a running page. **Asking the page to respect the safe area**, by adding
+`viewport-fit=cover` to its viewport meta, did nothing whatsoever: the site's
+stylesheet never consults `env()`, so there was nothing to tell.
 
-The page is asked instead. Without `viewport-fit=cover` in the viewport meta,
-WebKit reports every `env(safe-area-inset-*)` as zero, so a site that has taken
-the trouble to avoid the status bar cannot tell that it is there. Adding the one
-word lets Instagram's own rules do the work, and the app resizes nothing.
+A **content inset** changes neither the frame nor the viewport. WebKit positions
+fixed elements against the unobscured rect, which is exactly what an inset
+defines, and it is the same mechanism a browser uses to make room for its own
+toolbars. The page keeps the whole screen and is told that the top belongs to
+the status bar and the bottom to Quiet's own row.
 
-## One bar, except where there is none
+## One row of Quiet's own, along the bottom
 
-Quiet's search and clock live inside Instagram's own navigation bar. On the
-screens where Instagram drops that bar — messages is the one people notice —
-they would vanish with it, and controls that come and go with somebody else's
-layout are worse than no controls at all: you stop trusting the corner.
+The search and the clock belonged inside Instagram's navigation bar, and that is
+where they twice failed to appear: a bar built by somebody else, out of
+generated class names, in a layout with no room for a fourth child. Both times
+the failure was silent, which is the worst part — the app looked finished and
+had no controls.
 
-So the script says whether the page has a bar, and on the pages that do not, the
-app draws the two of them itself, in the page's own colours, in the same corner
-of the screen they occupy everywhere else. One bar, never two.
+They now live in a row of Quiet's own, always, on every page. It costs a second
+line at the bottom of the screen on the pages where Instagram draws one too, and
+buys a control that is always in the same place and cannot be taken away by
+somebody else's stylesheet. A control you cannot find is worth less than one in
+a slightly worse place.
+
+The clock beside Instagram's own settings, on your profile, stays: that one
+works, and settings belong where settings already are.
+
+## No first-run hint
+
+There was a sentence on the first launch saying where Quiet's settings live.
+With a hidden gesture it was necessary. With two icons in a row that never
+moves, it is one more thing to read — and it arrived before the page did, so
+the first thing anybody saw was a bubble on an empty screen.

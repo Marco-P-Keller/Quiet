@@ -8,11 +8,11 @@
  *      say why. Silence would read as a broken page.
  *   2. Hide suggestion blocks, which carry no address of their own and can only
  *      be recognised by their wording.
- *   3. Put back the two things Quiet needs the page to carry: its own mark
- *      beside Instagram's settings on your profile, and a search in the slot
- *      Instagram's own search used to occupy. Both are found by where they sit
- *      on the screen rather than by what they are called, because a corner does
- *      not change with the language or with next week's class names.
+ *   3. Put Quiet's clock beside Instagram's own settings, on your profile.
+ *      Found by where it sits on the screen rather than by what it is called,
+ *      because a corner does not change with the language or with next week's
+ *      generated class names. Everything else Quiet needs is in the app's own
+ *      row along the bottom, where no stylesheet of Instagram's can reach it.
  *   4. Keep all of it up as the page rewrites itself, because Instagram's web
  *      client replaces the feed without ever loading a new page.
  *
@@ -86,36 +86,10 @@
     post({ kind: "refused", surface: surface });
   }
 
-  /* ── The page's own frame ────────────────────────────────────────────── */
-
-  /**
-   * Ask the page to lay itself out around the notch.
-   *
-   * Without `viewport-fit=cover`, WebKit reports every `env(safe-area-inset-*)`
-   * as zero, so a site that has taken the trouble to avoid the status bar has
-   * no way to know it is there — and Instagram's header renders underneath the
-   * clock. Adding the one word lets the site's own rules do the work.
-   *
-   * The alternative, which this replaces, was for the app to make the web view
-   * shorter. That worked on a simulator and, on a real phone, detached
-   * Instagram's header and left it floating in the middle of the feed: sticky
-   * positions are laid out against a viewport, and moving the viewport under a
-   * running page is not something to do lightly.
-   */
-  function fitViewport() {
-    var meta = document.querySelector('meta[name="viewport"]');
-    if (!meta) return;
-    var content = meta.getAttribute("content") || "";
-    if (content.indexOf("viewport-fit") !== -1) return;
-    meta.setAttribute("content", content + ", viewport-fit=cover");
-  }
-
   /* ── What Quiet puts back ────────────────────────────────────────────── */
 
   var MARK_ID = "quiet-mark";
-  var SEARCH_ID = "quiet-search";
-  var CLOCK_ID = "quiet-clock";
-  var OURS = { "quiet-mark": true, "quiet-search": true, "quiet-clock": true };
+  var OURS = { "quiet-mark": true };
 
   /**
    * Is this the signed-in person's own profile?
@@ -150,69 +124,6 @@
       if (test(box)) return element;
     }
     return null;
-  }
-
-  /**
-   * The navigation bar along the bottom, and the controls in it.
-   *
-   * Found as the element with the most tappable children sitting on the bottom
-   * edge — which is what a navigation bar *is*, and is true of it in every
-   * language and under every generated class name. An earlier version looked
-   * for a single control near the bottom-left and rejected it for being too
-   * wide: the items in that bar are stretched to a third of the screen each, so
-   * the one measurement I used to recognise a button is the one thing they are
-   * not.
-   */
-  function bottomRow() {
-    var candidates = controls();
-    var rows = [];
-    for (var i = 0; i < candidates.length; i++) {
-      var element = candidates[i];
-      if (OURS[element.id] || !element.parentElement) continue;
-      var box = element.getBoundingClientRect();
-      if (box.width < 20 || box.height < 20) continue;
-      if (window.innerHeight - box.bottom > 130) continue;
-      if (box.top < window.innerHeight * 0.7) continue;
-
-      var row = null;
-      for (var j = 0; j < rows.length; j++) {
-        if (rows[j].parent === element.parentElement) row = rows[j];
-      }
-      if (!row) {
-        row = { parent: element.parentElement, items: [] };
-        rows.push(row);
-      }
-      row.items.push(element);
-    }
-
-    var best = null;
-    for (var k = 0; k < rows.length; k++) {
-      if (rows[k].items.length < 2) continue;
-      if (!best || rows[k].items.length > best.items.length) best = rows[k];
-    }
-    if (best) {
-      best.items.sort(function (a, b) {
-        return a.getBoundingClientRect().left - b.getBoundingClientRect().left;
-      });
-    }
-    return best;
-  }
-
-  /**
-   * An icon in Instagram's own hand.
-   *
-   * The bar these sit in is a set of line drawings: one weight, one size, one
-   * colour, inherited from whatever the page is wearing. Anything that does not
-   * match that reads as a fault rather than as a control — which is what a bare
-   * dot did, next to a gear.
-   */
-  function icon(shapes) {
-    return (
-      '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" ' +
-      'stroke="currentColor" stroke-width="1.6" stroke-linecap="round">' +
-      shapes +
-      "</svg>"
-    );
   }
 
   function button(id, label, shapes, extra, onPress) {
@@ -257,67 +168,6 @@
     '<circle cx="12" cy="12" r="7.6"/>' +
     '<line x1="12" y1="12" x2="12" y2="7.6"/>' +
     '<line x1="12" y1="12" x2="15.6" y2="12"/>';
-
-  var GLASS_SHAPES =
-    '<circle cx="10.75" cy="10.75" r="7"/>' +
-    '<line x1="15.9" y1="15.9" x2="20.5" y2="20.5"/>';
-
-  /**
-   * The two things Quiet puts into the navigation bar.
-   *
-   * The search Instagram took away, back in the slot its own search occupied —
-   * that tab is the front door to Explore, so it stays shut, and this one opens
-   * Quiet's, which returns people and nothing else. And the clock, at the end,
-   * because settings belong somewhere you can always reach rather than on one
-   * page you have to navigate to first.
-   *
-   * Both are given `flex: 1` so they share the bar the way its own items do
-   * instead of squeezing them.
-   */
-  var toldBar = null;
-
-  function placeBar() {
-    var row = bottomRow();
-
-    // Instagram drops its navigation on some screens — messages is the one
-    // people notice. The app puts the two controls somewhere else on those
-    // pages, and can only do that if it is told.
-    var present = !!row;
-    if (present !== toldBar) {
-      toldBar = present;
-      post({ kind: "bar", present: present });
-    }
-
-    if (document.getElementById(SEARCH_ID) && document.getElementById(CLOCK_ID)) return;
-    if (!row) return;
-    var share = "flex: 1 1 0; min-width: 44px;";
-
-    if (!document.getElementById(SEARCH_ID)) {
-      var glass = button(
-        SEARCH_ID,
-        window.__quietSearchLabel || "Find someone",
-        GLASS_SHAPES,
-        share,
-        function () {
-          post({ kind: "search" });
-        }
-      );
-      row.items[0].insertAdjacentElement("afterend", glass);
-    }
-
-    if (!document.getElementById(CLOCK_ID)) {
-      var clock = button(
-        CLOCK_ID,
-        window.__quietSettingsLabel || "Quiet settings",
-        CLOCK_SHAPES,
-        share,
-        function () {
-          post({ kind: "settings" });
-        }
-      );
-      row.parent.appendChild(clock);
-    }
-  }
 
   /* ── 1. Taps ──────────────────────────────────────────────────────────── */
 
@@ -398,12 +248,10 @@
     pending = true;
     requestAnimationFrame(function () {
       pending = false;
-      fitViewport();
       var main = document.querySelector("main");
       if (main) trimSuggestions(main);
       guardLocation();
       placeMark();
-      placeBar();
     });
   }
 

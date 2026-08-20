@@ -411,16 +411,6 @@
         }
       }
     },
-    "Quiet's settings are on your profile, beside Instagram's own.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Quiets Einstellungen sind auf deinem Profil, neben denen von Instagram."
-          }
-        }
-      }
-    },
     "Reels are off in Quiet.": {
       "localizations": {
         "de": {
