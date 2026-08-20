@@ -236,7 +236,13 @@ struct InstagramWebView: UIViewRepresentable {
     }
 
     func makeUIView(context: Context) -> WKWebView {
-        let payload = WebScripts.load(top: inset.top)
+        // The larger of what the layout has worked out and what the window
+        // knows. On the first pass the layout has worked out nothing and is
+        // still holding the twenty points the state starts at, while the window
+        // has had the real number since it opened.
+        let top = max(inset.top, SafeArea.top)
+        context.coordinator.top = top
+        let payload = WebScripts.load(top: top)
 
         let controller = WKUserContentController()
         payload.scripts.forEach(controller.addUserScript)
@@ -292,19 +298,14 @@ struct InstagramWebView: UIViewRepresentable {
         if webView.scrollView.verticalScrollIndicatorInsets != inset {
             webView.scrollView.verticalScrollIndicatorInsets = inset
         }
-        // The injected script carries whatever the status bar height was when
-        // the view was made, and on the first pass that is still the twenty
-        // points the screen starts with rather than this phone's real one. The
-        // page is told again, on the page, as soon as the real number arrives.
-        if context.coordinator.top != inset.top {
-            context.coordinator.top = inset.top
-            let points = Int(inset.top.rounded())
-            webView.evaluateJavaScript(
-                """
-                window.__quietTop = \(points);
-                document.documentElement.style.setProperty("--quiet-top", "\(points)px");
-                """
-            )
+        // The same larger-of-the-two as in `makeUIView`, so that a layout pass
+        // that still reports the starting twenty points cannot walk the number
+        // back down again once the window has given the real one.
+        let top = max(inset.top, SafeArea.top)
+        if context.coordinator.top != top {
+            context.coordinator.top = top
+            context.coordinator.tellEveryPage(webView, top: top)
+            context.coordinator.tellThisPage(webView)
         }
         context.coordinator.session = session
     }
@@ -351,8 +352,51 @@ struct InstagramWebView: UIViewRepresentable {
 
         var session: QuietSession
         let surface: WebSurface
-        /// The status bar height the page has been told about.
+
+        /// How tall this phone's status bar is, once anybody knows.
+        ///
+        /// Zero until the first layout pass, which is the whole difficulty
+        /// below: the scripts are built and the first page is asked for before
+        /// this number exists.
         var top: CGFloat = 0
+
+        /// Rebuild the injected scripts around the real number, so that every
+        /// page from here on is told it before its first paint.
+        ///
+        /// This is the half that was missing, and it cost the app the top half
+        /// inch of every screen. The scripts are built once, in `makeUIView`,
+        /// out of whatever the status bar height was at that moment — which is
+        /// the twenty points the state starts at, because the window has not
+        /// laid anything out yet. The real number arrived a moment later and
+        /// was handed to the page with `evaluateJavaScript`, and that is the
+        /// trap: the page it reached was the empty one the web view starts on.
+        /// Instagram's document committed afterwards, ran the injected script
+        /// again, and set the twenty points back.
+        ///
+        /// So the number was never wrong for long. It was right on a document
+        /// nobody ever saw, and twenty points on the one everybody did — about
+        /// seven points of clearance for a fifty-nine point status bar, which
+        /// is the collision in the photograph.
+        func tellEveryPage(_ webView: WKWebView, top: CGFloat) {
+            let controller = webView.configuration.userContentController
+            controller.removeAllUserScripts()
+            WebScripts.load(top: top).scripts.forEach(controller.addUserScript)
+        }
+
+        /// And the document already on screen, whose scripts have run.
+        ///
+        /// Said again on every commit rather than once, because the page that
+        /// matters most is the one loading while the number is still unknown.
+        func tellThisPage(_ webView: WKWebView) {
+            guard top > 0 else { return }
+            let points = Int(top.rounded())
+            webView.evaluateJavaScript(
+                """
+                window.__quietTop = \(points);
+                document.documentElement.style.setProperty("--quiet-top", "\(points)px");
+                """
+            )
+        }
 
         init(session: QuietSession, surface: WebSurface) {
             self.session = session
@@ -425,11 +469,13 @@ struct InstagramWebView: UIViewRepresentable {
 
         func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
             surface.note(address: webView.url)
+            tellThisPage(webView)
         }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             surface.note(address: webView.url)
             surface.markLoaded()
+            tellThisPage(webView)
         }
 
         func webView(

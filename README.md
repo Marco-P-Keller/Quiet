@@ -94,6 +94,14 @@ The app icon is drawn by a script rather than checked in as a mystery PNG:
 python3 Tools/make-icon.py
 ```
 
+The one part of the app that is not Swift — what `trim.js` makes of Instagram's
+header — has a harness of its own, because the alternative was building the app
+and waiting for a photograph every time a selector changed:
+
+```sh
+npm install jsdom && node Tools/read-the-header.js
+```
+
 ## How it is put together
 
 ```

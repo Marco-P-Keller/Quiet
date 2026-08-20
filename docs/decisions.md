@@ -455,11 +455,109 @@ So the app owns the strip behind the clock and nothing else. The header is
 Instagram's own, which carries the controls, the badges and the behaviour, and
 is by definition exactly like Instagram.
 
-What this costs: Quiet shows Instagram's *website*, so the header is the web
-one — the wordmark with a chevron, a plus and a heart — rather than the app's,
-which centres a feed switcher. Closing that gap would mean rebuilding controls
-that open modals no address can reach. It is the same limit the whole app has,
-in the one place it is most visible.
+## The header was drawn through the clock, twice over
+
+A photograph of the running app, with the wordmark, the plus and the heart
+struck straight through the battery, and two faults behind it. Both had been
+reasoned about at length and neither had been measured.
+
+**The page was never told how tall the status bar is.** The scripts are built
+once, in `makeUIView`, out of whatever the height was at that moment — which is
+the twenty points the state starts at, because the window has not laid anything
+out yet. The real number arrived a moment later and was handed over with
+`evaluateJavaScript`, and that is the trap: the page it reached was the empty
+one a web view starts on. Instagram's document committed afterwards, ran the
+injected script again, and put the twenty points back.
+
+So the number was never wrong for long. It was right on a document nobody ever
+saw, and twenty points on the one everybody did — about seven points of
+clearance for a fifty-nine point status bar. Every photograph of "the header is
+under the clock" was a photograph of this.
+
+It is now said three ways, because one way has already lost it: the scripts are
+rebuilt around the real number so every future document is told before its first
+paint, the document on screen is told again on every commit rather than once,
+and `makeUIView` takes the larger of what the layout reports and what the window
+knows rather than trusting the first pass.
+
+**And the bar is pinned after all.** The note above this one says it is not, on
+the strength of a photograph; the photograph showed a feed at rest, where a
+sticky bar and a bar in the flow look exactly alike. Scrolled, they do not: the
+feed slides underneath it and it stays on the clock.
+
+A padding on the document cannot move it. `position: sticky` measures its offset
+from the edge of the scrollport, and the scrollport does not care what the
+document is padded by — so the padding moves every part of the page except the
+one part drawn over the clock. The earlier search for a pinned bar reported
+finding none, and that was the search's fault: it looked at six ancestors of one
+link, and only at elements as wide as the window. What is pinned is a wrapper.
+
+So trim.js asks the browser — `getComputedStyle`, from the bar upward — and
+whatever is pinned within a point of the top gets `top: var(--quiet-clock)`
+instead. Once lifted it stays lifted, because a lifted bar no longer answers the
+question that found it and would otherwise drop back on the next frame.
+
+`--quiet-clock` is the larger of the app's number and `env(safe-area-inset-top)`,
+which needs `viewport-fit=cover` on the viewport meta. That was tried once and
+written off as doing nothing whatsoever, on the grounds that Instagram's
+stylesheet never consults `env()`. True, and beside the point: the stylesheet
+that needs to consult it is ours. The two are kept together because they fail in
+opposite directions — the app's number can be stale, and WebKit's is zero on a
+phone with no notch.
+
+## The header is rearranged, not rebuilt
+
+What the paragraph above left standing was a real difference, and it is the one
+anybody holding both apps sees first. Instagram's app puts the plus on the left,
+the title in the middle and the heart on the right. Instagram's website puts the
+title on the left and both icons on the right. Same three controls, different
+places.
+
+The seventh attempt would have been to draw those three natively and wire them
+to the page. It is the obvious move and it is wrong twice over: the plus opens a
+picker that no address reaches, and a control drawn by the app cannot carry the
+badge Instagram draws on the one it replaced. It also fails the way all six
+before it failed — by needing to be right about a document nobody here can see.
+
+So the three are left exactly where they are in the document and moved only in
+the layout. `trim.js` finds them — the heart by its address, the wordmark by
+its, the plus as the control written next to the heart — marks each with an
+attribute, and four rules in `trim.css` put the plus first, the heart last, and
+the title in the middle of the bar rather than in the middle of what is left
+over. The wrappers in between are given `display: contents`, which stops them
+generating a box so that all three become items of the bar itself.
+
+Three properties come out of that, and they are the whole argument:
+
+* **It works and behaves exactly like Instagram**, because it *is* Instagram —
+  its plus, its chevron, its heart, its badges, its modals, and a bar that
+  scrolls away with the feed because it always did.
+* **Nothing is moved in the document.** Instagram's client owns that tree and
+  rebuilds it whenever it likes; a node this script had moved would be a node it
+  puts back. Where a box is laid out is the browser's business and survives
+  every rebuild.
+* **Unsure means untouched.** If any of the three cannot be found, or two of
+  them turn out to be the same piece of the bar, the header is left precisely as
+  Instagram drew it. A header nobody rearranged is a great deal better than one
+  rearranged on a guess.
+
+What this costs: the title still says whatever Instagram's website says, which
+today is the wordmark rather than the app's "For you". That word belongs to the
+control underneath it, and the control is the site's own — putting a different
+word on somebody else's button is how you end up with a header that lies about
+where it goes.
+
+The finding is now testable without a device. `Tools/read-the-header.js` writes
+the bar as a document and asks trim.js what it makes of it, which caught a fault
+no photograph would have shown for a week: the plus was being picked out as the
+control furthest to the right, and on the second pass — after the stylesheet had
+moved it to the left — that was the chevron. The two would have swapped places
+sixty times a second.
+
+The lift is checked there too, and separately, because the two are different
+questions. Rearranging is a nicety and gives up the moment it is unsure. A
+header drawn through the clock is the app looking broken, and has to be put
+right even on a page whose bar is a shape nothing here recognises.
 
 ## The row marks where you are
 

@@ -74,6 +74,119 @@ div[role="button"]:has(> svg[aria-label="Reels"]) {
  * page that loads before the value does is merely flush rather than broken.
  */
 
+:root {
+  --quiet-clock: max(var(--quiet-top, 0px), env(safe-area-inset-top, 0px));
+}
+
 body {
-  padding-top: var(--quiet-top, 0px) !important;
+  padding-top: var(--quiet-clock, 0px) !important;
+}
+
+/* ── The header, in the arrangement Instagram's own app uses ────────────── */
+/*
+ * The app puts the plus on the left, the title in the middle, and the heart on
+ * the right. The website puts the title on the left and both icons on the
+ * right. Same three controls, different places — so this moves the places and
+ * nothing else.
+ *
+ * Every selector here is an attribute set by trim.js, which finds the three by
+ * address and by geometry and gives up rather than guess. Nothing is moved in
+ * the document: Instagram's client owns that tree and rebuilds it whenever it
+ * likes, and a node this file had moved would be a node it puts back. What
+ * changes is where the boxes are laid out, which is the browser's business and
+ * survives every rebuild.
+ *
+ * The controls themselves are untouched — its plus, its chevron, its heart,
+ * with its badges on them and its modals behind them. The header goes on
+ * working exactly as the site's does, which is the only way it can also behave
+ * exactly as the app's does: it scrolls away with the feed, because it always
+ * did.
+ */
+
+[data-quiet-header] {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  min-height: 44px !important;
+}
+
+/*
+ * The wrappers between the bar and the three controls. `display: contents`
+ * makes a wrapper stop generating a box of its own, so its children become the
+ * bar's flex items — which is how the plus comes out of the group it shares
+ * with the heart without anything being taken out of the document.
+ */
+
+[data-quiet-flatten] {
+  display: contents !important;
+}
+
+/*
+ * Whatever else the flattening brings up into the bar stays between the two
+ * icons, which is where it already was. Without this a spacer inside the
+ * icons' group would inherit an order of nought and be laid out ahead of the
+ * plus, which is a long way from where anybody put it.
+ *
+ * It is written before the three below so that they win the tie: `order` means
+ * nothing at all except to a flex item, so this reaches exactly the elements
+ * those rules are about and none of the rest of the page.
+ */
+
+[data-quiet-header] * {
+  order: 2 !important;
+}
+
+[data-quiet-slot="create"] {
+  order: 1 !important;
+}
+
+[data-quiet-slot="activity"] {
+  order: 3 !important;
+}
+
+/*
+ * The middle of the bar, rather than the middle of what is left over. Taken out
+ * of the flow so that the title stays put whether the heart is carrying a badge
+ * or not — which is what the app does, and the reason its title never shifts.
+ */
+
+[data-quiet-slot="title"] {
+  order: 2 !important;
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+}
+
+/*
+ * Whatever the page has pinned to the top of the glass, pinned to the bottom of
+ * the clock instead.
+ *
+ * This is the rule the header was missing, and it is the whole of the
+ * collision in the photograph. `position: sticky` measures its offset from the
+ * edge of the scrollport, and the scrollport does not care what the document is
+ * padded by — so the padding that starts the feed below the status bar moves
+ * every part of the page except the one part drawn over the clock.
+ *
+ * Set by trim.js on the pinned element itself, which is usually a wrapper
+ * rather than the row of controls, and which is asked of the browser rather
+ * than of a stylesheet.
+ */
+
+[data-quiet-pinned] {
+  top: var(--quiet-clock, 0px) !important;
+}
+
+/*
+ * Something for the centred title to be centred *in*.
+ *
+ * Only when the bar is not itself the pinned element: a sticky bar already
+ * establishes one, and taking its position away to add it back would be
+ * unpinning the header in order to keep its title in the middle.
+ */
+
+[data-quiet-header]:not([data-quiet-pinned]) {
+  position: relative !important;
 }

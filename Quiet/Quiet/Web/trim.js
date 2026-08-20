@@ -1,7 +1,7 @@
 /*
  * Quiet's trim pass.
  *
- * Runs at document start on every Instagram page. Three jobs, in order of how
+ * Runs at document start on every Instagram page. Five jobs, in order of how
  * much they matter:
  *
  *   1. Refuse taps that would open Reels or Explore, and tell the app so it can
@@ -11,11 +11,10 @@
  *   3. Take out Instagram's navigation bar, having first read the signed-in
  *      name out of it, because Quiet carries all five entries in a row of its
  *      own that no stylesheet of Instagram's can reach.
- *   4. Put Quiet's clock beside Instagram's own settings, on your profile.
- *      Found by where it sits on the screen rather than by what it is called,
- *      because a corner does not change with the language or with next week's
- *      generated class names. Everything else Quiet needs is in the app's own
- *      row along the bottom, where no stylesheet of Instagram's can reach it.
+ *   4. Put the header on the feed into the arrangement Instagram's own app
+ *      uses: the plus on the left, the title in the middle, the heart on the
+ *      right. The controls stay the site's own, so what they do and how they
+ *      behave are unchanged — only where they sit.
  *   5. Keep all of it up as the page rewrites itself, because Instagram's web
  *      client replaces the feed without ever loading a new page.
  *
@@ -88,11 +87,6 @@
   function tell(surface) {
     post({ kind: "refused", surface: surface });
   }
-
-  /* ── What Quiet puts back ────────────────────────────────────────────── */
-
-  var MARK_ID = "quiet-mark";
-  var OURS = { "quiet-mark": true };
 
   /* ── Instagram's own navigation ───────────────────────────────────────── */
 
@@ -246,6 +240,68 @@
     document.documentElement.style.setProperty("--quiet-top", top + "px");
   }
 
+  /**
+   * Let the page see the notch, so that trim.css can ask about it.
+   *
+   * `viewport-fit=cover` was tried once and written off as doing nothing
+   * whatsoever, on the grounds that Instagram's stylesheet never consults
+   * `env()`. True, and beside the point: the stylesheet that needs to consult
+   * it is ours. Without this the safe area is flat zero and `env()` in trim.css
+   * answers nothing.
+   *
+   * It is worth having as well as the number the app hands over, not instead of
+   * it, because the two fail in opposite directions. The app's number can be
+   * stale — it has been, for six commits — and WebKit's cannot; WebKit's is
+   * zero on anything without a notch, and the app's is not.
+   */
+  function coverTheGlass() {
+    var meta = document.querySelector('meta[name="viewport"]');
+    if (!meta) return;
+    var content = meta.getAttribute("content") || "";
+    if (content.indexOf("viewport-fit") !== -1) return;
+    meta.setAttribute("content", content + ", viewport-fit=cover");
+  }
+
+  /**
+   * Push whatever is holding the header at the top of the glass down past the
+   * clock.
+   *
+   * The padding that starts the document below the status bar cannot reach a
+   * pinned element: `position: sticky` measures its offset from the edge of the
+   * scrollport, and the scrollport does not care what the document is padded
+   * by. So a bar with `top: 0` sits over the clock at every scroll position
+   * except the very top, which is exactly the photograph — the wordmark, the
+   * plus and the heart drawn straight through the battery.
+   *
+   * A previous version of this looked for that bar and reported finding none,
+   * and the conclusion drawn was that Instagram does not pin its header. The
+   * conclusion was wrong and the search was at fault: it only ever looked at
+   * six ancestors of a link, and only at ones as wide as the window. What is
+   * pinned here is a wrapper, and it is asked of the browser rather than of a
+   * stylesheet, so the answer is true whatever Instagram changed this week.
+   */
+  function liftPinned(bar) {
+    var node = bar;
+    while (node && node !== document.body) {
+      // Once lifted it reads as pinned at the clock's height rather than at
+      // nothing, so the test below would stop recognising it and it would drop
+      // back the next frame. What has been lifted stays lifted.
+      if (node.getAttribute("data-quiet-pinned") !== null) return;
+
+      var style = window.getComputedStyle(node);
+      if (style.position === "sticky" || style.position === "fixed") {
+        var top = parseFloat(style.top);
+        // `auto` parses to nothing, and a sticky element with no top is not
+        // pinned vertically to anything.
+        if (!isNaN(top) && top < 1) {
+          node.setAttribute("data-quiet-pinned", "");
+          return;
+        }
+      }
+      node = node.parentElement;
+    }
+  }
+
   var lastPath = null;
 
   /**
@@ -261,83 +317,200 @@
     post({ kind: "where", path: lastPath });
   }
 
-  /**
-   * Is this the signed-in person's own profile?
-   *
-   * Asked by where a link goes rather than by what it says: /accounts/edit/ is
-   * a URL, and a URL is the same in every language while "Edit profile" is not.
-   * It only exists on your own profile, which is the question.
-   */
-  function isOwnProfile() {
-    return !!document.querySelector('a[href*="/accounts/edit"]');
-  }
+  /* ── Instagram's header, in the arrangement its own app uses ──────────── */
 
   /**
-   * The control nearest a corner of the screen.
+   * The feed, and only the feed.
    *
-   * Instagram's own settings and its navigation are found by where they *are*,
-   * not by what they are called or which generated class they carry this week.
-   * Both of those change; a settings control in the top-left corner and a
-   * navigation bar along the bottom have not changed in the life of the site.
+   * Every other page's top bar is part of that page — the name on a profile,
+   * the compose button in the inbox — and rearranging those would be
+   * rearranging the page.
    */
-  function controls() {
-    return document.querySelectorAll('a[href], button, [role="button"], [role="link"]');
+  function isFeed() {
+    var path = location.pathname;
+    return path === "/" || path === "";
   }
 
-  function controlNear(test) {
-    var candidates = controls();
-    for (var i = 0; i < candidates.length; i++) {
-      var element = candidates[i];
-      if (OURS[element.id]) continue;
-      var box = element.getBoundingClientRect();
-      if (box.width < 16 || box.height < 16 || box.width > 120) continue;
-      if (test(box)) return element;
+  /** Where the heart goes. Two spellings, because one of them is older. */
+  var ACTIVITY =
+    'a[href^="/accounts/activity"], a[href^="/accounts/notifications"]';
+
+  /**
+   * The bar across the top of the feed, found by what is in it.
+   *
+   * Two things are always in it and nowhere near each other in the document:
+   * the link to the activity feed, and the link home the wordmark sits in.
+   * Both are addresses, so both survive translation and next week's generated
+   * class names — the same reasoning that finds the navigation row.
+   *
+   * An earlier version went looking for a bar *pinned* to the top of the glass
+   * and found nothing at all, which is the whole story of six commits: this bar
+   * is not pinned, it is merely first, and it scrolls away with the feed
+   * exactly as the app's does.
+   */
+  function headerBar() {
+    if (!isFeed()) return null;
+
+    var hearts = document.querySelectorAll(ACTIVITY);
+    for (var i = 0; i < hearts.length; i++) {
+      var node = hearts[i].parentElement;
+      var depth = 0;
+      while (node && node !== document.body && depth < 6) {
+        if (node.getAttribute("data-quiet-hidden") === null &&
+            node.querySelector('a[href="/"]') &&
+            node.querySelectorAll("a[href]").length <= 8) {
+          return node;
+        }
+        node = node.parentElement;
+        depth += 1;
+      }
     }
     return null;
   }
 
-  function button(id, label, shapes, extra, onPress) {
-    var element = document.createElement("button");
-    element.id = id;
-    element.type = "button";
-    element.setAttribute("aria-label", label);
-    // `all: unset` first, so none of Instagram's own button styling comes with
-    // it, and nothing of ours leaks the other way. The icon inside is 24, which
-    // is what everything else in these bars is.
-    element.style.cssText =
-      "all: unset; display: inline-flex; align-items: center; justify-content: center;" +
-      "height: 44px; cursor: pointer; color: inherit; opacity: 0.85;" + extra;
-    element.innerHTML = icon(shapes);
-    element.addEventListener("click", function (event) {
-      event.preventDefault();
-      event.stopPropagation();
-      onPress();
-    });
-    return element;
+  /**
+   * The plus.
+   *
+   * There is no address to match it on — on the web it opens a picker rather
+   * than going anywhere — so it is taken as the control next to the heart in
+   * the document. That is what tells it from the chevron beside the wordmark,
+   * which is the only other control up there and sits at the far end.
+   *
+   * Next to it *in the document* rather than on the screen, which matters more
+   * than it looks: this runs again on every frame the page rewrites itself, and
+   * by then the plus has been moved to the left-hand end of the bar. Asking
+   * where things are would find the chevron the second time round and swap the
+   * two of them for ever. The order they are written in does not move.
+   */
+  function createControl(bar, mark, heart) {
+    var candidates = bar.querySelectorAll(
+      'a[href], button, [role="button"], [role="link"]'
+    );
+    var before = null;
+    var after = null;
+    for (var i = 0; i < candidates.length; i++) {
+      var element = candidates[i];
+      if (holds(element, mark) || holds(element, heart)) continue;
+      var box = element.getBoundingClientRect();
+      if (box.width < 16 || box.height < 16 || box.width > 80) continue;
+
+      // DOCUMENT_POSITION_FOLLOWING: the heart comes after this one.
+      if (element.compareDocumentPosition(heart) & 4) {
+        before = element;
+      } else if (!after) {
+        after = element;
+      }
+    }
+    // The last one written before the heart, which on every version of this
+    // page so far is the plus. If the heart is written first, the first one
+    // after it, for the same reason.
+    return before || after;
+  }
+
+  /** Whether these two are the same element, or one is inside the other. */
+  function holds(a, b) {
+    return a === b || a.contains(b) || b.contains(a);
   }
 
   /**
-   * Quiet's mark: a full stop set inside a ring.
+   * The outermost wrapper around `element` that still leaves the others out.
    *
-   * The icon is the app's own sentence — *that's all for today* — drawn at the
-   * weight of the icons it stands among, so it reads as one of them rather than
-   * as something that has gone wrong on the screen. A bare dot did not: at this
-   * size, beside a gear, it looked like dust on the display.
-   *
-   * The numbers were drawn and looked at rather than guessed. The ring started
-   * a point wider and the stop a third larger, which read as a record button;
-   * matching the ring to the magnifying glass beside it, and shrinking the stop
-   * inside it, turns it back into punctuation.
+   * The three controls are what the app arranges, but they are rarely direct
+   * children of the bar — the plus and the heart usually share a group. This
+   * climbs as far as it can without swallowing one of the other two, so each of
+   * the three ends up with a piece of the bar that is its own.
    */
+  function outermost(bar, element, others) {
+    var node = element;
+    while (node.parentElement && node.parentElement !== bar &&
+           bar.contains(node.parentElement)) {
+      var parent = node.parentElement;
+      for (var i = 0; i < others.length; i++) {
+        if (others[i] && parent.contains(others[i])) return node;
+      }
+      node = parent;
+    }
+    return node;
+  }
+
+  /** Only when it would actually change. An attribute set every frame is a
+   *  mutation every frame, and the observer above is watching. */
+  function note(element, name, value) {
+    if (element.getAttribute(name) !== value) element.setAttribute(name, value);
+  }
+
   /**
-   * A clock. Quiet is a limit on time, and a clock is the one drawing everybody
-   * already reads as time — which beats a mark that has to be learned, however
-   * much the full stop is the app's own.
+   * Flatten the wrappers between the bar and one of the three, so that all
+   * three are laid out by the bar itself.
+   *
+   * `display: contents` does this without moving anything: the wrapper stops
+   * generating a box and its children become the bar's own flex items. Nothing
+   * in the document changes places, which matters more here than anywhere else
+   * in this file — Instagram's client owns this tree and rebuilds it whenever
+   * it likes, and a node this script had moved would be a node it puts back.
    */
-  var CLOCK_SHAPES =
-    '<circle cx="12" cy="12" r="7.6"/>' +
-    '<line x1="12" y1="12" x2="12" y2="7.6"/>' +
-    '<line x1="12" y1="12" x2="15.6" y2="12"/>';
+  function flatten(bar, slot) {
+    var node = slot.parentElement;
+    while (node && node !== bar && bar.contains(node)) {
+      note(node, "data-quiet-flatten", "");
+      node = node.parentElement;
+    }
+  }
+
+  /**
+   * Put the header in the app's arrangement: the plus on the left, the title in
+   * the middle of the bar, the heart on the right.
+   *
+   * This is a change of arrangement and nothing else. The controls stay
+   * Instagram's — its plus, its chevron, its heart, with its badges on them and
+   * its modals behind them — so the header goes on working and behaving exactly
+   * as the site's does, which is the only way it can also behave exactly as the
+   * app's does.
+   *
+   * It gives up the moment it is unsure. If any of the three cannot be found,
+   * or two of them turn out to be the same piece of the bar, the header is left
+   * precisely as Instagram drew it. A header nobody rearranged is a great deal
+   * better than one rearranged on a guess.
+   */
+  function shapeHeader() {
+    var bar = headerBar();
+    if (!bar) return;
+
+    var heart = bar.querySelector(ACTIVITY);
+    var mark = bar.querySelector('a[href="/"]');
+    if (!heart || !mark) return;
+
+    var plus = createControl(bar, mark, heart);
+    if (!plus) return;
+
+    var title = outermost(bar, mark, [heart, plus]);
+    var left = outermost(bar, plus, [heart, title]);
+    var right = outermost(bar, heart, [title, plus]);
+    if (title === left || title === right || left === right) return;
+
+    note(title, "data-quiet-slot", "title");
+    note(left, "data-quiet-slot", "create");
+    note(right, "data-quiet-slot", "activity");
+    flatten(bar, title);
+    flatten(bar, left);
+    flatten(bar, right);
+
+    note(bar, "data-quiet-header", "");
+  }
+
+  /**
+   * The lift, which has to happen whether the arrangement did or not.
+   *
+   * Kept apart from `shapeHeader` on purpose. Rearranging is a nicety and gives
+   * up the moment it is unsure; a header drawn through the clock is the app
+   * looking broken, and that must be put right even on a page whose bar is a
+   * shape nothing here recognises.
+   */
+  function liftHeader() {
+    var bar = headerBar();
+    if (!bar) return;
+    liftPinned(bar);
+  }
 
   /* ── 1. Taps ──────────────────────────────────────────────────────────── */
 
@@ -420,12 +593,14 @@
       pending = false;
       var main = document.querySelector("main");
       if (main) trimSuggestions(main);
+      coverTheGlass();
       makeRoom();
       guardLocation();
       sayWhere();
       whoAmI();
       replaceNav();
-      placeMark();
+      liftHeader();
+      shapeHeader();
     });
   }
 
