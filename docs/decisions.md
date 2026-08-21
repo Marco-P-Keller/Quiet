@@ -1138,3 +1138,27 @@ know, and they are one commit from being deleted if it never does.
 What this costs is the one thing Instagram's own app does that Quiet now cannot:
 run content up behind the status bar. The app has drawn that strip in the page's
 own colour for several builds, and it will keep drawing it.
+
+## No scroll bars
+
+Instagram's app shows none, and the page draws two kinds. The browser's own,
+along the edge of the view, which fades. And one inside every container the site
+gives its own scrolling to — the inbox list, a conversation — which does not
+fade, and is a line down the side of the screen for as long as you are reading.
+
+Both are off. The page's in trim.css, in both spellings, because the property
+that turns them off has one name in WebKit and another everywhere else; and the
+app's on the scroll view, because that one is drawn over the top of the other.
+
+## The icons are Instagram's, and now they are sharp
+
+They are rasterised from Instagram's own SVGs onto a canvas at ninety-six
+points, for a glyph drawn at twenty-five on a screen with three device pixels to
+the point. Seventy-two was under three of them, and every icon in the row was
+very slightly soft — not wrong, and not the same as Instagram's, which are
+vectors and are not soft at any size.
+
+Beyond that there is nothing to make more exact. These are not approximations of
+Instagram's drawings, they *are* Instagram's drawings, taken out of the page the
+app is showing. Drawing a house and a paper plane by hand to look more like
+theirs would be further from the original, not closer, and a liberty besides.

@@ -381,6 +381,11 @@ struct InstagramWebView: UIViewRepresentable {
         // status bar and scrolls up behind it. That is what Instagram does, and
         // it is a property of the page rather than of the view.
         webView.scrollView.contentInsetAdjustmentBehavior = .never
+        // And the app's own, which is the other half of the same request: the
+        // page's are turned off in trim.css, and this is the one WebKit draws
+        // over the top of them.
+        webView.scrollView.showsVerticalScrollIndicator = false
+        webView.scrollView.showsHorizontalScrollIndicator = false
         webView.scrollView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: inset.bottom, right: 0)
         // The indicator is the one thing that should still respect the app's
         // furniture: a scroll bar running under the row reads as a fault.

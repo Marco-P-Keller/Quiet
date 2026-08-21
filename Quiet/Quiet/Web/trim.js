@@ -427,12 +427,16 @@
     var picture = new Image();
     picture.onload = function () {
       try {
+        // Ninety-six, for a glyph drawn at twenty-five points on a screen
+        // with three device pixels to the point. Seventy-two was under three
+        // of them and every icon in the row was very slightly soft — not
+        // wrong, and not the same as Instagram's, which are vectors.
         var canvas = document.createElement("canvas");
-        canvas.width = 72;
-        canvas.height = 72;
+        canvas.width = 96;
+        canvas.height = 96;
         var ink = canvas.getContext("2d");
         if (!ink) { sent[key] = false; return; }
-        ink.drawImage(picture, 0, 0, 72, 72);
+        ink.drawImage(picture, 0, 0, 96, 96);
         post({ kind: "icon", entry: key, picture: canvas.toDataURL("image/png").split(",")[1] });
       } catch (error) {
         sent[key] = false;

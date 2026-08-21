@@ -200,3 +200,25 @@ body {
   padding-bottom: 0 !important;
   margin-bottom: 0 !important;
 }
+
+/* ── No scroll bars ─────────────────────────────────────────────────────── */
+/*
+ * Instagram's app shows none, and the page draws two kinds: the browser's own
+ * along the edge of the view, and one inside every container it gives its own
+ * scrolling to — the inbox list, the stories tray, a conversation. The second
+ * kind does not fade the way a phone's does; it is a line down the side of the
+ * screen for as long as you are reading.
+ *
+ * Both spellings, because the property that turns them off has one name in
+ * WebKit and another everywhere else.
+ */
+
+* {
+  scrollbar-width: none !important;
+}
+
+*::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+}
