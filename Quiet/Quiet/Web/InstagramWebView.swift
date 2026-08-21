@@ -334,7 +334,11 @@ struct InstagramWebView: UIViewRepresentable {
         // knows. On the first pass the layout has worked out nothing and is
         // still holding the twenty points the state starts at, while the window
         // has had the real number since it opened.
-        let top = max(inset.top, SafeArea.top)
+        // Whatever the screen is asked to keep clear, which is now nothing:
+        // the view starts below the clock, so the page's own world already
+        // does. Kept as a number rather than deleted because the mechanism is
+        // the right one for anything the app ever does need the page to know.
+        let top = inset.top
         context.coordinator.top = top
         let payload = WebScripts.load(top: top)
 
@@ -352,10 +356,6 @@ struct InstagramWebView: UIViewRepresentable {
         configuration.mediaTypesRequiringUserActionForPlayback = .all
 
         let webView = QuietWebView(frame: .zero, configuration: configuration)
-        webView.onSafeArea = { [weak webView] insets in
-            guard let webView else { return }
-            context.coordinator.learn(top: insets.top, on: webView)
-        }
         webView.navigationDelegate = context.coordinator
         webView.uiDelegate = context.coordinator
         webView.allowsBackForwardNavigationGestures = true
@@ -402,7 +402,11 @@ struct InstagramWebView: UIViewRepresentable {
         // The same larger-of-the-two as in `makeUIView`, so that a layout pass
         // that still reports the starting twenty points cannot walk the number
         // back down again once the window has given the real one.
-        let top = max(inset.top, SafeArea.top)
+        // Whatever the screen is asked to keep clear, which is now nothing:
+        // the view starts below the clock, so the page's own world already
+        // does. Kept as a number rather than deleted because the mechanism is
+        // the right one for anything the app ever does need the page to know.
+        let top = inset.top
         if context.coordinator.top != top {
             context.coordinator.top = top
             context.coordinator.tellEveryPage(webView, top: top)
@@ -483,22 +487,6 @@ struct InstagramWebView: UIViewRepresentable {
             let controller = webView.configuration.userContentController
             controller.removeAllUserScripts()
             WebScripts.load(top: top).scripts.forEach(controller.addUserScript)
-        }
-
-        /// A better answer than the one being used, from whichever direction
-        /// it arrives.
-        ///
-        /// Only ever upward. The floor is twenty points, which is the shortest
-        /// status bar any iPhone has, so a source that has not woken up yet
-        /// cannot walk a correct answer back down to its own default — which is
-        /// exactly how a fifty-nine point status bar ended up being told it was
-        /// twenty.
-        func learn(top candidate: CGFloat, on webView: WKWebView) {
-            let next = max(top, candidate)
-            guard next != top else { return }
-            top = next
-            tellEveryPage(webView, top: next)
-            tellThisPage(webView)
         }
 
         /// And the document already on screen, whose scripts have run.

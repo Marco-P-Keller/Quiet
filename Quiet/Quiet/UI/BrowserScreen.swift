@@ -92,35 +92,43 @@ struct BrowserScreen: View {
                 surface: surface,
                 session: session,
                 inset: UIEdgeInsets(
-                    top: topInset,
+                    // Nothing. The view itself now starts below the clock, so
+                    // there is no strip left for the page to be asked to keep
+                    // clear of, and asking would move everything twice.
+                    top: 0,
                     left: 0,
                     bottom: furniture,
                     right: 0
                 )
             )
-            // Exactly the glass.
+            // The glass, less the clock — and starting below it.
             //
-            // It hung an extra inch below the bottom edge for a while, so that
-            // whatever the page reserved for the home indicator fell off the
-            // screen rather than showing as a black band under a floating row.
-            // With the row flush against the bottom edge there is no band to
-            // hide — the row is standing on it — and the overhang had a cost
-            // that took a photograph to see: everything the page pins to the
-            // bottom of the *viewport* was pinned an inch below the glass. A
-            // story's reply field, a conversation's message box: pushed off the
-            // screen by the app, on the pages where they are the only thing
-            // that matters.
+            // Six mechanisms went into keeping Instagram's own bars off the
+            // status bar: a content inset, a padding on the document, a lift on
+            // whatever the page had pinned, and three attempts at finding that
+            // element. Each of them worked on the feed and each of them left
+            // the inbox with its search field cut in half, and the photograph
+            // finally says why: that field is not pinned and not in the flow.
+            // It is positioned against the *viewport*, which is what a chat
+            // layout does — and a padding on the document cannot move it, and a
+            // rule for sticky elements never sees it.
+            //
+            // So the viewport itself is made smaller. The page's world starts
+            // at the bottom of the clock and ends at the bottom of the glass.
+            // Everything in it is right by construction: what is fixed, what is
+            // sticky, what is absolute, and what asks for a hundred per cent of
+            // the height. There is nothing left to find and nothing left to
+            // lift.
+            //
+            // What it costs is the one thing Instagram's own app does that this
+            // now cannot: run content up behind the status bar. The app draws
+            // that strip instead, in the page's own colour, and has done for
+            // several builds.
             .frame(
                 width: glass.width > 0 ? glass.width : nil,
-                height: glass.height > 0 ? glass.height : nil
+                height: glass.height > 0 ? glass.height - topInset : nil
             )
-            // Said again here, on the view itself.
-            //
-            // The stack already ignores it, and the photograph says that was
-            // not enough: the page stopped thirty-four points above the bottom
-            // of the glass. A representable inside an `ignoresSafeArea` stack
-            // is not reliably given the whole of it. Said twice, it is.
-            .ignoresSafeArea()
+            .padding(.top, topInset)
 
             if !surface.hasLoaded {
                 cover

@@ -1109,3 +1109,32 @@ is behind it is a blur rather than a colour.
 Ten past twelve, which is how every clock in every advertisement has been drawn
 for a century, because it is the arrangement that still reads as a clock at
 twenty-five points.
+
+## The viewport itself is smaller, and the argument is over
+
+Six mechanisms went into keeping Instagram's own bars off the status bar: a
+content inset, a padding on the document, a rule that lifted whatever the page
+had pinned, and three separate attempts at finding that element. Every one of
+them worked on the feed. Every one of them left the inbox with its search field
+cut in half by the clock.
+
+The photograph finally says why. That field is not pinned and it is not in the
+flow — it is positioned against the *viewport*, which is what a chat layout
+does. A padding on the document cannot move it, because an absolutely positioned
+element whose containing block is the viewport does not care what the document
+is padded by. And a rule for sticky elements never sees it at all.
+
+So the viewport is made smaller instead. The web view starts at the bottom of
+the clock and ends at the bottom of the glass, and the page's world is that.
+Everything in it is right by construction: what is fixed, what is sticky, what
+is absolute, and what asks for a hundred per cent of the height. There is
+nothing left to find and nothing left to lift.
+
+The page is told the clock is zero points tall, because for the page it now is.
+The padding rule and the lift are still there and both evaluate to nothing —
+they are the right mechanism for anything the app ever does need the page to
+know, and they are one commit from being deleted if it never does.
+
+What this costs is the one thing Instagram's own app does that Quiet now cannot:
+run content up behind the status bar. The app has drawn that strip in the page's
+own colour for several builds, and it will keep drawing it.
