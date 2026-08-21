@@ -224,30 +224,33 @@ final class WebSurface {
     }
 
     /// Where Quiet's own row can send you.
-    func goToFeed() { open(ContentRules.feed) }
-    func goToMessages() { open(ContentRules.messages) }
+    ///
+    /// Through Instagram's own row rather than by loading an address. Loading
+    /// one throws the page away and builds it again — a spinner, the feed from
+    /// the top, the stories fetched a second time — every time you come back
+    /// from the inbox. Pressing the link the site already has hands the address
+    /// to the client running in the page, which keeps its shell, its caches and
+    /// the place you had scrolled to.
+    ///
+    /// The address is the fallback, for the pages that carry no such row and for
+    /// the moment before the first one has loaded.
+    func goToFeed() { go("home", or: ContentRules.feed) }
+    func goToMessages() { go("messages", or: ContentRules.messages) }
 
-    /// Your own profile.
-    ///
-    /// Instagram's own link first, taken from the row Quiet hides — which is
-    /// hidden rather than removed precisely so it still knows where it goes.
-    /// A name the app read a moment too early builds an address to a stranger
-    /// or to nothing, and this button is the one place in Quiet where that is
-    /// unforgivable.
-    ///
-    /// The address built from the name is the fallback, for the pages that
-    /// carry no such row.
     func goToMyProfile() {
+        go("profile", or: me.flatMap(ContentRules.profile(forHandle:)))
+    }
+
+    private func go(_ kind: String, or address: URL?) {
         guard let webView else { return }
         Task { @MainActor in
             let answered = try? await webView.evaluateJavaScript(
-                "window.__quietOpenProfile ? window.__quietOpenProfile() : false"
+                "window.__quietGo ? window.__quietGo('\(kind)') : false"
             )
             // A string is the address the page went to; anything else means
-            // there was no row to read and the name is all there is.
+            // there was no row to press.
             if let went = answered as? String, !went.isEmpty { return }
-            guard let me, let url = ContentRules.profile(forHandle: me) else { return }
-            open(url)
+            if let address { open(address) }
         }
     }
 }

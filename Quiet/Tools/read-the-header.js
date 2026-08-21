@@ -487,5 +487,42 @@ const GROUPED = `
     false
   );
 
+  /* ── Going somewhere through Instagram's own row ─────────────────────── */
+
+  /* Each of the three presses the link the site already has, so the client in
+   * the page keeps its shell and the place you had scrolled to, rather than the
+   * app loading an address and throwing all of it away. */
+  const rowPage = () => page(BOTTOM, FEED);
+
+  for (const [kind, expected] of [
+    ["home", "/"],
+    ["messages", "/direct/inbox/"],
+    ["profile", "/marco/"],
+  ]) {
+    const win = await rowPage();
+    check(`${kind} goes to ${expected}`, win.__quietGo(kind), expected);
+  }
+
+  check(
+    "and a destination nobody has heard of is declined",
+    (await rowPage()).__quietGo("reels"),
+    false
+  );
+
+  /* Standing on the feed already, home answers with the address rather than
+   * pressing anything: the row has marked where you are since the day it
+   * learned to, and going nowhere is what Instagram does too. */
+  check(
+    "asking for the page you are standing on presses nothing",
+    (await rowPage()).__quietGo("home"),
+    "/"
+  );
+
+  check(
+    "with no row to press, every destination declines",
+    ["home", "messages", "profile"].map((kind) => bare.__quietGo(kind)),
+    [false, false, false]
+  );
+
   process.exit(failures ? 1 : 0);
 })();

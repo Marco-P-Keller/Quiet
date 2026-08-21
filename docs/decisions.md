@@ -1059,3 +1059,35 @@ surprise rather than a feature.
 
 The scroll view is inset by whichever shape is standing there, so the end of a
 page clears the row either way.
+
+## The keyboard waits to be asked
+
+Finding someone opened with the keyboard already up. It reads as helpful and it
+is not: the screen arrives with half of it already covered, before anybody has
+decided they want to type, and the way back out is now two taps instead of one.
+
+The field is still the first thing on the page and still the obvious thing to
+touch. It waits to be touched.
+
+## Going somewhere presses Instagram's own link
+
+The row used to load an address. Loading one throws the page away and builds it
+again — a spinner, the feed from the top, the stories fetched a second time —
+every time you come back from the inbox.
+
+Instagram's own row does not do that. It hands the address to the client already
+running in the page, which keeps its shell, its caches, and the place you had
+scrolled to. The row Quiet hides is hidden rather than removed precisely so its
+links can still be pressed, and now they are.
+
+Asking for the page you are already standing on presses nothing and answers with
+the address, because that is what Instagram does and because the row has said
+where you are since the day it learned to.
+
+Loading the address is still there, as the fallback: for pages that carry no
+such row, and for the moment before the first one has loaded.
+
+What this is not: four pages held open at once. That would be four web views,
+four copies of Instagram's client, and four times the memory — and the phone
+would start closing them behind your back. This is one page that stops being
+rebuilt, which is most of the difference and none of the cost.

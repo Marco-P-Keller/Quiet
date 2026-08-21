@@ -62,17 +62,6 @@ struct SearchView: View {
             .toolbarBackground(.visible, for: .navigationBar)
         }
         .presentationBackground(Paper.page)
-        // Asked for a moment after the page arrives rather than as it arrives.
-        //
-        // As a sheet this worked in `onAppear`: a sheet is its own presentation
-        // and nothing else is holding the keyboard. As a page it opens inside a
-        // hierarchy where the web view is already the first responder, and a
-        // request made in the same pass as the appearance loses to it — the
-        // field is on screen, and typing goes nowhere.
-        .task {
-            try? await Task.sleep(for: .milliseconds(150))
-            isFocused = true
-        }
         .onDisappear { asking?.cancel() }
     }
 

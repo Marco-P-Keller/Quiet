@@ -526,19 +526,57 @@
    * does not exist. The row Quiet hides carries the link Instagram itself uses.
    * It is hidden, not removed, so it still knows where it goes.
    */
-  window.__quietOpenProfile = function () {
+  /** Where each of the three lives, asked of the address rather than the label. */
+  var DESTINATIONS = {
+    home: function (href) { return href === "/"; },
+    messages: function (href) { return href.indexOf("/direct") === 0; }
+  };
+
+  /**
+   * Go where Instagram's own row would go, by pressing Instagram's own link.
+   *
+   * The app used to load an address, which throws the page away and builds it
+   * again: a spinner, a fresh feed from the top, and the stories reloaded, every
+   * time you came back from the inbox. Instagram's own row does not do that —
+   * it hands the address to the client already running in the page, which keeps
+   * its shell, its caches and the place you had scrolled to.
+   *
+   * The row is hidden rather than removed precisely so it can still be pressed.
+   *
+   * It answers with the address it went to rather than a bare yes: the app can
+   * fall back to loading that address when there is no row to press, and a test
+   * can check *where* somebody was sent without implementing navigation.
+   */
+  window.__quietGo = function (kind) {
     var row = navRow();
     if (!row) return false;
 
-    var link = personIn(row);
+    var link = null;
+    if (kind === "profile") {
+      link = personIn(row);
+    } else {
+      var test = DESTINATIONS[kind];
+      if (!test) return false;
+      var links = row.querySelectorAll('a[href^="/"]');
+      for (var i = 0; i < links.length; i++) {
+        if (test(links[i].getAttribute("href") || "")) { link = links[i]; break; }
+      }
+    }
     if (!link) return false;
 
     var href = link.getAttribute("href");
-    location.assign(href);
-    // The address it went to rather than a bare yes, so the app can say where
-    // it sent somebody and a test can check it went to the right place without
-    // implementing navigation.
+    // Already there. Pressing it again would be Instagram's own answer to that,
+    // which is to go back to the top — and the row has said that itself since
+    // the day it learned to mark where you are.
+    if (location.pathname === href) return href;
+
+    link.click();
     return href;
+  };
+
+  /** The name the app used before there were three of them. */
+  window.__quietOpenProfile = function () {
+    return window.__quietGo("profile");
   };
 
   /**
