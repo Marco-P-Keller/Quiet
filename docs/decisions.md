@@ -1091,3 +1091,21 @@ What this is not: four pages held open at once. That would be four web views,
 four copies of Instagram's client, and four times the memory — and the phone
 would start closing them behind your back. This is one page that stops being
 rebuilt, which is most of the difference and none of the cost.
+
+## The clock is drawn, not borrowed from a font
+
+Four of the five icons in the row are Instagram's own, taken out of the page.
+The fifth is Quiet's, and it was an SF Symbol — which beside them is a lighter
+line, a different geometry and a different optical size. In a photograph of the
+row it is the one thing that came from somewhere else, and that is exactly how
+it read.
+
+So it is drawn to their specification instead: a twenty-five point box, a two
+point stroke, round ends, and filled solid when you are standing on it. The
+hands are punched out of the filled disc rather than painted over it in the
+background colour, so it is right on the bar and right on the island, where what
+is behind it is a blur rather than a colour.
+
+Ten past twelve, which is how every clock in every advertisement has been drawn
+for a century, because it is the arrangement that still reads as a clock at
+twenty-five points.

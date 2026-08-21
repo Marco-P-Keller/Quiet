@@ -490,7 +490,17 @@ struct BrowserScreen: View {
     /// Quiet's rather than Instagram's.
     @ViewBuilder
     private func glyph(_ entry: Entry, _ here: Bool, _ outline: String, _ solid: String) -> some View {
-        if let name = Self.drawnByInstagram[entry], let icon = surface.icon(name, on: here) {
+        if entry == .clock {
+            // Quiet's own, and the only one in the row that is. It is drawn
+            // rather than taken from a font so that it can be built to the same
+            // specification as the four beside it: a twenty-five point box, a
+            // two point stroke, round caps, and filled when you are standing on
+            // it. An SF Symbol among Instagram's own icons is a lighter line
+            // and a different geometry, and beside them it reads as the one
+            // thing in the row that came from somewhere else — which is exactly
+            // what a photograph of it showed.
+            ClockGlyph(filled: here)
+        } else if let name = Self.drawnByInstagram[entry], let icon = surface.icon(name, on: here) {
             Image(uiImage: icon)
                 .resizable()
                 .scaledToFit()
@@ -549,6 +559,58 @@ struct BrowserScreen: View {
             .background(Color.red.opacity(0.9))
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .padding(.horizontal, 20)
+    }
+}
+
+/// Quiet's mark: a clock, drawn to the same specification as the icons it
+/// stands among.
+///
+/// Instagram's are twenty-five points across with a two point stroke and round
+/// ends, and they fill solid when you are standing on them. So is this. The
+/// hands are punched out of the filled disc rather than painted over it in the
+/// background colour, so it is right on the bar and right on the island, where
+/// what is behind it is a blur rather than a colour.
+///
+/// It is a clock because Quiet is a limit on time and a clock is the one
+/// drawing everybody already reads as time. It is where Instagram puts Reels,
+/// which is the trade the whole app is.
+private struct ClockGlyph: View {
+    let filled: Bool
+
+    private static let side: CGFloat = 25
+    private static let stroke: CGFloat = 2
+
+    private var line: StrokeStyle {
+        StrokeStyle(lineWidth: Self.stroke, lineCap: .round, lineJoin: .round)
+    }
+
+    var body: some View {
+        ZStack {
+            if filled {
+                Circle().fill(Color(uiColor: .label))
+                Hands().stroke(Color.black, style: line).blendMode(.destinationOut)
+            } else {
+                Circle()
+                    .strokeBorder(Color(uiColor: .label), lineWidth: Self.stroke)
+                Hands().stroke(Color(uiColor: .label), style: line)
+            }
+        }
+        .compositingGroup()
+        .frame(width: Self.side, height: Self.side)
+    }
+
+    /// Ten past twelve, which is the arrangement every clock in every
+    /// advertisement has used for a century, because it is the one that reads as
+    /// a clock at any size.
+    private struct Hands: Shape {
+        func path(in rect: CGRect) -> Path {
+            var path = Path()
+            let centre = CGPoint(x: rect.midX, y: rect.midY)
+            path.move(to: CGPoint(x: centre.x, y: centre.y - rect.height * 0.25))
+            path.addLine(to: centre)
+            path.addLine(to: CGPoint(x: centre.x + rect.width * 0.19, y: centre.y))
+            return path
+        }
     }
 }
 
