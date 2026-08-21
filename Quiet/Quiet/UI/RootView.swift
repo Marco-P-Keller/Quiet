@@ -16,6 +16,10 @@ struct RootView: View {
     let session: QuietSession
 
     @State private var surface = WebSurface()
+    /// How the app looks, as against what it promises. Handed down rather than
+    /// put in the environment: three views need it, and a missing environment
+    /// value is a crash rather than a compile error.
+    @State private var preferences = Preferences()
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -49,7 +53,7 @@ struct RootView: View {
             }
 
         case .browsing:
-            BrowserScreen(session: session, surface: surface)
+            BrowserScreen(session: session, surface: surface, preferences: preferences)
 
         case .spent:
             curtain
@@ -71,6 +75,7 @@ struct RootView: View {
             PanelView(
                 session: session,
                 surface: surface,
+                preferences: preferences,
                 onFindSomeone: {
                     session.isPanelShowing = false
                     session.isSearchShowing = true

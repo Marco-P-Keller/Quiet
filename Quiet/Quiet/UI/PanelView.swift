@@ -8,6 +8,7 @@ import SwiftUI
 struct PanelView: View {
     let session: QuietSession
     let surface: WebSurface
+    let preferences: Preferences
     var onFindSomeone: () -> Void
     var onDismiss: () -> Void
 
@@ -21,6 +22,8 @@ struct PanelView: View {
                     timeSection
                     Divider().overlay(Paper.rule).padding(.vertical, 24)
                     findSomeone
+                    Divider().overlay(Paper.rule).padding(.vertical, 24)
+                    rowShape
                     Divider().overlay(Paper.rule).padding(.vertical, 24)
                     about
                 }
@@ -142,6 +145,51 @@ struct PanelView: View {
         // right for a reader and ambiguous for a test. An identifier is not
         // spoken aloud and tells the two apart.
         .accessibilityIdentifier("panel.findSomeone")
+    }
+
+    // MARK: - The row along the bottom
+
+    /// The one thing in Quiet that is purely a matter of taste.
+    ///
+    /// Everything else in this panel changes what the app does. This changes
+    /// what it looks like, and it exists because both answers were built and
+    /// neither turned out to be wrong: the bar is what Instagram draws, the
+    /// island is the nicer object. Two names and a tap, not a screen.
+    private var rowShape: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("The row along the bottom")
+                .font(.quietBody)
+
+            HStack(spacing: 10) {
+                ForEach(RowShape.allCases, id: \.self) { shape in
+                    choice(shape)
+                }
+            }
+
+            Note("The bar is the shape Instagram uses. The island floats over the page, and draws itself in while the page is moving.")
+        }
+    }
+
+    private func choice(_ shape: RowShape) -> some View {
+        let chosen = preferences.row == shape
+        return Button {
+            preferences.row = shape
+        } label: {
+            Text(shape.name)
+                .font(.quietBody)
+                .foregroundStyle(chosen ? Paper.page : Paper.ink)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 9)
+                .background(
+                    Capsule().fill(chosen ? Paper.ink : Color.clear)
+                )
+                .overlay(
+                    Capsule().strokeBorder(Paper.rule, lineWidth: chosen ? 0 : 1)
+                )
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(chosen ? .isSelected : [])
     }
 
     // MARK: - About

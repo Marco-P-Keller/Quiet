@@ -55,6 +55,7 @@ import UIKit
 struct BrowserScreen: View {
     let session: QuietSession
     let surface: WebSurface
+    let preferences: Preferences
 
     /// What the system has reserved at either end of the screen.
     ///
@@ -156,6 +157,7 @@ struct BrowserScreen: View {
         .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: surface.hasLoaded)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: session.isPanelShowing)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: session.isSearchShowing)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: preferences.row)
         // The row leaving for a story and coming back from one, and the mark
         // moving from one entry to the next. Both are the address changing.
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: surface.address)
@@ -198,6 +200,7 @@ struct BrowserScreen: View {
                         PanelView(
                             session: session,
                             surface: surface,
+                            preferences: preferences,
                             onFindSomeone: {
                                 session.isPanelShowing = false
                                 session.isSearchShowing = true
@@ -283,21 +286,58 @@ struct BrowserScreen: View {
         if !isImmersive {
             VStack(spacing: 0) {
                 Spacer(minLength: 0)
-                VStack(spacing: 0) {
-                    Rectangle()
-                        .fill(Color(uiColor: .separator))
-                        .frame(height: 0.5)
-                    row
-                        .frame(height: Self.barHeight)
-                    // The system's strip, in the bar's own colour, the way
-                    // every bar on a phone with a home indicator ends.
-                    Color.clear
-                        .frame(height: bottomInset)
+                switch preferences.row {
+                case .bar: flushBar
+                case .island: island
                 }
-                .background(Color(uiColor: .systemBackground))
             }
             .transition(.opacity)
         }
+    }
+
+    /// Instagram's own: the full width of the glass, flush against the bottom
+    /// edge, opaque, a hairline above it, the system's strip beneath.
+    private var flushBar: some View {
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(Color(uiColor: .separator))
+                .frame(height: 0.5)
+            row
+                .frame(height: Self.barHeight)
+            // The system's strip, in the bar's own colour, the way every bar on
+            // a phone with a home indicator ends.
+            Color.clear
+                .frame(height: bottomInset)
+        }
+        .background(Color(uiColor: .systemBackground))
+    }
+
+    /// The other one: a pill, inset from both edges, with the page running
+    /// underneath it.
+    ///
+    /// It draws itself in while the page moves away under your thumb and comes
+    /// back out the moment it stops. It never leaves — a control that
+    /// disappears is a control you end up hunting for — and it never shrinks on
+    /// the bar, because a bar standing on the bottom edge has nothing to float
+    /// over and nothing to get out of the way of.
+    private var island: some View {
+        row
+            .frame(height: Self.islandHeight)
+            .padding(.horizontal, 6)
+            .background(.regularMaterial, in: Capsule())
+            .shadow(color: .black.opacity(0.22), radius: 16, y: 6)
+            .padding(.horizontal, 22)
+            .scaleEffect(surface.isBarCollapsed ? 0.86 : 1, anchor: .bottom)
+            .opacity(surface.isBarCollapsed ? 0.62 : 1)
+            .animation(
+                reduceMotion ? nil : .spring(response: 0.34, dampingFraction: 0.86),
+                value: surface.isBarCollapsed
+            )
+            // Low, over the home indicator, so the page runs on beneath it to
+            // the bottom edge of the glass. That is the whole point of a row
+            // that floats; one that stops short of the edge is the worst of
+            // both.
+            .padding(.bottom, Self.islandGap)
     }
 
     /// How much of the bottom of the screen the row stands on.
@@ -307,7 +347,11 @@ struct BrowserScreen: View {
     /// can be scrolled clear of the bar instead of sitting behind it for ever.
     /// Nothing here on a page that has no row.
     private var furniture: CGFloat {
-        isImmersive ? 0 : Self.barHeight + bottomInset
+        guard !isImmersive else { return 0 }
+        switch preferences.row {
+        case .bar: return Self.barHeight + bottomInset
+        case .island: return Self.islandHeight + Self.islandGap * 2
+        }
     }
 
     /// The five entries, in Instagram's own order: home, search, the middle
@@ -330,6 +374,13 @@ struct BrowserScreen: View {
     /// The height every bar along the bottom of an iPhone has been since the
     /// first one, and the height of Instagram's.
     private static let barHeight: CGFloat = 49
+
+    /// The island is a little taller than the bar, because it is a shape rather
+    /// than an edge and needs the air.
+    private static let islandHeight: CGFloat = 52
+
+    /// The island, and the air beneath it.
+    private static let islandGap: CGFloat = 12
 
     /// The last entry, with your own face in it, the way Instagram's row ends.
     /// An outline of a person stands in until the page has handed one over.

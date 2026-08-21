@@ -151,6 +151,16 @@
         }
       }
     },
+    "Bar": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leiste"
+          }
+        }
+      }
+    },
     "Cancels the increase you asked for.": {
       "localizations": {
         "de": {
@@ -247,6 +257,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Instagram,\nohne die Teile,\ndie dich festhalten."
+          }
+        }
+      }
+    },
+    "Island": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insel"
           }
         }
       }
@@ -561,6 +581,16 @@
         }
       }
     },
+    "The bar is the shape Instagram uses. The island floats over the page, and draws itself in while the page is moving.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Leiste ist die Form, die Instagram benutzt. Die Insel schwebt über der Seite und zieht sich zusammen, während die Seite in Bewegung ist."
+          }
+        }
+      }
+    },
     "The date on this phone is behind where Quiet last saw it. The limit can be lowered, but not raised, until it catches up.": {
       "localizations": {
         "de": {
@@ -577,6 +607,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Das Datum auf diesem Telefon liegt hinter dem, was Quiet zuletzt gesehen hat. Bis es aufgeholt hat, kann das Limit sinken, aber nicht steigen."
+          }
+        }
+      }
+    },
+    "The row along the bottom": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Reihe am unteren Rand"
           }
         }
       }

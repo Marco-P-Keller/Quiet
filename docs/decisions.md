@@ -1034,3 +1034,28 @@ in half by the status bar, in the photograph.
 
 It now asks at three points across the width, and lifts everything it finds
 rather than the first thing.
+
+## Two shapes for the row, and a choice between them
+
+The row was an island — a pill inset from both edges, floating over the page,
+drawing itself in as the page moved — and then it was a bar, because held up
+against Instagram screen for screen the island is the first thing anybody sees
+and Instagram does not draw one.
+
+Both are now in the app and the panel asks which. It is the only setting in
+Quiet that changes how something looks rather than what it does, and it earns
+its place the way a setting should: two answers were built, and neither turned
+out to be wrong. The bar is the shape of the thing being shown. The island is
+the nicer object.
+
+It starts as the bar, because a first launch should look like what it is showing
+rather than like an opinion about it.
+
+The choice is kept in the ordinary place preferences live, not in the keychain
+with the limit. The limit is in the keychain because it has to outlive the app
+being deleted — that is the whole promise, and the About screen says so in as
+many words. The shape of a row surviving a delete-and-reinstall would be a
+surprise rather than a feature.
+
+The scroll view is inset by whichever shape is standing there, so the end of a
+page clears the row either way.
