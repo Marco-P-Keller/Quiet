@@ -84,17 +84,19 @@ body {
 
 /* ── The header, in the arrangement Instagram's own app uses ────────────── */
 /*
- * The app puts the plus on the left, the title in the middle, and the heart on
- * the right. The website puts the title on the left and both icons on the
- * right. Same three controls, different places — so this moves the places and
- * nothing else.
+ * Which is the arrangement the website already draws: the wordmark on the
+ * left, the two controls together on the right. This file used to move the
+ * title into the middle of the bar, on the belief that the app centres it. It
+ * does not, and never has — side by side with the real thing a centred
+ * wordmark is the first difference anybody sees. So the rules that moved it
+ * are gone, and what is left guarantees the order rather than changing it.
  *
  * Every selector here is an attribute set by trim.js, which finds the three by
  * address and by geometry and gives up rather than guess. Nothing is moved in
  * the document: Instagram's client owns that tree and rebuilds it whenever it
  * likes, and a node this file had moved would be a node it puts back. What
- * changes is where the boxes are laid out, which is the browser's business and
- * survives every rebuild.
+ * these say is which order the boxes are laid out in, which is the browser's
+ * business and survives every rebuild.
  *
  * The controls themselves are untouched — its plus, its chevron, its heart,
  * with its badges on them and its modals behind them. The header goes on
@@ -112,52 +114,29 @@ body {
 }
 
 /*
- * The wrappers between the bar and the three controls. `display: contents`
- * makes a wrapper stop generating a box of its own, so its children become the
- * bar's flex items — which is how the plus comes out of the group it shares
- * with the heart without anything being taken out of the document.
- */
-
-[data-quiet-flatten] {
-  display: contents !important;
-}
-
-/*
- * Whatever else the flattening brings up into the bar stays between the two
- * icons, which is where it already was. Without this a spacer inside the
- * icons' group would inherit an order of nought and be laid out ahead of the
- * plus, which is a long way from where anybody put it.
+ * The wordmark first and the icons last, whatever else is up there.
  *
- * It is written before the three below so that they win the tie: `order` means
- * nothing at all except to a flex item, so this reaches exactly the elements
- * those rules are about and none of the rest of the page.
+ * `data-quiet-flatten` is still set by the script, on the wrappers between the
+ * bar and the three controls, and deliberately has no rule of its own any
+ * more. It carried `display: contents`, which made a wrapper stop generating a
+ * box so that the plus could be pulled out of the group it shares with the
+ * heart — needed only for the centred title, and actively wrong without it:
+ * flattened, the two icons become separate flex items and `space-between`
+ * spreads them across the bar with the heart alone at the right. Left as an
+ * attribute so that what the script has identified is still visible in the
+ * inspector.
  */
 
-[data-quiet-header] * {
-  order: 2 !important;
+[data-quiet-slot="title"] {
+  order: 1 !important;
 }
 
 [data-quiet-slot="create"] {
-  order: 1 !important;
+  order: 2 !important;
 }
 
 [data-quiet-slot="activity"] {
   order: 3 !important;
-}
-
-/*
- * The middle of the bar, rather than the middle of what is left over. Taken out
- * of the flow so that the title stays put whether the heart is carrying a badge
- * or not — which is what the app does, and the reason its title never shifts.
- */
-
-[data-quiet-slot="title"] {
-  order: 2 !important;
-  position: absolute !important;
-  left: 50% !important;
-  top: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  margin: 0 !important;
 }
 
 /*
@@ -179,18 +158,6 @@ body {
   top: var(--quiet-clock, 0px) !important;
 }
 
-/*
- * Something for the centred title to be centred *in*.
- *
- * Only when the bar is not itself the pinned element: a sticky bar already
- * establishes one, and taking its position away to add it back would be
- * unpinning the header in order to keep its title in the middle.
- */
-
-[data-quiet-header]:not([data-quiet-pinned]) {
-  position: relative !important;
-}
-
 /* ── The floor under a bar that is no longer there ──────────────────────── */
 /*
  * Set by trim.js on the ancestors of Instagram's own navigation row. The page
@@ -207,8 +174,9 @@ body {
 /*
  * And the page itself, whatever it thinks it owes the bottom of the screen.
  *
- * Quiet's row floats over the page rather than cutting it off, so there is
- * nothing down there to keep clear of. Two things put a black band there
+ * Quiet's row stands on the bottom edge of the glass and the page is stopped
+ * just above it by the app, so there is nothing the page itself owes down
+ * there. Two things put a band of nothing between the last post and the row
  * anyway: the padding Instagram reserves for the bar Quiet hides, which this
  * rule takes back, and `env(safe-area-inset-bottom)`, which this rule cannot
  * reach — it is read by Instagram's own elements, all over the page, and there
@@ -221,8 +189,10 @@ body {
  * reports a top inset and no bottom one: see `QuietWebView`, which is the
  * source both WebKit and `env()` read from.
  *
- * The row is drawn by the app, over the top of all of this, and the page is
- * meant to run on underneath it to the edge of the glass.
+ * The row is drawn by the app, along the bottom edge, and the page ends where
+ * the row begins — which is the app's business rather than the page's, and is
+ * done by insetting the scroll view rather than by asking the document for
+ * anything.
  */
 
 html,

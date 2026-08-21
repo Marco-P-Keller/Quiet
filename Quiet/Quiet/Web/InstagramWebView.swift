@@ -35,13 +35,6 @@ final class WebSurface {
     /// rather than swallowed.
     private(set) var missingResources: [String] = []
 
-    /// Whether Quiet's row has drawn itself in, because somebody is reading.
-    ///
-    /// It never leaves — a control that disappears is a control you hunt for —
-    /// but while the page is moving away under your thumb there is no reason
-    /// for it to be at full size.
-    private(set) var isBarCollapsed = false
-
     /// The signed-in username, read out of Instagram's own navigation before
     /// that row is taken out. `nil` until a page carrying it has loaded, which
     /// is why the profile entry in Quiet's row appears a moment after the rest.
@@ -205,11 +198,6 @@ final class WebSurface {
         hasLoaded = true
     }
 
-    fileprivate func setBar(collapsed: Bool) {
-        guard collapsed != isBarCollapsed else { return }
-        isBarCollapsed = collapsed
-    }
-
     fileprivate func note(path: String) {
         guard let url = URL(string: path, relativeTo: ContentRules.feed)?.absoluteURL else { return }
         note(address: url)
@@ -313,15 +301,12 @@ struct InstagramWebView: UIViewRepresentable {
     let session: QuietSession
     /// How much of the top and bottom of the screen belongs to somebody else —
     /// the status bar above, Quiet's own row of controls below.
-    var inset: UIEdgeInsets
-    /// How far the view hangs below the bottom of the glass.
     ///
-    /// The page reserves that much for a bar that is not there, and the view is
-    /// made taller by the same amount so the reservation falls off the screen.
-    /// The scroll view is told about it as a bottom inset so that the end of a
-    /// page that *does* end can still be scrolled all the way into view: the
-    /// inset lands in the overhang, which nobody can see.
-    var overhang: CGFloat = 0
+    /// Both ends are the scroll indicator's business, and the bottom is the
+    /// page's as well: the row is opaque, so the last post has to be able to
+    /// scroll clear of it rather than sitting behind it for ever. That is what
+    /// every bar along the bottom of an iPhone has done since the first one.
+    var inset: UIEdgeInsets
 
     func makeCoordinator() -> Coordinator {
         Coordinator(session: session, surface: surface)
@@ -379,13 +364,12 @@ struct InstagramWebView: UIViewRepresentable {
         // status bar and scrolls up behind it. That is what Instagram does, and
         // it is a property of the page rather than of the view.
         webView.scrollView.contentInsetAdjustmentBehavior = .never
-        webView.scrollView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: overhang, right: 0)
+        webView.scrollView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: inset.bottom, right: 0)
         // The indicator is the one thing that should still respect the app's
         // furniture: a scroll bar running under the row reads as a fault.
         webView.scrollView.verticalScrollIndicatorInsets = inset
         webView.load(URLRequest(url: ContentRules.home))
 
-        context.coordinator.watch(webView.scrollView)
         surface.adopt(webView, missing: payload.missing)
         return webView
     }
@@ -394,8 +378,8 @@ struct InstagramWebView: UIViewRepresentable {
         if webView.scrollView.verticalScrollIndicatorInsets != inset {
             webView.scrollView.verticalScrollIndicatorInsets = inset
         }
-        if webView.scrollView.contentInset.bottom != overhang {
-            webView.scrollView.contentInset.bottom = overhang
+        if webView.scrollView.contentInset.bottom != inset.bottom {
+            webView.scrollView.contentInset.bottom = inset.bottom
         }
         // The same larger-of-the-two as in `makeUIView`, so that a layout pass
         // that still reports the starting twenty points cannot walk the number
@@ -417,38 +401,6 @@ struct InstagramWebView: UIViewRepresentable {
 
     @MainActor
     final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
-        /// Watching the page move, so the row can get out of the way a little.
-        ///
-        /// Observed rather than delegated. WKWebView is its own scroll view's
-        /// delegate and uses that seat for real work — scroll-to-top, zoom,
-        /// keyboard avoidance — so taking it away to learn which way a thumb is
-        /// going would be a poor trade.
-        private var scrolling: NSKeyValueObservation?
-        private var lastOffset: CGFloat = 0
-
-        /// How far the page has to move before the row believes it. Small
-        /// enough to feel immediate, large enough that a fingertip resting on
-        /// the glass does not make it flicker.
-        private static let meaningful: CGFloat = 8
-
-        func watch(_ scrollView: UIScrollView) {
-            lastOffset = scrollView.contentOffset.y
-            scrolling = scrollView.observe(\.contentOffset, options: [.new]) { [weak self] view, _ in
-                MainActor.assumeIsolated { self?.scrolled(view) }
-            }
-        }
-
-        private func scrolled(_ scrollView: UIScrollView) {
-            let offset = scrollView.contentOffset.y
-            let delta = offset - lastOffset
-            guard abs(delta) > Self.meaningful else { return }
-            lastOffset = offset
-
-            // At the top of the page there is nothing to get out of the way of.
-            let atTop = offset <= -scrollView.contentInset.top + 4
-            surface.setBar(collapsed: atTop ? false : delta > 0)
-        }
-
         var session: QuietSession
         let surface: WebSurface
 
@@ -627,14 +579,6 @@ struct InstagramWebView: UIViewRepresentable {
                 guard let name = body["surface"] as? String,
                       let surface = BlockedSurface(rawValue: name) else { return }
                 session.report(surface)
-
-            case "settings":
-                // Quiet's mark, tapped beside Instagram's own settings.
-                session.isPanelShowing = true
-
-            case "search":
-                // The magnifying glass, tapped in Quiet's own row.
-                session.isSearchShowing = true
 
             case "where":
                 // Instagram's client changes the address without loading

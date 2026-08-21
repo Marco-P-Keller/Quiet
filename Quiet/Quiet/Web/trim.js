@@ -11,10 +11,11 @@
  *   3. Take out Instagram's navigation bar, having first read the signed-in
  *      name out of it, because Quiet carries all five entries in a row of its
  *      own that no stylesheet of Instagram's can reach.
- *   4. Put the header on the feed into the arrangement Instagram's own app
- *      uses: the plus on the left, the title in the middle, the heart on the
- *      right. The controls stay the site's own, so what they do and how they
- *      behave are unchanged — only where they sit.
+ *   4. Name the three controls in the header on the feed — the wordmark, the
+ *      plus and the heart — so that the order they are laid out in is
+ *      guaranteed rather than inherited. Which is the order the site already
+ *      uses, and the order the app uses: the wordmark on the left, the two
+ *      icons together on the right. Nothing is moved.
  *   5. Keep all of it up as the page rewrites itself, because Instagram's web
  *      client replaces the feed without ever loading a new page.
  *
@@ -862,34 +863,62 @@
   function liftWhateverIsUpThere() {
     if (!document.elementsFromPoint) return;
 
-    var middle = Math.round((window.innerWidth || 390) / 2);
-    var stack = document.elementsFromPoint(middle, 4);
-    if (!stack) return;
+    var width = window.innerWidth || 390;
+    // Three columns rather than one. A bar that spans the glass is found at any
+    // of them; one that does not — the search field in the inbox sits in a
+    // wrapper narrower than the page — is found at the one it covers. Cheap
+    // enough to do on every frame the page rewrites itself.
+    var columns = [
+      Math.round(width * 0.2),
+      Math.round(width / 2),
+      Math.round(width * 0.8)
+    ];
 
-    for (var i = 0; i < stack.length; i++) {
-      var node = stack[i];
-      if (!node || node === document.body || node === document.documentElement) continue;
-      if (node.getAttribute && node.getAttribute("data-quiet-pinned") !== null) return;
-      // Nothing of Quiet's is pinned to the top, but a control it added to
-      // somebody else's bar must never be mistaken for the bar.
-      if (node.id && node.id.indexOf("quiet-") === 0) continue;
-
-      var style = window.getComputedStyle(node);
-      if (style.position !== "sticky" && style.position !== "fixed") continue;
-
-      var top = parseFloat(style.top);
-      // `auto` parses to nothing, and something pinned to the bottom is not
-      // what is over the clock.
-      if (isNaN(top) || top > 1) continue;
-
-      var box = node.getBoundingClientRect();
-      // A bar, not the page. Instagram's header is about forty-five points; a
-      // wrapper as tall as the screen is not a header and must not be moved.
-      if (box.height > 140 || box.height < 8) continue;
-
-      node.setAttribute("data-quiet-pinned", "");
-      return;
+    for (var c = 0; c < columns.length; c++) {
+      var stack = document.elementsFromPoint(columns[c], 4);
+      if (!stack) continue;
+      for (var i = 0; i < stack.length; i++) {
+        liftIfPinnedToTheTop(stack[i]);
+      }
     }
+  }
+
+  /**
+   * One element out of the stack under a point, moved down if it is a bar
+   * drawn over the clock.
+   *
+   * Every element at that point is asked, and every one that qualifies is
+   * lifted. An earlier version stopped at the first — and, worse, gave up
+   * entirely the moment it met something already lifted, which is how the
+   * inbox ended up with its search field cut in half by the status bar: the
+   * page pins two things up there, one behind the other, and only ever the
+   * first of them was moved.
+   *
+   * Lifting something twice is not possible and not a problem: once it carries
+   * the attribute it is left alone, and it has moved out from under the point
+   * in any case.
+   */
+  function liftIfPinnedToTheTop(node) {
+    if (!node || node === document.body || node === document.documentElement) return;
+    if (!node.getAttribute || node.getAttribute("data-quiet-pinned") !== null) return;
+    // Nothing of Quiet's is pinned to the top, but a control it added to
+    // somebody else's bar must never be mistaken for the bar.
+    if (node.id && node.id.indexOf("quiet-") === 0) return;
+
+    var style = window.getComputedStyle(node);
+    if (style.position !== "sticky" && style.position !== "fixed") return;
+
+    var top = parseFloat(style.top);
+    // `auto` parses to nothing, and something pinned to the bottom is not
+    // what is over the clock.
+    if (isNaN(top) || top > 1) return;
+
+    var box = node.getBoundingClientRect();
+    // A bar, not the page. Instagram's header is about forty-five points; a
+    // wrapper as tall as the screen is not a header and must not be moved.
+    if (box.height > 140 || box.height < 8) return;
+
+    node.setAttribute("data-quiet-pinned", "");
   }
 
   /* ── 1. Taps ──────────────────────────────────────────────────────────── */

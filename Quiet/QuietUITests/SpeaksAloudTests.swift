@@ -66,8 +66,18 @@ final class SpeaksAloudTests: XCTestCase {
         XCTAssertTrue(row.waitForExistence(timeout: 30), "The panel must offer it")
         row.tap()
 
-        let field = app.textFields.firstMatch
+        // By identifier again, and for the same kind of reason: finding
+        // someone is a page inside the browsing screen now rather than a sheet
+        // over the top of it, so Instagram's own page is still in the
+        // hierarchy behind it with fields of its own.
+        let field = app.textFields["search.field"]
         XCTAssertTrue(field.waitForExistence(timeout: 10), "It must open on a field ready to type in")
+        // Tapped before typing. The page asks for the keyboard itself and this
+        // is not a test of that; a runner where the request lost a race would
+        // otherwise fail on "neither element nor any descendant has keyboard
+        // focus" and say nothing about what this is for, which is that the
+        // screen is reachable, takes a name, and answers.
+        field.tap()
         field.typeText("quiet")
 
         // What comes back needs a signed-in session, which a runner does not

@@ -43,11 +43,14 @@ enum WebScripts {
             missing.append("trim.css")
         }
 
-        // The one string the page needs from the app. Injected before the trim
-        // runs, so the mark it draws is announced in the reader's own language
-        // rather than in the language this file happens to be written in.
+        // The two numbers the page needs from the app, injected before the trim
+        // runs so that both are there before its first paint.
+        //
+        // A third used to be here: the name of Quiet's own settings, for a mark
+        // the script drew beside Instagram's on your own profile. That door is
+        // in the row along the bottom now, on every page rather than on one, so
+        // the string it was announced under has nothing left to label.
         scripts.append(userScript(source: """
-        window.__quietSettingsLabel = \(quoted(String(localized: "Quiet settings")));
         window.__quietAppID = \(quoted(WebScripts.appID));
         window.__quietTop = \(Int(top.rounded()));
         """))

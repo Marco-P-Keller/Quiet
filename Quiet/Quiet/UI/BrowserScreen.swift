@@ -10,19 +10,34 @@ import UIKit
 /// to know.
 ///
 /// Quiet carries the whole navigation now: home, search, messages, profile, and
-/// a clock for its own settings. Five entries in a floating pill, always in the
-/// same place, on every page — including the ones where Instagram draws no bar
-/// at all.
+/// a clock for its own settings. Five entries in a bar along the bottom, always
+/// in the same place, on every page — including the ones where Instagram draws
+/// no bar at all.
+///
+/// The bar is the shape Instagram's own is: the full width of the glass, flush
+/// against the bottom edge, opaque, with a hairline above it and the system's
+/// strip beneath. It was a floating pill for a while, and a pill is the one
+/// thing on the screen that could never be mistaken for the app it stands in
+/// front of. It does not shrink, fade or slide away while the page moves,
+/// because Instagram's does not: a bar that answers the scroll is a bar you
+/// end up watching.
 ///
 /// It marks where you are, the way Instagram's does: the symbol you are
-/// standing on is filled, and a lighter capsule sits behind it. That mark is
-/// most of what makes a row of icons feel like a place rather than a toolbar.
+/// standing on is filled and the rest are outlines. Nothing else — no capsule,
+/// no tint. That mark is most of what makes a row of icons feel like a place
+/// rather than a toolbar.
 ///
-/// The pill draws itself in while the page moves away under your thumb and
-/// comes back out when it stops. It never leaves, because a control that
-/// disappears is a control you end up hunting for. It sits just clear of the
-/// home indicator, and the page runs on beneath it to the bottom edge — a row
-/// that floats and a page that stops under it is the worst of both.
+/// Two places have no bar at all, for the same reason Instagram has none there:
+/// a story and an open conversation both put something of their own along the
+/// bottom edge, and a row drawn over the top of it covers the one control the
+/// screen exists for. See `isImmersive`.
+///
+/// The two screens that are Quiet's own — the settings behind the clock, and
+/// finding someone — are pages here rather than sheets over the top. A sheet
+/// takes the whole screen and the row with it, so the app it belongs to
+/// disappears for as long as it is up; a page leaves the row exactly where it
+/// was, marks which of the five you are standing on, and is left the same way
+/// everything else is: by tapping somewhere else.
 ///
 /// The two Quiet needed lived inside Instagram's bar for a while, which is
 /// where they belonged and where they twice failed to appear: a row built by
@@ -32,17 +47,10 @@ import UIKit
 /// only that row knows.
 ///
 /// The top stays Instagram's, and so does every pixel of the glass. A title row
-/// of Quiet's own was tried for exactly one build and was wrong on sight; the
-/// opaque band behind the clock that replaced it was wrong for a subtler
-/// reason, which took a photograph to see — whatever the app takes off the top
-/// of the page comes back as a black strip along the bottom, above the row,
-/// where Instagram runs its next photograph.
+/// of Quiet's own was tried for exactly one build and was wrong on sight.
 ///
 /// So the page gets all of it, and starts itself below the clock. See
 /// `InstagramWebView` and trim.css.
-///
-/// The web view keeps the whole screen and is told which parts of it are spoken
-/// for, so nothing of Quiet's ever covers the page.
 @MainActor
 struct BrowserScreen: View {
     let session: QuietSession
@@ -51,10 +59,9 @@ struct BrowserScreen: View {
     /// What the system has reserved at either end of the screen.
     ///
     /// Asked of the window at the moment the screen is built rather than
-    /// defaulted and corrected, because the row is a different *shape* on a
-    /// phone with a home button and a wrong first answer would show it in the
-    /// wrong one for a frame. Asked again on appear, for the case where the
-    /// window has laid nothing out yet and answers zero.
+    /// defaulted and corrected, because a wrong first answer would draw the row
+    /// over the home indicator for a frame. Asked again on appear, for the case
+    /// where the window has laid nothing out yet and answers zero.
     @State private var topInset: CGFloat = SafeArea.top
     @State private var bottomInset: CGFloat = SafeArea.bottom
 
@@ -63,9 +70,8 @@ struct BrowserScreen: View {
     /// The web view is given this as a frame outright rather than being left to
     /// fill a stack that has been told to ignore the safe area. Twice now a
     /// photograph has shown the page stopping thirty-four points short of the
-    /// bottom — the home indicator, to the point — with the row floating over a
-    /// black band instead of over the next photograph. Ignoring the safe area
-    /// is a request. A size is not.
+    /// bottom — the home indicator, to the point. Ignoring the safe area is a
+    /// request. A size is not.
     @State private var glass: CGSize = SafeArea.glass
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -78,8 +84,9 @@ struct BrowserScreen: View {
 
             // The whole screen, and nothing taken off it. The two numbers are
             // what Quiet's own furniture occupies; the web view uses them for
-            // the scroll indicator and hands the top one to the page, which
-            // starts itself below the clock. See `InstagramWebView`.
+            // the scroll indicator and for how far the page may be scrolled,
+            // and hands the top one to the page, which starts itself below the
+            // clock. See `InstagramWebView`.
             InstagramWebView(
                 surface: surface,
                 session: session,
@@ -88,41 +95,30 @@ struct BrowserScreen: View {
                     left: 0,
                     bottom: furniture,
                     right: 0
-                ),
-                overhang: bottomInset
+                )
             )
-            // Taller than the glass, by exactly what the system reserves at
-            // the bottom.
+            // Exactly the glass.
             //
-            // Four rounds went into arguing with the page about the last inch:
-            // a content inset, Instagram's floor padding, a viewport-fit that
-            // this project switched on itself, a frame instead of a request.
-            // Each moved the band and none of them removed it, because each
-            // was a guess about what a stranger's stylesheet keeps clear down
-            // there.
-            //
-            // This stops guessing. `env(safe-area-inset-bottom)` is the page's
-            // own name for "the strip at the bottom I must not draw in", so the
-            // web view is given that much extra below the screen and the page's
-            // own reservation lands off the glass entirely. Whatever it is, and
-            // however it is spelled this week, it is no longer on the phone.
-            //
-            // Nothing real is lost: what falls off the bottom is the space the
-            // page itself set aside to be empty. On a phone with a home button
-            // the system reserves nothing, this adds nothing, and the frame is
-            // the screen.
+            // It hung an extra inch below the bottom edge for a while, so that
+            // whatever the page reserved for the home indicator fell off the
+            // screen rather than showing as a black band under a floating row.
+            // With the row flush against the bottom edge there is no band to
+            // hide — the row is standing on it — and the overhang had a cost
+            // that took a photograph to see: everything the page pins to the
+            // bottom of the *viewport* was pinned an inch below the glass. A
+            // story's reply field, a conversation's message box: pushed off the
+            // screen by the app, on the pages where they are the only thing
+            // that matters.
             .frame(
                 width: glass.width > 0 ? glass.width : nil,
-                height: glass.height > 0 ? glass.height + bottomInset : nil
+                height: glass.height > 0 ? glass.height : nil
             )
             // Said again here, on the view itself.
             //
             // The stack already ignores it, and the photograph says that was
             // not enough: the page stopped thirty-four points above the bottom
-            // of the glass — the home indicator, to the point — with the row
-            // floating over a black band instead of over Instagram's next
-            // photograph. A representable inside an `ignoresSafeArea` stack is
-            // not reliably given the whole of it. Said twice, it is.
+            // of the glass. A representable inside an `ignoresSafeArea` stack
+            // is not reliably given the whole of it. Said twice, it is.
             .ignoresSafeArea()
 
             if !surface.hasLoaded {
@@ -131,24 +127,21 @@ struct BrowserScreen: View {
 
             // The strip behind the clock belongs to the app.
             //
-            // This came out once, on the grounds that whatever the app takes
-            // off the top comes back as a black band at the bottom. That was
-            // wrong twice over: the band at the bottom was Instagram's own
-            // floor padding, and taking this away did not fix it — while three
-            // separate attempts at persuading Instagram's pinned bar to sit
-            // below the clock all came back in a photograph with the wordmark
-            // drawn through the battery.
-            //
-            // So it is back, and it is not a guess. Whatever the page does with
-            // its header, nothing of anybody's is ever drawn across the time
-            // and the battery, because the app owns those pixels. If the lift
-            // works the header sits just below this; if it does not, the header
-            // slides underneath and out of sight. Neither is broken.
+            // Whatever the page does with its header, nothing of anybody's is
+            // ever drawn across the time and the battery, because the app owns
+            // those pixels. If the lift works the header sits just below this;
+            // if it does not, the header slides underneath and out of sight.
+            // Neither is broken.
             VStack(spacing: 0) {
                 Color(uiColor: .systemBackground)
                     .frame(height: topInset)
                 Spacer(minLength: 0)
             }
+
+            // Quiet's own two screens, as pages rather than as sheets, so that
+            // the row along the bottom stays where it is and goes on saying
+            // which of the five you are standing on.
+            quietPages
 
             // Over the cover, so it is there from the first frame rather than
             // arriving with the page.
@@ -161,6 +154,11 @@ struct BrowserScreen: View {
         }
         .ignoresSafeArea()
         .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: surface.hasLoaded)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: session.isPanelShowing)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: session.isSearchShowing)
+        // The row leaving for a story and coming back from one, and the mark
+        // moving from one entry to the next. Both are the address changing.
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: surface.address)
         .onAppear {
             topInset = SafeArea.top
             bottomInset = SafeArea.bottom
@@ -178,115 +176,149 @@ struct BrowserScreen: View {
             .accessibilityHidden(true)
     }
 
-    /// Where the row says you are.
+    // MARK: - Quiet's own pages
+
+    /// The settings behind the clock, and finding someone.
     ///
-    /// Instagram's row fills the symbol you are standing on and sets a lighter
-    /// capsule behind it, and that mark is most of what makes a row of icons
-    /// feel like a place rather than a toolbar. Quiet's says the same thing
-    /// about the two screens that are its own.
-    private enum Entry: Hashable {
-        case home, clock, messages, search, profile
+    /// Opaque, from the bottom of the clock to the top of the row, so the page
+    /// underneath is neither visible nor scrollable while one of them is up.
+    /// They replace each other rather than stacking: the row is the way between
+    /// them, and a stack of two would leave a screen behind whichever one you
+    /// left.
+    @ViewBuilder
+    private var quietPages: some View {
+        if isShowingQuietPage {
+            ZStack {
+                Paper.page
+                VStack(spacing: 0) {
+                    // The clock's own strip, which the app already draws.
+                    Color.clear.frame(height: topInset)
+
+                    if session.isPanelShowing {
+                        PanelView(
+                            session: session,
+                            surface: surface,
+                            onFindSomeone: {
+                                session.isPanelShowing = false
+                                session.isSearchShowing = true
+                            },
+                            onDismiss: { session.isPanelShowing = false }
+                        )
+                    } else {
+                        SearchView(
+                            surface: surface,
+                            onDone: { session.isSearchShowing = false },
+                            onOpen: { url in
+                                surface.open(url)
+                                session.isSearchShowing = false
+                            }
+                        )
+                    }
+
+                    // Clear of the row, which is drawn over the top of this.
+                    Color.clear.frame(height: furniture)
+                }
+            }
+            .ignoresSafeArea()
+            .transition(.opacity)
+        }
     }
 
-    private var current: Entry {
-        if session.isPanelShowing { return .clock }
-        if session.isSearchShowing { return .search }
+    private var isShowingQuietPage: Bool {
+        session.isPanelShowing || session.isSearchShowing
+    }
 
+    // MARK: - The row
+
+    /// Where the row says you are.
+    ///
+    /// Instagram's row fills the symbol you are standing on and outlines the
+    /// rest, and that mark is most of what makes a row of icons feel like a
+    /// place rather than a toolbar. Quiet's says the same thing about the two
+    /// screens that are its own.
+    private enum Entry: Hashable {
+        case home, search, clock, messages, profile
+    }
+
+    /// Where the page is, whatever is drawn over the top of it.
+    private var pageEntry: Entry {
         let path = surface.address?.path ?? "/"
         if path.hasPrefix("/direct") { return .messages }
         if let me = surface.me, path == "/\(me)" || path == "/\(me)/" { return .profile }
         return .home
     }
 
-    /// The row, in whichever shape this phone wears.
+    private var current: Entry {
+        if session.isPanelShowing { return .clock }
+        if session.isSearchShowing { return .search }
+        return pageEntry
+    }
+
+    /// The pages that own the bottom edge, where Instagram draws no bar either.
     ///
-    /// Instagram does not draw the same bar on every iPhone, and neither does
-    /// iOS. A phone with a home indicator has a strip along the bottom that
-    /// belongs to the system, so the row floats above it: a pill, inset from
-    /// both edges, with the page running underneath. A phone with a home button
-    /// has no such strip, and there a floating pill leaves a band of nothing
-    /// beneath it — so the row *is* the bottom edge, full width, flush, with a
-    /// hairline above it, the way every bar on those phones has always been.
+    /// A story has its reply field down there and a conversation has its
+    /// message box, and both are the reason the screen is open. A row of five
+    /// drawn across them is the app covering the one control that matters,
+    /// which is exactly what a photograph of a story showed.
     ///
-    /// The two are told apart by the only thing that actually distinguishes
-    /// them: whether the system reserves anything at the bottom. Not by screen
-    /// size, not by a list of model names that goes stale every September.
+    /// Never while one of Quiet's own pages is up: the row is the way out of
+    /// those, and a way out that is not on the screen is not a way out.
+    private var isImmersive: Bool {
+        guard !isShowingQuietPage else { return false }
+        let path = surface.address?.path ?? "/"
+        return path.hasPrefix("/stories/")
+            || path.hasPrefix("/direct/t/")
+            || path.hasPrefix("/direct/new/")
+    }
+
+    /// The row, along the bottom edge, in the shape Instagram's own is.
+    ///
+    /// Full width, flush, opaque, with a hairline above it and the system's own
+    /// strip beneath — which is a bar rather than a piece of the app's
+    /// furniture floating over somebody else's page. There is no second shape
+    /// for phones with a home button: those reserve nothing at the bottom, so
+    /// the same bar simply meets the edge of the glass.
+    @ViewBuilder
     private var quietBar: some View {
-        VStack(spacing: 0) {
-            Spacer(minLength: 0)
-            if isFloating {
-                row
-                    .frame(height: Self.barHeight)
-                    .padding(.horizontal, 6)
-                    // A pill rather than a bar across the whole screen. It is
-                    // the app's one piece of furniture; it should sit on the
-                    // page rather than cut it off, and the page should be
-                    // visible either side of it — and underneath.
-                    .background(.regularMaterial, in: Capsule())
-                    .shadow(color: .black.opacity(0.22), radius: 16, y: 6)
-                    .padding(.horizontal, 22)
-                    // Drawn in while the page is moving away under your thumb,
-                    // back out the moment it stops or reverses. It never
-                    // leaves: a control that disappears is one you hunt for.
-                    .scaleEffect(surface.isBarCollapsed ? 0.86 : 1, anchor: .bottom)
-                    .opacity(surface.isBarCollapsed ? 0.62 : 1)
-                    .animation(
-                        reduceMotion ? nil : .spring(response: 0.34, dampingFraction: 0.86),
-                        value: surface.isBarCollapsed
-                    )
-                    // Just clear of the home indicator, with Instagram's next
-                    // photograph running on beneath it to the bottom edge of
-                    // the glass — which is the whole point of a row that
-                    // floats, and was a black band of Instagram's own until the
-                    // bar behind its row came out. See `hideNavShell`.
-                    .padding(.bottom, Self.barGap)
-            } else {
+        if !isImmersive {
+            VStack(spacing: 0) {
+                Spacer(minLength: 0)
                 VStack(spacing: 0) {
                     Rectangle()
                         .fill(Color(uiColor: .separator))
                         .frame(height: 0.5)
                     row
-                        .frame(height: Self.flushHeight)
+                        .frame(height: Self.barHeight)
+                    // The system's strip, in the bar's own colour, the way
+                    // every bar on a phone with a home indicator ends.
+                    Color.clear
+                        .frame(height: bottomInset)
                 }
-                // No shadow and no shrinking. A bar attached to the edge of the
-                // screen has nothing to float over and nothing to get out of
-                // the way of; both would read as a fault rather than a flourish.
-                .background(.regularMaterial)
+                .background(Color(uiColor: .systemBackground))
             }
+            .transition(.opacity)
         }
     }
 
-    /// How much of the bottom of the screen the row stands on. The scroll
-    /// indicator is the one thing that still respects it: a scroll bar running
-    /// underneath the row reads as a fault.
+    /// How much of the bottom of the screen the row stands on.
     ///
-    /// The pill and the air beneath it, and then the system's own strip on top
-    /// of that, so the indicator stops above the row rather than beside it.
-    /// The page itself is given all of this back — it runs on underneath to the
-    /// bottom edge of the glass, which is the whole point of a row that floats.
+    /// The page is kept out of it in both senses: the scroll indicator stops
+    /// above the row rather than running underneath it, and the end of the page
+    /// can be scrolled clear of the bar instead of sitting behind it for ever.
+    /// Nothing here on a page that has no row.
     private var furniture: CGFloat {
-        isFloating ? Self.barHeight + Self.barGap + bottomInset : Self.flushHeight
+        isImmersive ? 0 : Self.barHeight + bottomInset
     }
 
-    /// Whether this phone reserves a strip at the bottom for itself.
-    private var isFloating: Bool { bottomInset > 0 }
-
-    /// The five entries, in the order Instagram uses, with the clock where
-    /// Reels would be.
+    /// The five entries, in Instagram's own order: home, search, the middle
+    /// one, messages, you. The middle is where Instagram puts the thing its app
+    /// does rather than the thing the site does, and Quiet's is the clock.
     private var row: some View {
         HStack(spacing: 0) {
-            barButton(.home, "house", "house.fill", Text("Home")) {
-                surface.goToFeed()
-            }
-            barButton(.clock, "clock", "clock.fill", Text("Quiet settings")) {
-                session.isPanelShowing = true
-            }
-            barButton(.messages, "paperplane", "paperplane.fill", Text("Messages")) {
-                surface.goToMessages()
-            }
-            barButton(.search, "magnifyingglass", "magnifyingglass", Text("Find someone")) {
-                session.isSearchShowing = true
-            }
+            barButton(.home, "house", "house.fill", Text("Home"))
+            barButton(.search, "magnifyingglass", "magnifyingglass", Text("Find someone"))
+            barButton(.clock, "clock", "clock.fill", Text("Quiet settings"))
+            barButton(.messages, "paperplane", "paperplane.fill", Text("Messages"))
             // Only once the page has said who is signed in. A button that leads
             // nowhere is worse than one that arrives a second late.
             if surface.me != nil {
@@ -295,30 +327,26 @@ struct BrowserScreen: View {
         }
     }
 
-    /// The pill, and the air beneath it. Together they are what the page is
-    /// asked to keep clear at the bottom.
-    private static let barHeight: CGFloat = 52
-
-    /// A bar attached to the bottom edge is the height every bar on those
-    /// phones has been since the first one.
-    private static let flushHeight: CGFloat = 49
+    /// The height every bar along the bottom of an iPhone has been since the
+    /// first one, and the height of Instagram's.
+    private static let barHeight: CGFloat = 49
 
     /// The last entry, with your own face in it, the way Instagram's row ends.
     /// An outline of a person stands in until the page has handed one over.
     private var myProfileButton: some View {
         let here = current == .profile
-        return Button { tap(.profile, { surface.goToMyProfile() }) } label: {
+        return Button { go(to: .profile) } label: {
             Group {
                 if let face = surface.myFace {
                     Image(uiImage: face)
                         .resizable()
                         .scaledToFill()
-                        .frame(width: 27, height: 27)
+                        .frame(width: 25, height: 25)
                         .clipShape(Circle())
                         .overlay(
                             Circle().strokeBorder(
-                                Color(uiColor: .label).opacity(here ? 0.95 : 0.25),
-                                lineWidth: here ? 2 : 0.5
+                                Color(uiColor: .label).opacity(here ? 0.95 : 0.2),
+                                lineWidth: here ? 1.5 : 0.5
                             )
                         )
                 } else {
@@ -328,28 +356,12 @@ struct BrowserScreen: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(mark(here))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text("Your profile"))
         .accessibilityAddTraits(here ? .isSelected : [])
     }
-
-    /// How far the pill floats above the bottom edge of the glass.
-    ///
-    /// Twelve points to begin with, then twenty-eight, and forty-one now: two
-    /// photographs, each asking for a couple of millimetres more. Roughly a
-    /// hundred and sixty points to the inch, so a millimetre is a little over
-    /// six points and the arithmetic is honest rather than a round number that
-    /// happened to look right.
-    ///
-    /// It clears the home indicator now rather than floating over it, which is
-    /// only worth having because the page finally runs the whole way down
-    /// behind it. Under the row is Instagram's next photograph; it was a black
-    /// band of Instagram's own until the bar behind its row came out. See
-    /// `hideNavShell` in trim.js.
-    private static let barGap: CGFloat = 41
 
     /// What a tap on the row does.
     ///
@@ -359,14 +371,40 @@ struct BrowserScreen: View {
     /// included, and its absence is the kind of thing nobody reports and
     /// everybody feels.
     ///
+    /// A tap on one of the three that are Instagram's also closes whichever of
+    /// Quiet's own pages is up — and when the page underneath was already the
+    /// one being asked for, closing it is the whole of the answer. Reloading
+    /// the feed somebody was reading two seconds ago, because they looked at
+    /// the clock, is the app losing their place for them.
+    ///
     /// And every tap gives a tick under the thumb. Instagram's row does; a row
     /// that does not answer the finger reads as a picture of a row.
-    private func tap(_ entry: Entry, _ action: () -> Void) {
+    private func go(to entry: Entry) {
         Touch.tick()
-        if current == entry {
-            surface.scrollToTop()
-        } else {
-            action()
+
+        switch entry {
+        case .clock:
+            session.isSearchShowing = false
+            session.isPanelShowing = true
+
+        case .search:
+            session.isPanelShowing = false
+            session.isSearchShowing = true
+
+        case .home, .messages, .profile:
+            let wasOverThePage = isShowingQuietPage
+            session.isPanelShowing = false
+            session.isSearchShowing = false
+
+            guard pageEntry != entry else {
+                if !wasOverThePage { surface.scrollToTop() }
+                return
+            }
+            switch entry {
+            case .home: surface.goToFeed()
+            case .messages: surface.goToMessages()
+            default: surface.goToMyProfile()
+            }
         }
     }
 
@@ -374,15 +412,13 @@ struct BrowserScreen: View {
         _ entry: Entry,
         _ outline: String,
         _ solid: String,
-        _ label: Text,
-        action: @escaping () -> Void
+        _ label: Text
     ) -> some View {
         let here = current == entry
-        return Button { tap(entry, action) } label: {
+        return Button { go(to: entry) } label: {
             glyph(entry, here, outline, solid)
                 .foregroundStyle(Color(uiColor: .label))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(mark(here))
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -417,20 +453,6 @@ struct BrowserScreen: View {
     private static let drawnByInstagram: [Entry: String] = [
         .home: "home", .search: "search", .messages: "messages"
     ]
-
-    /// The lighter capsule behind wherever you are.
-    ///
-    /// Only on the pill. A bar attached to the bottom edge marks its place the
-    /// way those bars always have — by filling the symbol and nothing else.
-    @ViewBuilder
-    private func mark(_ here: Bool) -> some View {
-        if here && isFloating {
-            Capsule()
-                .fill(Color(uiColor: .label).opacity(0.13))
-                .padding(.vertical, 6)
-                .padding(.horizontal, 2)
-        }
-    }
 
     /// Transparent, and exactly as tall as the status bar, so it never sits over
     /// anything on the page that can be tapped. A tap does what a tap on the

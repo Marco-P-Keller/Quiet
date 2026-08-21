@@ -946,3 +946,91 @@ view — that inset lands in the overhang, where nobody can see it.
 
 On a phone with a home button the system reserves nothing, this adds nothing,
 and the frame is exactly the screen.
+
+## Five screenshots, held up against the real thing
+
+The app has been looked at beside Instagram's own, screen for screen, and the
+differences written down. Most of what follows is one answer given six times:
+where Quiet had invented something, it stops.
+
+### The row is a bar again, and it is Instagram's shape
+
+A pill, inset from both edges, floating over the page, shrinking while the page
+moved and fading back in when it stopped. Every one of those is a decision
+Instagram did not make. Held up beside the real app the pill is the first thing
+anybody sees, and what it says is *this is not the app you think it is*.
+
+So the row is what every bar along the bottom of an iPhone has been since the
+first one: the full width of the glass, flush against the bottom edge, forty-nine
+points tall, opaque, a hairline above it, the system's own strip beneath. It
+does not move when the page does. There is no second shape for phones with a
+home button any more, because there is nothing left to make a second shape of —
+those reserve nothing at the bottom and the same bar simply meets the glass.
+
+The capsule behind the entry you are standing on went with it. Instagram marks
+where you are by filling the symbol and doing nothing else, which is also what
+the other four bars on the phone do.
+
+The order changed too. Home, search, the middle one, messages, you — Instagram's
+own order, with the clock where Instagram puts the thing its app does rather
+than the thing the site does.
+
+### The inch below the glass comes off
+
+The web view hung an inch below the bottom edge, so that whatever the page
+reserved for the home indicator fell off the screen instead of showing as a
+black band under a floating row. It worked, and it cost something that only a
+photograph of a story could show: *everything* the page pins to the bottom of
+the viewport was pinned an inch below the glass. A story's reply field. A
+conversation's message box. Pushed half off the screen by the app, on the two
+pages where they are the only thing that matters.
+
+With the row standing on the bottom edge there is no band to hide — the row is
+covering it — so the frame is the glass, exactly, and the page's own bottom
+furniture lands where the page put it.
+
+What replaces the trick is the ordinary thing: the scroll view is inset by the
+height of the row, so the last post scrolls clear of the bar rather than living
+behind it. Which is what a tab bar has always done to the view underneath it.
+
+### No row on a story, and none inside a conversation
+
+Instagram draws no bar in either place, and now neither does Quiet. Both put
+something of their own along the bottom edge — a reply field, a message box —
+and both are the reason the screen is open at all. A row of five drawn across
+them is the app covering the one control the screen exists for, which is
+exactly what the photograph of a story showed.
+
+### The clock and the search are pages, not sheets
+
+Both were sheets. A sheet takes the whole screen, and the row along the bottom
+goes with it — so for as long as either was up, the app it belongs to was gone
+and the only way back was a button in a corner saying "Done".
+
+They are pages now, drawn between the clock and the row, with the row still
+there and still saying which of the five you are standing on. You leave them the
+way you leave anything else in a tab bar: by tapping somewhere else. Tapping
+home while the settings are open goes back to the feed you were reading, at the
+place you were reading it, rather than loading it again.
+
+The curtain keeps its sheets, because there is no row down there to be part of.
+
+### The wordmark stays on the left
+
+The header on the feed was being rearranged into what was believed to be the
+app's arrangement: the plus on the left, the title in the middle, the heart on
+the right. The app does not centre its wordmark and never has. The website
+already draws exactly what the app draws — the wordmark on the left, the two
+controls together on the right — so the arrangement stops, and what is left of
+it names the three so their order is guaranteed rather than inherited.
+
+### The second thing pinned to the top of the glass
+
+The lift that keeps a page's own header off the clock found the first pinned
+element under a point and stopped — and gave up entirely the moment it met one
+it had already moved. The inbox pins two things up there, one behind the other,
+so the first was lifted and the search field below it stayed where it was: cut
+in half by the status bar, in the photograph.
+
+It now asks at three points across the width, and lifts everything it finds
+rather than the first thing.

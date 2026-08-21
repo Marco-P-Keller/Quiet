@@ -14,6 +14,10 @@ import UIKit
 @MainActor
 struct SearchView: View {
     let surface: WebSurface
+    /// Leaving without opening anybody. Handed in rather than taken from the
+    /// environment, because this is a page inside the browsing screen as often
+    /// as it is a sheet over the curtain, and a page has no `dismiss` to call.
+    var onDone: () -> Void
     var onOpen: (URL) -> Void
 
     @State private var query = ""
@@ -21,7 +25,6 @@ struct SearchView: View {
     @State private var outcome = Outcome.idle
     @State private var asking: Task<Void, Never>?
     @FocusState private var isFocused: Bool
-    @Environment(\.dismiss) private var dismiss
 
     private enum Outcome: Equatable {
         case idle, asking, answered, unavailable
@@ -52,14 +55,24 @@ struct SearchView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
+                    Button("Done", action: onDone)
                 }
             }
             .toolbarBackground(Paper.page, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
         }
         .presentationBackground(Paper.page)
-        .onAppear { isFocused = true }
+        // Asked for a moment after the page arrives rather than as it arrives.
+        //
+        // As a sheet this worked in `onAppear`: a sheet is its own presentation
+        // and nothing else is holding the keyboard. As a page it opens inside a
+        // hierarchy where the web view is already the first responder, and a
+        // request made in the same pass as the appearance loses to it — the
+        // field is on screen, and typing goes nowhere.
+        .task {
+            try? await Task.sleep(for: .milliseconds(150))
+            isFocused = true
+        }
         .onDisappear { asking?.cancel() }
     }
 
@@ -68,6 +81,11 @@ struct SearchView: View {
             Text("@")
                 .foregroundStyle(Paper.inkSoft)
             TextField("name", text: $query)
+                // The web view behind this page has fields of its own — a login
+                // form, a comment box — and a test looking for "the first text
+                // field" can find one of those instead. A name it cannot
+                // confuse is not spoken aloud and costs nothing.
+                .accessibilityIdentifier("search.field")
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .submitLabel(.search)
@@ -203,6 +221,5 @@ struct SearchView: View {
         guard let url = ContentRules.profile(forHandle: handle) else { return }
         asking?.cancel()
         onOpen(url)
-        dismiss()
     }
 }

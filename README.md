@@ -164,17 +164,24 @@ The parts that are easy to skip and obvious once missing:
 * **Dynamic Type everywhere.** Every size is a system text style; nothing is set
   in fixed points. Setup and the limit screen are built around scroll views with
   the action pinned to the bottom, so they still work at the largest settings.
-* **The way into the panel is a button as well as a gesture.** On your own
-  profile the trim script puts Quiet's mark beside Instagram's own settings, so
-  the app draws nothing over anybody's feed. Everywhere else it is the long
-  press, and the status-bar strip carries a labelled accessibility element
-  because a gesture is invisible to a screen reader.
+* **The row is Instagram's row.** Full width, flush against the bottom edge,
+  opaque, the entry you are standing on filled and the rest outlined — the shape
+  every bar on an iPhone has, because anything else announces that this is not
+  the app it is standing in front of. The glyphs are Instagram's own, taken out
+  of the bar Quiet hides rather than redrawn. There is no bar at all on a story
+  or inside a conversation, where Instagram draws none either and where a row
+  would cover the reply field.
+* **Quiet's own two screens are pages, not sheets.** The settings behind the
+  clock and the search for a person are two of the five entries in that row, so
+  they leave it exactly where it is and are left by tapping somewhere else.
 * **Reduce Motion is honoured** by every animation in the app.
 * **A cover, not a spinner.** Quiet's own paper sits over the web view until the
   first page settles, then cross-fades, so a cold launch never shows a blank
   white rectangle. It lifts on failure too.
-* **One haptic**, at the moment the long press takes, so the gesture feels like
-  a control rather than a guess.
+* **Two haptics, and no more.** A tick under the thumb on every tap of the row,
+  because a bar that does not answer the finger reads as a picture of a bar; and
+  one soft tap at the moment the day ends, so the curtain reads as the app
+  meaning it rather than as a fault.
 * **No permission prompts at all**, and no networking of Quiet's own.
 
 ## What is verified
