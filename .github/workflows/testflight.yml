@@ -236,7 +236,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       # xcodebuild's failures are accurate and unhelpful in equal measure. The
-      # four that actually happen here each have a cause a person can act on,
+      # five that actually happen here each have a cause a person can act on,
       # and each is worth a sentence rather than a search.
       - name: Say what went wrong
         if: failure()
@@ -293,6 +293,23 @@ jobs:
               'Either way, nothing already on the App Store or in TestFlight is' \
               'affected — Apple re-signs what it distributes. Revoking only stops that' \
               'certificate signing anything new.' \
+              >> "$GITHUB_STEP_SUMMARY"
+          elif grep -q "Upload limit reached" "$log"; then
+            printf '%s\n' \
+              '## Apple is not taking another build today' \
+              '' \
+              'Nothing is wrong with this one. It compiled, it archived, it signed,' \
+              'and App Store Connect turned it away at the door:' \
+              '' \
+              '> Upload limit reached. The upload limit for your application has been' \
+              '> reached. Please wait 1 day and try again.' \
+              '' \
+              'Apple counts uploads per app per day, and that count is spent. The' \
+              'limit lifts on its own — there is no button anywhere that clears it,' \
+              'and running this again before it does spends nothing but time.' \
+              '' \
+              'Look in TestFlight first: the build before this one may well be there' \
+              'already, which is usually why the count ran out.' \
               >> "$GITHUB_STEP_SUMMARY"
           elif grep -q "No suitable application records were found" "$log"; then
             printf '%s\n' \
