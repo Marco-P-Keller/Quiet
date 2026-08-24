@@ -31,15 +31,24 @@ from PIL import Image
 POINTS = {750: 375, 828: 414, 1080: 360, 1125: 375, 1170: 390, 1179: 393,
           1206: 402, 1242: 414, 1284: 428, 1290: 430, 1320: 440}
 
-# A step in luminance that is an edge rather than a gradient.
-EDGE = 12
+# Two thresholds, because the two questions are not the same one.
+#
+# DIFFERENT is "this is not the background". It is small, because a translucent
+# capsule over a plain colour is a gentle difference — over white it is about
+# thirteen levels — and a threshold set to catch a bold edge would miss it.
+#
+# FLAT is "these rows are the same thing". It is smaller still, because that is
+# what tells a capsule from a shadow: a capsule is a plateau and a shadow is a
+# ramp.
+DIFFERENT = 6
+FLAT = 4
 
-# How many rows in a row have to agree before an edge is believed. The island
-# casts a shadow, and a shadow fades in over about twenty points; on a light
-# background its first rows are a step of their own. Three rows of the same
-# thing is a capsule, one row is weather.
-SURE = 3
-
+# How tall a plateau has to be before it is believed to be the row. The row is
+# about fifty points; a shadow is about twenty and never flat. This is the whole
+# reason the first version of this script answered 2.3 points and 8.7 points —
+# it found the leading edge of the island's own shadow and reported it as the
+# island, which is exactly the mistake it exists to catch somebody else making.
+PLATEAU = 30
 
 def measure(path):
     image = Image.open(path).convert("L")
@@ -52,27 +61,53 @@ def measure(path):
     column = [pixels[x, y] for y in range(height)]
     ground = column[height - 1]
 
-    def different(y):
-        return y >= 0 and abs(column[y] - ground) > EDGE
+    def profile():
+        """What the column actually looked like, always printed.
 
-    bottom = None
-    for y in range(height - 1, SURE, -1):
-        if all(different(y - n) for n in range(SURE)):
-            bottom = y
+        A measurement nobody can check is a number to be argued with. Every
+        second point over the bottom hundred and forty, so a surprising answer
+        can be understood from the log rather than from another build."""
+        rows = []
+        for pt in range(0, 140, 2):
+            y = height - 1 - round(pt * scale)
+            if y < 0:
+                break
+            rows.append(f"{pt}:{column[y]}")
+        return " ".join(rows)
+
+    tall = max(2, round(PLATEAU * scale))
+
+    def plateau_at(y):
+        """Is y inside a run of rows that agree, and that are not the ground?"""
+        value = column[y]
+        if abs(value - ground) <= DIFFERENT:
+            return False
+        if y - tall < 0:
+            return False
+        return all(abs(column[y - n] - value) <= FLAT for n in range(tall))
+
+    inside = None
+    for y in range(height - 1, tall, -1):
+        if plateau_at(y):
+            inside = y
             break
-    if bottom is None:
-        return None, "nothing but background down that column"
+    if inside is None:
+        return None, "no flat band down that column that is not the background"
 
-    inside = column[bottom]
-    top = bottom
-    while top > 0 and abs(column[top] - inside) <= EDGE:
+    value = column[inside]
+    bottom = inside
+    while bottom + 1 < height and abs(column[bottom + 1] - value) <= FLAT:
+        bottom += 1
+    top = inside
+    while top > 0 and abs(column[top - 1] - value) <= FLAT:
         top -= 1
 
     return {
         "screen": f"{width}x{height} px, {points:g} pt wide, {scale:g}x",
-        "column": f"x = {x} px",
+        "column": f"x = {x} px, ground {ground}, row {value}",
         "lift": (height - 1 - bottom) / scale,
-        "height": (bottom - top) / scale,
+        "height": (bottom - top + 1) / scale,
+        "profile": profile(),
     }, None
 
 
@@ -88,6 +123,8 @@ def main():
     print(f"Column:      {found['column']}")
     print(f"Row height:  {found['height']:.1f} pt")
     print(f"Stands off:  {found['lift']:.1f} pt from the bottom edge")
+    print(f"Up the column, every 2 pt from the bottom edge:")
+    print(f"  {found['profile']}")
     return 0
 
 
