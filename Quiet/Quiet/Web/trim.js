@@ -678,6 +678,51 @@
     post({ kind: "where", path: lastPath });
   }
 
+  /* ── Sheets ───────────────────────────────────────────────────────────── */
+
+  /**
+   * Whether Instagram has something modal on the screen.
+   *
+   * A sheet is not a page. It has no address, nothing about where you are can
+   * see one coming, and Instagram puts one up for switching accounts, for
+   * sharing, and for the menu behind the three dots. It slides over its own tab
+   * bar the way every sheet on a phone does — and Quiet's row, which is the
+   * app's and not the page's, stayed exactly where it was and was drawn
+   * straight through the buttons on it.
+   *
+   * Found by what it is rather than by what it looks like or what it says.
+   * "Modal" is a thing the markup states outright, in an attribute that is the
+   * same in every language and that Instagram has to set for its own screen
+   * reader to work. No class names, no guessing at shapes, nothing to go stale
+   * next Tuesday.
+   *
+   * Only if it is actually drawn. A dialog that is in the tree with no box is
+   * one that has been dismissed and not yet removed, or one built ahead of
+   * being needed, and neither is a reason to take the row away.
+   */
+  var MODAL = '[role="dialog"], [aria-modal="true"], dialog[open]';
+
+  /* Starts false rather than unknown, because that is the truth on a page that
+   * has just loaded, and because "there is no sheet" is not news. Only a change
+   * is sent. */
+  var lastSheet = false;
+
+  function saySheet() {
+    var up = sheetIsUp();
+    if (up === lastSheet) return;
+    lastSheet = up;
+    post({ kind: "sheet", up: up });
+  }
+
+  function sheetIsUp() {
+    var modals = document.querySelectorAll(MODAL);
+    for (var i = 0; i < modals.length; i++) {
+      var box = modals[i].getBoundingClientRect();
+      if (box.width > 0 && box.height > 0) return true;
+    }
+    return false;
+  }
+
   /* ── The colour the clock stands on ───────────────────────────────────── */
 
   /**
@@ -1558,6 +1603,7 @@
       guardLocation();
       sayWhere();
       sayChrome();
+      saySheet();
       whoAmI();
       replaceNav();
       headerComesBack();

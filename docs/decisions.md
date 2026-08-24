@@ -1507,3 +1507,34 @@ is behind it is how a band ends up nearly right on one page and wrong on the
 next. A page that has painted nothing says nothing, and the app keeps its own
 colour up rather than being handed a guess. Five checks in the harness, which is
 sixty-eight.
+
+## A sheet owns the screen
+
+Instagram puts a sheet up for switching accounts, for sharing, and for the menu
+behind the three dots. It slides over its own tab bar, the way every sheet on a
+phone does. Quiet's row is the app's rather than the page's, so it stayed
+exactly where it was and was drawn straight through the buttons on the sheet.
+
+A sheet is not a page. It has no address, and every rule Quiet had for "the
+screens that own the bottom edge" is written in addresses, so none of them could
+ever see one coming.
+
+Found by what it is: the markup says outright that it is modal, in an attribute
+that is the same word in every language and that Instagram has to set for its
+own screen reader to work. No class names, no guessing at shapes. Only if it is
+actually drawn — a dialog in the tree with no box has been dismissed and not yet
+removed, or built ahead of being needed, and neither is a reason to take the row
+away.
+
+While one is up the row is gone rather than merely covered. A modal is the only
+thing you can be doing, and a row that went on answering taps behind it would
+take you somewhere you did not ask to go.
+
+Two things deliberately not done. The inset under the page is left alone: the
+page beneath the sheet has not changed, and taking the row's height off it would
+scroll what you were reading out from under the sheet while you were not looking
+at it. And the row stays put while one of Quiet's own pages is open — the row is
+the way out of those, and a sheet left open on the page behind is no reason to
+take the way out away.
+
+Seven checks, which is seventy-five.

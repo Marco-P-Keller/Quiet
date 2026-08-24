@@ -101,6 +101,17 @@ final class WebSurface {
     /// that the change is not something you can catch happening.
     private(set) var chrome: Color?
 
+    /// Whether Instagram has a sheet or a dialog up.
+    ///
+    /// A sheet is not a page and carries no address, so nothing about where you
+    /// are can see one coming — and Instagram puts one up for switching
+    /// accounts, for sharing, for the menu behind the three dots. It slides
+    /// over its own tab bar the way every sheet on a phone does, and Quiet's
+    /// row was staying where it was and being drawn through the buttons on it.
+    ///
+    /// Read from the page, which is the only place it exists. See `trim.js`.
+    private(set) var isSheetUp = false
+
     /// False until the first page has finished, or failed. While it is false the
     /// browsing screen keeps Quiet's own paper over the top, so a cold launch
     /// shows a considered blank rather than the white rectangle of a web view
@@ -274,6 +285,11 @@ final class WebSurface {
         // carrying Instagram's black into a light appearance.
         icons[entry] = image.withRenderingMode(.alwaysTemplate)
         Remembered.remember(icon: entry, data: data)
+    }
+
+    fileprivate func note(sheet up: Bool) {
+        guard isSheetUp != up else { return }
+        isSheetUp = up
     }
 
     fileprivate func note(chrome colour: Color) {
@@ -789,6 +805,9 @@ struct InstagramWebView: UIViewRepresentable {
                 if let name = body["username"] as? String {
                     surface.note(me: name, picture: body["picture"] as? String)
                 }
+
+            case "sheet":
+                surface.note(sheet: body["up"] as? Bool ?? false)
 
             default:
                 break

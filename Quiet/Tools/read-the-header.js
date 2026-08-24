@@ -765,6 +765,67 @@ const GROUPED = `
     "upsell"
   );
 
+  /* ── Sheets ──────────────────────────────────────────────────────────── */
+
+  /* Instagram puts a sheet up for switching accounts, for sharing, and for the
+   * menu behind the three dots. It slides over its own tab bar; Quiet's row is
+   * the app's and stayed put, and was drawn straight through the buttons on it.
+   *
+   * A sheet has no address, so nothing about where you are can see one coming.
+   * What it does have is an attribute saying it is modal — the same word in
+   * every language, and one Instagram has to set for its own screen reader. */
+  const sheetOf = (win) => win.sent.filter((m) => m.kind === "sheet").pop();
+
+  const noSheet = await page(`<main></main>`, FEED);
+  check("with nothing modal on screen, nothing is said", sheetOf(noSheet), undefined);
+
+  for (const [what, markup] of [
+    ["a sheet", '<div role="dialog" data-box="0,400,390,444">Switch accounts</div>'],
+    ["one that only says it is modal", '<div aria-modal="true" data-box="0,400,390,444">x</div>'],
+    ["the element the platform has for it", '<dialog open data-box="0,400,390,444">x</dialog>'],
+  ]) {
+    const win = await page(`${markup}<main></main>`, FEED);
+    check(`${what} takes the row away`, sheetOf(win), { kind: "sheet", up: true });
+  }
+
+  /* A dialog in the tree with no box has been dismissed and not yet removed, or
+   * built ahead of being needed. Neither is a reason to take the row away. */
+  const notDrawn = await page(
+    `<div role="dialog">nothing drawn</div><main></main>`,
+    FEED
+  );
+  check("one that is in the tree but not drawn is not a sheet", sheetOf(notDrawn), undefined);
+
+  /* And it has to come back, or the row is gone until the next page load. */
+  const dismissed = await page(
+    `<div role="dialog" data-name="sheet" data-box="0,400,390,444">x</div><main></main>`,
+    FEED
+  );
+  dismissed.document.querySelector('[data-name="sheet"]').remove();
+  // The observer answers a mutation in a microtask, so the frame it asks for
+  // does not exist yet on the line after the change. Let the queue run first.
+  await new Promise((go) => setTimeout(go, 0));
+  dismissed.drain();
+  check(
+    "and the row comes back when it goes",
+    dismissed.sent.filter((m) => m.kind === "sheet").map((m) => m.up),
+    [true, false]
+  );
+
+  /* The observer runs on every mutation. Saying it again on every one of them
+   * would animate the row on every frame the page rewrites itself. */
+  const stays = await page(
+    `<div role="dialog" data-box="0,400,390,444">x</div><main></main>`,
+    FEED
+  );
+  stays.document.querySelector("main").appendChild(stays.document.createElement("div"));
+  stays.drain();
+  check(
+    "a sheet that is still there is not announced twice",
+    stays.sent.filter((m) => m.kind === "sheet").length,
+    1
+  );
+
   /* ── The colour the clock stands on ──────────────────────────────────── */
 
   /* The app owns the pixels the time and the battery sit on, so something has
