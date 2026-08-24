@@ -92,6 +92,26 @@ must not be under the home indicator.
 **Check:** long-press an image. The share sheet should appear and Save Image
 should work.
 
+### 1.9 The room at the foot of a sheet
+
+Instagram's sheets — switching accounts, sharing, the menu behind the three
+dots — are pinned to the bottom edge of the glass, where Quiet draws its own
+row. The page now pads the panel of a sheet by the height of the row, so what is
+on the sheet ends above it. Which box gets the padding is decided by geometry
+and by `position`, against fixtures rather than against Instagram: the harness
+can say that a panel is found and a backdrop is not, and it cannot say that the
+box it found is the one Instagram actually draws the sheet as.
+
+**Check:** open the account switcher. Every row on it, and "Log In to an
+Existing Account" at the foot, must be clear of the row, with the sheet's own
+colour running on behind it. **Fail looks like:** the row across the button
+still, or the sheet lifted off the bottom edge with a band of page showing under
+it, or a sheet that jumps as it opens.
+
+Both failures are visible from the same photograph, and neither is silent: where
+the page cannot make the room it says so, and the row stands down and lets the
+press through, which is what it did before any of this.
+
 ---
 
 ## 2. What is needed before it can ship

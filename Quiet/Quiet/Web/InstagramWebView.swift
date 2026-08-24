@@ -112,6 +112,24 @@ final class WebSurface {
     /// Read from the page, which is the only place it exists. See `trim.js`.
     private(set) var isSheetUp = false
 
+    /// Whether the sheet on the screen is standing clear of the row.
+    ///
+    /// The page makes the room now: it is told how much of the bottom of the
+    /// glass the row stands on, and pads the panel of the sheet by exactly
+    /// that, so the buttons end above the row and the sheet's own colour runs
+    /// on beneath it. Then the row is beside the sheet rather than over it, and
+    /// has no reason to stop answering taps.
+    ///
+    /// It cannot always be done — a sheet that fills the glass, or one built in
+    /// a shape the page cannot recognise — and this is how the page says so.
+    /// Where the room was not made the row stands down and lets the press go
+    /// through to whatever is underneath it, which is what it did for every
+    /// sheet before the room existed.
+    ///
+    /// True while there is no sheet, because a screen with nothing modal on it
+    /// has nothing standing in the row's way.
+    private(set) var isSheetClear = true
+
     /// False until the first page has finished, or failed. While it is false the
     /// browsing screen keeps Quiet's own paper over the top, so a cold launch
     /// shows a considered blank rather than the white rectangle of a web view
@@ -287,9 +305,10 @@ final class WebSurface {
         Remembered.remember(icon: entry, data: data)
     }
 
-    fileprivate func note(sheet up: Bool) {
-        guard isSheetUp != up else { return }
+    fileprivate func note(sheet up: Bool, clear: Bool) {
+        guard isSheetUp != up || isSheetClear != clear else { return }
         isSheetUp = up
+        isSheetClear = clear
     }
 
     fileprivate func note(chrome colour: Color) {
@@ -407,7 +426,10 @@ struct InstagramWebView: UIViewRepresentable {
         // the right one for anything the app ever does need the page to know.
         let top = inset.top
         context.coordinator.top = top
-        let payload = WebScripts.load(top: top)
+        // And what the row stands on at the other end, which the page needs for
+        // one thing only: keeping a sheet's own buttons off it.
+        context.coordinator.row = inset.bottom
+        let payload = WebScripts.load(top: top, row: inset.bottom)
 
         let controller = WKUserContentController()
         payload.scripts.forEach(controller.addUserScript)
@@ -444,9 +466,10 @@ struct InstagramWebView: UIViewRepresentable {
         // it, and content runs behind the status bar and beneath the row the
         // way it does in Instagram's own app. What keeps the clock legible is
         // a top padding on the document itself, handed to the page in
-        // `WebScripts.load(top:)`: the first thing in the feed starts below the
-        // status bar and scrolls up behind it. That is what Instagram does, and
-        // it is a property of the page rather than of the view.
+        // `WebScripts.load(top:row:)`: the first thing in the feed starts
+        // below the status bar and scrolls up behind it. That is what
+        // Instagram does, and it is a property of the page rather than of the
+        // view.
         webView.scrollView.contentInsetAdjustmentBehavior = .never
         // And the app's own, which is the other half of the same request: the
         // page's are turned off in trim.css, and this is the one WebKit draws
@@ -480,9 +503,14 @@ struct InstagramWebView: UIViewRepresentable {
         // does. Kept as a number rather than deleted because the mechanism is
         // the right one for anything the app ever does need the page to know.
         let top = inset.top
-        if context.coordinator.top != top {
+        // The row's height changes under the same hand as the inset above it:
+        // the two shapes it can be drawn in are a setting, and a story or a
+        // conversation has no row at all. A sheet that is open across either
+        // change should be given the room the row is actually standing on.
+        if context.coordinator.top != top || context.coordinator.row != inset.bottom {
             context.coordinator.top = top
-            context.coordinator.tellEveryPage(webView, top: top)
+            context.coordinator.row = inset.bottom
+            context.coordinator.tellEveryPage(webView, top: top, row: inset.bottom)
             context.coordinator.tellThisPage(webView)
         }
         context.coordinator.session = session
@@ -620,6 +648,11 @@ struct InstagramWebView: UIViewRepresentable {
         /// this number exists.
         var top: CGFloat = 0
 
+        /// And how much of the bottom of the glass Quiet's row stands on, which
+        /// the page is told for the sake of the one thing in it that is pinned
+        /// to that edge: a sheet. See `WebScripts.load(top:row:)`.
+        var row: CGFloat = 0
+
         /// Rebuild the injected scripts around the real number, so that every
         /// page from here on is told it before its first paint.
         ///
@@ -637,10 +670,10 @@ struct InstagramWebView: UIViewRepresentable {
         /// nobody ever saw, and twenty points on the one everybody did — about
         /// seven points of clearance for a fifty-nine point status bar, which
         /// is the collision in the photograph.
-        func tellEveryPage(_ webView: WKWebView, top: CGFloat) {
+        func tellEveryPage(_ webView: WKWebView, top: CGFloat, row: CGFloat) {
             let controller = webView.configuration.userContentController
             controller.removeAllUserScripts()
-            WebScripts.load(top: top).scripts.forEach(controller.addUserScript)
+            WebScripts.load(top: top, row: row).scripts.forEach(controller.addUserScript)
         }
 
         /// And the document already on screen, whose scripts have run.
@@ -648,14 +681,26 @@ struct InstagramWebView: UIViewRepresentable {
         /// Said again on every commit rather than once, because the page that
         /// matters most is the one loading while the number is still unknown.
         func tellThisPage(_ webView: WKWebView) {
-            guard top > 0 else { return }
-            let points = Int(top.rounded())
-            webView.evaluateJavaScript(
-                """
+            var lines: [String] = []
+            // Nothing at all rather than a zero: on a page that has painted,
+            // zero is never the height of a status bar, and writing it would
+            // put the header back under the clock for a frame.
+            if top > 0 {
+                let points = Int(top.rounded())
+                lines.append("""
                 window.__quietTop = \(points);
                 document.documentElement.style.setProperty("--quiet-top", "\(points)px");
-                """
-            )
+                """)
+            }
+            // Zero, on the other hand, is exactly what the row is on a story
+            // and in a conversation, and a page that kept the last screen's
+            // number would hold a sheet off an edge nothing is standing on.
+            let stands = Int(row.rounded())
+            lines.append("""
+            window.__quietRow = \(stands);
+            document.documentElement.style.setProperty("--quiet-row", "\(stands)px");
+            """)
+            webView.evaluateJavaScript(lines.joined(separator: "\n"))
         }
 
         init(session: QuietSession, surface: WebSurface) {
@@ -807,7 +852,16 @@ struct InstagramWebView: UIViewRepresentable {
                 }
 
             case "sheet":
-                surface.note(sheet: body["up"] as? Bool ?? false)
+                // Whether something modal is up, and whether the page managed
+                // to give it room to stand clear of Quiet's row.
+                surface.note(
+                    sheet: body["up"] as? Bool ?? false,
+                    // A page from before this existed says nothing about the
+                    // room, and the honest reading of silence is that none was
+                    // made: the row stands down, which is never wrong, only
+                    // occasionally more careful than it needs to be.
+                    clear: body["clear"] as? Bool ?? false
+                )
 
             default:
                 break

@@ -286,26 +286,32 @@ struct BrowserScreen: View {
 
     /// Whether the row answers taps.
     ///
-    /// It stays on the screen while Instagram has a sheet up — switching
-    /// accounts, sharing, the menu behind the three dots — but it stops
-    /// intercepting anything, so every press goes to the sheet underneath.
+    /// It always does now, on every sheet the page has been able to make room
+    /// for. Two answers came before this one and both of them moved the row —
+    /// away while a sheet was up, then back where it was and inert so the press
+    /// went through it — and both were answers to the wrong question. The row
+    /// was not in the way because it was answering taps. It was in the way
+    /// because it was drawn across the buttons on the sheet, and a button
+    /// nobody can see is a button nobody can press, whoever is given the tap.
     ///
-    /// Taking the row away instead was tried first and was the wrong answer.
-    /// The row is the one part of the screen that is always in the same place,
-    /// and a sheet is a thing you are half way through: watching the furniture
-    /// vanish and come back around it is a worse interruption than the row
-    /// being briefly inert.
+    /// So the sheet is given room to stand clear of the row instead. That is
+    /// the page's work rather than the app's — a sheet belongs to the page, and
+    /// is pinned to the bottom edge of the page's world — and all the app does
+    /// is say how much of the bottom of the glass its row stands on. See
+    /// `giveTheSheetRoom` in trim.js.
     ///
-    /// A sheet is not a page and has no address, so nothing about where you are
-    /// can see one coming. It is read from the markup, which says outright that
-    /// it is modal. See `WebSurface.isSheetUp`.
+    /// Where that could not be done, the old answer still holds. A sheet
+    /// filling the whole glass has nowhere to be moved to, and one built in a
+    /// shape the page does not recognise has not been moved at all; on those
+    /// the row stands down and the press goes to the sheet underneath. The page
+    /// says which it managed, because the page is the only thing that knows.
     ///
-    /// Live again the moment one of Quiet's own pages is up: the row is the way
-    /// out of those, and a sheet left open on the page behind them is no reason
-    /// to take the way out away.
+    /// Live regardless the moment one of Quiet's own pages is up: the row is
+    /// the way out of those, and a sheet left open on the page behind them is
+    /// no reason to take the way out away.
     private var isRowLive: Bool {
         if isShowingQuietPage { return true }
-        return !surface.isSheetUp
+        return !surface.isSheetUp || surface.isSheetClear
     }
 
     /// The row, along the bottom edge, in the shape Instagram's own is.
@@ -325,9 +331,9 @@ struct BrowserScreen: View {
                 case .island: island
                 }
             }
-            // Still drawn, and letting everything through, while a sheet is up.
-            // The sheet is what you are doing; the row is furniture until you
-            // are done with it.
+            // Still drawn, and letting everything through, on the one kind of
+            // sheet the page could not move off it. The sheet is what you are
+            // doing; the row is furniture until you are done with it.
             .allowsHitTesting(isRowLive)
             .transition(.opacity)
         }

@@ -33,7 +33,20 @@ enum WebScripts {
     ///   view it is drawn in — which is why it is handed over as a number here
     ///   rather than taken out of the web view as an inset. An inset shortens
     ///   what the page is given; this does not.
-    static func load(from bundle: Bundle = .main, top: CGFloat) -> Payload {
+    ///
+    /// - Parameter row: how much of the bottom of the glass Quiet's own row
+    ///   stands on, in points.
+    ///
+    ///   Nothing is asked of the document with it. The page runs on beneath the
+    ///   row, which is where Instagram's next photograph belongs, and the only
+    ///   thing that cannot run on beneath it is a sheet: a sheet is pinned to
+    ///   the bottom edge of the glass, so the buttons on it come up under the
+    ///   row. The page is the only place that can be fixed, because a sheet is
+    ///   the page's, and this is the number it needs to do it. Two shapes of
+    ///   row, two heights, and nothing at all on the screens that own the
+    ///   bottom edge — so it is handed over rather than written down. See
+    ///   `giveTheSheetRoom` in trim.js.
+    static func load(from bundle: Bundle = .main, top: CGFloat, row: CGFloat) -> Payload {
         var scripts: [WKUserScript] = []
         var missing: [String] = []
 
@@ -43,16 +56,17 @@ enum WebScripts {
             missing.append("trim.css")
         }
 
-        // The two numbers the page needs from the app, injected before the trim
-        // runs so that both are there before its first paint.
+        // The three numbers the page needs from the app, injected before the
+        // trim runs so that all of them are there before its first paint.
         //
-        // A third used to be here: the name of Quiet's own settings, for a mark
+        // A fourth used to be here: the name of Quiet's own settings, for a mark
         // the script drew beside Instagram's on your own profile. That door is
         // in the row along the bottom now, on every page rather than on one, so
         // the string it was announced under has nothing left to label.
         scripts.append(userScript(source: """
         window.__quietAppID = \(quoted(WebScripts.appID));
         window.__quietTop = \(Int(top.rounded()));
+        window.__quietRow = \(Int(row.rounded()));
         """))
 
         if let js = text(named: "trim", extension: "js", in: bundle) {

@@ -41,7 +41,13 @@ function installBoxes(win) {
   };
 }
 
-async function page(html, url, head) {
+/**
+ * @param row how much of the bottom of the glass the app's row stands on, which
+ *   is what a sheet is given room to stand clear of. Eighty-nine points is the
+ *   flush bar on a phone with a home indicator: forty-nine and thirty-four,
+ *   rounded. Zero is a story or a conversation, where there is no row.
+ */
+async function page(html, url, head, row) {
   const dom = new JSDOM(
     `<!doctype html><html><head>${head || ""}</head><body>${html}</body></html>`,
     { runScripts: "outside-only", url }
@@ -84,6 +90,7 @@ async function page(html, url, head) {
   // The script asks Instagram who is signed in. There is nobody here to ask.
   win.fetch = () => new win.Promise(() => {});
   win.__quietTop = 59;
+  win.__quietRow = row === undefined ? 89 : row;
   win.eval(TRIM);
   win.drain();
   return win;
@@ -773,49 +780,184 @@ const GROUPED = `
    *
    * A sheet has no address, so nothing about where you are can see one coming.
    * What it does have is an attribute saying it is modal — the same word in
-   * every language, and one Instagram has to set for its own screen reader. */
+   * every language, and one Instagram has to set for its own screen reader.
+   *
+   * Two answers moved the row and neither was right: a button that cannot be
+   * seen cannot be pressed by anybody. So the sheet is given room to stand
+   * clear of the row instead, and what the app is told is whether that worked.
+   */
   const sheetOf = (win) => win.sent.filter((m) => m.kind === "sheet").pop();
+  const paddedIn = (win) => {
+    const panel = win.document.querySelector("[data-quiet-sheet]");
+    return panel ? panel.getAttribute("data-name") : null;
+  };
+
+  /* A panel: pinned to the bottom edge, most of the width of the glass, and
+   * shorter than it. The three things a bottom sheet has and a backdrop does
+   * not. */
+  const PANEL = 'style="position: fixed" data-box="0,400,390,444"';
 
   const noSheet = await page(`<main></main>`, FEED);
   check("with nothing modal on screen, nothing is said", sheetOf(noSheet), undefined);
 
   for (const [what, markup] of [
-    ["a sheet", '<div role="dialog" data-box="0,400,390,444">Switch accounts</div>'],
-    ["one that only says it is modal", '<div aria-modal="true" data-box="0,400,390,444">x</div>'],
-    ["the element the platform has for it", '<dialog open data-box="0,400,390,444">x</dialog>'],
+    ["a sheet", `<div role="dialog" data-name="panel" ${PANEL}>Switch accounts</div>`],
+    ["one that only says it is modal", `<div aria-modal="true" data-name="panel" ${PANEL}>x</div>`],
+    ["the element the platform has for it", `<dialog open data-name="panel" ${PANEL}>x</dialog>`],
   ]) {
     const win = await page(`${markup}<main></main>`, FEED);
-    check(`${what} takes the row away`, sheetOf(win), { kind: "sheet", up: true });
+    check(`${what} is one`, sheetOf(win), { kind: "sheet", up: true, clear: true });
+    check(`${what} is given room to stand clear of the row`, paddedIn(win), "panel");
   }
 
+  /* The dimmed sheet of glass over the page is not the thing to pad. Its
+   * children measure their `bottom` against its padding box, so padding meant
+   * to lift the sheet off the row would push it down behind it instead. */
+  const backdrop = await page(
+    `<div role="dialog" data-name="backdrop" style="position: fixed" data-box="0,0,390,844">
+       <div data-name="panel" style="position: absolute" data-box="0,400,390,444">
+         <button data-name="login" data-box="16,800,358,44">Log In to an Existing Account</button>
+       </div>
+     </div><main></main>`,
+    FEED
+  );
+  check("the panel is padded rather than the backdrop around it", paddedIn(backdrop), "panel");
+
+  /* And not something inside the panel that happens to end at the same edge.
+   * Padding a button makes the button taller and moves nothing anywhere. */
+  const button = await page(
+    `<div role="dialog" data-name="panel" style="position: fixed" data-box="0,400,390,444">
+       <button data-name="login" data-box="0,780,390,64">Log In to an Existing Account</button>
+     </div><main></main>`,
+    FEED
+  );
+  check("nor the button at the foot of it", paddedIn(button), "panel");
+
+  /* A sheet is as often built the other way about, with the box that is pinned
+   * to the edge outside the element that says it is modal. Then the panel is a
+   * step or two up rather than down, and a search that only ever descends finds
+   * nothing at all. */
+  const inside = await page(
+    `<div data-name="panel" style="position: fixed" data-box="0,400,390,444">
+       <div role="dialog" data-name="dialog" data-box="0,400,390,444">
+         <button data-name="login" data-box="16,780,358,44">Log In to an Existing Account</button>
+       </div>
+     </div><main></main>`,
+    FEED
+  );
+  check("a dialog inside its panel finds the panel above it", paddedIn(inside), "panel");
+
+  /* Upwards, but not as far as the document. A page padded at its foot is the
+   * black band under the row that three rules in trim.css exist to take back. */
+  const loose = await page(
+    `<div data-name="page" style="position: absolute" data-box="0,0,390,844">
+       <div role="dialog" data-name="dialog" data-box="100,400,190,444">x</div>
+     </div><main></main>`,
+    FEED
+  );
+  check("a dialog with no panel of its own pads nothing", paddedIn(loose), null);
+
+  /* A sheet slides up. Arriving is a change to the document and is seen; the
+   * travelling is a transition, which changes nothing in the document and is
+   * seen by nothing. Measured on the frame it appeared, a sheet is half a
+   * screen below where it lands — so the pass looks again a few times, and a
+   * box still on its way is left alone until it gets there. */
+  const arriving = await page(
+    `<div role="dialog" data-name="panel" style="position: fixed" data-box="0,700,390,444">x</div><main></main>`,
+    FEED
+  );
+  check("a sheet still on its way up is not padded there", paddedIn(arriving), null);
+  arriving.document
+    .querySelector('[data-name="panel"]')
+    .setAttribute("data-box", "0,400,390,444");
+  // The looks are spaced to cover an animation. Long enough for the first.
+  await new Promise((go) => setTimeout(go, 120));
+  arriving.drain();
+  check("and is padded once it has landed", paddedIn(arriving), "panel");
+  check("with the app told the once", sheetOf(arriving), {
+    kind: "sheet",
+    up: true,
+    clear: true,
+  });
+
+  /* A sheet that fills the glass has nowhere to be moved to. The app is told,
+   * and the row stands down for that one the way it did for all of them. */
+  const full = await page(
+    `<div role="dialog" data-name="panel" style="position: fixed" data-box="0,0,390,844">x</div><main></main>`,
+    FEED
+  );
+  check("one that fills the glass is left where it is", paddedIn(full), null);
+  check("and the app is told the row is still in its way", sheetOf(full), {
+    kind: "sheet",
+    up: true,
+    clear: false,
+  });
+
+  /* On a story and in a conversation the app draws no row, so there is nothing
+   * for a sheet to stand clear of and nothing the padding would be. */
+  const noRow = await page(
+    `<div role="dialog" data-name="panel" ${PANEL}>x</div><main></main>`,
+    FEED,
+    undefined,
+    0
+  );
+  check("with no row on the screen, nothing is padded", paddedIn(noRow), null);
+  check("and the sheet has nothing to stand clear of", sheetOf(noRow), {
+    kind: "sheet",
+    up: true,
+    clear: true,
+  });
+
   /* A dialog in the tree with no box has been dismissed and not yet removed, or
-   * built ahead of being needed. Neither is a reason to take the row away. */
+   * built ahead of being needed. Neither is a sheet. */
   const notDrawn = await page(
     `<div role="dialog">nothing drawn</div><main></main>`,
     FEED
   );
   check("one that is in the tree but not drawn is not a sheet", sheetOf(notDrawn), undefined);
 
-  /* And it has to come back, or the row is gone until the next page load. */
+  /* And the room has to come off again, or the page is left padded for a sheet
+   * that is no longer on it. */
   const dismissed = await page(
-    `<div role="dialog" data-name="sheet" data-box="0,400,390,444">x</div><main></main>`,
+    `<div role="dialog" data-name="panel" ${PANEL}>x</div><main></main>`,
     FEED
   );
-  dismissed.document.querySelector('[data-name="sheet"]').remove();
+  dismissed.document.querySelector('[data-name="panel"]').remove();
   // The observer answers a mutation in a microtask, so the frame it asks for
   // does not exist yet on the line after the change. Let the queue run first.
   await new Promise((go) => setTimeout(go, 0));
   dismissed.drain();
   check(
-    "and the row comes back when it goes",
+    "and what was said about it comes back the other way when it goes",
     dismissed.sent.filter((m) => m.kind === "sheet").map((m) => m.up),
     [true, false]
+  );
+
+  /* The panel is chosen by being shorter than the glass, and the padding makes
+   * it taller by the height of the row. Measured with the padding on, a panel
+   * grows out of the test that chose it: it would be unchosen on the next frame
+   * and chosen again on the one after, for as long as the sheet was open. */
+  const grown = await page(
+    `<div role="dialog" data-name="panel" ${PANEL}>x</div><main></main>`,
+    FEED
+  );
+  // What the padding does to the box: the foot stays on the bottom edge of the
+  // glass and the top of it comes up by the height of the row.
+  grown.document
+    .querySelector('[data-name="panel"]')
+    .setAttribute("data-box", "0,311,390,533");
+  grown.drain();
+  check("the room it was given does not unchoose it", paddedIn(grown), "panel");
+  check(
+    "and nothing is said a second time",
+    grown.sent.filter((m) => m.kind === "sheet").length,
+    1
   );
 
   /* The observer runs on every mutation. Saying it again on every one of them
    * would animate the row on every frame the page rewrites itself. */
   const stays = await page(
-    `<div role="dialog" data-box="0,400,390,444">x</div><main></main>`,
+    `<div role="dialog" data-name="panel" ${PANEL}>x</div><main></main>`,
     FEED
   );
   stays.document.querySelector("main").appendChild(stays.document.createElement("div"));

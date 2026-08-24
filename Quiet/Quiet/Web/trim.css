@@ -69,8 +69,8 @@ div[role="button"]:has(> svg[aria-label="Reels"]) {
  * does — and, unlike a content inset, it takes nothing off the bottom of the
  * page, where the next photograph belongs.
  *
- * The height comes from the app, in `WebScripts.load(top:)`, because only the
- * app knows how tall this phone's status bar is. Zero until it arrives, so a
+ * The height comes from the app, in `WebScripts.load(top:row:)`, because only
+ * the app knows how tall this phone's status bar is. Zero until it arrives, so a
  * page that loads before the value does is merely flush rather than broken.
  */
 
@@ -199,6 +199,35 @@ html,
 body {
   padding-bottom: 0 !important;
   margin-bottom: 0 !important;
+}
+
+/* ── Room at the foot of a sheet ────────────────────────────────────────── */
+/*
+ * Set by trim.js on the panel of whatever Instagram has put up modally — the
+ * account switcher, the share sheet, the menu behind the three dots.
+ *
+ * A sheet slides over its own tab bar, the way every sheet on a phone does.
+ * Quiet's row belongs to the app rather than to the page, so it stayed where it
+ * was and was drawn straight through the buttons on the sheet: a photograph of
+ * "Switch accounts" shows the row across "Log In to an Existing Account".
+ *
+ * The row moving was tried twice, away and then inert, and neither is the
+ * answer — a button that cannot be seen cannot be pressed by anybody, whoever
+ * is given the tap. So the sheet is given the room instead, exactly as much of
+ * it as the row stands on, which the app hands over in `--quiet-row`.
+ *
+ * A padding rather than a margin or a lift, because a padding is the one that
+ * keeps the panel where it is. Its foot stays on the bottom edge of the glass
+ * and its colour runs on under the row, which is what a sheet looks like when
+ * something is standing in front of it; only what is *on* the sheet moves, and
+ * it moves up by the height of the row. And the padding box is what a bottom
+ * sheet's own height is measured against however it was built, so this works
+ * whether the panel is as tall as its contents, capped at a fraction of the
+ * screen with its list scrolling inside, or laid out either way around.
+ */
+
+[data-quiet-sheet] {
+  padding-bottom: var(--quiet-row, 0px) !important;
 }
 
 /* ── The pull at the top ────────────────────────────────────────────────── */

@@ -1508,12 +1508,14 @@ next. A page that has painted nothing says nothing, and the app keeps its own
 colour up rather than being handed a guess. Five checks in the harness, which is
 sixty-eight.
 
-## A sheet owns the screen
+## A sheet owns the screen, so the sheet is given the room
 
 Instagram puts a sheet up for switching accounts, for sharing, and for the menu
 behind the three dots. It slides over its own tab bar, the way every sheet on a
 phone does. Quiet's row is the app's rather than the page's, so it stayed
-exactly where it was and was drawn straight through the buttons on the sheet.
+exactly where it was and was drawn straight through the buttons on the sheet: a
+photograph of "Switch accounts" shows the row across "Log In to an Existing
+Account".
 
 A sheet is not a page. It has no address, and every rule Quiet had for "the
 screens that own the bottom edge" is written in addresses, so none of them could
@@ -1523,25 +1525,61 @@ Found by what it is: the markup says outright that it is modal, in an attribute
 that is the same word in every language and that Instagram has to set for its
 own screen reader to work. No class names, no guessing at shapes. Only if it is
 actually drawn — a dialog in the tree with no box has been dismissed and not yet
-removed, or built ahead of being needed, and neither is a reason to take the row
-away.
+removed, or built ahead of being needed, and neither is a reason to do anything.
 
-While one is up the row stays exactly where it is and stops answering taps, so
-every press goes to the sheet underneath.
+Two answers came before this one and both of them moved the row. First it was
+taken away while a sheet was up, which reasons well — a modal is the only thing
+you can be doing — and reads badly: the row is the one part of the screen that
+is always in the same place, and a sheet is a thing you are half way through.
+Then it stayed where it was and stopped answering taps, so every press went to
+the sheet underneath.
 
-Taking it away instead was the first answer and the wrong one. It reasons well —
-a modal is the only thing you can be doing — and it reads badly: the row is the
-one part of the screen that is always in the same place, and a sheet is a thing
-you are half way through. Watching the furniture vanish and come back around you
-is a worse interruption than a row that is briefly inert. What was actually
-being asked for was to reach the button behind it, and that needs nothing to
-move.
+The same photograph killed the second one. The row was never in the way because
+it was answering taps. It was in the way because it was drawn across the one
+button on the sheet, and a button nobody can see is a button nobody can press,
+whoever is given the tap.
 
-The inset under the page is left alone as well: the page beneath the sheet has
-not changed, and taking the row's height off it would scroll what you were
-reading out from under the sheet while you were not looking at it. And the row is
-live again the moment one of Quiet's own pages is open — the row is the way out
-of those, and a sheet left open on the page behind is no reason to take the way
-out away.
+So nothing of the app moves and the sheet is given the room instead. The app
+says how much of the bottom of the glass its row stands on — `--quiet-row`,
+handed over beside the status bar height it already hands over — and the page
+pads the panel of the sheet by exactly that. Every control on the sheet ends
+above the row, and the panel's own colour runs on underneath it, which is what a
+sheet looks like when something is standing in front of it.
 
-Seven checks, which is seventy-five.
+Which box to pad is the whole of the work, and it is asked of the browser rather
+than of Instagram's class names. A panel is positioned rather than in the flow,
+because being pinned to an edge is what `position` is for; it reaches the bottom
+edge of the glass and spans most of its width, because that is where a sheet on
+a phone sits; and it is shorter than the glass, which is what tells it from the
+dimmed backdrop around it. Shallowest first, so what is found is the box pinned
+to the edge rather than a button inside it that ends at the same place — and a
+few steps upwards as well, because a sheet is as often a pinned box with the
+dialog inside it as the other way about.
+
+A padding rather than a lift, so the panel does not move: only what is on it
+does. And never on a backdrop or on anything else as tall as the glass, where
+the padding is at best useless and at worst backwards — a backdrop resolves its
+children's `bottom: 0` against its own padding box, so padding meant to lift the
+sheet off the row would push it down behind it instead.
+
+Where the room could not be made — a sheet filling the whole glass, a shape the
+page does not recognise — the page says so, and there the old answer still
+holds: the row stands down and the press goes through to the sheet. Everywhere
+else the row goes on answering taps, because it is beside the sheet now rather
+than over it. That last-resort is why the app is still told there is a sheet at
+all; the room itself is the page's work from end to end.
+
+The inset under the page is left alone, as it was before: the page beneath the
+sheet has not changed, and taking the row's height off it would scroll what you
+were reading out from under the sheet while you were not looking at it. And the
+row is live regardless the moment one of Quiet's own pages is open — the row is
+the way out of those, and a sheet left open on the page behind is no reason to
+take the way out away.
+
+A sheet also slides, and a transition changes nothing in the document, so a pass
+that only ever ran on a mutation would measure the panel half a screen below
+where it lands and decide once, while it was moving, that there was nothing to
+pad. It looks again three times, at sixty, two hundred and five hundred
+milliseconds, and stops the moment a sheet has its room or goes away.
+
+Twenty-three checks, which is ninety-one.
