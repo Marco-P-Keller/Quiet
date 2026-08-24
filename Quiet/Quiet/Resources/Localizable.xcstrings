@@ -261,6 +261,16 @@
         }
       }
     },
+    "Instagram, on your terms.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram, zu deinen Bedingungen."
+          }
+        }
+      }
+    },
     "Island": {
       "localizations": {
         "de": {
@@ -327,6 +337,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Keine Verbindung."
+          }
+        }
+      }
+    },
+    "No more doomscrolling.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schluss mit Doomscrolling."
           }
         }
       }

@@ -1283,3 +1283,83 @@ site does that space belong to anybody but Quiet.
 The link rules stay as they are. They hold from the first paint, before a frame
 has been asked for, and they are what refuses a door that is not a strip at
 all.
+
+## The row is right in its first frame
+
+Quiet draws its row with Instagram's own glyphs, read out of Instagram's own
+navigation once a page has loaded. Honest, and about a second slow: for that
+second the row wore the symbols Quiet falls back to, and then all of them
+changed at once. The app looked like it was correcting itself in front of you.
+
+The fix is not to draw them faster. A house and a paper plane are the same this
+morning as they were last night, and an app that has seen them once has no
+business asking again before it can show anything. So they are kept, along with
+the signed-in name and the face — which is the same defect: the last entry in
+the row used to appear a second after the other four.
+
+Kept in `UserDefaults` rather than the keychain, deliberately. The keychain
+holds the one thing that must outlive a reinstall, and putting a cache of
+pictures beside it would be putting a convenience where a promise lives.
+Losing all of it costs a second, once.
+
+A remembered glyph is replaced the first time Instagram sends its own in a
+given run, and not again. Without the first half, an icon Instagram redrew
+would be one Quiet showed the old version of for ever; without the second, a
+page that rewrites its navigation forty times would decode forty pictures.
+
+## The second and a half the app opens with
+
+An app that opens straight onto Instagram is an app you are inside before you
+have decided to be. So there is a pause: one sentence on Quiet's own paper,
+and then it goes.
+
+It is not a progress indicator and does not pretend to be one. Nothing waits on
+it — the web view loads behind it, so the time is spent rather than wasted. It
+is not a logo screen either. There is a sentence to read, and somebody who
+reads it has had the thought the whole app exists to prompt.
+
+The system's own launch screen is now painted in the same paper, so nothing
+flashes between the two. It carries no words of its own: a launch screen is laid
+out by a different system, knows nothing about the reader's text size, and would
+have to be written twice to say the same thing.
+
+Held still, and only for a machine, under a rehearsal scene — it is the one
+screen in Quiet that is gone before anybody could photograph it. The one UI test
+that drives the app from an empty install skips it outright: a machine has no
+eyes to read a sentence with, only a first tap that would go nowhere.
+
+## Asking for stars, once
+
+This is the only thing in Quiet that interrupts somebody for the app's benefit
+rather than theirs, so it gets one shot and has to earn it.
+
+Five minutes of the app actually in front of somebody. Not five minutes since it
+was installed, because an app can sit unopened for a week. Not one long sitting
+either: Quiet is built to be used in short ones, and a rule that only fired in a
+long sitting would fire for the people using the app worst. So it is counted
+across launches, against the same monotonic clock the limit uses, and a jump the
+size of a night of standby is dropped rather than believed.
+
+Once, ever. iOS caps the prompt at three a year on its own, and a rule that
+leaned on somebody else's cap is a rule that would ask every day if the cap were
+lifted.
+
+The sheet is the system's, through SwiftUI's own `requestReview`. Everything
+about it belongs to iOS: the stars, the wording, and the fact that it can be
+dismissed without answering. An app that drew its own could nag, and could imply
+a rating had been left when none had. Nothing can tell whether it appeared,
+which is why the question is marked as put when it is asked rather than when a
+star is pressed — asking twice because the first went quietly nowhere is the
+exact behaviour this is avoiding.
+
+And never over the curtain. The end of the day is the one moment in Quiet that
+is meant to be felt, and a five-star sheet on top of it would be the app asking
+to be praised for the thing it just took away.
+
+## The declaration that was missing
+
+`UserDefaults` is a required-reason API, and Quiet has been using it since the
+row preference shipped without saying so in the privacy manifest. That is the
+sort of omission that is invisible right up until an upload comes back as
+ITMS-91053. Reason CA92.1 covers it exactly: written and read by this app alone,
+no app group, no sharing of any kind.

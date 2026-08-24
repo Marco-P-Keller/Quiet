@@ -26,11 +26,17 @@
 	     here means App Store Connect stops asking at every upload. -->
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
-	<!-- An empty dictionary asks iOS for the standard full-screen launch, which
-	     shows the app's background colour and nothing else. Quiet has no splash
-	     screen: there is nothing to announce. -->
+	<!-- The system's own launch, in Quiet's paper rather than in whatever the
+	     window happens to start as. It carries no words: the sentence is drawn
+	     by the app a frame later, and a launch screen that tried to draw it
+	     here would have to be laid out twice, in two different systems, and
+	     would still not know the reader's text size. What this buys is that
+	     nothing flashes between the two. -->
 	<key>UILaunchScreen</key>
-	<dict/>
+	<dict>
+		<key>UIColorName</key>
+		<string>Launch</string>
+	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<!-- Portrait only. Instagram's mobile site is a phone layout, and the

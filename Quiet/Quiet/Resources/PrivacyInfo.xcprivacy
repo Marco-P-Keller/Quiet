@@ -30,6 +30,25 @@
 				<string>35F9.1</string>
 			</array>
 		</dict>
+		<dict>
+			<!-- UserDefaults, in Preferences, Applause and Remembered: the
+			     shape of the row, how long the app has been on screen, and the
+			     glyphs the row was drawn with last time. All of it is written
+			     and read by this app alone — there is no app group and no
+			     sharing of any kind — which is precisely reason CA92.1. The
+			     one thing that has to outlive a reinstall, the limit, is not
+			     here; it is in the keychain, which Apple does not count.
+
+			     This declaration was missing while the row preference shipped,
+			     and it is the sort of omission that is invisible until an
+			     upload comes back as ITMS-91053. -->
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+		</dict>
 	</array>
 </dict>
 </plist>

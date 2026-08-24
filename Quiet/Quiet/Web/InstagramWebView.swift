@@ -38,11 +38,14 @@ final class WebSurface {
     /// The signed-in username, read out of Instagram's own navigation before
     /// that row is taken out. `nil` until a page carrying it has loaded, which
     /// is why the profile entry in Quiet's row appears a moment after the rest.
-    private(set) var me: String?
+    ///
+    /// Starts as the name the last run learned, so the last entry in the row is
+    /// there from the first frame instead of appearing a second in.
+    private(set) var me: String? = Remembered.me()
 
     /// Your own face, for the last entry in the row — because Instagram's ends
     /// in a photograph rather than an outline of a person.
-    private(set) var myFace: UIImage?
+    private(set) var myFace: UIImage? = Remembered.myFace()
 
     /// The address on screen.
     ///
@@ -68,7 +71,18 @@ final class WebSurface {
     /// filled house and outlines for everything else; walk to the inbox and the
     /// other halves arrive. Both collect themselves as the app is used, and
     /// whichever has not turned up yet falls back to the symbol Quiet drew.
-    private(set) var icons: [String: UIImage] = [:]
+    ///
+    /// They start as whatever the last run learned, so the row is right in its
+    /// first frame rather than a second later. See `Remembered`.
+    private(set) var icons: [String: UIImage] = Remembered.icons()
+
+    /// Which glyphs this run has heard from Instagram itself.
+    ///
+    /// A remembered glyph is used until Instagram sends its own, and then
+    /// replaced — once per run, so a page that rewrites its navigation forty
+    /// times does not decode forty pictures. Without this, an icon Instagram
+    /// redrew would be one Quiet went on showing the old version of for ever.
+    @ObservationIgnored private var heard: Set<String> = []
 
     func icon(_ entry: String, on: Bool) -> UIImage? {
         icons[entry + (on ? ".on" : ".off")]
@@ -223,18 +237,21 @@ final class WebSurface {
     }
 
     fileprivate func note(icon entry: String, picture: String) {
-        guard icons[entry] == nil,
+        guard !heard.contains(entry),
               let data = Data(base64Encoded: picture),
               let image = UIImage(data: data) else { return }
+        heard.insert(entry)
         // A template, so the row tints it with everything else rather than
         // carrying Instagram's black into a light appearance.
         icons[entry] = image.withRenderingMode(.alwaysTemplate)
+        Remembered.remember(icon: entry, data: data)
     }
 
     fileprivate func note(me name: String, picture: String?) {
         if me != name { me = name }
-        guard let picture, let data = Data(base64Encoded: picture) else { return }
-        myFace = UIImage(data: data)
+        let data = picture.flatMap { Data(base64Encoded: $0) }
+        if let data, let face = UIImage(data: data) { myFace = face }
+        Remembered.remember(me: name, face: data)
     }
 
     /// Where Quiet's own row can send you.

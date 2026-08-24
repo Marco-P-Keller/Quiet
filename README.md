@@ -36,7 +36,7 @@ who isn't already scrolling.
 Requires Xcode 16 or later.
 
 ```sh
-open Quiet/Quiet.xcodeproj     # then set your team and bundle identifier, and Run
+open Quiet.xcodeproj     # then set your team and bundle identifier, and Run
 ```
 
 The bundle identifier is `com.connexa.quiet` and the team is `B97SQSQBMR`,
@@ -71,7 +71,7 @@ creates the certificate and profile through the API key.
 
 Uploading is not submitting. The build lands in TestFlight; review is a
 separate, deliberate step, and
-[what it will run into](docs/store-and-legal.md) is worth reading first.
+[what it will run into](../docs/store-and-legal.md) is worth reading first.
 
 If the project file ever refuses to open, `project.yml` regenerates an
 equivalent one:
@@ -191,13 +191,14 @@ it on a simulator and photographs it. The current state:
 
 ```
 ** BUILD SUCCEEDED **
-Executed 65 tests, with 0 failures        (rules, clock, ledger, session)
+Executed 87 tests, with 0 failures        (rules, clock, ledger, session,
+                                           preferences, applause, memory)
 Executed 5 tests, with 0 failures         (setup → Instagram → relaunch,
                                            and every screen driven by name)
 ```
 
 No errors and no warnings in Quiet's own sources. The workflow is
-[`.github/workflows/quiet.yml`](.github/workflows/quiet.yml); a red run
+[`.github/workflows/quiet.yml`](../../.github/workflows/quiet.yml); a red run
 prints a digest naming the errors, the failed tests and the warnings, and a
 screenshot of the app in whatever state it reached.
 
@@ -260,12 +261,12 @@ people only.
 If you want every feature Instagram ships, keep using Instagram. This is for
 seeing what your friends posted and then putting the phone down.
 
-Longer versions of all of this: [decisions](docs/decisions.md),
-[trade-offs](docs/trade-offs.md), and
-[what the App Store and Instagram's terms have to say](docs/store-and-legal.md).
+Longer versions of all of this: [decisions](../docs/decisions.md),
+[trade-offs](../docs/trade-offs.md), and
+[what the App Store and Instagram's terms have to say](../docs/store-and-legal.md).
 What has not been answered yet, in the order it matters:
-[what is left](docs/what-is-left.md). Everything the App Store asks for,
-written out: [the listing](docs/store-listing.md).
+[what is left](../docs/what-is-left.md). Everything the App Store asks for,
+written out: [the listing](../docs/store-listing.md).
 
 ---
 

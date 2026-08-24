@@ -96,6 +96,7 @@ jobs:
             xcrun simctl io booted screenshot --type=png "shots/$name.png"
           }
 
+          shoot opening opening
           shoot setup   fresh
           shoot panel   panel
           shoot limit   limit
@@ -120,6 +121,7 @@ jobs:
 
           # At night. Quiet has a complete dark palette that nobody has looked at.
           xcrun simctl ui booted appearance dark
+          shoot opening-dark opening
           shoot setup-dark   fresh
           shoot panel-dark   panel
           shoot curtain-dark spent

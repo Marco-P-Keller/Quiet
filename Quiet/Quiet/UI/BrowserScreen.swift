@@ -383,9 +383,12 @@ struct BrowserScreen: View {
     /// first one, and the height of Instagram's.
     private static let barHeight: CGFloat = 49
 
-    /// The island is a little taller than the bar, because it is a shape rather
-    /// than an edge and needs the air.
-    private static let islandHeight: CGFloat = 52
+    /// The island is taller than the bar, because it is a shape rather than an
+    /// edge and needs the air. Two millimetres more of it than it had — near
+    /// enough thirteen points, which is what two millimetres is on a phone —
+    /// because at fifty-two the pill was tight around the glyphs and read as a
+    /// bar somebody had rounded off rather than as an island.
+    private static let islandHeight: CGFloat = 65
 
     /// The island, and the air beneath it.
     private static let islandGap: CGFloat = 12

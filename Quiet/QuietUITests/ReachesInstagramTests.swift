@@ -17,6 +17,10 @@ final class ReachesInstagramTests: XCTestCase {
 
     func testSetupLeadsToInstagram() throws {
         let app = XCUIApplication()
+        // Straight to the app. The second and a half Quiet opens with is a
+        // sentence to read, and a machine driving the app has no eyes to read
+        // it with — only a first tap that would go nowhere.
+        app.launchArguments = ["-QuietNoOpening"]
         app.launch()
 
         let carryOn = app.buttons["Continue"]

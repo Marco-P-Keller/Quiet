@@ -34,7 +34,26 @@ enum Rehearsal {
         case limit
         /// Browsing, with the search screen open.
         case search
+        /// The second and a half the app opens with, held still so that it can
+        /// be photographed. It is the one screen in Quiet that is gone before
+        /// anybody could take a picture of it.
+        case opening
     }
+
+    /// Skip the opening, without asking for a scene.
+    ///
+    /// For the one UI test that drives the app from an empty install. A machine
+    /// has no eyes to read a sentence with, and a screen it cannot see is a
+    /// second and a half in which its first tap goes nowhere.
+    static let noOpening = "-QuietNoOpening"
+
+    static var skipsOpening: Bool {
+        if ProcessInfo.processInfo.arguments.contains(noOpening) { return true }
+        guard let scene else { return false }
+        return scene != .opening
+    }
+
+    static var holdsOpening: Bool { scene == .opening }
 
     /// The scene named on the command line, if there is one.
     static var scene: Scene? {
@@ -61,6 +80,13 @@ enum Rehearsal {
         guard let scene = scene(in: arguments) else { return }
 
         StoreKey.allCases.forEach(store.remove)
+        // The glyphs the row was drawn with last time, and how long the app has
+        // been on screen. Both live outside the store, and both change what a
+        // photograph shows: a remembered house instead of Quiet's fallback, or
+        // the App Store's own five-star sheet arriving over the screen being
+        // photographed.
+        Remembered.forget()
+        Applause.forget()
         guard scene != .fresh else { return }
 
         let today = DayKey(clock.now, calendar: calendar)
