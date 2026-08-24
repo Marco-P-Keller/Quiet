@@ -341,11 +341,10 @@ struct BrowserScreen: View {
                 reduceMotion ? nil : .spring(response: 0.34, dampingFraction: 0.86),
                 value: surface.isBarCollapsed
             )
-            // Low, over the home indicator, so the page runs on beneath it to
-            // the bottom edge of the glass. That is the whole point of a row
-            // that floats; one that stops short of the edge is the worst of
-            // both.
-            .padding(.bottom, Self.islandGap)
+            // Off the bottom edge, with the page running on beneath it to the
+            // very bottom of the glass. That is the whole point of a row that
+            // floats: what is under it is still the page, not a black band.
+            .padding(.bottom, Self.islandLift)
     }
 
     /// How much of the bottom of the screen the row stands on.
@@ -358,7 +357,7 @@ struct BrowserScreen: View {
         guard !isImmersive else { return 0 }
         switch preferences.row {
         case .bar: return Self.barHeight + bottomInset
-        case .island: return Self.islandHeight + Self.islandGap * 2
+        case .island: return Self.islandHeight + Self.islandLift + Self.islandAir
         }
     }
 
@@ -383,15 +382,21 @@ struct BrowserScreen: View {
     /// first one, and the height of Instagram's.
     private static let barHeight: CGFloat = 49
 
-    /// The island is taller than the bar, because it is a shape rather than an
-    /// edge and needs the air. Two millimetres more of it than it had — near
-    /// enough thirteen points, which is what two millimetres is on a phone —
-    /// because at fifty-two the pill was tight around the glyphs and read as a
-    /// bar somebody had rounded off rather than as an island.
-    private static let islandHeight: CGFloat = 65
+    /// The island is a little taller than the bar, because it is a shape rather
+    /// than an edge and needs the air.
+    private static let islandHeight: CGFloat = 52
 
-    /// The island, and the air beneath it.
-    private static let islandGap: CGFloat = 12
+    /// How far it stands off the bottom edge.
+    ///
+    /// Thirteen points more than it did, which is what two millimetres is on a
+    /// phone. It was asked for as height first and given as height, which was
+    /// the wrong reading of the same word: a taller pill with the same gap
+    /// beneath it does not sit higher, it crowds the edge harder. What was
+    /// wanted was air under the island, and this is that.
+    private static let islandLift: CGFloat = 25
+
+    /// And the air above it, before the page starts.
+    private static let islandAir: CGFloat = 12
 
     /// The last entry, with your own face in it, the way Instagram's row ends.
     /// An outline of a person stands in until the page has handed one over.

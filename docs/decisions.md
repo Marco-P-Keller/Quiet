@@ -1363,3 +1363,15 @@ row preference shipped without saying so in the privacy manifest. That is the
 sort of omission that is invisible right up until an upload comes back as
 ITMS-91053. Reason CA92.1 covers it exactly: written and read by this app alone,
 no app group, no sharing of any kind.
+
+## Higher, not taller
+
+"Two millimetres higher" was read as height and given as height, and it was the
+wrong reading of the same word. A taller pill with the same gap beneath it does
+not sit higher — it crowds the bottom edge harder, which is exactly how it came
+back.
+
+So the island is the size it was, and the thirteen points went under it instead.
+The scroll inset is unchanged either way: it was the pill plus air twice over,
+and it is now the pill plus the lift plus the air, which comes to the same
+number. Nothing about how far the page can be scrolled moved.
