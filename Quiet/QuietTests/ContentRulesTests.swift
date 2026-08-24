@@ -129,4 +129,42 @@ final class ContentRulesTests: XCTestCase {
             XCTAssertNil(ContentRules.profile(forHandle: typed), typed)
         }
     }
+
+    // MARK: - The screens that own the bottom edge
+
+    /// Two things read this: the row along the bottom stays off these screens,
+    /// and the pull that reloads the page is not offered on them.
+    func testAStoryAndAnOpenConversationOwnTheWholeScreen() {
+        for address in [
+            "https://www.instagram.com/stories/someone/123/",
+            "https://www.instagram.com/direct/t/17845/",
+            "https://www.instagram.com/direct/new/"
+        ] {
+            XCTAssertTrue(
+                ContentRules.isImmersive(URL(string: address)),
+                "\(address) puts something of its own along the bottom edge"
+            )
+        }
+    }
+
+    /// The inbox is a list, not a conversation. The row belongs on it, and so
+    /// does the pull — this is the boundary the two paths share a prefix at.
+    func testEverywhereElseIsAnOrdinaryPage() {
+        for address in [
+            "https://www.instagram.com/",
+            "https://www.instagram.com/direct/inbox/",
+            "https://www.instagram.com/someone/",
+            "https://www.instagram.com/p/abc123/"
+        ] {
+            XCTAssertFalse(
+                ContentRules.isImmersive(URL(string: address)),
+                "\(address) is a page like any other"
+            )
+        }
+    }
+
+    /// Nothing loaded yet is not a story.
+    func testNoAddressIsAnOrdinaryPage() {
+        XCTAssertFalse(ContentRules.isImmersive(nil))
+    }
 }

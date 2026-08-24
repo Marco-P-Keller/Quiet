@@ -42,38 +42,57 @@ struct RootView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        ZStack {
-            content
-                .animation(reduceMotion ? nil : .easeInOut(duration: 0.3), value: session.screen)
-
-            if isOpening {
-                OpeningView()
-                    .transition(.opacity)
+        content
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.3), value: session.screen)
+            // An overlay rather than a stack, and the difference is not a
+            // matter of taste.
+            //
+            // Wrapping the app in a `ZStack` to hold the opening screen put a
+            // container between the app and the window, and that container
+            // respects the safe area. The browsing screen reports the height of
+            // the whole glass, because it ignores the safe area on purpose — so
+            // it was a view eight hundred and seventy-four points tall being
+            // centred in a region seven hundred and eighty-one points tall, and
+            // it hung twelve and a half points off the bottom of the screen.
+            //
+            // Which is why moving the floating row two millimetres up did
+            // nothing: it moved, and then the whole screen it sits on moved
+            // down by almost exactly the same amount. Three photographs and two
+            // wrong explanations went past before CI measured the drawn thing
+            // and made the arithmetic visible.
+            //
+            // An overlay is laid over the view and sized to it. The view is
+            // proposed exactly what it was proposed before this screen existed,
+            // which is the whole point.
+            .overlay {
+                if isOpening {
+                    OpeningView()
+                        .transition(.opacity)
+                }
             }
-        }
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.45), value: isOpening)
-        .task {
-            session.start()
-            #if DEBUG
-            Rehearsal.open(session)
-            #endif
-        }
-        .task {
-            guard !Opening.stays else { return }
-            try? await Task.sleep(for: OpeningView.held)
-            isOpening = false
-        }
-        .task(id: scenePhase) { await countTowardsAsking() }
-        .onChange(of: scenePhase, initial: true) { _, phase in
-            session.setForeground(phase == .active)
-        }
-        // Only this one transition. Opening the app onto a day that was
-        // already gone goes from setup to the curtain, and a phone that buzzes
-        // at you for a thing you did yesterday is a phone that has
-        // misunderstood the app.
-        .onChange(of: session.screen) { was, now in
-            if was == .browsing, now == .spent { Feedback.dayEnded() }
-        }
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.45), value: isOpening)
+            .task {
+                session.start()
+                #if DEBUG
+                Rehearsal.open(session)
+                #endif
+            }
+            .task {
+                guard !Opening.stays else { return }
+                try? await Task.sleep(for: OpeningView.held)
+                isOpening = false
+            }
+            .task(id: scenePhase) { await countTowardsAsking() }
+            .onChange(of: scenePhase, initial: true) { _, phase in
+                session.setForeground(phase == .active)
+            }
+            // Only this one transition. Opening the app onto a day that was
+            // already gone goes from setup to the curtain, and a phone that
+            // buzzes at you for a thing you did yesterday is a phone that has
+            // misunderstood the app.
+            .onChange(of: session.screen) { was, now in
+                if was == .browsing, now == .spent { Feedback.dayEnded() }
+            }
     }
 
     /// Count the app's time on screen, and put the question once it is owed.

@@ -1417,3 +1417,36 @@ stopping behind it, and a scroll indicator still stops above it.
 
 Nothing to argue about this time: the rehearsal shot goes through the measuring
 script on every push, and the number in the log is the gap that was drawn.
+
+## The row was never the problem
+
+Four attempts at two millimetres: twelve points, then a taller pill, then
+twenty-five, then thirty-eight. Each one was a guess at a number that had been
+right since the second attempt, and each one was wrong for the same reason.
+
+The opening screen was held in a `ZStack` wrapped around the whole app. That
+put a container between the app and the window, and a container respects the
+safe area. The browsing screen ignores the safe area on purpose and therefore
+reports the height of the whole glass — so it was a view eight hundred and
+seventy-four points tall being centred in a region seven hundred and eighty-one
+points tall, and it hung twelve and a half points off the bottom of the screen.
+
+Which is why nothing moved. The row went up by thirteen and the screen it
+stands on went down by twelve and a half. On the phone the gap read 12.3 points
+before the change and 12.3 points after it, and both readings were honest.
+
+An overlay instead of a stack. An overlay is laid over the view and sized to
+it; the view is proposed exactly what it was proposed before the opening screen
+existed, which is the whole point of using one.
+
+Two things this cost that were avoidable. The first is that the row's number
+was raised three times to compensate for a bug somewhere else, and each raise
+made the eventual fix look like a regression. The second is that two rounds
+went on insisting the phone was running an older build — it was not, and the
+arithmetic said so all along: twelve points of lift with no bug and twenty-five
+points of lift with a twelve-and-a-half point bug draw the same picture.
+
+So CI now checks the drawn gap against the number in the source and fails when
+they disagree, rather than printing it and hoping. The measurement had already
+caught this on its first honest run and been read as a fault in the
+measurement.

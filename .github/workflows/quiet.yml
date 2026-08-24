@@ -139,39 +139,40 @@ jobs:
             --predicate 'process == "Quiet"' 2>/dev/null | head -40 || echo "(nothing)"
           echo "----END APP LOG----"
 
-      # A number, so that two millimetres is never argued about again.
+      # And it is checked against what the source says, so it fails rather than
+      # merely reports. It has already earned that once: a container added
+      # between the app and the window was centring the browsing screen and
+      # hanging it twelve and a half points off the bottom of the glass, so
+      # moving the row up by thirteen moved it by half a point. Nothing was
+      # wrong with the row. A number that is only printed is a number nobody
+      # reads until somebody has taken four photographs.
       #
-      # A disagreement about the gap under the floating row cost four rounds of
-      # build, upload, install and look, and two of those rounds went on which
-      # build was on the phone. That is not a question anybody should answer by
-      # eye. If this says the island stands twenty-five points off the bottom
-      # edge and a photograph says thirteen, the photograph is of an older
-      # build and there is nothing left to discuss.
-      #
-      # Measured on the drawn thing rather than read back out of the source,
-      # which would prove only that the source says what it says.
-      #
-      # Dark, and before the page arrives: the island stands on a flat colour
-      # with nothing under it, and its shadow — which is black, and which on a
-      # light background is an edge of its own — is invisible.
-      #
-      # Never fatal. A measurement that cannot be taken must not hide a real
-      # failure behind it.
+      # A measurement that cannot be taken at all is not a failure — a missing
+      # Pillow must not stand in for a broken layout — so only a disagreement
+      # is red.
       - name: Measure the row
         if: always()
-        continue-on-error: true
         timeout-minutes: 6
         run: |
-          set -euo pipefail
-          python3 -m pip install --quiet --disable-pip-version-check pillow \
-            || python3 -m pip install --quiet --break-system-packages pillow
+          set -uo pipefail
+          if ! python3 -m pip install --quiet --disable-pip-version-check pillow \
+            && ! python3 -m pip install --quiet --break-system-packages pillow; then
+            echo "Could not install Pillow, so the row was not measured."
+            exit 0
+          fi
+          set -e
+          # What the source says, read out of the source, so the two can never
+          # drift apart quietly.
+          expected=$(sed -n 's/.*islandLift: CGFloat = \([0-9.]*\).*/\1/p' \
+            Quiet/UI/BrowserScreen.swift)
+          echo "The source says $expected pt."
           xcrun simctl ui booted appearance dark
           xcrun simctl terminate booted com.connexa.quiet >/dev/null 2>&1 || true
           xcrun simctl launch booted com.connexa.quiet -QuietRehearsal island >/dev/null
           sleep 4
           xcrun simctl io booted screenshot --type=png island.png
           xcrun simctl ui booted appearance light
-          python3 Tools/measure-the-row.py island.png
+          python3 Tools/measure-the-row.py island.png --expect "$expected"
 
       # The full log is thousands of lines of module compilation. What anybody
       # actually needs after a red run is the handful of lines naming what

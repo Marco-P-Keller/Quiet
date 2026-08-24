@@ -23,6 +23,22 @@ enum RowShape: String, CaseIterable, Sendable {
         case .island: return String(localized: "Island")
         }
     }
+
+    /// The shape the app opens with, before anybody has chosen one.
+    ///
+    /// The island is the shape the app was asked for first, and on a phone with
+    /// a cutout in the glass running a system that draws in that idiom it is
+    /// the one that looks like it belongs there. On an iPhone 14 or older, or
+    /// on a system older than iOS 26, the same pill is a floating object with
+    /// nothing above it to answer to, so the app opens as Instagram's own bar
+    /// instead — which is also the honest first impression of an app that is
+    /// showing Instagram.
+    ///
+    /// Either way this is only a starting point. The panel offers both shapes
+    /// on every phone, and a choice made there outlives this rule.
+    static func standard(on hardware: Hardware = .current) -> RowShape {
+        hardware.isIPhone15OrNewer && hardware.systemMajorVersion >= 26 ? .island : .bar
+    }
 }
 
 /// The handful of things that are about how Quiet looks rather than what it
@@ -44,8 +60,8 @@ private enum Key {
 final class Preferences {
     @ObservationIgnored private let defaults: UserDefaults
 
-    /// Instagram's bar to begin with, because a first launch should look like
-    /// the thing it is showing rather than like an opinion about it.
+    /// What the hardware asks for to begin with: the island on an iPhone 15 or
+    /// newer running iOS 26 or newer, Instagram's own bar everywhere else.
     var row: RowShape {
         didSet {
             guard row != oldValue else { return }
@@ -58,9 +74,9 @@ final class Preferences {
         defaults.set(row.rawValue, forKey: Key.row)
     }
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = .standard, hardware: Hardware = .current) {
         self.defaults = defaults
         self.row = defaults.string(forKey: Key.row)
-            .flatMap(RowShape.init(rawValue:)) ?? .bar
+            .flatMap(RowShape.init(rawValue:)) ?? .standard(on: hardware)
     }
 }

@@ -201,6 +201,26 @@ body {
   margin-bottom: 0 !important;
 }
 
+/* ── The pull at the top ────────────────────────────────────────────────── */
+/*
+ * Scrolled to the top and then pulled further, the page is asked for again —
+ * the gesture Instagram's own app has. The control itself is the app's, and it
+ * lives on the rubber band: WebKit only lets a document be pulled past its own
+ * top if the document allows overscroll. A single `overscroll-behavior: none`
+ * on the root turns that band off, and the whole gesture goes with it —
+ * silently, and only on whichever pages happen to carry the rule, which is the
+ * worst way for a gesture to be missing.
+ *
+ * So the root is asked for the default in as many words. Inner scrollers are
+ * left alone on purpose: a conversation that keeps its scrolling to itself
+ * rather than handing it to the page behind it is doing the right thing.
+ */
+
+html,
+body {
+  overscroll-behavior-y: auto !important;
+}
+
 /* ── No scroll bars ─────────────────────────────────────────────────────── */
 /*
  * Instagram's app shows none, and the page draws two kinds: the browser's own

@@ -142,6 +142,23 @@ enum ContentRules {
     /// Where the messages live.
     static let messages = URL(string: "https://www.instagram.com/direct/inbox/")!
 
+    /// The pages that own the whole screen: a story, and an open conversation.
+    ///
+    /// Both put something of their own along the bottom edge — a reply field, a
+    /// message box — and both are the reason their screen is open.
+    ///
+    /// Two things in the app ask this, which is why it lives here rather than
+    /// in either of them. The row along the bottom is not drawn over them. And
+    /// the pull that reloads the page is not offered on them either: a downward
+    /// swipe on a story is how you leave it, and a page that reloaded itself
+    /// under that thumb would be answering a gesture nobody made.
+    static func isImmersive(_ url: URL?) -> Bool {
+        let path = url?.path ?? "/"
+        return path.hasPrefix("/stories/")
+            || path.hasPrefix("/direct/t/")
+            || path.hasPrefix("/direct/new/")
+    }
+
     /// The profile page for a handle typed into "Find someone". Returns `nil`
     /// for anything that is not a plausible Instagram username, rather than
     /// sending the person to a 404.

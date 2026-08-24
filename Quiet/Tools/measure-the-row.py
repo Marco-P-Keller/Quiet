@@ -111,9 +111,16 @@ def measure(path):
     }, None
 
 
+# How far the drawn thing may be from what the source says before it counts as
+# wrong. One point of it is the capsule's own soft edge, which a threshold has
+# to cut somewhere; the rest is room to round.
+TOLERANCE = 2.5
+
+
 def main():
-    if len(sys.argv) != 2:
-        print("usage: measure-the-row.py <screenshot.png>", file=sys.stderr)
+    if len(sys.argv) not in (2, 4) or (len(sys.argv) == 4 and sys.argv[2] != "--expect"):
+        print("usage: measure-the-row.py <screenshot.png> [--expect <points>]",
+              file=sys.stderr)
         return 2
     found, trouble = measure(sys.argv[1])
     if trouble:
@@ -125,6 +132,19 @@ def main():
     print(f"Stands off:  {found['lift']:.1f} pt from the bottom edge")
     print(f"Up the column, every 2 pt from the bottom edge:")
     print(f"  {found['profile']}")
+
+    if len(sys.argv) == 4:
+        expected = float(sys.argv[3])
+        off = abs(found["lift"] - expected)
+        if off > TOLERANCE:
+            print()
+            print(f"WRONG. The source says the row stands {expected:g} pt off the")
+            print(f"bottom edge and it is drawn at {found['lift']:.1f} pt — {off:.1f} pt out.")
+            print("Something between the app and the window is moving the whole")
+            print("screen. That is the bug this check exists for; it has happened")
+            print("once already, and it cost four builds and two wrong answers.")
+            return 1
+        print(f"Agrees with the source ({expected:g} pt), within {TOLERANCE:g} pt.")
     return 0
 
 

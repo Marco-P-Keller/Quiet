@@ -276,10 +276,7 @@ struct BrowserScreen: View {
     /// those, and a way out that is not on the screen is not a way out.
     private var isImmersive: Bool {
         guard !isShowingQuietPage else { return false }
-        let path = surface.address?.path ?? "/"
-        return path.hasPrefix("/stories/")
-            || path.hasPrefix("/direct/t/")
-            || path.hasPrefix("/direct/new/")
+        return ContentRules.isImmersive(surface.address)
     }
 
     /// The row, along the bottom edge, in the shape Instagram's own is.
@@ -388,13 +385,23 @@ struct BrowserScreen: View {
 
     /// How far it stands off the bottom edge.
     ///
-    /// Twelve points to begin with, then twenty-five, and thirty-eight now —
-    /// thirteen points a time, which is what two millimetres is on a phone at
-    /// roughly a hundred and sixty points to the inch. It is the gap that is
-    /// asked for and the gap that moves: the pill is the height it has always
-    /// been, because a taller pill with the same air beneath it does not sit
-    /// higher, it crowds the edge harder.
-    private static let islandLift: CGFloat = 38
+    /// Twelve points to begin with, and twenty-five now: thirteen more, which is
+    /// what two millimetres is on a phone at roughly a hundred and sixty points
+    /// to the inch. It is the gap that was asked for and the gap that moves —
+    /// the pill keeps the height it has always had, because a taller pill with
+    /// the same air beneath it does not sit higher, it crowds the edge harder.
+    ///
+    /// It went to thirty-eight for a while, and that was a fourth guess at a
+    /// number that had been right since the second. Twenty-five was being drawn
+    /// at twelve and a half, and the cause was nowhere near here: a container
+    /// added between the app and the window was centring the whole browsing
+    /// screen and hanging it off the bottom of the glass by almost exactly the
+    /// thirteen points this was moving by. Every time this number went up, the
+    /// screen it stands on went down. See `RootView`.
+    ///
+    /// CI now measures the drawn gap against this number on every push, so a
+    /// disagreement between the two is a red build rather than a photograph.
+    private static let islandLift: CGFloat = 25
 
     /// And the air above it, before the page starts.
     private static let islandAir: CGFloat = 12

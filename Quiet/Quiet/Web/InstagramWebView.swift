@@ -98,6 +98,22 @@ final class WebSurface {
         webView?.load(URLRequest(url: url))
     }
 
+    /// Ask for the page again.
+    ///
+    /// What the pull at the top of the feed does, and the only way back from a
+    /// page that failed to arrive — a web view that could not load has an
+    /// address but nothing on it, and `reload` is the request that fixes both.
+    /// Falls back to the home address for the one case where there is nothing
+    /// to reload, which is a cold view nobody has navigated yet.
+    func reload() {
+        guard let webView else { return }
+        if webView.url == nil {
+            webView.load(URLRequest(url: ContentRules.home))
+        } else {
+            webView.reload()
+        }
+    }
+
     /// What a tap on the status bar has always done.
     func scrollToTop() {
         guard let scrollView = webView?.scrollView else { return }
@@ -410,6 +426,7 @@ struct InstagramWebView: UIViewRepresentable {
         webView.load(URLRequest(url: ContentRules.home))
 
         context.coordinator.watch(webView.scrollView)
+        context.coordinator.addPull(to: webView.scrollView)
         surface.adopt(webView, missing: payload.missing)
         return webView
     }
@@ -467,7 +484,88 @@ struct InstagramWebView: UIViewRepresentable {
             }
         }
 
+        // MARK: - The pull at the top
+
+        /// Scrolled to the top and then pulled further: the page is asked for
+        /// again. What Instagram's own app does, and what every list on this
+        /// phone has done for fifteen years.
+        ///
+        /// This is `UIRefreshControl` rather than anything of Quiet's, and it
+        /// is the system's on purpose. The gesture has a feel — where it
+        /// catches, when it lets go, what it does under a thumb that changes
+        /// its mind halfway — and a hand-drawn imitation gets one of those
+        /// wrong and reads as a cheap copy of a thing everybody already knows.
+        ///
+        /// It lands in the right place without being told to. The web view
+        /// starts below the clock rather than behind it — see `BrowserScreen`,
+        /// which hands it the glass less the status bar — so the top of this
+        /// scroll view is already the top of the page as a person sees it, and
+        /// the spinner comes down into the page instead of into the time.
+        private var pull: UIRefreshControl?
+
+        func addPull(to scrollView: UIScrollView) {
+            let control = UIRefreshControl()
+            // Over Instagram's page rather than over Quiet's paper, so it takes
+            // the system's colour the way the view underneath it does.
+            control.tintColor = .secondaryLabel
+            control.addTarget(self, action: #selector(pulled), for: .valueChanged)
+            pull = control
+            keepPullAlive(scrollView)
+        }
+
+        /// Said again, and again, because WebKit says otherwise.
+        ///
+        /// This is why the first version of this did nothing. Setting the
+        /// control up once, on a view that has not loaded anything yet, is the
+        /// recipe everybody writes down and it is half the job: a page load
+        /// takes the bounce back. WebKit decides for itself whether the scroll
+        /// view may be pulled past its own edges, out of the document it just
+        /// committed, and it does not ask what the app had set before. A
+        /// control attached to a scroll view that cannot be overscrolled is a
+        /// control that is never reached — no spinner, no reload, and nothing
+        /// anywhere saying why.
+        ///
+        /// So it is asserted on every ending a navigation has, and on every
+        /// scroll besides. Instagram's client changes pages without loading
+        /// anything, and a navigation delegate hears nothing at all about those
+        /// — the same reason the row along the bottom is told where it is by
+        /// the page rather than by the app. Two boolean reads per frame is not
+        /// a cost worth a cleverer answer.
+        ///
+        /// Both spellings. `bounces` is the one that has always meant this, and
+        /// since iOS 16 it is `alwaysBounceVertical` that actually decides —
+        /// which also covers a page shorter than the screen, where there would
+        /// otherwise be nothing to pull against on a profile with four posts.
+        func keepPullAlive(_ scrollView: UIScrollView) {
+            // Not on a story or inside a conversation. See `ContentRules`.
+            guard !ContentRules.isImmersive(surface.address) else {
+                if scrollView.refreshControl != nil { scrollView.refreshControl = nil }
+                return
+            }
+            if scrollView.refreshControl !== pull { scrollView.refreshControl = pull }
+            if !scrollView.bounces { scrollView.bounces = true }
+            if !scrollView.alwaysBounceVertical { scrollView.alwaysBounceVertical = true }
+        }
+
+        @objc private func pulled() {
+            surface.reload()
+        }
+
+        /// Let the spinner go.
+        ///
+        /// Called from every ending a navigation has, including the cancelled
+        /// one that is otherwise ignored: a pull that is answered by a
+        /// redirect, or by a person tapping something while the page comes
+        /// back, still has to give the control back. A spinner left turning
+        /// over a page that has finished is the app claiming to be busy.
+        func endPull() {
+            guard let pull, pull.isRefreshing else { return }
+            pull.endRefreshing()
+        }
+
         private func scrolled(_ scrollView: UIScrollView) {
+            keepPullAlive(scrollView)
+
             let offset = scrollView.contentOffset.y
             let delta = offset - lastOffset
             guard abs(delta) > Self.meaningful else { return }
@@ -598,12 +696,15 @@ struct InstagramWebView: UIViewRepresentable {
         func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
             surface.note(address: webView.url)
             tellThisPage(webView)
+            keepPullAlive(webView.scrollView)
         }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             surface.note(address: webView.url)
             surface.markLoaded()
             tellThisPage(webView)
+            endPull()
+            keepPullAlive(webView.scrollView)
         }
 
         func webView(
@@ -611,6 +712,7 @@ struct InstagramWebView: UIViewRepresentable {
             didFailProvisionalNavigation navigation: WKNavigation!,
             withError error: Error
         ) {
+            endPull()
             let code = (error as NSError).code
             guard code != NSURLErrorCancelled else { return }
             surface.markLoaded()
@@ -625,6 +727,7 @@ struct InstagramWebView: UIViewRepresentable {
             withError error: Error
         ) {
             surface.markLoaded()
+            endPull()
         }
 
         fileprivate func receive(_ message: WKScriptMessage) {
