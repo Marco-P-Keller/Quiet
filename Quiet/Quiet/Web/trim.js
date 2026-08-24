@@ -678,6 +678,116 @@
     post({ kind: "where", path: lastPath });
   }
 
+  /* ── The colour the clock stands on ───────────────────────────────────── */
+
+  /**
+   * The colour Instagram is drawing along the top of itself, sent up so the
+   * app can paint the band behind the clock in the same one.
+   *
+   * The app owns the pixels the time and the battery sit on — the page's
+   * viewport starts underneath them — so something has to decide what colour
+   * they are, and the system's own page colour is not it: in the dark that is
+   * pure black against Instagram's near-black, and the seam shows as a hard
+   * line across the top of every screen.
+   *
+   * It was a grey for a while, a deliberate step off the page, on the argument
+   * that a band wants an edge. Asked for plainly, the answer was the other one:
+   * no seam at all. The clock should look like it is standing on the page
+   * rather than on a shelf above it.
+   *
+   * So the colour is sampled from what is actually drawn at the top of the
+   * page rather than named here. A hex typed into an app is a guess about
+   * somebody else's design that goes stale without anyone noticing; a sample
+   * follows Instagram from light to dark, from the feed to a story, and
+   * through a redesign, with nothing here touched.
+   */
+  var CHROME_TOKENS = ["--ig-primary-background", "--ig-secondary-background"];
+
+  var lastChrome = null;
+
+  function sayChrome() {
+    var colour = chromeColour();
+    if (!colour) return;
+
+    var key = colour.join(",");
+    if (key === lastChrome) return;
+    lastChrome = key;
+
+    post({
+      kind: "chrome",
+      red: colour[0],
+      green: colour[1],
+      blue: colour[2],
+    });
+  }
+
+  function chromeColour() {
+    /* What is drawn, first: it is the thing the band has to match, and it is
+     * true on a page whose palette is named nothing this knows. */
+    var drawn = colourAtTop();
+    if (drawn) return drawn;
+
+    /* Nothing opaque to sample — a page mid-rewrite, or one that has painted
+     * nothing yet. Then Instagram's palette, by name. */
+    var root = window.getComputedStyle(document.documentElement);
+    for (var i = 0; i < CHROME_TOKENS.length; i++) {
+      var token = colourFrom(root.getPropertyValue(CHROME_TOKENS[i]));
+      if (token) return token;
+    }
+    return null;
+  }
+
+  /**
+   * Whatever is actually drawn at the top of the page.
+   *
+   * Asked of the page rather than of `body`, because on most of Instagram the
+   * body is transparent and the colour belongs to a container several levels
+   * in. Climbs until something is opaque: a translucent bar would otherwise
+   * hand back a colour that is never drawn anywhere.
+   */
+  function colourAtTop() {
+    var element = document.elementFromPoint(
+      Math.max(1, Math.floor(window.innerWidth / 2)),
+      1
+    );
+    while (element) {
+      var colour = colourFrom(
+        window.getComputedStyle(element).backgroundColor
+      );
+      if (colour) return colour;
+      element = element.parentElement;
+    }
+    return colourFrom(
+      window.getComputedStyle(document.documentElement).backgroundColor
+    );
+  }
+
+  /**
+   * "38, 38, 38", "rgb(38, 38, 38)" and "rgba(38, 38, 38, 1)" all mean the
+   * same thing here. The bare triple is how Instagram writes its custom
+   * properties, so that the page can say `rgba(var(--token), 0.6)`.
+   *
+   * Anything see-through is refused rather than flattened. A colour that is
+   * half transparent over something else is not a colour the app can paint a
+   * solid band in, and guessing what is behind it is how you end up with a
+   * band that is nearly right on one page and wrong on the next.
+   */
+  function colourFrom(value) {
+    if (!value) return null;
+
+    var numbers = String(value).match(/-?[\d.]+/g);
+    if (!numbers || numbers.length < 3) return null;
+    if (numbers.length > 3 && parseFloat(numbers[3]) < 0.95) return null;
+
+    var channels = [];
+    for (var i = 0; i < 3; i++) {
+      var channel = Math.round(parseFloat(numbers[i]));
+      if (!isFinite(channel)) return null;
+      channels.push(Math.min(255, Math.max(0, channel)));
+    }
+    return channels;
+  }
+
   /* ── Instagram's header, in the arrangement its own app uses ──────────── */
 
   /**
@@ -1447,6 +1557,7 @@
       takeUpTheFloor(document.body);
       guardLocation();
       sayWhere();
+      sayChrome();
       whoAmI();
       replaceNav();
       headerComesBack();
@@ -1489,6 +1600,18 @@
   window.addEventListener("popstate", schedule);
 
   watchTheHeader();
+
+  /* A change of scheme rewrites every colour in the page and touches nothing in
+   * the document, so the observer below never hears about it and the band would
+   * keep the colour of the scheme you left. */
+  if (window.matchMedia) {
+    var scheme = window.matchMedia("(prefers-color-scheme: dark)");
+    if (scheme.addEventListener) {
+      scheme.addEventListener("change", schedule);
+    } else if (scheme.addListener) {
+      scheme.addListener(schedule);
+    }
+  }
 
   new MutationObserver(schedule).observe(document.documentElement, {
     childList: true,

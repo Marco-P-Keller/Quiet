@@ -122,8 +122,9 @@ struct BrowserScreen: View {
             //
             // What it costs is the one thing Instagram's own app does that this
             // now cannot: run content up behind the status bar. The app draws
-            // that strip instead, in the page's own colour, and has done for
-            // several builds.
+            // that strip instead, and has done for several builds — in the
+            // page's own colour until now, and one step off it from here, in
+            // the grey Instagram itself uses. See `clockBand`.
             .frame(
                 width: glass.width > 0 ? glass.width : nil,
                 height: glass.height > 0 ? glass.height - topInset : nil
@@ -142,7 +143,7 @@ struct BrowserScreen: View {
             // if it does not, the header slides underneath and out of sight.
             // Neither is broken.
             VStack(spacing: 0) {
-                Color(uiColor: .systemBackground)
+                clockBand
                     .frame(height: topInset)
                 Spacer(minLength: 0)
             }
@@ -163,6 +164,10 @@ struct BrowserScreen: View {
         }
         .ignoresSafeArea()
         .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: surface.hasLoaded)
+        // The band changing colour: the first answer from a page, and every
+        // change of scheme after it. A fade, because a flat area of the screen
+        // changing colour in one frame reads as a glitch.
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: surface.chrome)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: session.isPanelShowing)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: session.isSearchShowing)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: preferences.row)
@@ -374,6 +379,32 @@ struct BrowserScreen: View {
             }
         }
     }
+
+    /// The colour of the band the clock stands on.
+    ///
+    /// The page's own colour, sampled from what Instagram actually draws along
+    /// the top of itself, so there is no seam. The app owns these pixels — the
+    /// page's viewport starts underneath them — but nothing about them should
+    /// announce that. The clock stands on the page rather than on a shelf above
+    /// it.
+    ///
+    /// It was one step off the page for a while, on the argument that a band
+    /// wants an edge. In the dark that argument loses: the system's black
+    /// against Instagram's near-black is a hard line across the top of every
+    /// screen, and the grey that replaced it was a second line in a lighter
+    /// colour. Asked for plainly, the answer was no line at all.
+    ///
+    /// Which colour that is stays Instagram's business rather than Quiet's. It
+    /// is sampled rather than written down here, so it follows the phone from
+    /// light to dark, the app from the feed to a story, and Instagram through a
+    /// redesign, with nothing here touched. See `WebSurface.chrome`.
+    private var clockBand: Color { surface.chrome ?? Self.systemBand }
+
+    /// Until the page has answered, and for a page that has nothing to say.
+    /// The system's own page colour, which is what the cover underneath is
+    /// painted in — so the handover from Quiet's blank to Instagram's page is
+    /// one colour changing, not a band appearing.
+    private static let systemBand = Color(uiColor: .systemBackground)
 
     /// The height every bar along the bottom of an iPhone has been since the
     /// first one, and the height of Instagram's.

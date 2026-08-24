@@ -67,6 +67,15 @@ async function page(html, url, head) {
     const mark = y > (win.innerHeight || 844) / 2 ? "[data-at-bottom]" : "[data-at-top]";
     return Array.prototype.slice.call(win.document.querySelectorAll(mark));
   };
+  // jsdom paints nothing here either. The fixture says what is drawn at a
+  // point by carrying data-at-top; the topmost of them answers, which is what
+  // a browser hands back for `elementFromPoint`.
+  win.document.elementFromPoint = function () {
+    return win.document.querySelector("[data-at-top]");
+  };
+  // What the script sends up to the app, kept so a test can read it.
+  win.sent = [];
+  win.webkit = { messageHandlers: { quiet: { postMessage: (m) => win.sent.push(m) } } };
   // Every frame the script asks for, taken immediately, so a test can say
   // "and then the page rewrote itself" and see the result on the next line.
   const frames = [];
@@ -754,6 +763,79 @@ const GROUPED = `
     "and a door with no bar around it goes on its own",
     alone.document.querySelector('[data-name="door"]').getAttribute("data-quiet-hidden"),
     "upsell"
+  );
+
+  /* ── The colour the clock stands on ──────────────────────────────────── */
+
+  /* The app owns the pixels the time and the battery sit on, so something has
+   * to decide what colour they are. The answer is: whatever Instagram is
+   * drawing there, so that there is no seam. */
+  const chromeOf = (win) => win.sent.filter((m) => m.kind === "chrome").pop();
+
+  const top = (inside) =>
+    `<div data-name="page" data-at-top style="background-color: rgb(13, 16, 21)">
+       ${inside || ""}
+     </div>
+     <main></main>`;
+
+  const painted = await page(top(), FEED);
+  check(
+    "the band takes the colour drawn at the top of the page",
+    (({ red, green, blue }) => [red, green, blue])(chromeOf(painted)),
+    [13, 16, 21]
+  );
+
+  /* Instagram's header is often translucent. A colour that is half see-through
+   * over something else is not a colour the app can paint a solid band in, and
+   * guessing what is behind it is how a band ends up nearly right on one page
+   * and wrong on the next. */
+  const throughIt = await page(
+    `<div data-name="page" style="background-color: rgb(13, 16, 21)">
+       <div data-name="bar" data-at-top style="background-color: rgba(255, 255, 255, 0.3)"></div>
+     </div>
+     <main></main>`,
+    FEED
+  );
+  check(
+    "a see-through bar is climbed past to the colour behind it",
+    (({ red, green, blue }) => [red, green, blue])(chromeOf(throughIt)),
+    [13, 16, 21]
+  );
+
+  /* A page in the light draws a light one, and nothing here has an opinion
+   * about which. */
+  const daylight = await page(
+    `<div data-name="page" data-at-top style="background-color: rgb(255, 255, 255)"></div>
+     <main></main>`,
+    FEED
+  );
+  check(
+    "and in the light it is the light one, with no opinion of ours",
+    (({ red, green, blue }) => [red, green, blue])(chromeOf(daylight)),
+    [255, 255, 255]
+  );
+
+  /* Nothing painted yet. Better to leave the app's own colour up than to send
+   * a guess it will paint a band in. */
+  const blank = await page(`<main></main>`, FEED);
+  check(
+    "a page that has painted nothing says nothing",
+    chromeOf(blank),
+    undefined
+  );
+
+  /* The observer runs on every mutation. A colour that has not changed must
+   * not be sent again, or the band animates on every frame the page rewrites
+   * itself. */
+  const twice = await page(top(), FEED);
+  twice.document.querySelector("main").appendChild(
+    twice.document.createElement("div")
+  );
+  twice.drain();
+  check(
+    "the same colour is not said twice",
+    twice.sent.filter((m) => m.kind === "chrome").length,
+    1
   );
 
   /* ── A header that gets out of the way ───────────────────────────────── */
