@@ -1198,3 +1198,30 @@ It is a nicety, so it does not get to break anything:
 Five checks in the harness, including the two that matter: the one that draws
 nothing puts itself away, and a page with nothing remembered is left exactly as
 Instagram drew it.
+
+## The door back into the app does not get drawn
+
+Instagram's page offers a bar along the bottom that opens Instagram in
+Instagram. `instagram://` has been the one link a person deliberately presses
+that Quiet declines, since the first photograph of the running app — and the app
+says why when they press it.
+
+That is not enough. A door you are told is locked every time you reach for it is
+still a door in the room, and this one is a strip across the bottom of the page
+with a bright blue sentence in the middle of it. It is precisely what the app
+was built to remove.
+
+Matched on the address, never on the words: "Use the app" is "App verwenden" on
+one phone and something else on the next, and a rule written against a sentence
+works in one language.
+
+The whole strip goes, not just the link — hiding the link alone leaves an empty
+bar with a cross in it, which is worse than leaving it there. The strip is found
+by shape and only by shape: placed against the viewport, the width of the glass,
+and short.
+
+The thing that must never be hidden is a conversation's message box, which is
+pinned to the bottom in exactly the same way. The only difference worth trusting
+is that a composer has no link out of the site in it, so the search starts from
+the link and never from the shape. Four doors and one composer are checked in
+the harness, and a door with no bar around it goes on its own.

@@ -859,6 +859,70 @@
     note(bar, "data-quiet-header", "");
   }
 
+  /* ── The door back into the app ───────────────────────────────────────── */
+
+  /**
+   * Addresses that lead out of the website and into the app.
+   *
+   * Matched on the address rather than on the words. "Use the app" is
+   * "App verwenden" on this phone and something else on the next one, and a
+   * rule written against a sentence is a rule that works in one language.
+   */
+  var THE_DOOR =
+    'a[href^="instagram://"], a[href^="instagram-stories://"], ' +
+    'a[href^="itms-apps:"], a[href^="itms-appss:"], ' +
+    'a[href*="apps.apple.com"], a[href*="itunes.apple.com"], ' +
+    'a[href*="mobile_app_upsell"]';
+
+  /**
+   * Take down the banner that offers to open Instagram in Instagram.
+   *
+   * The app already refuses the tap — `instagram://` is the one link a person
+   * deliberately presses that Quiet declines, and it says why. But a door you
+   * are told is locked every time you reach for it is still a door in the room,
+   * and this one is a bar across the bottom of the page with a bright blue
+   * sentence in the middle of it.
+   *
+   * The whole bar goes, not just the link: hiding the link alone leaves an
+   * empty strip with a cross in it, which is worse than leaving it alone.
+   */
+  function refuseTheDoor() {
+    var doors = document.querySelectorAll(THE_DOOR);
+    for (var i = 0; i < doors.length; i++) {
+      var banner = bannerAround(doors[i]) || doors[i];
+      note(banner, "data-quiet-hidden", "upsell");
+    }
+  }
+
+  /**
+   * The strip the door is set into.
+   *
+   * Found by shape and only by shape: pinned or placed against the viewport,
+   * the width of the glass, and short. A message box is pinned to the bottom of
+   * a conversation and is exactly the thing that must never be hidden — which
+   * is why the search starts from a link that leads out of the site, and a
+   * composer has none.
+   */
+  function bannerAround(door) {
+    var node = door.parentElement;
+    var depth = 0;
+    while (node && node !== document.body && depth < 6) {
+      var style = window.getComputedStyle(node);
+      if (style.position === "fixed" ||
+          style.position === "sticky" ||
+          style.position === "absolute") {
+        var box = node.getBoundingClientRect();
+        if (box.width >= (window.innerWidth || 390) - 2 &&
+            box.height > 0 && box.height <= 140) {
+          return node;
+        }
+      }
+      node = node.parentElement;
+      depth += 1;
+    }
+    return null;
+  }
+
   /* ── The other wordmark ───────────────────────────────────────────────── */
 
   /**
@@ -1230,6 +1294,7 @@
       sayWhere();
       whoAmI();
       replaceNav();
+      refuseTheDoor();
       learnWordmark();
       dressHeader();
       liftHeader();

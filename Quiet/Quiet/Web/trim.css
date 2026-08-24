@@ -222,3 +222,25 @@ body {
   height: 0 !important;
   display: none !important;
 }
+
+/* ── The door back into the app ─────────────────────────────────────────── */
+/*
+ * The links themselves, as a second net under the one in trim.js — this holds
+ * from the first paint, before a frame has been asked for, and it holds on a
+ * banner whose strip is a shape nothing here recognises.
+ *
+ * `instagram://` is the one link a person deliberately presses that Quiet
+ * declines, and the app says why when they do. This is so that they do not have
+ * to: a door you are told is locked every time you reach for it is still a door
+ * in the room.
+ */
+
+a[href^="instagram://"],
+a[href^="instagram-stories://"],
+a[href^="itms-apps:"],
+a[href^="itms-appss:"],
+a[href*="apps.apple.com"],
+a[href*="itunes.apple.com"],
+a[href*="mobile_app_upsell"] {
+  display: none !important;
+}

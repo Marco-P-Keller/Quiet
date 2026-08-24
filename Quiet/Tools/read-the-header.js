@@ -51,6 +51,12 @@ async function page(html, url, head) {
   }
   const win = dom.window;
   installBoxes(win);
+  // A phone, not a desktop browser. jsdom's window is a thousand points wide,
+  // and rules that ask whether something spans the glass answer no to every
+  // fixture at that size.
+  Object.defineProperty(win, "innerWidth", { value: 390, configurable: true });
+  Object.defineProperty(win, "innerHeight", { value: 844, configurable: true });
+
   // The one question trim.js asks of the screen rather than of the markup.
   // jsdom paints nothing, so the fixture says what is under the point: any
   // element carrying data-at-top, outermost last, as the browser answers.
@@ -603,6 +609,64 @@ const GROUPED = `
       plain.document.querySelector('[data-name="theirs"]').getAttribute("data-quiet-hidden"),
     ],
     [null, null]
+  );
+
+  /* ── The door back into the app ──────────────────────────────────────── */
+
+  /* Instagram's page offers a bar along the bottom that opens Instagram in
+   * Instagram. The app already refuses the tap and says why, but a door you are
+   * told is locked every time you reach for it is still a door in the room. */
+  const banner = (href) => `
+    <div data-name="banner" style="position: fixed" data-box="0,760,390,60">
+      <a href="${href}" data-name="door" data-box="120,775,150,30">Use the app</a>
+      <button data-name="cross" data-box="350,775,24,24">x</button>
+    </div>
+    <main></main>`;
+
+  for (const [what, href] of [
+    ["the app itself", "instagram://user?username=marco"],
+    ["a story in the app", "instagram-stories://share"],
+    ["the App Store", "https://apps.apple.com/app/instagram/id389801252"],
+    ["the upsell", "/_n/mobile_app_upsell/?next=/"],
+  ]) {
+    const win = await page(banner(href), FEED);
+    check(
+      `a bar offering ${what} is taken down whole`,
+      [
+        win.document.querySelector('[data-name="banner"]').getAttribute("data-quiet-hidden"),
+        win.document.querySelector('[data-name="cross"]').closest("[data-quiet-hidden]") !== null,
+      ],
+      ["upsell", true]
+    );
+  }
+
+  /* The thing that must never be hidden. A conversation pins its message box to
+   * the bottom of the viewport in exactly the same way, and the only difference
+   * — the only one worth trusting — is that a composer has no link out of the
+   * site in it. */
+  const composer = await page(
+    `<div data-name="composer" style="position: fixed" data-box="0,760,390,60">
+       <input data-name="field" data-box="10,770,300,40">
+       <button data-name="send" data-box="330,770,40,40">send</button>
+     </div>
+     <main></main>`,
+    FEED
+  );
+  check(
+    "a conversation's message box is pinned the same way and left alone",
+    composer.document.querySelector('[data-name="composer"]').getAttribute("data-quiet-hidden"),
+    null
+  );
+
+  /* A door with no bar around it is still a door. */
+  const alone = await page(
+    `<main><a href="instagram://app" data-name="door">Open</a></main>`,
+    FEED
+  );
+  check(
+    "and a door with no bar around it goes on its own",
+    alone.document.querySelector('[data-name="door"]').getAttribute("data-quiet-hidden"),
+    "upsell"
   );
 
   process.exit(failures ? 1 : 0);
