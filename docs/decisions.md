@@ -1254,3 +1254,32 @@ Two numbers, both chosen to be felt rather than noticed: it stays put for the
 first sixty-four points, because there is nothing worth reading yet, and it
 ignores movement under eight, because a fingertip resting on the glass is not a
 decision.
+
+## The door carries no address
+
+The photograph that came back had the strip still along the bottom, which
+settles what it is made of: there is no address anywhere in it. The tap is
+handled in Instagram's own script, so the markup is a `div` with a sentence in
+it, and nothing written as a selector over `href` can ever match. The sentence
+above — that the search starts from the link and never from the shape — was the
+second guess in a row, and it was wrong.
+
+So it is found the way the header is found: by asking the screen. Twelve points
+along the bottom of the glass, and then a decision made entirely on shape —
+held against the viewport, spanning the glass, short, low down, a few words at
+most, and something to press.
+
+Each of those questions spares something real. Nothing to type in, because a
+composer is the one thing down there that must never go and every composer has
+a field. A few words at most, because a consent notice is also a strip along
+the bottom, and refusing to let somebody answer one would be worse than the
+banner. Something to press, because an empty strip is a spacer, and hiding a
+spacer moves the page for nothing.
+
+And not in a conversation at all. That bar is what you went there for, and a
+message request puts its two answers in the same place. Nowhere else on the
+site does that space belong to anybody but Quiet.
+
+The link rules stay as they are. They hold from the first paint, before a frame
+has been asked for, and they are what refuses a door that is not a strip at
+all.

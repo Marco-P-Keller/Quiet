@@ -60,8 +60,12 @@ async function page(html, url, head) {
   // The one question trim.js asks of the screen rather than of the markup.
   // jsdom paints nothing, so the fixture says what is under the point: any
   // element carrying data-at-top, outermost last, as the browser answers.
-  win.document.elementsFromPoint = function () {
-    return Array.prototype.slice.call(win.document.querySelectorAll("[data-at-top]"));
+  // The script probes both ends of the glass — the header at the top, the
+  // banner along the bottom — so the half of the screen the point falls in
+  // decides which mark answers.
+  win.document.elementsFromPoint = function (x, y) {
+    const mark = y > (win.innerHeight || 844) / 2 ? "[data-at-bottom]" : "[data-at-top]";
+    return Array.prototype.slice.call(win.document.querySelectorAll(mark));
   };
   // Every frame the script asks for, taken immediately, so a test can say
   // "and then the page rewrote itself" and see the result on the next line.
@@ -645,7 +649,7 @@ const GROUPED = `
    * — the only one worth trusting — is that a composer has no link out of the
    * site in it. */
   const composer = await page(
-    `<div data-name="composer" style="position: fixed" data-box="0,760,390,60">
+    `<div data-name="composer" data-at-bottom style="position: fixed" data-box="0,760,390,60">
        <input data-name="field" data-box="10,770,300,40">
        <button data-name="send" data-box="330,770,40,40">send</button>
      </div>
@@ -655,6 +659,89 @@ const GROUPED = `
   check(
     "a conversation's message box is pinned the same way and left alone",
     composer.document.querySelector('[data-name="composer"]').getAttribute("data-quiet-hidden"),
+    null
+  );
+
+  /* The photograph that came back showed the strip still there, which settles
+   * what it is made of: no address anywhere in it, so nothing written over
+   * `href` can match. Found by what is drawn along the bottom of the glass
+   * instead — the same question the header is found by. */
+  const strip = (inside, box, position) => `
+    <div data-name="strip" data-at-bottom
+         style="position: ${position || "fixed"}"
+         data-box="${box || "0,760,390,60"}">
+      ${inside}
+    </div>
+    <main></main>`;
+
+  const SENTENCE = '<div data-name="say" role="button">Use the app</div>' +
+    '<button data-name="cross">x</button>';
+
+  const wordless = await page(strip(SENTENCE), FEED);
+  check(
+    "a strip along the bottom with no link in it goes anyway",
+    wordless.document.querySelector('[data-name="strip"]').getAttribute("data-quiet-hidden"),
+    "upsell"
+  );
+
+  /* A consent notice is also a strip along the bottom, and refusing to let
+   * somebody answer one would be worse than the banner. */
+  const notice = await page(
+    strip(
+      "<p>We use cookies and similar technologies to give you a better " +
+      "experience, and to show you relevant advertising.</p>" +
+      '<button data-name="allow">Allow all</button>'
+    ),
+    FEED
+  );
+  check(
+    "a paragraph of consent along the bottom is left alone",
+    notice.document.querySelector('[data-name="strip"]').getAttribute("data-quiet-hidden"),
+    null
+  );
+
+  /* A sheet is not a banner. */
+  const sheet = await page(strip(SENTENCE, "0,300,390,520"), FEED);
+  check(
+    "a sheet half the height of the screen is left alone",
+    sheet.document.querySelector('[data-name="strip"]').getAttribute("data-quiet-hidden"),
+    null
+  );
+
+  /* Something that spans less than the glass is part of the page. */
+  const narrow = await page(strip(SENTENCE, "40,760,300,60"), FEED);
+  check(
+    "something narrower than the glass is part of the page",
+    narrow.document.querySelector('[data-name="strip"]').getAttribute("data-quiet-hidden"),
+    null
+  );
+
+  /* Nothing to press is somebody's spacer, and hiding a spacer moves the page
+   * for no reason at all. */
+  const spacer = await page(strip("<span>&nbsp;</span>"), FEED);
+  check(
+    "a strip with nothing to press in it is a spacer and stays",
+    spacer.document.querySelector('[data-name="strip"]').getAttribute("data-quiet-hidden"),
+    null
+  );
+
+  /* The page's own content passes under that point on every scroll. */
+  const flowing = await page(
+    strip(SENTENCE, "0,760,390,60", "static"),
+    FEED
+  );
+  check(
+    "content merely passing under the point is not a strip",
+    flowing.document.querySelector('[data-name="strip"]').getAttribute("data-quiet-hidden"),
+    null
+  );
+
+  /* In a conversation the bar along the bottom is what you came for, and a
+   * message request puts its two answers in the same place. */
+  const inbox = await page(strip(SENTENCE), "https://www.instagram.com/direct/t/17/");
+  check(
+    "in a conversation the bottom of the screen is left entirely alone",
+    inbox.document.querySelector('[data-name="strip"]').getAttribute("data-quiet-hidden"),
     null
   );
 

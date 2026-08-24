@@ -951,6 +951,102 @@
       var banner = bannerAround(doors[i]) || doors[i];
       note(banner, "data-quiet-hidden", "upsell");
     }
+    takeDownTheStrip();
+  }
+
+  /* A banner is at most a sentence and a cross. */
+  var A_FEW_WORDS = 48;
+  /* Tall enough for two lines of it, short of anything that is a page. */
+  var STRIP_TALLEST = 140;
+  var STRIP_SHORTEST = 16;
+
+  /**
+   * The same banner, found when there is no link in it to find.
+   *
+   * The photograph that came back showed it still there, which means the strip
+   * carries no address at all: the tap is handled in Instagram's own script and
+   * the markup is a `div` with a sentence in it. Nothing written as a selector
+   * over `href` can ever match that, and no amount of adding to the list would
+   * have helped.
+   *
+   * So this asks the screen instead, the same way the header is found: what is
+   * actually drawn along the bottom of the glass? Then it decides by shape,
+   * and only by shape.
+   *
+   * Twelve points, because the strip does not sit at the very bottom — Quiet's
+   * own row is drawn over that — and its exact height is Instagram's business.
+   * A column at each side and one down the middle, at four heights.
+   */
+  function takeDownTheStrip() {
+    if (!document.elementsFromPoint) return;
+    // Not in a conversation. The bar along the bottom of one is the thing you
+    // came there to use, and message requests put their two answers in the
+    // same place. Nowhere else on the site is that space anybody's but ours.
+    if (location.pathname.indexOf("/direct") === 0) return;
+
+    var width = window.innerWidth || 390;
+    var height = window.innerHeight || 844;
+    var columns = [
+      Math.round(width * 0.2),
+      Math.round(width / 2),
+      Math.round(width * 0.8)
+    ];
+    var rows = [height - 2, height - 28, height - 64, height - 110];
+
+    for (var r = 0; r < rows.length; r++) {
+      for (var c = 0; c < columns.length; c++) {
+        var stack = document.elementsFromPoint(columns[c], rows[r]);
+        if (!stack) continue;
+        for (var i = 0; i < stack.length; i++) {
+          if (isTheStrip(stack[i])) {
+            note(stack[i], "data-quiet-hidden", "upsell");
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Is this one of the elements under that point the strip itself?
+   *
+   * Every question here is about the drawn thing rather than about the markup,
+   * and each one is there to spare something real:
+   *
+   * - held against the viewport, spanning the glass, short, and low down —
+   *   that is a banner rather than a paragraph of the page;
+   * - nothing to type in — a composer is the one thing down there that must
+   *   never go, and every composer has a field;
+   * - a few words at most — a consent notice is also a strip along the bottom,
+   *   and refusing to let somebody answer it would be worse than the banner;
+   * - something to press — an empty strip is somebody's spacer, and hiding a
+   *   spacer moves the page for no reason.
+   */
+  function isTheStrip(node) {
+    if (!node || !node.getAttribute) return false;
+    if (node === document.body || node === document.documentElement) return false;
+    if (node.getAttribute("data-quiet-hidden") !== null) return false;
+    if (node.id && node.id.indexOf("quiet-") === 0) return false;
+
+    var style = window.getComputedStyle(node);
+    if (style.position !== "fixed" &&
+        style.position !== "sticky" &&
+        style.position !== "absolute") return false;
+
+    var width = window.innerWidth || 390;
+    var height = window.innerHeight || 844;
+    var box = node.getBoundingClientRect();
+    if (box.width < width - 2) return false;
+    if (box.height < STRIP_SHORTEST || box.height > STRIP_TALLEST) return false;
+    if (box.bottom < height * 0.75) return false;
+
+    if (node.querySelector('input, textarea, form, [contenteditable="true"]')) {
+      return false;
+    }
+    var words = (node.textContent || "").replace(/\s+/g, " ").trim();
+    if (words.length > A_FEW_WORDS) return false;
+    if (!node.querySelector('a, button, [role="button"]')) return false;
+
+    return true;
   }
 
   /**
