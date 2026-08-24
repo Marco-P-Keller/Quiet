@@ -138,7 +138,11 @@ final class ContentRulesTests: XCTestCase {
         for address in [
             "https://www.instagram.com/stories/someone/123/",
             "https://www.instagram.com/direct/t/17845/",
-            "https://www.instagram.com/direct/new/"
+            "https://www.instagram.com/direct/new/",
+            // Without the trailing slash, because `URL.path` takes one off and
+            // a rule written in prefixes is exactly where that goes unnoticed.
+            "https://www.instagram.com/direct/new",
+            "https://www.instagram.com/direct/t/17845"
         ] {
             XCTAssertTrue(
                 ContentRules.isImmersive(URL(string: address)),

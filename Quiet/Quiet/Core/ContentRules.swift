@@ -153,7 +153,13 @@ enum ContentRules {
     /// swipe on a story is how you leave it, and a page that reloaded itself
     /// under that thumb would be answering a gesture nobody made.
     static func isImmersive(_ url: URL?) -> Bool {
-        let path = url?.path ?? "/"
+        // Ending in a slash, always. `URL.path` drops a trailing one, so
+        // "/direct/new/" arrives here as "/direct/new" — and a prefix written
+        // with the slash then matches every conversation that is already open
+        // and misses the one being started, which is the only one of the three
+        // whose whole path is the prefix. Putting the slash back costs nothing
+        // and cannot match "/direct/newsomething".
+        let path = (url?.path ?? "/") + "/"
         return path.hasPrefix("/stories/")
             || path.hasPrefix("/direct/t/")
             || path.hasPrefix("/direct/new/")
