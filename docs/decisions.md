@@ -1400,3 +1400,20 @@ looks like a capsule.
 
 The point of it is not this gap. It is that the next disagreement about a
 distance is settled by reading a line in a log.
+
+## Two millimetres higher again
+
+Twelve points, then twenty-five, and thirty-eight now — thirteen points a time,
+which is what two millimetres comes to on a phone at roughly a hundred and sixty
+points to the inch.
+
+The pill is the height it has always been. That was the lesson of the last
+round: the word is "higher", and a taller pill with the same air beneath it does
+not sit higher, it crowds the bottom edge harder. Only the gap moves.
+
+The scroll inset moves with it, because it is the pill plus the lift plus the
+air and always has been — so the end of a page still clears the row instead of
+stopping behind it, and a scroll indicator still stops above it.
+
+Nothing to argue about this time: the rehearsal shot goes through the measuring
+script on every push, and the number in the log is the gap that was drawn.

@@ -8,7 +8,7 @@ This exists because a disagreement about two millimetres cost four rounds of
 build, upload, install and look. Two of those rounds were spent arguing about
 which build was on the phone, which is not a question anybody should have to
 answer by eye. A number printed on every push settles it: if CI says the island
-stands twenty-five points off the bottom edge and a photograph says thirteen,
+stands thirty-eight points off the bottom edge and a photograph says twenty-five,
 the photograph is of an older build and there is nothing to debate.
 
 It measures the drawn thing rather than the constant. Reading `islandLift` back

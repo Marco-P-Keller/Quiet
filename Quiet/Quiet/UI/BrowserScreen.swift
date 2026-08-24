@@ -388,12 +388,13 @@ struct BrowserScreen: View {
 
     /// How far it stands off the bottom edge.
     ///
-    /// Thirteen points more than it did, which is what two millimetres is on a
-    /// phone. It was asked for as height first and given as height, which was
-    /// the wrong reading of the same word: a taller pill with the same gap
-    /// beneath it does not sit higher, it crowds the edge harder. What was
-    /// wanted was air under the island, and this is that.
-    private static let islandLift: CGFloat = 25
+    /// Twelve points to begin with, then twenty-five, and thirty-eight now —
+    /// thirteen points a time, which is what two millimetres is on a phone at
+    /// roughly a hundred and sixty points to the inch. It is the gap that is
+    /// asked for and the gap that moves: the pill is the height it has always
+    /// been, because a taller pill with the same air beneath it does not sit
+    /// higher, it crowds the edge harder.
+    private static let islandLift: CGFloat = 38
 
     /// And the air above it, before the page starts.
     private static let islandAir: CGFloat = 12
