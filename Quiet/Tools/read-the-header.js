@@ -524,5 +524,86 @@ const GROUPED = `
     [false, false, false]
   );
 
+  /* ── The other wordmark ──────────────────────────────────────────────── */
+
+  /* Instagram has two, and both are theirs: the script one in the app, the
+   * newer one on the website. This puts theirs where theirs was — it never
+   * sets the word in a substitute typeface, which would be a forgery rather
+   * than a wordmark. */
+  const WORDMARKED = `
+    <div data-name="bar">
+      <a href="/" data-name="wordmark" data-box="8,10,100,24">
+        <svg data-name="theirs" aria-label="Instagram"></svg>
+      </a>
+      <button data-name="plus" data-box="300,10,24,24">+</button>
+      <a href="/accounts/activity/" data-name="heart" data-box="340,10,24,24">h</a>
+    </div>
+    <main></main>`;
+
+  /** Another frame, after the page has rewritten itself. */
+  const again = async (win) => {
+    win.document.querySelector("main").appendChild(win.document.createElement("div"));
+    await new Promise((go) => setTimeout(go, 0));
+    win.drain();
+  };
+
+  const dressed = await page(WORDMARKED, FEED);
+  dressed.localStorage.setItem(
+    "quiet.wordmark",
+    'svg <svg aria-label="Instagram" viewBox="0 0 100 30"><path d="M0 0h10v10H0z"/></svg>'
+  );
+  await again(dressed);
+
+  const mine = dressed.document.querySelector("[data-quiet-wordmark]");
+  check("the remembered wordmark is put where the other one was", !!mine, true);
+
+  /* Nothing is hidden until the replacement has been measured and found to
+   * have a size. A header with no wordmark at all is worse than one with the
+   * other wordmark, and this is a nicety — it does not get to break anything. */
+  check(
+    "and Instagram's own is still showing until it has been measured",
+    dressed.document.querySelector('[data-name="theirs"]').getAttribute("data-quiet-hidden"),
+    null
+  );
+
+  mine.setAttribute("data-box", "8,10,100,29");
+  await again(dressed);
+  check(
+    "once it measures something, theirs steps aside",
+    [
+      dressed.document.querySelector("[data-quiet-wordmark]").getAttribute("data-quiet-wordmark"),
+      dressed.document.querySelector('[data-name="theirs"]').getAttribute("data-quiet-hidden"),
+    ],
+    ["kept", "wordmark"]
+  );
+
+  /* One that draws nothing takes itself out again, gives back the original,
+   * and is not tried a second time. */
+  const empty = await page(WORDMARKED, FEED);
+  empty.localStorage.setItem("quiet.wordmark", "svg <svg aria-label=\"Instagram\"></svg>");
+  await again(empty);
+  await again(empty);
+  check(
+    "one that draws nothing puts itself away and gives theirs back",
+    [
+      empty.document.querySelector("[data-quiet-wordmark]"),
+      empty.document.querySelector('[data-name="theirs"]').getAttribute("data-quiet-hidden"),
+      empty.localStorage.getItem("quiet.wordmark"),
+    ],
+    [null, null, null]
+  );
+
+  /* With nothing remembered, the header is exactly as Instagram drew it. */
+  const plain = await page(WORDMARKED, FEED);
+  await again(plain);
+  check(
+    "with nothing remembered, the header is left alone",
+    [
+      plain.document.querySelector("[data-quiet-wordmark]"),
+      plain.document.querySelector('[data-name="theirs"]').getAttribute("data-quiet-hidden"),
+    ],
+    [null, null]
+  );
+
   process.exit(failures ? 1 : 0);
 })();

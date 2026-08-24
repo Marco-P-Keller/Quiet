@@ -859,6 +859,185 @@
     note(bar, "data-quiet-header", "");
   }
 
+  /* ── The other wordmark ───────────────────────────────────────────────── */
+
+  /**
+   * Instagram has two wordmarks and both are theirs.
+   *
+   * The app draws the script one — the one everybody pictures. The website
+   * draws the newer one, and Quiet shows the website, so Quiet shows that.
+   *
+   * The obvious way to close the gap is to set the word in a script font and
+   * call it done, and that is the one thing this will not do: a wordmark set in
+   * somebody else's typeface is not a wordmark, it is a forgery that holds up
+   * at arm's length and falls apart at reading distance. It would be *less*
+   * faithful than what is there now, not more.
+   *
+   * So this looks for Instagram's own file instead. Their sign-in page has
+   * historically carried the script one, and it is the same origin, so the page
+   * can fetch it, read it out of the markup and put it where the other one was.
+   * Instagram's drawing either way — only the one from the other room of their
+   * own house.
+   *
+   * It may find nothing. Then nothing happens, which is the whole design of it.
+   */
+
+  var WORDMARK = "quiet.wordmark";
+
+  function rememberedWordmark() {
+    try {
+      return window.localStorage.getItem(WORDMARK);
+    } catch (error) {
+      // A phone with storage turned off is a phone with the other wordmark.
+      return null;
+    }
+  }
+
+  /**
+   * Ask the sign-in page for it, once.
+   *
+   * Without credentials on purpose: a signed-in session is redirected off that
+   * page before it can be read, and this wants the page a stranger sees. It is
+   * a request the page makes to the site it already is, which is the same
+   * arrangement as everything else here.
+   */
+  function learnWordmark() {
+    if (window.__quietWordmarkAsked || rememberedWordmark()) return;
+    window.__quietWordmarkAsked = true;
+
+    fetch("/accounts/login/", { credentials: "omit" })
+      .then(function (answer) { return answer.ok ? answer.text() : null; })
+      .then(function (html) {
+        if (!html) return;
+        var found = wordmarkIn(new DOMParser().parseFromString(html, "text/html"));
+        if (!found) return;
+        try { window.localStorage.setItem(WORDMARK, found); } catch (error) { return; }
+        dressHeader();
+      })
+      .catch(function () {
+        // Offline, or the page moved. Worth one more try on the next page.
+        window.__quietWordmarkAsked = false;
+      });
+  }
+
+  /**
+   * The wordmark out of a document that is not the one on screen.
+   *
+   * An inline drawing is preferred over a picture: it needs no second request,
+   * it takes the colour of the bar it lands in, and it is sharp at every size.
+   * Anything that could run is taken out of it first — this is Instagram's own
+   * markup from Instagram's own origin, and it is still going straight into the
+   * page, so it goes in as a drawing and nothing else.
+   */
+  function wordmarkIn(doc) {
+    var drawing = doc.querySelector('svg[aria-label="Instagram"]');
+    if (drawing) {
+      var copy = drawing.cloneNode(true);
+      // A namespace-wildcard selector is legal CSS and not every engine parses
+      // it, and a wordmark needs none of these anyway. If taking them out
+      // leaves nothing to draw, the measurement below catches it.
+      var risky = copy.querySelectorAll("script, foreignObject, a, use, image");
+      for (var i = 0; i < risky.length; i++) risky[i].remove();
+      strip(copy);
+      return "svg " + copy.outerHTML;
+    }
+
+    var picture = doc.querySelector('img[alt="Instagram"]');
+    var source = picture && picture.getAttribute("src");
+    if (!source) return null;
+    try {
+      var address = new URL(source, location.origin);
+      if (address.protocol !== "https:") return null;
+      return "img " + address.href;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /** Every `on…` handler, off every node, all the way down. */
+  function strip(node) {
+    var names = node.getAttributeNames ? node.getAttributeNames() : [];
+    for (var i = 0; i < names.length; i++) {
+      if (names[i].toLowerCase().indexOf("on") === 0) node.removeAttribute(names[i]);
+    }
+    var children = node.children || [];
+    for (var c = 0; c < children.length; c++) strip(children[c]);
+  }
+
+  /**
+   * Put it where the other one was.
+   *
+   * The original is never removed and never hidden until the replacement has
+   * been measured and found to have a size. A header with no wordmark in it at
+   * all would be a worse outcome than a header with the wrong one, and this is
+   * a nicety — it does not get to break anything.
+   */
+  function dressHeader() {
+    var remembered = rememberedWordmark();
+    if (!remembered) return;
+
+    var bar = headerBar();
+    if (!bar) return;
+
+    var home = bar.querySelector('a[href="/"]');
+    if (!home) return;
+
+    var mine = home.querySelector("[data-quiet-wordmark]");
+    if (mine) {
+      // Measured on the frame after it was made. Nothing, and it goes away
+      // again and never comes back.
+      if (mine.getAttribute("data-quiet-wordmark") === "new") {
+        var box = mine.getBoundingClientRect();
+        if (box.width < 8 || box.height < 4) {
+          mine.remove();
+          window.__quietWordmarkAsked = true;
+          try { window.localStorage.removeItem(WORDMARK); } catch (error) {}
+          showTheirs(home);
+          return;
+        }
+        note(mine, "data-quiet-wordmark", "kept");
+        hideTheirs(home);
+      }
+      return;
+    }
+
+    var holder = document.createElement("span");
+    holder.setAttribute("data-quiet-wordmark", "new");
+    holder.style.cssText =
+      "display: inline-flex; align-items: center; height: 29px; color: inherit;";
+
+    if (remembered.indexOf("svg ") === 0) {
+      var drawing = new DOMParser()
+        .parseFromString(remembered.slice(4), "image/svg+xml")
+        .documentElement;
+      if (!drawing || drawing.nodeName.toLowerCase() !== "svg") return;
+      drawing.setAttribute("height", "29");
+      drawing.removeAttribute("width");
+      holder.appendChild(document.importNode(drawing, true));
+    } else {
+      var picture = document.createElement("img");
+      picture.src = remembered.slice(4);
+      picture.alt = "Instagram";
+      picture.style.cssText = "height: 29px; width: auto; display: block;";
+      holder.appendChild(picture);
+    }
+
+    home.appendChild(holder);
+  }
+
+  function hideTheirs(home) {
+    var theirs = home.querySelectorAll("svg, img");
+    for (var i = 0; i < theirs.length; i++) {
+      if (theirs[i].closest("[data-quiet-wordmark]")) continue;
+      note(theirs[i], "data-quiet-hidden", "wordmark");
+    }
+  }
+
+  function showTheirs(home) {
+    var theirs = home.querySelectorAll('[data-quiet-hidden="wordmark"]');
+    for (var i = 0; i < theirs.length; i++) theirs[i].removeAttribute("data-quiet-hidden");
+  }
+
   /**
    * The lift, which has to happen whether the arrangement did or not.
    *
@@ -1051,6 +1230,8 @@
       sayWhere();
       whoAmI();
       replaceNav();
+      learnWordmark();
+      dressHeader();
       liftHeader();
       shapeHeader();
     });

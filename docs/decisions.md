@@ -1162,3 +1162,39 @@ Beyond that there is nothing to make more exact. These are not approximations of
 Instagram's drawings, they *are* Instagram's drawings, taken out of the page the
 app is showing. Drawing a house and a paper plane by hand to look more like
 theirs would be further from the original, not closer, and a liberty besides.
+
+## Instagram has two wordmarks and both are theirs
+
+The app draws the script one — the one everybody pictures. The website draws the
+newer one, and Quiet shows the website, so Quiet shows that.
+
+The obvious way to close the gap is to set the word in a script font and call it
+done. That is the one thing this will not do. A wordmark set in somebody else's
+typeface is not a wordmark, it is a forgery that holds up at arm's length and
+falls apart at reading distance — and on an app that displays Instagram and says
+in its own About screen that it is not Instagram, a home-made Instagram logo is
+precisely the wrong place for invention. It would be less faithful than what is
+already there, not more.
+
+So the page looks for Instagram's own file instead. Their sign-in page has
+carried the script one for years, and it is the same origin, so the page can
+fetch it, read it out of the markup and put it where the other one was. Fetched
+without credentials on purpose: a signed-in session is redirected off that page
+before it can be read, and this wants the page a stranger sees. Instagram's
+drawing either way — only the one from the other room of their own house.
+
+It is a nicety, so it does not get to break anything:
+
+- An inline drawing is preferred over a picture — no second request, it takes
+  the colour of the bar it lands in, and it is sharp at any size.
+- Anything that could run is taken out of it first. It is Instagram's markup
+  from Instagram's origin and it is still going straight into the page, so it
+  goes in as a drawing and nothing else.
+- The original is not hidden until the replacement has been measured and found
+  to have a size. One that draws nothing takes itself out again, gives the
+  original back, and is never tried a second time.
+- If the sign-in page has stopped carrying it, nothing happens at all.
+
+Five checks in the harness, including the two that matter: the one that draws
+nothing puts itself away, and a page with nothing remembered is left exactly as
+Instagram drew it.
