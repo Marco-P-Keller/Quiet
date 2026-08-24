@@ -824,7 +824,45 @@
     /* No row on this screen, so there is nothing for a sheet to be standing in
      * the way of and nothing to report. */
     if (!stands) return true;
-    return panels.length === modals.length;
+    if (panels.length !== modals.length) return false;
+
+    /* And then measured rather than assumed.
+     *
+     * Finding a panel and padding it is not the same as the sheet standing
+     * clear, and the difference is the whole of what went wrong: a padding that
+     * did not move anything reported success, the app left the row answering
+     * taps, and the button stayed underneath it. So the question is asked of
+     * the one thing that matters — is there a control on this sheet under the
+     * row — and it is asked after the padding has been put on.
+     *
+     * When the answer is no, the app has the row stand down and the press goes
+     * through. That is the worse of the two outcomes and it is never the wrong
+     * one: whatever shape the sheet turns out to be, the button can be pressed.
+     */
+    for (var m = 0; m < modals.length; m++) {
+      if (!everythingClearsTheRow(modals[m])) return false;
+    }
+    return true;
+  }
+
+  /** Anything on the sheet you could press, and whether it is above the row. */
+  var PRESSABLE =
+    'a, button, input, textarea, select, [role="button"], [role="link"], ' +
+    '[role="menuitem"], [role="tab"], [contenteditable="true"], [tabindex]';
+
+  function everythingClearsTheRow(modal) {
+    var floor = (window.innerHeight || 0) - row();
+    var controls = modal.querySelectorAll(PRESSABLE);
+    for (var i = 0; i < controls.length; i++) {
+      var box = controls[i].getBoundingClientRect();
+      /* Nothing drawn is nothing in the way. */
+      if (box.width <= 0 || box.height <= 0) continue;
+      /* Above the fold of the sheet, or scrolled out of it. Only what is on
+       * the glass can be under the row. */
+      if (box.top >= (window.innerHeight || 0)) continue;
+      if (box.bottom > floor + 1) return false;
+    }
+    return true;
   }
 
   /**
@@ -855,6 +893,16 @@
     var height = window.innerHeight || 0;
     if (!width || !height) return null;
 
+    /* Upwards first, and only then down.
+     *
+     * Both find a box of the right shape, and when the dialog and the box
+     * around it are the same rectangle — which is common — either would do. The
+     * outer one is the better answer anyway: it is the box the sheet is drawn
+     * as, so padding it can never be swallowed by an inner box with a height of
+     * its own and its overflow hidden. */
+    var above = panelAbove(modal, width, height);
+    if (above) return above;
+
     var queue = [modal];
     var seen = 0;
 
@@ -867,7 +915,7 @@
       var kids = node.children;
       for (var i = 0; i < kids.length; i++) queue.push(kids[i]);
     }
-    return panelAbove(modal, width, height);
+    return null;
   }
 
   /**
@@ -915,8 +963,20 @@
     var own = box.height - (node.hasAttribute(SHEET) ? row() : 0);
     if (own > glassHeight - 8) return false;
 
-    var pinned = window.getComputedStyle(node).position;
-    return pinned === "fixed" || pinned === "absolute" || pinned === "sticky";
+    /* And that is the whole test.
+     *
+     * It asked for `position` as well until a photograph settled it: a sheet
+     * whose panel is a plain box inside a fixed backdrop — which is how a
+     * flex column with `margin-top: auto` is built, and how Instagram's is —
+     * was refused, no panel was found, and the app fell back to standing the
+     * row down. Which is the answer that had already been photographed twice.
+     *
+     * Being positioned was never what makes something a panel. It was there to
+     * keep the backdrop out, and the backdrop is kept out by being as tall as
+     * the glass, which is the line above. Every candidate here is inside the
+     * dialog or within four steps of it, so there is nothing else down there to
+     * pick by mistake. */
+    return true;
   }
 
   /**

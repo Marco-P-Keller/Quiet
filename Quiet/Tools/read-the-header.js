@@ -837,6 +837,36 @@ const GROUPED = `
    * to the edge outside the element that says it is modal. Then the panel is a
    * step or two up rather than down, and a search that only ever descends finds
    * nothing at all. */
+  /* The shape the photograph turned out to be, and the reason two builds went
+   * past with the row still drawn over the button: a panel that is a plain box
+   * inside a fixed backdrop, which is what a flex column with `margin-top:
+   * auto` is. It was refused for not being positioned, no panel was found, and
+   * the app fell back to standing the row down. Being positioned was never what
+   * makes something a panel; it was there to keep the backdrop out, and the
+   * backdrop is kept out by being as tall as the glass. */
+  const unpositioned = await page(
+    `<div role="dialog" data-name="backdrop" style="position: fixed" data-box="0,0,390,844">
+       <div data-name="panel" data-box="0,500,390,344">
+         <button data-name="login" data-box="16,780,358,44">Log In</button>
+       </div>
+     </div><main></main>`,
+    FEED
+  );
+  check(
+    "a panel that is not positioned at all is still the panel",
+    paddedIn(unpositioned),
+    "panel"
+  );
+
+  /* And the backdrop it sits in is never the one padded: it is as tall as the
+   * glass, and padding it resolves its children's bottom against its own
+   * padding box, which moves the sheet the wrong way. */
+  check(
+    "and the backdrop around it is left alone",
+    unpositioned.document.querySelector('[data-name="backdrop"]').hasAttribute("data-quiet-sheet"),
+    false
+  );
+
   const inside = await page(
     `<div data-name="panel" style="position: fixed" data-box="0,400,390,444">
        <div role="dialog" data-name="dialog" data-box="0,400,390,444">
@@ -879,6 +909,49 @@ const GROUPED = `
     up: true,
     clear: true,
   });
+
+  /* Finding a panel and padding it is not the same as the sheet standing clear,
+   * and the difference is what let two builds go past: a padding that moved
+   * nothing reported success, so the app left the row answering taps and the
+   * button stayed underneath it. The question is now asked of the one thing
+   * that matters — is there a control on this sheet under the row — and it is
+   * asked after the padding is on.
+   *
+   * jsdom lays nothing out, so the boxes here are what they say they are, which
+   * is exactly the case being checked: a panel that was padded and did not
+   * move. */
+  const stillUnder = await page(
+    `<div role="dialog" data-name="panel" style="position: fixed" data-box="0,400,390,444">
+       <button data-name="login" data-box="16,790,358,44">Log In</button>
+     </div><main></main>`,
+    FEED
+  );
+  check("a panel is found and padded", paddedIn(stillUnder), "panel");
+  check(
+    "but a button still under the row is not standing clear",
+    sheetOf(stillUnder).clear,
+    false
+  );
+
+  /* The same sheet with its button above the row, which is what the padding
+   * produces in a browser that lays out. */
+  const moved = await page(
+    `<div role="dialog" data-name="panel" style="position: fixed" data-box="0,400,390,444">
+       <button data-name="login" data-box="16,690,358,44">Log In</button>
+     </div><main></main>`,
+    FEED
+  );
+  check("and once it is above the row, it is", sheetOf(moved).clear, true);
+
+  /* Something scrolled out of the sheet, or below the fold of it, is not under
+   * the row: only what is on the glass can be in the way. */
+  const offscreen = await page(
+    `<div role="dialog" data-name="panel" style="position: fixed" data-box="0,400,390,444">
+       <button data-name="login" data-box="16,900,358,44">Log In</button>
+     </div><main></main>`,
+    FEED
+  );
+  check("what is off the glass entirely is not in the way", sheetOf(offscreen).clear, true);
 
   /* A sheet that fills the glass has nowhere to be moved to. The app is told,
    * and the row stands down for that one the way it did for all of them. */

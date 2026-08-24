@@ -1583,3 +1583,36 @@ pad. It looks again three times, at sixty, two hundred and five hundred
 milliseconds, and stops the moment a sheet has its room or goes away.
 
 Twenty-three checks, which is ninety-one.
+
+## The panel was being refused for the wrong reason
+
+Three builds went past with the row still drawn across "Log In to an Existing
+Account", and the third of them was supposed to have fixed it by padding the
+sheet. It did not, and the photograph says why once the rule is read back
+against it.
+
+A panel had to be *positioned* to count. That was never what makes something a
+panel — it was there to keep the backdrop out, and the backdrop is already kept
+out by being as tall as the glass. Instagram's sheet is a plain box inside a
+fixed backdrop, which is what a flex column with `margin-top: auto` is, so it was
+refused, no panel was found, and the app fell back to standing the row down.
+Which is the answer that had already been photographed twice.
+
+The test is now geometry alone: as wide as most of the glass, reaching its
+bottom, and shorter than it. Every candidate is inside the dialog or within four
+steps of it, so there is nothing else down there to pick by mistake. Ancestors
+are tried before descendants, because when the dialog and the box around it are
+the same rectangle the outer one is the better answer: padding it cannot be
+swallowed by an inner box with a height of its own.
+
+The second half is worse and simpler. "Standing clear" was *assumed* from having
+found a panel. So a padding that moved nothing reported success, the app left the
+row live, and the button stayed underneath it — the app believed a thing it had
+never checked. It is measured now: after the padding is on, every control on the
+sheet is asked whether it is above the row, and only then is the sheet clear.
+
+When it is not, the row stands down and the press goes through. That is the worse
+of the two outcomes and it is never the wrong one — whatever shape a sheet turns
+out to be, the button can be pressed.
+
+Six checks, which is ninety-seven.
