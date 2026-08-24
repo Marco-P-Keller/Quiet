@@ -859,6 +859,65 @@
     note(bar, "data-quiet-header", "");
   }
 
+  /* ── A header that gets out of the way ────────────────────────────────── */
+
+  /**
+   * Instagram's header does not sit there for ever, and neither does this one.
+   *
+   * Pinned to the top of the glass, it is a permanent inch of wordmark over
+   * every photograph anybody scrolls past. Instagram's own app slides it away
+   * as you go down and brings it back the moment you go up — which is not the
+   * same as taking it out, and not the same as leaving it: it is there when you
+   * want it and gone while you are reading.
+   *
+   * Watched here rather than in the app. The app already knows which way a
+   * thumb is going — it draws its own row smaller with it — but a message from
+   * one to the other is a frame of lag on something the eye is following, and
+   * the page has the number already.
+   *
+   * Only on the feed. Every other page's top bar is that page's — the name on a
+   * profile, the search in the inbox, the back arrow in a conversation — and a
+   * back arrow that slides away while you read is a back arrow you go hunting
+   * for.
+   */
+
+  var lastY = 0;
+  var headerAway = false;
+
+  /** Far enough down that there is something worth reading. */
+  var CLEAR_OF_THE_TOP = 64;
+
+  /** Enough movement to be a decision rather than a fingertip resting. */
+  var DELIBERATE = 8;
+
+  function watchTheHeader() {
+    window.addEventListener("scroll", function () {
+      var y = window.scrollY || document.documentElement.scrollTop || 0;
+      var delta = y - lastY;
+      if (Math.abs(delta) < DELIBERATE) return;
+      lastY = y;
+
+      showOrHideHeader(isFeed() && y > CLEAR_OF_THE_TOP && delta > 0);
+    }, { passive: true });
+  }
+
+  function showOrHideHeader(away) {
+    if (away === headerAway) return;
+    headerAway = away;
+    if (away) {
+      document.documentElement.setAttribute("data-quiet-away", "");
+    } else {
+      document.documentElement.removeAttribute("data-quiet-away");
+    }
+  }
+
+  /** Leaving the feed brings it back, wherever the last page was scrolled to. */
+  function headerComesBack() {
+    if (isFeed()) return;
+    lastY = 0;
+    showOrHideHeader(false);
+  }
+
   /* ── The door back into the app ───────────────────────────────────────── */
 
   /**
@@ -1294,6 +1353,7 @@
       sayWhere();
       whoAmI();
       replaceNav();
+      headerComesBack();
       refuseTheDoor();
       learnWordmark();
       dressHeader();
@@ -1331,6 +1391,8 @@
   });
 
   window.addEventListener("popstate", schedule);
+
+  watchTheHeader();
 
   new MutationObserver(schedule).observe(document.documentElement, {
     childList: true,

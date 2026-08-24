@@ -669,5 +669,38 @@ const GROUPED = `
     "upsell"
   );
 
+  /* ── A header that gets out of the way ───────────────────────────────── */
+
+  /* jsdom lays nothing out and scrolls nothing, so the page is scrolled by
+   * saying where it is and telling it so — which is exactly what a browser
+   * does, and is all the listener reads. */
+  const scrollTo = (win, y) => {
+    Object.defineProperty(win, "scrollY", { value: y, configurable: true });
+    win.dispatchEvent(new win.Event("scroll"));
+    return win.document.documentElement.hasAttribute("data-quiet-away");
+  };
+
+  const feed = await page(GROUPED, FEED);
+  check("at the top of the feed the header is there", scrollTo(feed, 0), false);
+  check("a little way down it is still there", scrollTo(feed, 40), false);
+  check("further down it gets out of the way", scrollTo(feed, 300), true);
+  check("and on the way back up it returns", scrollTo(feed, 200), false);
+  check("at the very top it is certainly there", scrollTo(feed, 0), false);
+
+  /* A fingertip resting on the glass is not a decision. */
+  check("a movement too small to mean anything changes nothing", [
+    scrollTo(feed, 400), scrollTo(feed, 403),
+  ], [true, true]);
+
+  /* Every other page's top bar is that page's own: the name on a profile, the
+   * search in the inbox, the back arrow in a conversation. A back arrow that
+   * slides away while you read is one you go hunting for. */
+  const elsewhere = await page(GROUPED, "https://www.instagram.com/marco/");
+  check(
+    "on a page that is not the feed it stays where it is",
+    scrollTo(elsewhere, 500),
+    false
+  );
+
   process.exit(failures ? 1 : 0);
 })();

@@ -1225,3 +1225,32 @@ pinned to the bottom in exactly the same way. The only difference worth trusting
 is that a composer has no link out of the site in it, so the search starts from
 the link and never from the shape. Four doors and one composer are checked in
 the harness, and a door with no bar around it goes on its own.
+
+## The header gets out of the way
+
+Pinned to the top of the glass, Instagram's header is a permanent inch of
+wordmark over every photograph anybody scrolls past.
+
+Instagram's own app slides it away as you go down and brings it back the moment
+you go up. That is neither taking it out nor leaving it: it is there when you
+want it and gone while you are reading, which is the whole point of a header
+that moves.
+
+Watched in the page rather than in the app. The app already knows which way a
+thumb is going — it draws its own row smaller with it — but a message from one
+to the other is a frame of lag on something the eye is following, and the page
+has the number already.
+
+A transform rather than a height or a display, so it costs no layout and the
+feed does not jump as it goes. The element it moves is the one already found as
+pinned to the top of the glass, so this knows nothing about Instagram's markup
+that was not already known.
+
+Only on the feed. Every other page's top bar is that page's own — the name on a
+profile, the search in the inbox, the back arrow in a conversation — and a back
+arrow that slides away while you read is one you go hunting for.
+
+Two numbers, both chosen to be felt rather than noticed: it stays put for the
+first sixty-four points, because there is nothing worth reading yet, and it
+ignores movement under eight, because a fingertip resting on the glass is not a
+decision.
