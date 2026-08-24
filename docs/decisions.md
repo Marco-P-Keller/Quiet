@@ -1526,15 +1526,22 @@ actually drawn — a dialog in the tree with no box has been dismissed and not y
 removed, or built ahead of being needed, and neither is a reason to take the row
 away.
 
-While one is up the row is gone rather than merely covered. A modal is the only
-thing you can be doing, and a row that went on answering taps behind it would
-take you somewhere you did not ask to go.
+While one is up the row stays exactly where it is and stops answering taps, so
+every press goes to the sheet underneath.
 
-Two things deliberately not done. The inset under the page is left alone: the
-page beneath the sheet has not changed, and taking the row's height off it would
-scroll what you were reading out from under the sheet while you were not looking
-at it. And the row stays put while one of Quiet's own pages is open — the row is
-the way out of those, and a sheet left open on the page behind is no reason to
-take the way out away.
+Taking it away instead was the first answer and the wrong one. It reasons well —
+a modal is the only thing you can be doing — and it reads badly: the row is the
+one part of the screen that is always in the same place, and a sheet is a thing
+you are half way through. Watching the furniture vanish and come back around you
+is a worse interruption than a row that is briefly inert. What was actually
+being asked for was to reach the button behind it, and that needs nothing to
+move.
+
+The inset under the page is left alone as well: the page beneath the sheet has
+not changed, and taking the row's height off it would scroll what you were
+reading out from under the sheet while you were not looking at it. And the row is
+live again the moment one of Quiet's own pages is open — the row is the way out
+of those, and a sheet left open on the page behind is no reason to take the way
+out away.
 
 Seven checks, which is seventy-five.

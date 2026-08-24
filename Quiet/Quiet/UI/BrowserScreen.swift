@@ -171,10 +171,6 @@ struct BrowserScreen: View {
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: session.isPanelShowing)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: session.isSearchShowing)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: preferences.row)
-        // The row leaving for a sheet and coming back from one. Faster than the
-        // rest, because it has to be gone before the sheet has finished
-        // arriving rather than after it.
-        .animation(reduceMotion ? nil : .easeInOut(duration: 0.16), value: surface.isSheetUp)
         // The row leaving for a story and coming back from one, and the mark
         // moving from one entry to the next. Both are the address changing.
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: surface.address)
@@ -288,32 +284,28 @@ struct BrowserScreen: View {
         return ContentRules.isImmersive(surface.address)
     }
 
-    /// Whether the row is on the screen at all.
+    /// Whether the row answers taps.
     ///
-    /// Two ways it is not. The pages above, which own the bottom edge — and a
-    /// sheet, which owns everything.
+    /// It stays on the screen while Instagram has a sheet up — switching
+    /// accounts, sharing, the menu behind the three dots — but it stops
+    /// intercepting anything, so every press goes to the sheet underneath.
+    ///
+    /// Taking the row away instead was tried first and was the wrong answer.
+    /// The row is the one part of the screen that is always in the same place,
+    /// and a sheet is a thing you are half way through: watching the furniture
+    /// vanish and come back around it is a worse interruption than the row
+    /// being briefly inert.
     ///
     /// A sheet is not a page and has no address, so nothing about where you are
-    /// can see one coming. Instagram puts one up for switching accounts, for
-    /// sharing, for the menu behind the three dots, and it slides over its own
-    /// tab bar the way every sheet on a phone does. Quiet's row was staying put
-    /// and being drawn straight through the buttons on it.
+    /// can see one coming. It is read from the markup, which says outright that
+    /// it is modal. See `WebSurface.isSheetUp`.
     ///
-    /// While one is up the row is not merely covered, it is gone: a modal is the
-    /// only thing you can be doing, and a row that still answered taps behind it
-    /// would take you somewhere you did not ask to go.
-    ///
-    /// The inset under the page is deliberately not touched. The page beneath
-    /// the sheet has not changed, and taking the row's height off it would
-    /// scroll what you were reading out from under the sheet while you were not
-    /// looking at it.
-    ///
-    /// And never while one of Quiet's own pages is up, for the same reason the
-    /// immersive rule says so: the row is the way out of those, and a sheet
-    /// left open on the page behind them is no reason to take the way out away.
-    private var isRowShowing: Bool {
+    /// Live again the moment one of Quiet's own pages is up: the row is the way
+    /// out of those, and a sheet left open on the page behind them is no reason
+    /// to take the way out away.
+    private var isRowLive: Bool {
         if isShowingQuietPage { return true }
-        return !isImmersive && !surface.isSheetUp
+        return !surface.isSheetUp
     }
 
     /// The row, along the bottom edge, in the shape Instagram's own is.
@@ -325,7 +317,7 @@ struct BrowserScreen: View {
     /// the same bar simply meets the edge of the glass.
     @ViewBuilder
     private var quietBar: some View {
-        if isRowShowing {
+        if !isImmersive {
             VStack(spacing: 0) {
                 Spacer(minLength: 0)
                 switch preferences.row {
@@ -333,6 +325,10 @@ struct BrowserScreen: View {
                 case .island: island
                 }
             }
+            // Still drawn, and letting everything through, while a sheet is up.
+            // The sheet is what you are doing; the row is furniture until you
+            // are done with it.
+            .allowsHitTesting(isRowLive)
             .transition(.opacity)
         }
     }
