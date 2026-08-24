@@ -88,6 +88,19 @@ final class WebSurface {
         icons[entry + (on ? ".on" : ".off")]
     }
 
+    /// The colour Instagram is drawing its own chrome in, as the page reports it.
+    ///
+    /// The band behind the clock is painted in this. The app owns those pixels —
+    /// the page's viewport starts underneath them — so something has to decide
+    /// what colour they are, and a hex written into the app is a guess about
+    /// somebody else's design that goes stale without anyone noticing. The page
+    /// is asked instead. See `sayChrome` in trim.js.
+    ///
+    /// `nil` until a page has answered, and after a page that has nothing to
+    /// say: the band falls back to the system's own grey, which is close enough
+    /// that the change is not something you can catch happening.
+    private(set) var chrome: Color?
+
     /// False until the first page has finished, or failed. While it is false the
     /// browsing screen keeps Quiet's own paper over the top, so a cold launch
     /// shows a considered blank rather than the white rectangle of a web view
@@ -261,6 +274,11 @@ final class WebSurface {
         // carrying Instagram's black into a light appearance.
         icons[entry] = image.withRenderingMode(.alwaysTemplate)
         Remembered.remember(icon: entry, data: data)
+    }
+
+    fileprivate func note(chrome colour: Color) {
+        guard chrome != colour else { return }
+        chrome = colour
     }
 
     fileprivate func note(me name: String, picture: String?) {
@@ -758,6 +776,14 @@ struct InstagramWebView: UIViewRepresentable {
                     surface.note(icon: entry, picture: picture)
                 }
 
+            case "chrome":
+                // The colour of Instagram's own chrome, for the band the clock
+                // stands on. Sent again whenever it changes, which is how the
+                // band follows the phone from light to dark.
+                if let colour = Chrome.colour(in: body) {
+                    surface.note(chrome: colour)
+                }
+
             case "me":
                 // Read out of Instagram's navigation before it was taken out.
                 if let name = body["username"] as? String {
@@ -787,6 +813,29 @@ private final class ScriptRelay: NSObject, WKScriptMessageHandler {
         MainActor.assumeIsolated {
             coordinator?.receive(message)
         }
+    }
+}
+
+/// Three numbers from the page, turned into a colour, or nothing.
+///
+/// Its own type so that the refusals can be tested without a web view: a
+/// channel missing, a channel that is not a number, a channel outside the range
+/// a channel has. A message that arrives malformed leaves the band on the
+/// colour it already had, which is the one behaviour that is never wrong.
+enum Chrome {
+    static func colour(in body: [String: Any]) -> Color? {
+        guard let red = channel(body["red"]),
+              let green = channel(body["green"]),
+              let blue = channel(body["blue"]) else { return nil }
+        return Color(.sRGB, red: red, green: green, blue: blue)
+    }
+
+    /// 0...255 out of the page, 0...1 for SwiftUI.
+    private static func channel(_ value: Any?) -> Double? {
+        guard let number = value as? NSNumber else { return nil }
+        let raw = number.doubleValue
+        guard raw.isFinite, (0...255).contains(raw) else { return nil }
+        return raw / 255
     }
 }
 
