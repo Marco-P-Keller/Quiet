@@ -1375,3 +1375,28 @@ So the island is the size it was, and the thirteen points went under it instead.
 The scroll inset is unchanged either way: it was the pill plus air twice over,
 and it is now the pill plus the lift plus the air, which comes to the same
 number. Nothing about how far the page can be scrolled moved.
+
+## A number instead of an argument
+
+Two millimetres of gap under the floating row cost four rounds of build, upload,
+install and look — and two of those rounds went entirely on which build was on
+the phone. That is not a question anybody should be answering by eye.
+
+So CI measures it. A rehearsal scene puts the row in its floating shape and
+photographs it before the page arrives, so the island stands on a flat colour
+with nothing underneath it, and a script reads the gap and the height off the
+pixels. Both numbers are printed on every push.
+
+It measures the drawn thing rather than the constant. Reading `islandLift` back
+out of the source would prove only that the source says what it says.
+
+Three details it took a wrong answer to get right. Dark, because the island
+casts a black shadow and on a light background the shadow's own edge is what a
+naive scan finds first. A column a quarter of the way across, because the middle
+is where iOS draws the home indicator over the app and the indicator is the
+brightest thing on the screen. And three rows of agreement before an edge is
+believed, because a shadow fades in over about twenty points and one row of it
+looks like a capsule.
+
+The point of it is not this gap. It is that the next disagreement about a
+distance is settled by reading a line in a log.

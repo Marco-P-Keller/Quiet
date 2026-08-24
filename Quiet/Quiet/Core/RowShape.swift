@@ -33,24 +33,34 @@ enum RowShape: String, CaseIterable, Sendable {
 /// and the About screen says so in as many words. A preference about the shape
 /// of a row surviving a delete-and-reinstall would be a surprise rather than a
 /// feature, so it lives in the ordinary place preferences live.
+/// Where the choice is kept. At file scope so that a rehearsal can set it
+/// without stepping onto the main actor to do it.
+private enum Key {
+    static let row = "quiet.row.shape"
+}
+
 @MainActor
 @Observable
 final class Preferences {
     @ObservationIgnored private let defaults: UserDefaults
-    @ObservationIgnored private static let rowKey = "quiet.row.shape"
 
     /// Instagram's bar to begin with, because a first launch should look like
     /// the thing it is showing rather than like an opinion about it.
     var row: RowShape {
         didSet {
             guard row != oldValue else { return }
-            defaults.set(row.rawValue, forKey: Self.rowKey)
+            defaults.set(row.rawValue, forKey: Key.row)
         }
+    }
+
+    /// For a rehearsal, so that a machine can photograph either shape.
+    nonisolated static func rehearse(row: RowShape, in defaults: UserDefaults = .standard) {
+        defaults.set(row.rawValue, forKey: Key.row)
     }
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        self.row = defaults.string(forKey: Self.rowKey)
+        self.row = defaults.string(forKey: Key.row)
             .flatMap(RowShape.init(rawValue:)) ?? .bar
     }
 }

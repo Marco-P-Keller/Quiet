@@ -38,6 +38,10 @@ enum Rehearsal {
         /// be photographed. It is the one screen in Quiet that is gone before
         /// anybody could take a picture of it.
         case opening
+        /// Browsing, with the row in its other shape, and photographed before
+        /// the page arrives so that the island stands on a flat colour and can
+        /// be measured rather than argued about.
+        case island
     }
 
     /// Skip the opening, without asking for a scene.
@@ -87,6 +91,10 @@ enum Rehearsal {
         // photographed.
         Remembered.forget()
         Applause.forget()
+        // The shape of the row is a preference, so it outlives a launch and
+        // would otherwise make the next scene photograph whatever the last one
+        // chose.
+        Preferences.rehearse(row: scene == .island ? .island : .bar)
         guard scene != .fresh else { return }
 
         let today = DayKey(clock.now, calendar: calendar)

@@ -139,6 +139,40 @@ jobs:
             --predicate 'process == "Quiet"' 2>/dev/null | head -40 || echo "(nothing)"
           echo "----END APP LOG----"
 
+      # A number, so that two millimetres is never argued about again.
+      #
+      # A disagreement about the gap under the floating row cost four rounds of
+      # build, upload, install and look, and two of those rounds went on which
+      # build was on the phone. That is not a question anybody should answer by
+      # eye. If this says the island stands twenty-five points off the bottom
+      # edge and a photograph says thirteen, the photograph is of an older
+      # build and there is nothing left to discuss.
+      #
+      # Measured on the drawn thing rather than read back out of the source,
+      # which would prove only that the source says what it says.
+      #
+      # Dark, and before the page arrives: the island stands on a flat colour
+      # with nothing under it, and its shadow — which is black, and which on a
+      # light background is an edge of its own — is invisible.
+      #
+      # Never fatal. A measurement that cannot be taken must not hide a real
+      # failure behind it.
+      - name: Measure the row
+        if: always()
+        continue-on-error: true
+        timeout-minutes: 6
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet --disable-pip-version-check pillow \
+            || python3 -m pip install --quiet --break-system-packages pillow
+          xcrun simctl ui booted appearance dark
+          xcrun simctl terminate booted com.connexa.quiet >/dev/null 2>&1 || true
+          xcrun simctl launch booted com.connexa.quiet -QuietRehearsal island >/dev/null
+          sleep 4
+          xcrun simctl io booted screenshot --type=png island.png
+          xcrun simctl ui booted appearance light
+          python3 Tools/measure-the-row.py island.png
+
       # The full log is thousands of lines of module compilation. What anybody
       # actually needs after a red run is the handful of lines naming what
       # broke, in one place, without scrolling.
