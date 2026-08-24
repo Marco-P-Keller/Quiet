@@ -227,7 +227,16 @@ body {
  */
 
 [data-quiet-sheet] {
-  padding-bottom: var(--quiet-row, 0px) !important;
+  /* Moved, rather than laid out again. Padding alone was tried twice and shifted
+   * nothing on a real phone: what stops it is Instagram's own box — a height of
+   * its own, a flex rule, an overflow — and a transform does not go through
+   * layout at all, so none of that can refuse it. The taps follow the drawing.
+   *
+   * The padding is still here and now has one job. The box grows by exactly
+   * what it moves, so its own background goes on reaching the bottom edge of
+   * the glass and there is no strip of dimmed page showing under the sheet. */
+  transform: translateY(calc(-1 * var(--quiet-lift, 0px))) !important;
+  padding-bottom: var(--quiet-lift, 0px) !important;
 }
 
 /* ── The pull at the top ────────────────────────────────────────────────── */

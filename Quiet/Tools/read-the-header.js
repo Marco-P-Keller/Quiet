@@ -910,6 +910,53 @@ const GROUPED = `
     clear: true,
   });
 
+  /* How far it goes. Two centimetres, asked for in centimetres after three
+   * attempts at "exactly clear of the row" produced three photographs of a
+   * button under the row. */
+  const liftIn = (win) => {
+    const panel = win.document.querySelector("[data-quiet-sheet]");
+    return panel ? panel.style.getPropertyValue("--quiet-lift") : null;
+  };
+
+  const twoCentimetres = await page(
+    `<div role="dialog" data-name="panel" style="position: fixed" data-box="0,500,390,344">x</div><main></main>`,
+    FEED
+  );
+  check("a sheet is moved two centimetres up", liftIn(twoCentimetres), "128px");
+
+  /* A sheet nearly as tall as the screen has nowhere to go, and cutting its
+   * heading off to free its foot is not a trade worth making. */
+  const nearlyFullHeight = await page(
+    `<div role="dialog" data-name="panel" style="position: fixed" data-box="0,34,390,810">x</div><main></main>`,
+    FEED
+  );
+  // Nothing written at all, rather than a zero: a property that says "move by
+  // none" is a property somebody has to read to find out it does nothing.
+  check("one with no room to go stays where it is", liftIn(nearlyFullHeight), "");
+
+  const someRoom = await page(
+    `<div role="dialog" data-name="panel" style="position: fixed" data-box="0,100,390,744">x</div><main></main>`,
+    FEED
+  );
+  check("and one with a little room goes that far", liftIn(someRoom), "60px");
+
+  /* And it is put back when the sheet goes, or the next page inherits a
+   * transform belonging to a sheet nobody can see. */
+  const putBack = await page(
+    `<div data-name="panel" style="position: fixed" data-box="0,500,390,344">
+       <div role="dialog" data-name="dialog" data-box="0,500,390,344">x</div>
+     </div><main></main>`,
+    FEED
+  );
+  check("the box around the dialog is the one moved", liftIn(putBack), "128px");
+  putBack.document.querySelector('[data-name="dialog"]').remove();
+  await new Promise((go) => setTimeout(go, 0));
+  putBack.drain();
+  check("and put back when the sheet goes", [
+    putBack.document.querySelector('[data-name="panel"]').hasAttribute("data-quiet-sheet"),
+    putBack.document.querySelector('[data-name="panel"]').style.getPropertyValue("--quiet-lift"),
+  ], [false, ""]);
+
   /* Finding a panel and padding it is not the same as the sheet standing clear,
    * and the difference is what let two builds go past: a padding that moved
    * nothing reported success, so the app left the row answering taps and the

@@ -814,9 +814,13 @@
 
     var padded = document.querySelectorAll("[" + SHEET + "]");
     for (var j = 0; j < padded.length; j++) {
-      if (panels.indexOf(padded[j]) < 0) padded[j].removeAttribute(SHEET);
+      if (panels.indexOf(padded[j]) < 0) {
+        padded[j].removeAttribute(SHEET);
+        padded[j].style.removeProperty("--quiet-lift");
+      }
     }
     for (var k = 0; k < panels.length; k++) {
+      lift(panels[k]);
       if (!panels[k].hasAttribute(SHEET)) panels[k].setAttribute(SHEET, "room");
     }
 
@@ -843,6 +847,49 @@
       if (!everythingClearsTheRow(modals[m])) return false;
     }
     return true;
+  }
+
+  /**
+   * How far up the sheet goes.
+   *
+   * Two centimetres, which is a hundred and twenty-eight points on a phone at
+   * roughly a hundred and sixty points to the inch. The row itself is
+   * eighty-nine, so this is the row and a comfortable margin — asked for in
+   * centimetres, after three attempts at "exactly clear of the row" produced
+   * three photographs of a button under the row.
+   */
+  var LIFT = 128;
+
+  /* Never so far that the top of the sheet is pushed off the glass. A sheet
+   * that is nearly as tall as the screen has nowhere to go, and cutting its
+   * heading off to free its foot is not a trade worth making. */
+  var HEADROOM = 40;
+
+  /**
+   * Move it, rather than ask its layout to move it.
+   *
+   * Padding was tried twice and moved nothing, on a real phone, in two builds.
+   * Why is Instagram's business — a height of its own, a flex rule, an overflow
+   * — and it does not matter, because a transform does not go through layout at
+   * all. Whatever the box is made of, it and everything in it are drawn a
+   * hundred and twenty-eight points higher, and the taps follow the drawing.
+   *
+   * The padding stays, and now has one job: the box grows by exactly what it
+   * moves, so its own background still reaches the bottom edge of the glass and
+   * there is no gap under the sheet showing the dimmed page through it.
+   */
+  function lift(panel) {
+    var height = window.innerHeight || 0;
+    var own = panel.getBoundingClientRect().height -
+      (panel.hasAttribute(SHEET) ? amount(panel) : 0);
+    var room = Math.max(0, height - own - HEADROOM);
+    var wanted = Math.min(LIFT, room);
+    if (amount(panel) === wanted) return;
+    panel.style.setProperty("--quiet-lift", wanted + "px");
+  }
+
+  function amount(panel) {
+    return parseFloat(panel.style.getPropertyValue("--quiet-lift")) || 0;
   }
 
   /** Anything on the sheet you could press, and whether it is above the row. */

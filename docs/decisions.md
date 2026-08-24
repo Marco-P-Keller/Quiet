@@ -1616,3 +1616,33 @@ of the two outcomes and it is never the wrong one — whatever shape a sheet tur
 out to be, the button can be pressed.
 
 Six checks, which is ninety-seven.
+
+## Move the sheet, do not ask its layout to move it
+
+Padding was tried twice, on a real phone, in two builds, and moved nothing both
+times. Why is Instagram's business — a height of its own, a flex rule, an
+overflow — and it does not matter, because the answer does not have to go
+through layout at all.
+
+A transform does not. Whatever the box is made of, it and everything inside it
+are drawn higher, and the taps follow the drawing. There is nothing in anybody
+else's stylesheet that can refuse it.
+
+The padding stays and now has one job: the box grows by exactly what it moves, so
+its own background still reaches the bottom edge of the glass and there is no
+strip of dimmed page showing underneath the sheet.
+
+Two centimetres, because that is what was asked for in the end. The row itself is
+eighty-nine points — about one and four tenths of a centimetre — and three
+attempts at "exactly clear of the row" produced three photographs of a button
+under the row. A hundred and twenty-eight points is the row and a margin nobody
+has to measure to believe.
+
+Never so far that the top of the sheet leaves the glass. A sheet nearly as tall
+as the screen has nowhere to go, and cutting its heading off to free its foot is
+not a trade worth making, so the distance is whatever is left above it less forty
+points — and nothing at all is written when that comes to nothing.
+
+Five checks: how far it goes, a sheet with no room, one with a little, the box
+around the dialog being the one moved, and the transform being taken off again
+when the sheet goes. A hundred and two.
