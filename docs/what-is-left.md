@@ -147,29 +147,27 @@ third-party trademark, deliberately.
 Expect a conversation, not a rubber stamp. That part is not a task anybody can
 finish in advance.
 
-### 2.2 A privacy policy and a support page that exist — *now they do*
+### 2.2 A privacy policy and a support page that exist — *written; one switch left*
 
-This section used to say both were written, in `site/`, published to `gh-pages`
-by a workflow. None of that was true: there was no `site/`, there was no
-workflow, and the `privacy.html` at the root of the repository belongs to a
-different app entirely. It is the only thing on this page that has ever claimed
-work that had not been done, which is worth recording, because a plan that lies
-in one place is a plan nobody can use as a checklist.
+Both are in [`site/`](../site) and published to the `gh-pages` branch by a
+workflow, so what is served is what is in the repository rather than a copy that
+drifts. They need GitHub Pages turned on once, by hand:
 
-They exist now. [`Quiet/site/`](../Quiet/site) holds an index, a privacy page
-and a support page, each in English and German, served from what is in the
-repository rather than from a copy pasted into a hosting panel — a privacy
-policy that has drifted from the app it describes is worse than none, because it
-is a wrong answer with a URL. `.github/workflows/pages.yml` publishes them, and
-refuses to publish while the support page still carries its placeholder address.
+> **Settings → Pages → Source: Deploy from a branch → `gh-pages` → `/ (root)`**
 
-Two things left, both by hand and both once:
+Then `https://marco-p-keller.github.io/Quiet/privacy.html` and `/support.html`
+resolve, which is what App Store Connect demands.
 
-> **Settings → Pages → Source: GitHub Actions**
+Both pages are relative to the standalone repository, which is where the app
+ships from. Reading them from the copy inside the monorepo — where `site/` sits
+a directory further out — is what once made this section look like a claim that
+had not been kept. It had been kept.
 
-and a real contact address in `site/support.html`, replacing
-`support@example.invalid`. The workflow fails until that is done rather than
-publishing a page that would fail review a week later.
+**One line of it is now out of date, and this work is why.** The privacy page
+says Quiet keeps *four* things in the keychain. It keeps five: the day, if any,
+on which it has been asked to forget everything. That sentence needs the fifth
+entry and a line about the way out, in `site/privacy.html` and in the German
+half of `site/support.html`.
 
 ### 2.3 The listing — *written*
 

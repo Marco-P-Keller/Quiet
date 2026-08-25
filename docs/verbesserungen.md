@@ -127,14 +127,16 @@ auf Linux in Sekunden, vor dem macOS-Job.
 
 Nicht Teil der 38, aber beim Bauen aufgefallen:
 
-* **`docs/what-is-left.md` §2.2 stimmte nicht.** ✅ Es behauptete, Datenschutz-
-  und Support-Seite lägen in `site/` und würden von einem Workflow nach
-  `gh-pages` veröffentlicht. Nichts davon existierte — die `privacy.html` im
-  Wurzelverzeichnis gehört zu einer anderen App. Jetzt gibt es `Quiet/site/`
-  (Index, Datenschutz, Support, je Englisch und Deutsch) und
-  `.github/workflows/pages.yml`. Zwei Handgriffe bleiben: Pages einschalten, und
-  eine echte Kontaktadresse statt des Platzhalters — der Workflow verweigert die
-  Veröffentlichung, solange der Platzhalter drinsteht.
+* **Ich habe `what-is-left.md` §2.2 zu Unrecht beschuldigt.** Ich schrieb, die
+  Datenschutz- und Support-Seite existierten nicht und der Abschnitt behaupte
+  Arbeit, die niemand gemacht habe. Das war falsch. Die Seiten liegen in
+  `site/` des eigenständigen Repositories `Marco-P-Keller/quiet`, zusammen mit
+  `site.yml` und einem `gh-pages`-Branch — dort, wo die App tatsächlich
+  ausgeliefert wird. Ich hatte nur die Kopie im Monorepo gelesen. Meine
+  zweite Seitenkopie und `pages.yml` sind wieder entfernt: zwei
+  Datenschutzerklärungen unter zwei Adressen sind genau das, wovor ich in
+  derselben Nachricht gewarnt hatte. **Offen bleibt echte Arbeit:** die
+  bestehende Seite sagt „four things" im Schlüsselbund, es sind jetzt fünf. ⬜
 * **Der Content-Blocker war nie lesbar.** ✅ Jedes Filter enthält `\.` — in
   einem regulären Ausdruck ein Punkt, in JSON keine gültige Escape-Sequenz. Das
   handgeschriebene Dokument war unparsebar; WebKit hätte es auf dem Telefon
