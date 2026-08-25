@@ -1881,3 +1881,28 @@ The declaration is still believed anywhere, and the asymmetry is deliberate.
 Saying "I am modal" is a statement of intent that only a sheet makes; being the
 shape of a sheet is a guess, and the inbox is what the guess costs when it is
 wrong. The guess is refused inside the page's own content; the statement is not.
+
+## No blue rectangles
+
+Two photographs: the Instagram wordmark in a blue outline, and the name at the
+top of a profile in another.
+
+That is WebKit's focus ring, and Quiet put it there. The row along the bottom
+navigates by pressing the link Instagram already has — which is the right way to
+do it, because loading an address throws the page away — but a click made by a
+script reads to WebKit as a keyboard press rather than a finger. So the pressed
+link keeps the focus and gets a ring, and the heuristic stays that way
+afterwards, which is why the next thing a *finger* touches gets one too.
+
+The row is the app's own furniture. Pressing it is a navigation, not a decision
+about where the cursor goes, and nothing about it should leave a mark on the
+page. So the press lets go of the focus straight after — three times, because a
+router that changes the screen puts the focus somewhere of its own on the way.
+
+Never on something being typed in. Taking the keyboard away from somebody
+mid-word would be a far worse thing than a blue rectangle, and it is the one
+case checked twice.
+
+Nothing was done to the ring itself. Suppressing outlines across the page would
+have fixed the photograph and taken the focus ring away from anybody navigating
+with a keyboard, who is the one person it is for.

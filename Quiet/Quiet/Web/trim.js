@@ -575,8 +575,47 @@
     if (location.pathname === href) return href;
 
     link.click();
+    letGo(link);
     return href;
   };
+
+  /**
+   * Let go of whatever the press left holding the focus.
+   *
+   * WebKit draws a focus ring around a focused element, and a click made by a
+   * script reads to it as a keyboard one rather than a finger — so pressing
+   * home from Quiet's row leaves the Instagram wordmark in a blue rectangle,
+   * and the heuristic stays that way afterwards, so the next thing a *finger*
+   * touches gets one too. Two photographs: the wordmark, and the name at the
+   * top of a profile.
+   *
+   * The row is the app's own furniture. Pressing it is a navigation, not a
+   * decision to put the cursor somewhere, and nothing about it should leave a
+   * mark on the page.
+   *
+   * Three times, because a router that changes the screen puts the focus
+   * somewhere of its own on the way. And never on something being typed in:
+   * taking the keyboard away from somebody mid-word would be a far worse thing
+   * than a blue rectangle.
+   */
+  function letGo(link) {
+    var release = function () {
+      if (link && link.blur) link.blur();
+      var active = document.activeElement;
+      if (!active || active === document.body) return;
+      if (beingTypedIn(active)) return;
+      if (active.blur) active.blur();
+    };
+    release();
+    setTimeout(release, 0);
+    setTimeout(release, 250);
+  }
+
+  function beingTypedIn(node) {
+    var name = (node.tagName || "").toLowerCase();
+    if (name === "input" || name === "textarea" || name === "select") return true;
+    return node.getAttribute && node.getAttribute("contenteditable") === "true";
+  }
 
   /** The name the app used before there were three of them. */
   window.__quietOpenProfile = function () {

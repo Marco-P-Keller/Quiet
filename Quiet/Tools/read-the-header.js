@@ -540,6 +540,36 @@ const GROUPED = `
     false
   );
 
+  /* WebKit draws a focus ring around whatever is focused, and a click made by a
+   * script reads to it as a keyboard press rather than a finger — so pressing
+   * home from Quiet's row left the Instagram wordmark in a blue rectangle, and
+   * the next thing a finger touched got one too. The row is the app's own
+   * furniture; pressing it is a navigation, not a decision about where the
+   * cursor goes. */
+  const pressed = await rowPage();
+  const home = pressed.document.querySelector('a[href="/"]');
+  home.focus();
+  pressed.__quietGo("messages");
+  check(
+    "a press lets go of the focus rather than leaving a ring behind",
+    pressed.document.activeElement === home,
+    false
+  );
+
+  /* And never takes the keyboard off somebody mid-word. */
+  const typing = await page(
+    `${BOTTOM}<input data-name="field">`,
+    FEED
+  );
+  const field = typing.document.querySelector('[data-name="field"]');
+  field.focus();
+  typing.__quietGo("messages");
+  check(
+    "but it never takes the keyboard away from something being typed in",
+    typing.document.activeElement === field,
+    true
+  );
+
   /* Standing on the feed already, home answers with the address rather than
    * pressing anything: the row has marked where you are since the day it
    * learned to, and going nowhere is what Instagram does too. */
