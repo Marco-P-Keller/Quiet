@@ -283,5 +283,67 @@ function tap(win, selector) {
     ["explore"]
   );
 
+  /* ── 5. Whether the script can tell that it has stopped working ──────── */
+
+  /* The one hole this whole approach has: everything except the address rules
+   * recognises Instagram by its shape, and the day the shape changes the
+   * recognising stops finding anything — silently, with the app still looking
+   * perfectly healthy. The tally is what turns that into a sentence. */
+
+  const health = (win) => {
+    const said = win.sent.filter((m) => m.kind === "health");
+    return said.length ? said[said.length - 1] : null;
+  };
+
+  const A_ROW = `
+    <nav data-name="row" data-box="0,800,390,44">
+      <a href="/" data-name="home"></a>
+      <a href="/direct/inbox/" data-name="messages"></a>
+      <a href="/someone/" data-name="me"></a>
+    </nav>
+    <main></main>`;
+
+  const withRow = await page(A_ROW, FEED);
+  check(
+    "a page where Instagram's row was found says so",
+    (({ pages, nav }) => ({ pages, nav }))(health(withRow)),
+    { pages: 1, nav: 1 }
+  );
+
+  const withoutRow = await page(`<main></main>`, FEED);
+  check(
+    "and a page where it was not found says that instead",
+    (({ pages, nav }) => ({ pages, nav }))(health(withoutRow)),
+    { pages: 1, nav: 0 }
+  );
+
+  /* What was hidden is counted once, not once per frame. The trim pass runs on
+   * every mutation Instagram's client makes, and a tally that climbed with it
+   * would say a great deal about how busy the client is and nothing at all
+   * about whether anything was found. */
+  const counted = await page(MIXED, FEED);
+  check("a hidden block is counted", health(counted).hidden, 1);
+
+  counted.document.querySelector("main").appendChild(
+    counted.document.createElement("div")
+  );
+  await settle(counted);
+  check(
+    "and it is not counted again on the next pass",
+    health(counted).hidden,
+    1
+  );
+
+  /* Walking to another page starts the page's own answer over, so a row found
+   * on the feed cannot vouch for a row on a profile. */
+  const walked = await page(A_ROW, FEED);
+  walked.history.pushState({}, "", "/someone/");
+  await settle(walked);
+  check(
+    "each page is asked separately",
+    (({ pages, nav }) => ({ pages, nav }))(health(walked)),
+    { pages: 2, nav: 2 }
+  );
+
   done();
 })();

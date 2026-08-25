@@ -141,6 +141,16 @@
         }
       }
     },
+    "A page at %@ was opened in Safari during a sign-in. If signing in did not work, that is the address to report.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Seite auf %@ wurde während einer Anmeldung in Safari geöffnet. Falls die Anmeldung nicht geklappt hat, ist das die Adresse, die man melden sollte."
+          }
+        }
+      }
+    },
     "Ask for %@ a day": {
       "localizations": {
         "de": {
@@ -421,12 +431,32 @@
         }
       }
     },
+    "Quiet could not load %@ from its own bundle. This build is broken; reinstall it.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet konnte %@ nicht aus dem eigenen Bundle laden. Dieser Build ist kaputt; installiere ihn neu."
+          }
+        }
+      }
+    },
     "Quiet has no account, no servers and no analytics. It stores four things on this phone: your limit, today's total, the last time it saw, and the day you set it up.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Quiet hat kein Konto, keine Server und keine Analyse. Es speichert vier Dinge auf diesem Telefon: dein Limit, den heutigen Stand, den spätesten Zeitpunkt, den es gesehen hat, und den Tag, an dem du es eingerichtet hast."
+          }
+        }
+      }
+    },
+    "Quiet has not been able to find Instagram's own layout on the last few pages. Instagram has probably changed something. Reels and Explore are still closed — those are refused by address — but the tidying up around them may not be.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet hat auf den letzten Seiten Instagrams eigenes Layout nicht gefunden. Wahrscheinlich hat Instagram etwas geändert. Reels und Explore bleiben zu — die werden nach Adresse abgewiesen — aber das Aufräumen drumherum vielleicht nicht."
           }
         }
       }
@@ -487,6 +517,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Quiet arbeitet zwischen %lld und %lld Minuten am Tag."
+          }
+        }
+      }
+    },
+    "Quiet's second lock did not load this time. Reels and Explore are still refused; there is one layer doing it rather than two.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiets zweites Schloss ist diesmal nicht geladen. Reels und Explore werden weiterhin abgewiesen; es tut das gerade eine Ebene statt zwei."
           }
         }
       }
@@ -687,6 +727,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Das ist dein Limit."
+          }
+        }
+      }
+    },
+    "This phone is refusing to let Quiet write anything down. Your limit will not survive closing the app until that changes.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Telefon lässt Quiet nichts aufschreiben. Bis sich das ändert, überlebt dein Limit das Schließen der App nicht."
           }
         }
       }

@@ -1,0 +1,115 @@
+import Foundation
+import WebKit
+
+/// The same refusals, enforced by WebKit rather than by Quiet.
+///
+/// Everything else in the app is a decision the app makes. The navigation
+/// delegate cancels a page it does not like; `trim.js` refuses a tap before the
+/// client sees it. Both are code of Quiet's, running inside a process where
+/// Instagram's own code also runs, and both can only refuse what they are
+/// shown.
+///
+/// A content rule list is not that. It is compiled once and handed to WebKit,
+/// which applies it to every load in the view before anything of Quiet's is
+/// consulted — including the loads nothing of Quiet's ever sees:
+///
+///   * a frame inside a page, which the delegate is shown but which `trim.js`
+///     cannot reach across;
+///   * a `fetch` or `XMLHttpRequest` Instagram's client makes, which is not a
+///     navigation at all and which no navigation delegate is ever asked about;
+///   * the second and third hop of a redirect chain.
+///
+/// What it is **not** is a filter on what Instagram sends. The reels injected
+/// into a feed arrive as ordinary feed data over an ordinary API address, and
+/// no rule that could be written here would separate them from the posts around
+/// them without also taking the posts. That is what `trim.js` is for, and it is
+/// why the two layers both exist.
+///
+/// So: a second lock on the same doors, made of addresses, which is the one
+/// material in this app that Instagram cannot change by renaming a class.
+enum BlockList {
+    /// The name WebKit files the compiled list under.
+    ///
+    /// Carries a version. A compiled list is cached on disk between launches,
+    /// and a cache is exactly the thing that goes on serving last month's rules
+    /// after somebody edits this file — so the identifier changes whenever the
+    /// rules do, and the old one is thrown away.
+    static let identifier = "quiet.block.1"
+
+    /// Any host under Instagram's name, written the way a content rule list
+    /// writes it. `url-filter` is matched against the whole address, so the
+    /// scheme and the host have to be spelled out.
+    private static let instagram = "^https?://([a-z0-9-]+\\.)*instagram\\.com"
+
+    /// Every address the app refuses, as one alternation.
+    ///
+    /// Mirrors `ContentRules.blockedRoots`, and the mirroring is checked by a
+    /// test rather than trusted — three copies of this table now exist, in
+    /// Swift, in JavaScript and here, and the day they disagree the one that is
+    /// wrong is silently the one that matters.
+    private static let roots = "reels?|tv|explore|directory"
+
+    /// The rules, as WebKit's own JSON.
+    ///
+    /// Only `document` and `raw`. Not images, not media, not stylesheets: a
+    /// rule that blocked those would be one bad address away from a feed with
+    /// holes in it, and the whole argument for this layer is that it cannot be
+    /// wrong in a way anybody has to debug from a photograph.
+    static var rules: String {
+        let filters = [
+            // /reels/, /reel/…, /tv/…, /explore/…, /directory/…
+            "\(instagram)/(\(roots))(/|$)",
+            // /accounts/suggested/ — Explore wearing a different hat.
+            "\(instagram)/accounts/suggested(/|$)",
+            // /someone/reels/ — the reels tab on a profile.
+            "\(instagram)/[^/]+/reels(/|$)",
+        ]
+        let list = filters.map { filter in
+            """
+            {"trigger":{"url-filter":"\(filter)","resource-type":["document","raw"]},\
+            "action":{"type":"block"}}
+            """
+        }
+        return "[\(list.joined(separator: ","))]"
+    }
+
+    /// Compile the list and hand it to a configuration.
+    ///
+    /// Asynchronous because compiling is, and because the alternative — blocking
+    /// the launch on it — would trade a lock that arrives a moment late for an
+    /// app that opens a moment late. The first page is refused by the delegate
+    /// either way; this is the second lock, and a second lock that clicks
+    /// shut half a second after the first is still a second lock.
+    ///
+    /// A failure is reported rather than swallowed. It means the app is running
+    /// on one layer instead of two, which is not a crisis and is not nothing.
+    static func install(
+        into configuration: WKWebViewConfiguration,
+        store: WKContentRuleListStore? = .default(),
+        then report: @escaping @MainActor (Error?) -> Void = { _ in }
+    ) {
+        guard let store else {
+            Task { @MainActor in report(Failure.noStore) }
+            return
+        }
+        store.compileContentRuleList(
+            forIdentifier: identifier,
+            encodedContentRuleList: rules
+        ) { list, error in
+            Task { @MainActor in
+                if let list {
+                    configuration.userContentController.add(list)
+                    report(nil)
+                } else {
+                    report(error ?? Failure.noStore)
+                }
+            }
+        }
+    }
+
+    enum Failure: Error {
+        /// WebKit has no rule list store, which happens on no phone and is
+        /// still not a thing to force-unwrap.
+        case noStore
+    }
+}

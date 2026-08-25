@@ -358,6 +358,7 @@
   function replaceNav() {
     var row = navRow();
     if (!row) return;
+    found("nav");
     if (!window.__quietMe) learnMe(row);
     // Before the row goes: what is drawn behind it still has a size, and a
     // hidden element has none.
@@ -817,6 +818,10 @@
   function sayWhere() {
     if (location.pathname === lastPath) return;
     lastPath = location.pathname;
+    // A new page: nothing has been found on it yet, and one more has gone by
+    // for the tally to be read against.
+    tally.pages += 1;
+    here = { nav: false, header: false };
     post({ kind: "where", path: lastPath });
   }
 
@@ -1088,6 +1093,7 @@
   function shapeHeader() {
     var bar = headerBar();
     if (!bar) return;
+    found("header");
 
     var heart = bar.querySelector(ACTIVITY);
     var mark = bar.querySelector('a[href="/"]');
@@ -1613,6 +1619,53 @@
     node.setAttribute("data-quiet-pinned", "");
   }
 
+  /* ── Whether any of this is still working ─────────────────────────────── */
+
+  /**
+   * A tally, so that the app can notice its own failure.
+   *
+   * This is the one hole the whole approach has. `ContentRules` matches on
+   * addresses and will keep working; everything else here recognises Instagram
+   * by its shape, and the day Instagram changes that shape the recognising
+   * simply stops finding anything. Nothing throws. Nothing logs. The row along
+   * the bottom falls back to Quiet's own symbols, the suggestion blocks come
+   * back, and the app goes on looking exactly like an app that is working.
+   *
+   * So the script counts what it found. Not to fix anything — it cannot — but
+   * so that "Instagram changed something and Quiet has not caught up" is a
+   * sentence the app can say rather than a thing somebody has to notice while
+   * scrolling a real feed.
+   *
+   * Counted per page rather than per frame. The trim pass runs on every
+   * mutation, and a count of frames would say a great deal about how busy
+   * Instagram's client is and nothing about whether anything was found.
+   */
+  var tally = { pages: 0, nav: 0, headers: 0, hidden: 0 };
+
+  /** What has already been found on the page currently open. */
+  var here = { nav: false, header: false };
+
+  var lastTally = "";
+
+  function found(what) {
+    if (here[what]) return;
+    here[what] = true;
+    tally[what === "nav" ? "nav" : "headers"] += 1;
+  }
+
+  function sayHealth() {
+    var line = [tally.pages, tally.nav, tally.headers, tally.hidden].join(":");
+    if (line === lastTally) return;
+    lastTally = line;
+    post({
+      kind: "health",
+      pages: tally.pages,
+      nav: tally.nav,
+      headers: tally.headers,
+      hidden: tally.hidden,
+    });
+  }
+
   /* ── 1. Taps ──────────────────────────────────────────────────────────── */
 
   document.addEventListener(
@@ -1678,6 +1731,9 @@
         block = element.parentElement;
       }
       if (block && block !== root && root.contains(block)) {
+        if (block.getAttribute("data-quiet-hidden") !== "suggestion") {
+          tally.hidden += 1;
+        }
         block.setAttribute("data-quiet-hidden", "suggestion");
       }
     }
@@ -1708,6 +1764,7 @@
       dressHeader();
       liftHeader();
       shapeHeader();
+      sayHealth();
     });
   }
 

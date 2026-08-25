@@ -260,6 +260,32 @@ final class WebSurface {
         address = url
     }
 
+    /// Whether the trim pass is still finding anything. See `Health`.
+    private(set) var health = Health()
+
+    /// Whether WebKit accepted the block list.
+    ///
+    /// `nil` while nobody has answered yet, which is the first half-second of a
+    /// launch. A failure here is not a crisis — the navigation delegate and the
+    /// trim pass are both still standing — but it is the app running on one
+    /// layer instead of two, and that is worth a line in the panel rather than
+    /// a line in a log nobody reads.
+    private(set) var blockListFailed = false
+
+    fileprivate func note(blockList error: Error?) {
+        let failed = error != nil
+        if let error {
+            NSLog("Quiet: the block list would not compile (%@)", String(describing: error))
+        }
+        guard blockListFailed != failed else { return }
+        blockListFailed = failed
+    }
+
+    fileprivate func note(health reading: Health) {
+        guard health != reading else { return }
+        health = reading
+    }
+
     /// The last address Quiet handed to Safari from inside a sign-in.
     ///
     /// Kept for one reason: it is the single most likely cause of "I cannot
@@ -420,6 +446,13 @@ struct InstagramWebView: UIViewRepresentable {
         // Nothing plays until someone asks it to. Autoplay is the smallest of
         // the hooks and among the easiest to remove.
         configuration.mediaTypesRequiringUserActionForPlayback = .all
+
+        // The second lock, made of addresses, applied by WebKit before
+        // anything of Quiet's is asked. See `BlockList` for what it does and,
+        // more usefully, for what it does not.
+        BlockList.install(into: configuration) { [surface] error in
+            surface.note(blockList: error)
+        }
 
         let webView = QuietWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
@@ -859,6 +892,13 @@ struct InstagramWebView: UIViewRepresentable {
                 // band follows the phone from light to dark.
                 if let colour = Chrome.colour(in: body) {
                     surface.note(chrome: colour)
+                }
+
+            case "health":
+                // What the trim pass found, and did not find. The one message
+                // here that is about the app rather than about the page.
+                if let reading = Health(message: body) {
+                    surface.note(health: reading)
                 }
 
             case "me":

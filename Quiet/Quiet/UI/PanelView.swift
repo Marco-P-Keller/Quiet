@@ -223,6 +223,8 @@ struct PanelView: View {
                 Text("This clears the Instagram session from this app. Your daily limit stays as it is.")
             }
 
+            trouble
+
             VStack(alignment: .leading, spacing: 8) {
                 Note("Quiet has no account, no servers and no analytics. It stores four things on this phone: your limit, today's total, the last time it saw, and the day you set it up.")
                 Note("Your limit is kept in the keychain, which outlives the app. Deleting Quiet and installing it again does not reset it.")
@@ -231,6 +233,41 @@ struct PanelView: View {
             }
             .padding(.top, 6)
         }
+    }
+
+    // MARK: - When something has gone wrong quietly
+
+    /// Nothing at all, on almost every launch.
+    ///
+    /// Three failures in this app are silent by nature, and silence is exactly
+    /// what makes them expensive. None of them stops the app; all of them stop
+    /// it doing something it says it does, and without a line here the first
+    /// person to find out is somebody scrolling a real feed and wondering.
+    ///
+    /// The two failures that are *not* quiet — the trim files missing from the
+    /// bundle, and a keychain refusing writes — are not repeated here. Both
+    /// already carry a red band across the top of the browsing screen, which is
+    /// where somebody is when they happen, and saying a thing twice in two
+    /// registers makes the loud one quieter rather than the quiet one louder.
+    ///
+    /// Written as facts rather than as alarms. Every one of these leaves the
+    /// address rules standing — Reels and Explore are refused because of where
+    /// they are, and no amount of Instagram redesigning changes that — so the
+    /// sentence says what stopped rather than implying the app has fallen over.
+    @ViewBuilder
+    private var trouble: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if surface.health.hasLostTheShape {
+                Note("Quiet has not been able to find Instagram's own layout on the last few pages. Instagram has probably changed something. Reels and Explore are still closed — those are refused by address — but the tidying up around them may not be.")
+            }
+            if surface.blockListFailed {
+                Note("Quiet's second lock did not load this time. Reels and Explore are still refused; there is one layer doing it rather than two.")
+            }
+            if let host = surface.handedOff {
+                Note("A page at \(host) was opened in Safari during a sign-in. If signing in did not work, that is the address to report.")
+            }
+        }
+        .padding(.top, 6)
     }
 
     private struct Note: View {
