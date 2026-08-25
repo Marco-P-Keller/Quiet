@@ -1906,3 +1906,62 @@ case checked twice.
 Nothing was done to the ring itself. Suppressing outlines across the page would
 have fixed the photograph and taken the focus ring away from anybody navigating
 with a keyboard, who is the one person it is for.
+
+## The row leaves the page
+
+Twelve answers to one photograph: Instagram's account switcher comes up, and
+Quiet's row is drawn across the buttons on it.
+
+Eleven of them were mechanisms, and they shared a shape. Pad the panel.
+Transform the panel. Give the panel a margin. Shrink the glass underneath it.
+Take the row away while a sheet is up. Leave the row and stop it answering taps.
+Every one of them moved something of Instagram's, and moving something of
+Instagram's means recognising it first.
+
+Recognition is the half that failed, and it failed in both directions. For eight
+rounds it found nothing, because Instagram never says a sheet is one: no
+`role="dialog"`, no `aria-modal`, nothing. So the search was rebuilt to work by
+shape — held against the bottom edge, the width of the glass, shorter than it,
+full of things to press — and the shape it then found was the inbox. A list of
+conversations is held against the bottom edge, spans the glass, and is full of
+things to press. It was moved a hundred and twenty-eight points up, over its own
+header, and the photograph of that came back as "und das ist kaputt gegangen".
+
+The mistake was not in any of the eleven. It was in the shape they share.
+
+A sheet is anchored to the bottom of the viewport. That is what a sheet *is* —
+not a class name, not a role, a position. So the row is put outside the
+viewport: the web view is given a frame that starts under the clock and stops at
+the top of the row, and the app paints the strip underneath in the page's own
+colour. The bottom of the page's world is now the top of the row, and every
+sheet Instagram will ever open — the account switcher, sharing, the menu behind
+the three dots, and whatever it ships next month — lands above it. Nothing of
+Instagram's is touched, recognised, or named.
+
+It is the same answer the status bar already had, at the other end of the
+screen, written up six sections above this one: *so the viewport itself is made
+smaller. Everything in it is right by construction.* Both ends of the app now
+say it, and the second one took eleven builds longer than the first because the
+question wore a different hat.
+
+What goes with it is the whole apparatus: the sheet detector and its three
+strategies, the lift, the marking, the colour reading, the row standing down,
+the strip painted in the sheet's own colour, `--quiet-row`, `--quiet-lift`, and
+thirty-seven checks in the harness. Four checks replace them, and they check the
+absence — that a sheet, a declared dialog and the inbox all come through
+unmarked, unmoved and unhidden — because the mechanism they guard against is one
+somebody would reasonably write again.
+
+What it costs is real: the feed no longer runs behind the row. The band at the
+bottom is the app's own paint rather than the next photograph. Instagram's own
+app draws an opaque tab bar there, so it is not a difference anybody looks at
+side by side and notices — and it is the price of a sheet that works on every
+screen rather than on the ones a heuristic happened to recognise.
+
+The measurement in CI stays and gets sharper. A rehearsed sheet is put on the
+real page, held against the bottom of the viewport, and its foot is photographed
+against the bottom edge of the screen. It used to have to agree with the number
+the app moved sheets by; it now has to agree with the height of the row, summed
+out of the three constants the row is built from rather than written down in the
+workflow. The mark pinned inside it moved to the same edge, so neither number
+depends on how tall this phone's status bar is.

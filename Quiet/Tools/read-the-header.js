@@ -41,17 +41,7 @@ function installBoxes(win) {
   };
 }
 
-/**
- * @param row how much of the bottom of the glass the app's row stands on, which
- *   is what a sheet is given room to stand clear of. Eighty-nine points is the
- *   flush bar on a phone with a home indicator: forty-nine and thirty-four,
- *   rounded. Zero is a story or a conversation, where there is no row.
- * @param lift how much of the bottom of the glass the app has already taken
- *   away for a sheet. Zero everywhere except under one, and the number that
- *   lets the script tell "the room has not been made yet" from "the room has
- *   been made and the row is standing on the app's own paint".
- */
-async function page(html, url, head, row, lift) {
+async function page(html, url, head) {
   const dom = new JSDOM(
     `<!doctype html><html><head>${head || ""}</head><body>${html}</body></html>`,
     { runScripts: "outside-only", url }
@@ -94,8 +84,6 @@ async function page(html, url, head, row, lift) {
   // The script asks Instagram who is signed in. There is nobody here to ask.
   win.fetch = () => new win.Promise(() => {});
   win.__quietTop = 59;
-  win.__quietRow = row === undefined ? 89 : row;
-  win.__quietLift = lift === undefined ? 0 : lift;
   win.eval(TRIM);
   win.drain();
   return win;
@@ -807,449 +795,79 @@ const GROUPED = `
     "upsell"
   );
 
-  /* ── Sheets ──────────────────────────────────────────────────────────── */
+  /* ── Sheets, which are nobody's business here any more ───────────────── */
 
   /* Instagram puts a sheet up for switching accounts, for sharing, and for the
-   * menu behind the three dots. It slides over its own tab bar; Quiet's row is
-   * the app's furniture and stayed put, drawn across the buttons on it.
+   * menu behind the three dots, and Quiet's row was drawn straight across the
+   * buttons on it. Eleven answers to that were written and every one of them
+   * moved something of Instagram's — which meant every one of them had to
+   * recognise the thing it was moving first, and that is the half that failed.
+   * It missed the account switcher for eight rounds, because Instagram never
+   * says a sheet is one; then it caught the inbox's list of conversations,
+   * because a list of conversations has exactly the shape of a sheet, and moved
+   * that instead.
    *
-   * Seven answers to that were written and every one of them tried to move
-   * something of Instagram's. Seven photographs came back identical. This file
-   * moves nothing now: it answers whether there is a sheet, whether anything on
-   * it is under the row, and what colour it is — and the app, which owns the
-   * viewport, makes the web view shorter. Everything anchored to the bottom of
-   * a viewport rises with it, and no stylesheet can refuse that.
+   * The room is made by the app now, once, for everything: the web view is a
+   * frame that stops at the top of the row, so the bottom of the viewport *is*
+   * the top of the row and every sheet Instagram opens is anchored above it.
+   * Nothing of Instagram's is touched, and there is nothing to recognise.
    *
-   * So what is checked here is the answer, not the moving. */
-  const sheetOf = (win) => win.sent.filter((m) => m.kind === "sheet").pop();
-  const liftOf = (win) => {
-    const moved = win.document.querySelector("[data-quiet-sheet]");
-    return moved ? moved.style.getPropertyValue("--quiet-lift") : null;
+   * So these check the absence. They are worth more than the thirty-seven
+   * checks they replace, because the mechanism they guard against is one
+   * somebody would reasonably write again. */
+  const untouched = (win, name) => {
+    const node = win.document.querySelector(`[data-name="${name}"]`);
+    return [
+      node.getAttribute("data-quiet-sheet"),
+      node.getAttribute("data-quiet-hidden"),
+      node.style.getPropertyValue("--quiet-lift"),
+      node.style.transform || "",
+      node.style.marginBottom || ""
+    ].join("|");
   };
 
+  const PANEL = '<h2>Switch accounts</h2>' +
+    '<button data-name="one">marco</button>' +
+    '<button data-name="two">Log In to an Existing Account</button>';
 
-  const nothingModal = await page(`<main></main>`, FEED);
-  check("with nothing modal on screen, nothing is said", sheetOf(nothingModal), undefined);
-
-  /* Said outright in the markup, which is the answer when it is there. Three
-   * spellings, and Instagram is obliged to use none of them. */
-  const HIGH = 'data-box="0,500,390,344" style="position: fixed; background-color: rgb(38, 38, 38)"';
-
-  for (const [what, markup] of [
-    ["a sheet", `<div role="dialog" data-name="sheet" ${HIGH}>x</div>`],
-    ["one that only says it is modal", `<div aria-modal="true" data-name="sheet" ${HIGH}>x</div>`],
-    ["the element the platform has for it", `<dialog open data-name="sheet" ${HIGH}>x</dialog>`],
-  ]) {
-    const win = await page(`${markup}<main></main>`, FEED);
-    check(`${what} is one`, sheetOf(win), {
-      kind: "sheet", up: true, clear: true, red: 38, green: 38, blue: 38,
-    });
-  }
-
-  /* A dialog in the tree with no box has been dismissed and not yet removed, or
-   * built ahead of being needed. Neither is a sheet. */
-  const notDrawn = await page(`<div role="dialog">x</div><main></main>`, FEED);
-  check("one that is in the tree but not drawn is not one", sheetOf(notDrawn), undefined);
-
-  /* And the one that was never asked, for seven rounds: a sheet that says
-   * nothing at all. Found by what is drawn along the bottom of the glass. */
-  const shape = (box, position, mark) => `
-    <div data-name="sheet" ${mark === undefined ? "data-at-bottom" : mark}
-         style="position: ${position || "fixed"}; background-color: rgb(38, 38, 38)"
-         data-box="${box || "0,500,390,344"}">x</div>
-    <main></main>`;
-
-  const nameless = await page(shape(), FEED);
-  check("a sheet that never said it was one is found by its shape", sheetOf(nameless), {
-    kind: "sheet", up: true, clear: true, red: 38, green: 38, blue: 38,
-  });
-
-  /* Not everything held against the bottom is a sheet. */
-  for (const [what, box, position] of [
-    ["a bar is too short to be one", "0,795,390,49", "fixed"],
-    ["a backdrop is too tall to be one", "0,0,390,844", "fixed"],
-    ["a card does not span the glass", "60,500,270,344", "fixed"],
-    ["and what is laid out in the page is part of the page", "0,500,390,344", "static"],
-  ]) {
-    const win = await page(shape(box, position), FEED);
-    check(what, sheetOf(win), undefined);
-  }
-
-  /* Instagram's own floor reaches the bottom and spans the glass, and is
-   * already taken out. It must never be mistaken for a sheet. */
-  const floor = await page(
-    `<div data-name="sheet" data-at-bottom data-quiet-floor=""
-          style="position: fixed" data-box="0,500,390,344">x</div><main></main>`,
+  /* The account switcher: held against the bottom, the width of the glass,
+   * full of things to press, and saying nothing anywhere about being modal. */
+  const switcher = await page(
+    `<div data-name="switcher" data-at-bottom style="position: fixed"
+          data-box="0,300,390,520">${PANEL}</div><main></main>`,
     FEED
   );
-  check("Instagram's own floor is never one", sheetOf(floor), undefined);
+  check("a sheet is not marked, moved, or hidden", untouched(switcher, "switcher"), "||||");
 
-  /* On a story and in a conversation the app draws no row, so there is nothing
-   * for a sheet to be in the way of and nothing to take off the glass. */
-  const noRow = await page(shape(), FEED, undefined, 0);
-  check("with no row on the screen, a shape is not chased", sheetOf(noRow), undefined);
-
-  /* What colour it is, so the strip of glass the app takes away underneath the
-   * sheet is painted in the sheet's own colour rather than showing as a band of
-   * something else. Climbed for, because a see-through layer hands back a
-   * colour that is never drawn anywhere. */
-  const seeThrough = await page(
-    `<div data-name="outer" style="position: fixed; background-color: rgb(38, 38, 38)"
-          data-box="0,500,390,344">
-       <div data-name="sheet" data-at-bottom
-            style="background-color: rgba(255, 255, 255, 0.2)"
-            data-box="0,500,390,344">x</div>
-     </div><main></main>`,
+  /* And one that does say so, which earlier versions believed outright. */
+  const declared = await page(
+    `<div data-name="declared" role="dialog" data-at-bottom style="position: fixed"
+          data-box="0,300,390,520">${PANEL}</div><main></main>`,
     FEED
+  );
+  check("nor is one that says it is one", untouched(declared, "declared"), "||||");
+
+  /* The inbox, which is the photograph that started this: a list of
+   * conversations reaches the bottom of the screen, spans the glass and is full
+   * of things to press. Every test a sheet passed, it passed. */
+  const conversations = await page(
+    `<main><div data-name="threads" data-at-bottom data-box="0,120,390,700">
+       <a href="/direct/t/1/">marco</a>
+       <a href="/direct/t/2/">anna</a>
+     </div></main>`,
+    "https://www.instagram.com/direct/inbox/"
   );
   check(
-    "a see-through layer is climbed past for the colour",
-    (({ red, green, blue }) => [red, green, blue])(sheetOf(seeThrough)),
-    [38, 38, 38]
+    "and the inbox, which was moved for eleven builds, is left alone",
+    untouched(conversations, "threads"),
+    "||||"
   );
 
-  /* The last resort. The app cannot move what it cannot find, so it is told
-   * whether anything on the sheet is still under the row — and when something
-   * is, the row stands down and the press goes through it. */
-  const under = await page(
-    `<div role="dialog" data-name="sheet" ${HIGH}>
-       <button data-box="16,790,358,44">Log In</button>
-     </div><main></main>`,
-    FEED
-  );
-  check("a button under the row is reported", sheetOf(under).clear, false);
-
-  const above = await page(
-    `<div role="dialog" data-name="sheet" ${HIGH}>
-       <button data-box="16,690,358,44">Log In</button>
-     </div><main></main>`,
-    FEED
-  );
-  check("and one above it is not", sheetOf(above).clear, true);
-
-  const below = await page(
-    `<div role="dialog" data-name="sheet" ${HIGH}>
-       <button data-box="16,900,358,44">Log In</button>
-     </div><main></main>`,
-    FEED
-  );
-  check("what is off the glass entirely is not in the way", sheetOf(below).clear, true);
-
-  /* And it has to come back, or the glass stays short for a sheet that has
-   * gone. */
-  const dismissed = await page(
-    `<div role="dialog" data-name="sheet" ${HIGH}>x</div><main></main>`,
-    FEED
-  );
-  dismissed.document.querySelector('[data-name="sheet"]').remove();
-  await new Promise((go) => setTimeout(go, 0));
-  dismissed.drain();
+  /* Nothing is said about one either. The app has no opinion left to hold. */
   check(
-    "and the glass is given back when the sheet goes",
-    dismissed.sent.filter((m) => m.kind === "sheet").map((m) => m.up),
-    [true, false]
-  );
-
-  /* The observer runs on every mutation. Saying it again on every one of them
-   * would take the glass away and give it back on every frame the page
-   * rewrites itself. */
-  const stays = await page(
-    `<div role="dialog" data-name="sheet" ${HIGH}>x</div><main></main>`,
-    FEED
-  );
-  stays.document.querySelector("main").appendChild(stays.document.createElement("div"));
-  stays.drain();
-  check(
-    "a sheet that is still there is not announced twice",
-    stays.sent.filter((m) => m.kind === "sheet").length,
-    1
-  );
-
-  /* ── Sheets, and the three ways of missing one ───────────────────────── */
-
-  /* A sheet arrives by sliding, and a slide is not a mutation. The observer
-   * hears the panel go into the document while the panel is still below the
-   * bottom edge, and nothing in the document changes while it travels — so the
-   * question was asked once, at the one moment the honest answer is no, and
-   * never asked again. That is the whole of the eighth photograph, and it is
-   * why the seven before it all came back the same: every one of them changed
-   * what the app does about a sheet, and none of them changed whether the app
-   * ever heard about one. */
-  const sliding = await page(
-    `<div data-name="sheet" data-at-bottom
-          style="position: fixed; background-color: rgb(38, 38, 38)"
-          data-box="0,844,390,190">x</div><main></main>`,
-    FEED
-  );
-  check("a sheet still below the edge is not one yet", sheetOf(sliding), undefined);
-
-  sliding.document
-    .querySelector('[data-name="sheet"]')
-    .setAttribute("data-box", "0,654,390,190");
-  await new Promise((go) => setTimeout(go, 300));
-  check(
-    "and is found when it lands, with nothing having changed in the document",
-    sheetOf(sliding) && sheetOf(sliding).up,
-    true
-  );
-
-  /* Two points of tolerance at the foot is a measurement, not a tolerance: it
-   * asks a panel that can end on a rounded corner or a hairline of its own to
-   * land on an exact pixel. */
-  const shortOfTheEdge = await page(shape("0,634,390,180"), FEED);
-  check(
-    "a sheet that stops a little short of the edge is still one",
-    shortOfTheEdge.sent.filter((m) => m.kind === "sheet").length && sheetOf(shortOfTheEdge).up,
-    true
-  );
-
-  const wellShortOfIt = await page(shape("0,554,390,180"), FEED);
-  check("and one that stops well short of it is not", sheetOf(wellShortOfIt), undefined);
-
-  /* The walk for what is holding the panel against the glass used to stop after
-   * eight steps, which is a guess about the depth of somebody else's tree.
-   * Instagram's is deeper than that almost everywhere, and the fixed element is
-   * the backdrop rather than the panel. */
-  const deep = await page(
-    `<div style="position: fixed" data-box="0,0,390,844">
-       <div><div><div><div><div><div><div><div><div>
-         <div data-name="sheet" data-at-bottom
-              style="background-color: rgb(38, 38, 38)"
-              data-box="0,654,390,190">x</div>
-       </div></div></div></div></div></div></div></div></div>
-     <main></main>`,
-    FEED
-  );
-  check(
-    "a panel a long way below the backdrop holding it is still held over the page",
-    sheetOf(deep) && sheetOf(deep).up,
-    true
-  );
-
-  /* ── And the question the photograph itself asks ─────────────────────── */
-
-  /* Every test above is an inference about how Instagram builds a sheet, and an
-   * inference about somebody else's markup is true until they change it. This
-   * one is about the screen: is there anything a person would press drawn
-   * underneath Quiet's row? It knows nothing about sheets and needs nothing of
-   * Instagram's markup to be true. */
-  const menu = await page(
-    `<div data-name="menu" data-at-bottom
-          style="position: fixed; background-color: rgb(38, 38, 38)"
-          data-box="60,600,270,220">
-       <button data-at-bottom data-box="70,780,250,44">Log in to an Existing Account</button>
-     </div><main></main>`,
-    FEED
-  );
-  check(
-    "a menu that does not span the glass, with a button under the row, is in the way",
-    [sheetOf(menu).up, sheetOf(menu).clear],
-    [true, false]
-  );
-
-  /* The page's own content runs on beneath the row on purpose — that is where
-   * Instagram's next photograph goes. What scrolls is not held over anything. */
-  const running = await page(
-    `<main><a data-at-bottom href="/marco/" data-box="16,780,358,44">marco</a></main>`,
-    FEED
-  );
-  check("what the page runs on under the row is not one", sheetOf(running), undefined);
-
-  /* A sheet, a menu and a dialog all span most of the glass. A stray fixed pill
-   * does not, and taking a strip of glass away for one would be the app moving
-   * the whole page for a button. */
-  const pill = await page(
-    `<div data-at-bottom style="position: fixed" data-box="120,780,150,44">
-       <button data-at-bottom data-box="120,780,150,44">New posts</button>
-     </div><main></main>`,
-    FEED
-  );
-  check("a pill too narrow to be a sheet is left alone", sheetOf(pill), undefined);
-
-  /* And what comes back is the panel rather than the dimmed backdrop around it.
-   * The backdrop is the whole screen and has no colour worth painting a strip
-   * of glass in — the strip is there so the sheet still reaches the bottom edge
-   * and only its contents have moved. */
-  const behindABackdrop = await page(
-    `<div style="position: fixed; background-color: rgb(0, 0, 0)"
-          data-box="0,0,390,844">
-       <div data-name="panel" data-at-bottom
-            style="background-color: rgb(38, 38, 38)" data-box="0,560,390,220">
-         <button data-at-bottom data-box="16,720,358,44">Log In</button>
-       </div>
-     </div><main></main>`,
-    FEED
-  );
-  check(
-    "and it is the panel that is found, not the backdrop behind it",
-    (({ up, clear, red, green, blue }) => [up, clear, red, green, blue])(
-      sheetOf(behindABackdrop)
-    ),
-    [true, false, 38, 38, 38]
-  );
-
-  /* ── And what the room being made does to the answer ─────────────────── */
-
-  /* The app takes a strip of glass off the bottom, and the sheet rises with it
-   * — and so does the floor it is measured against, because both are anchored
-   * to the same viewport. So the row has to be asked about what is left of it
-   * over the page, or "is anything still underneath" answers the same before
-   * and after the room is made, and the row stands down for as long as the
-   * sheet is open. A row you cannot leave a sheet by is not a row. */
-  const roomMade = await page(
-    `<div role="dialog" data-name="sheet" ${HIGH}>
-       <button data-box="16,790,358,44">Log In</button>
-     </div><main></main>`,
-    FEED,
-    undefined,
-    89,
-    128
-  );
-  check(
-    "with the room already made, nothing is under the row any more",
-    sheetOf(roomMade).clear,
-    true
-  );
-
-  /* And the sheet itself is held on to while it is on screen. The act of
-   * answering changes the screen the next answer is read off: once the strip
-   * is gone the row is standing on the app's own paint, the test that found
-   * the sheet by what was drawn under the row finds nothing, and without this
-   * the glass would come back and the sheet would drop onto the row again,
-   * once per frame, for as long as it was open. */
-  const foundThenLifted = await page(
-    `<div data-name="sheet" data-at-bottom
-          style="position: fixed; background-color: rgb(38, 38, 38)"
-          data-box="0,654,390,190">
-       <button data-at-bottom data-box="16,790,358,44">Log In</button>
-     </div><main></main>`,
-    FEED
-  );
-  check(
-    "a nameless sheet with a button under the row stands the row down",
-    [sheetOf(foundThenLifted).up, sheetOf(foundThenLifted).clear],
-    [true, false]
-  );
-
-  foundThenLifted.__quietLift = 128;
-  foundThenLifted.document
-    .querySelector("main")
-    .appendChild(foundThenLifted.document.createElement("div"));
-  await new Promise((go) => setTimeout(go, 0));
-  foundThenLifted.drain();
-  check(
-    "and the sheet is not lost, nor the row, the moment the room is made",
-    [sheetOf(foundThenLifted).up, sheetOf(foundThenLifted).clear],
-    [true, true]
-  );
-
-  /* The inbox, which is the case that made this necessary. Its list of
-   * conversations spans the glass, starts under the header, reaches the bottom
-   * edge, and sits inside something held against the screen — every test a
-   * sheet passes, it passes. A photograph of it moved a hundred and twenty-eight
-   * points up, with the inbox's own header piled on top of itself, is what this
-   * check is made of.
-   *
-   * A sheet is put in front of the page, and the page is what is inside `main`.
-   */
-  const theInbox = await page(
-    `<main>
-       <div data-name="list" data-at-bottom
-            style="position: fixed; background-color: rgb(0, 0, 0)"
-            data-box="0,120,390,724">conversations</div>
-     </main>`,
-    FEED
-  );
-  check("the inbox's own list is not a sheet", sheetOf(theInbox), undefined);
-
-  /* But one that says outright that it is modal is believed, wherever it is.
-   *
-   * The asymmetry is the point. Saying "I am modal" is a statement of intent
-   * that only a sheet makes; being the shape of a sheet is a guess, and the
-   * inbox shows what the guess costs when it is wrong. So the guess is refused
-   * inside the page's own content and the statement is not. */
-  const saysSoInMain = await page(
-    `<main>
-       <div role="dialog" data-name="sheet"
-            style="position: fixed; background-color: rgb(38, 38, 38)"
-            data-box="0,500,390,344">x</div>
-     </main>`,
-    FEED
-  );
-  check("but one that says so is believed wherever it is", sheetOf(saysSoInMain), {
-    kind: "sheet", up: true, clear: true, red: 38, green: 38, blue: 38,
-  });
-
-  /* ── Moving the sheet ────────────────────────────────────────────────── */
-
-  /* A photograph settled which mechanism is right, and it took shrinking the
-   * viewport to get one: with the glass a hundred and twenty-eight points
-   * shorter, Instagram's sheet did not rise — it was cut, straight through "Log
-   * In to an Existing Account". A sheet clipped by a shorter viewport is a
-   * sheet that is not anchored to the bottom of one, and nothing done to the
-   * viewport will ever move it. */
-  const HELD = 'style="position: fixed; background-color: rgb(38, 38, 38)"';
-
-  const sheetGoesUp = await page(
-    `<div role="dialog" data-name="sheet" ${HELD} data-box="0,500,390,344">x</div><main></main>`,
-    FEED
-  );
-  check("a sheet is moved two centimetres up", liftOf(sheetGoesUp), "128px");
-
-  /* Placed by a number worked out when it opened rather than anchored to the
-   * bottom — which is the shape the photograph turned out to be, and the one a
-   * shorter viewport cuts instead of moving. A transform does not care. */
-  const sheetPlacedByANumber = await page(
-    `<div role="dialog" data-name="sheet"
-          style="position: fixed; top: 500px; background-color: rgb(38, 38, 38)"
-          data-box="0,500,390,344">x</div><main></main>`,
-    FEED
-  );
-  check("one placed by a number is moved just the same", liftOf(sheetPlacedByANumber), "128px");
-
-  /* Once moved it is a hundred and twenty-eight points clear of the bottom
-   * edge and would fail the test that chose it. Letting it go would drop it
-   * back, find it again, and flicker for as long as it was open. */
-  const sheetKeptWhenMoved = await page(
-    `<div data-name="sheet" data-at-bottom ${HELD} data-box="0,500,390,344">x</div><main></main>`,
-    FEED
-  );
-  sheetKeptWhenMoved.document
-    .querySelector('[data-name="sheet"]')
-    .setAttribute("data-box", "0,372,390,344");
-  sheetKeptWhenMoved.document.querySelector("main").appendChild(sheetKeptWhenMoved.document.createElement("div"));
-  await new Promise((go) => setTimeout(go, 0));
-  sheetKeptWhenMoved.drain();
-  check("and it is not let go once it has moved", liftOf(sheetKeptWhenMoved), "128px");
-
-  /* And it is put back when the sheet goes, or the next page inherits a
-   * transform belonging to a sheet nobody can see. */
-  const sheetPutBack = await page(
-    `<div role="dialog" data-name="sheet" ${HELD} data-box="0,500,390,344">x</div><main></main>`,
-    FEED
-  );
-  sheetPutBack.document.querySelector('[data-name="sheet"]').remove();
-  await new Promise((go) => setTimeout(go, 0));
-  sheetPutBack.drain();
-  check("and put back when the sheet goes", liftOf(sheetPutBack), null);
-
-  /* The strip the app paints underneath has to be the sheet's colour. The
-   * thing found is as often the backdrop as the panel, a backdrop is
-   * see-through by design, and climbing up from one lands on the page — which
-   * a photograph showed exactly: the strip in the page's near-black instead of
-   * the sheet's grey. */
-  const colourThroughBackdrop = await page(
-    `<div role="dialog" data-name="sheet" data-box="0,0,390,844"
-          style="position: fixed; background-color: rgba(0, 0, 0, 0.6)">
-       <div data-name="panel" data-box="0,500,390,344"
-            style="background-color: rgb(38, 38, 38)">x</div>
-     </div><main></main>`,
-    FEED
-  );
-  check(
-    "the colour is read down into the panel, not up to the page",
-    (({ red, green, blue }) => [red, green, blue])(sheetOf(colourThroughBackdrop)),
-    [38, 38, 38]
+    "nothing about a sheet is sent up to the app",
+    switcher.sent.some((m) => m.kind === "sheet"),
+    false
   );
 
   /* ── The colour the clock stands on ──────────────────────────────────── */

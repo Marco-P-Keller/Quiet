@@ -208,21 +208,20 @@ body {
  *
  * Instagram puts a sheet up for switching accounts, for sharing, and for the
  * menu behind the three dots, and Quiet's row was drawn straight across the
- * buttons on it. Seven answers to that were written and four of them were
- * stylesheet rules — pad the panel, transform the panel, move the row, make the
- * row inert. Every one asked somebody else's stylesheet for permission, and
- * every photograph came back identical.
+ * buttons on it. Eleven answers to that were written and five of them were
+ * rules in this file — pad the panel, transform the panel, margin the panel,
+ * move the row, make the row inert. Every one of them had to recognise
+ * Instagram's sheet before it could touch it, and recognition failed in both
+ * directions: it missed the account switcher, which never says it is modal,
+ * and then it caught the inbox, whose list of conversations has exactly the
+ * shape of a sheet.
  *
- * The room is made by the app now, which owns the viewport: the web view is
- * made shorter, and everything anchored to the bottom of a viewport rises with
- * it because that is what being anchored to the bottom of a viewport means.
- * There is no rule anybody can write that refuses it. See `sheetRoom` in
- * `BrowserScreen`, and `saySheet` in trim.js for how the app hears about one.
- *
- * `--quiet-row` is set on the document by trim.js all the same, and nothing in
- * this file reads it. It is the number the script measures a sheet's buttons
- * against, and having it written on the root is how anybody with an inspector
- * can see what the app said the row was standing on.
+ * The room is made by the app now, and made once, for everything: the web view
+ * is a frame that stops at the top of the row, so the bottom of the viewport
+ * *is* the top of the row, and every sheet Instagram opens is anchored to it
+ * with nothing of Instagram's touched, recognised or named. There is no rule
+ * anybody can write that improves on that, and every rule anybody writes here
+ * can only break it. See the frame in `BrowserScreen`.
  */
 
 /* ── The pull at the top ────────────────────────────────────────────────── */
@@ -309,29 +308,3 @@ html[data-quiet-away] [data-quiet-pinned] {
   transform: translateY(-100%) !important;
 }
 
-/* ── A sheet, moved up off the row ──────────────────────────────────────── */
-/*
- * Margins, and deliberately not a transform.
- *
- * A transform was tried and a photograph came back with the sheet's own
- * contents piled on top of each other — "Switch accounts" and an account row
- * drawn on the same line, everything else gone. That is not a bug in the
- * moving, it is what a transform *is*: an element with one becomes the
- * containing block for every `position: fixed` thing inside it. Instagram's
- * sheet has fixed children that were anchored to the viewport, and they were
- * suddenly anchored to a box a third of the way down the screen instead.
- *
- * A margin moves a box and changes nothing about what anything inside it is
- * measured against. Both are set because the sheet may be held by either edge
- * and only one of them can be answering: a box placed by `top` ignores the
- * bottom margin, a box placed by `bottom` ignores the top one, and either way
- * it ends up a hundred and twenty-eight points higher.
- *
- * The gap this opens underneath is painted by the app in the sheet's own
- * colour, so the sheet still reaches the bottom edge of the glass.
- */
-
-[data-quiet-sheet] {
-  margin-top: calc(-1 * var(--quiet-lift, 0px)) !important;
-  margin-bottom: var(--quiet-lift, 0px) !important;
-}

@@ -101,40 +101,6 @@ final class WebSurface {
     /// that the change is not something you can catch happening.
     private(set) var chrome: Color?
 
-    /// Whether Instagram has a sheet or a dialog up.
-    ///
-    /// A sheet is not a page and carries no address, so nothing about where you
-    /// are can see one coming — and Instagram puts one up for switching
-    /// accounts, for sharing, for the menu behind the three dots. It slides
-    /// over its own tab bar the way every sheet on a phone does, and Quiet's
-    /// row was staying where it was and being drawn through the buttons on it.
-    ///
-    /// Read from the page, which is the only place it exists. See `trim.js`.
-    private(set) var isSheetUp = false
-
-    /// The colour the sheet on screen is drawn in, so the app can paint the
-    /// strip of glass it takes away underneath it. `nil` when there is no sheet
-    /// or the page had nothing opaque to report.
-    private(set) var sheetTint: Color?
-
-    /// Whether the sheet on the screen is standing clear of the row.
-    ///
-    /// The page makes the room now: it is told how much of the bottom of the
-    /// glass the row stands on, and pads the panel of the sheet by exactly
-    /// that, so the buttons end above the row and the sheet's own colour runs
-    /// on beneath it. Then the row is beside the sheet rather than over it, and
-    /// has no reason to stop answering taps.
-    ///
-    /// It cannot always be done — a sheet that fills the glass, or one built in
-    /// a shape the page cannot recognise — and this is how the page says so.
-    /// Where the room was not made the row stands down and lets the press go
-    /// through to whatever is underneath it, which is what it did for every
-    /// sheet before the room existed.
-    ///
-    /// True while there is no sheet, because a screen with nothing modal on it
-    /// has nothing standing in the row's way.
-    private(set) var isSheetClear = true
-
     /// False until the first page has finished, or failed. While it is false the
     /// browsing screen keeps Quiet's own paper over the top, so a cold launch
     /// shows a considered blank rather than the white rectangle of a web view
@@ -310,17 +276,6 @@ final class WebSurface {
         Remembered.remember(icon: entry, data: data)
     }
 
-    fileprivate func note(sheet up: Bool, clear: Bool, tint: Color?) {
-        if sheetTint != tint { sheetTint = tint }
-        note(sheet: up, clear: clear)
-    }
-
-    fileprivate func note(sheet up: Bool, clear: Bool) {
-        guard isSheetUp != up || isSheetClear != clear else { return }
-        isSheetUp = up
-        isSheetClear = clear
-    }
-
     fileprivate func note(chrome colour: Color) {
         guard chrome != colour else { return }
         chrome = colour
@@ -412,25 +367,17 @@ final class QuietWebView: WKWebView {
 struct InstagramWebView: UIViewRepresentable {
     let surface: WebSurface
     let session: QuietSession
-    /// How much of the top and bottom of the screen belongs to somebody else —
-    /// the status bar above, Quiet's own row of controls below.
+    /// How much of the view the page is asked to keep clear, which is nothing.
     ///
-    /// Both ends are the scroll indicator's business, and the bottom is the
-    /// page's as well: the row is opaque, so the last post has to be able to
-    /// scroll clear of it rather than sitting behind it for ever. That is what
-    /// every bar along the bottom of an iPhone has done since the first one.
+    /// It was the status bar above and Quiet's row below, back when the view
+    /// filled the glass and both were drawn over the top of it. The view is now
+    /// a frame that starts under the clock and stops above the row, so there is
+    /// no strip of it belonging to anybody else and nothing to keep clear of.
+    /// Kept as a number rather than deleted because it is the right mechanism
+    /// for anything the app ever does need the page to work around — and
+    /// because a zero passed through a mechanism that works is safer than a
+    /// mechanism deleted and written again from memory.
     var inset: UIEdgeInsets
-
-    /// And how much of the bottom of the glass the app has already taken away
-    /// for a sheet, in points.
-    ///
-    /// Zero on every screen that has nothing modal on it. While a sheet is up
-    /// the web view is that much shorter, and the row is then standing on the
-    /// strip the app paints underneath it rather than on the page — so the
-    /// page's own answer to "is anything on this sheet still under the row"
-    /// has to be asked about what is left of the row over the page, or it can
-    /// never become no. See `rowOverThePage` in trim.js.
-    var lift: CGFloat
 
     func makeCoordinator() -> Coordinator {
         Coordinator(session: session, surface: surface)
@@ -447,14 +394,7 @@ struct InstagramWebView: UIViewRepresentable {
         // the right one for anything the app ever does need the page to know.
         let top = inset.top
         context.coordinator.top = top
-        // And what the row stands on at the other end, which the page needs for
-        // one thing only: keeping a sheet's own buttons off it.
-        context.coordinator.row = inset.bottom
-        // Nothing is taken off the bottom until a sheet asks for it, but the
-        // page is told the number anyway so that it never has to read a value
-        // that is not there.
-        context.coordinator.lift = lift
-        let payload = WebScripts.load(top: top, row: inset.bottom, lift: lift)
+        let payload = WebScripts.load(top: top)
 
         let controller = WKUserContentController()
         payload.scripts.forEach(controller.addUserScript)
@@ -487,14 +427,20 @@ struct InstagramWebView: UIViewRepresentable {
         // top comes back as a black strip at the bottom, above the row, where
         // Instagram runs its next photograph.
         //
-        // So nothing is taken. The web view owns every pixel, the page fills
-        // it, and content runs behind the status bar and beneath the row the
-        // way it does in Instagram's own app. What keeps the clock legible is
-        // a top padding on the document itself, handed to the page in
-        // `WebScripts.load(top:row:)`: the first thing in the feed starts
-        // below the status bar and scrolls up behind it. That is what
-        // Instagram does, and it is a property of the page rather than of the
-        // view.
+        // That held for as long as the page was the only thing that could be
+        // wrong about where it ended. It stopped holding at the other end of
+        // the app: a sheet is anchored to the bottom of the viewport, and while
+        // the viewport ran to the bottom of the glass, every sheet Instagram
+        // opened arrived underneath Quiet's row. Eleven mechanisms tried to
+        // move the sheet back out and each had to recognise it first, which is
+        // the part that failed — in both directions.
+        //
+        // So the view is a frame with both ends taken off it, and the app
+        // paints the two strips itself in the page's own colour. The page is
+        // asked to keep clear of nothing, because nothing of it is behind
+        // anything: what is fixed, what is sticky and what asks for the full
+        // height are all right by construction. See the frame in
+        // `BrowserScreen`.
         webView.scrollView.contentInsetAdjustmentBehavior = .never
         // And the app's own, which is the other half of the same request: the
         // page's are turned off in trim.css, and this is the one WebKit draws
@@ -528,27 +474,12 @@ struct InstagramWebView: UIViewRepresentable {
         // does. Kept as a number rather than deleted because the mechanism is
         // the right one for anything the app ever does need the page to know.
         let top = inset.top
-        // The row's height changes under the same hand as the inset above it:
-        // the two shapes it can be drawn in are a setting, and a story or a
-        // conversation has no row at all. A sheet that is open across either
-        // change should be given the room the row is actually standing on.
-        let moved = context.coordinator.top != top || context.coordinator.row != inset.bottom
-        // The strip taken off the bottom for a sheet is not told to every page,
-        // only to this one. It changes several times while a single sheet is
-        // open — none of it before the sheet arrives, all of it once it has —
-        // and it is never true of a page that has not loaded yet, because
-        // loading one is the end of any sheet that was open over it.
-        let lifted = context.coordinator.lift != lift
-        if moved {
+        // Only when it has actually changed. This runs on every pass SwiftUI
+        // makes over the view, and a page asked to run a script on every frame
+        // of every animation is a page that stutters.
+        if context.coordinator.top != top {
             context.coordinator.top = top
-            context.coordinator.row = inset.bottom
-            context.coordinator.tellEveryPage(webView, top: top, row: inset.bottom)
-        }
-        // Only when one of them has actually changed. This runs on every pass
-        // SwiftUI makes over the view, and a page asked to run a script on
-        // every frame of every animation is a page that stutters.
-        if moved || lifted {
-            context.coordinator.lift = lift
+            context.coordinator.tellEveryPage(webView, top: top)
             context.coordinator.tellThisPage(webView)
         }
         context.coordinator.session = session
@@ -686,15 +617,6 @@ struct InstagramWebView: UIViewRepresentable {
         /// this number exists.
         var top: CGFloat = 0
 
-        /// And how much of the bottom of the glass Quiet's row stands on, which
-        /// the page is told for the sake of the one thing in it that is pinned
-        /// to that edge: a sheet. See `WebScripts.load(top:row:lift:)`.
-        var row: CGFloat = 0
-
-        /// And how much of it the app has already taken away for a sheet, which
-        /// is how much of the row is no longer over the page at all.
-        var lift: CGFloat = 0
-
         /// Rebuild the injected scripts around the real number, so that every
         /// page from here on is told it before its first paint.
         ///
@@ -712,10 +634,10 @@ struct InstagramWebView: UIViewRepresentable {
         /// nobody ever saw, and twenty points on the one everybody did — about
         /// seven points of clearance for a fifty-nine point status bar, which
         /// is the collision in the photograph.
-        func tellEveryPage(_ webView: WKWebView, top: CGFloat, row: CGFloat) {
+        func tellEveryPage(_ webView: WKWebView, top: CGFloat) {
             let controller = webView.configuration.userContentController
             controller.removeAllUserScripts()
-            WebScripts.load(top: top, row: row).scripts.forEach(controller.addUserScript)
+            WebScripts.load(top: top).scripts.forEach(controller.addUserScript)
         }
 
         /// And the document already on screen, whose scripts have run.
@@ -734,19 +656,7 @@ struct InstagramWebView: UIViewRepresentable {
                 document.documentElement.style.setProperty("--quiet-top", "\(points)px");
                 """)
             }
-            // Zero, on the other hand, is exactly what the row is on a story
-            // and in a conversation, and a page that kept the last screen's
-            // number would hold a sheet off an edge nothing is standing on.
-            let stands = Int(row.rounded())
-            lines.append("""
-            window.__quietRow = \(stands);
-            document.documentElement.style.setProperty("--quiet-row", "\(stands)px");
-            """)
-            // Zero is the honest answer on every screen with nothing modal on
-            // it, and the number has to arrive on the page that is already on
-            // screen rather than on the next one: a sheet is opened and closed
-            // without anything ever loading.
-            lines.append("window.__quietLift = \(Int(lift.rounded()));")
+            guard !lines.isEmpty else { return }
             webView.evaluateJavaScript(lines.joined(separator: "\n"))
         }
 
@@ -897,22 +807,6 @@ struct InstagramWebView: UIViewRepresentable {
                 if let name = body["username"] as? String {
                     surface.note(me: name, picture: body["picture"] as? String)
                 }
-
-            case "sheet":
-                // Whether something modal is up, and whether the page managed
-                // to give it room to stand clear of Quiet's row.
-                surface.note(
-                    sheet: body["up"] as? Bool ?? false,
-                    // A page from before this existed says nothing about the
-                    // room, and the honest reading of silence is that none was
-                    // made: the row stands down, which is never wrong, only
-                    // occasionally more careful than it needs to be.
-                    clear: body["clear"] as? Bool ?? false,
-                    // What colour it is, so the strip of glass the app takes
-                    // away underneath it is painted in the sheet's own colour
-                    // rather than showing as a band of something else.
-                    tint: Chrome.colour(in: body)
-                )
 
             default:
                 break

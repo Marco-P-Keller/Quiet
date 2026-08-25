@@ -83,30 +83,14 @@ struct BrowserScreen: View {
         ZStack(alignment: .top) {
             Color(uiColor: .systemBackground)
 
-            // The whole screen, and nothing taken off it. The two numbers are
-            // what Quiet's own furniture occupies; the web view uses them for
-            // the scroll indicator and for how far the page may be scrolled,
-            // and hands the top one to the page, which starts itself below the
-            // clock. See `InstagramWebView`.
+            // The page's whole world, and nothing taken off it afterwards:
+            // the view is the size of it, so there is no strip left over for
+            // the page to be asked to keep clear of. Asking as well would move
+            // everything twice. See `InstagramWebView`.
             InstagramWebView(
                 surface: surface,
                 session: session,
-                inset: UIEdgeInsets(
-                    // Nothing. The view itself now starts below the clock, so
-                    // there is no strip left for the page to be asked to keep
-                    // clear of, and asking would move everything twice.
-                    top: 0,
-                    left: 0,
-                    bottom: furniture,
-                    right: 0
-                ),
-                // How much of the glass the app has already taken off the
-                // bottom for a sheet. The page needs it to answer the one
-                // question it is asked about a sheet — whether anything on it
-                // is still under the row — because once the strip is gone the
-                // row is standing on the app's own paint rather than on the
-                // page. See `rowOverThePage` in trim.js.
-                lift: sheetRoom
+                inset: UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
             )
             // The glass, less the clock — and starting below it.
             //
@@ -121,38 +105,52 @@ struct BrowserScreen: View {
             // rule for sticky elements never sees it.
             //
             // So the viewport itself is made smaller. The page's world starts
-            // at the bottom of the clock and ends at the bottom of the glass.
+            // at the bottom of the clock and ends at the top of the row.
             // Everything in it is right by construction: what is fixed, what is
             // sticky, what is absolute, and what asks for a hundred per cent of
             // the height. There is nothing left to find and nothing left to
             // lift.
             //
+            // The bottom end of that is the twelfth answer to the sheet, and
+            // the first that is not a mechanism. Eleven were, and they shared a
+            // shape: each of them moved something of Instagram's — pad the
+            // panel, transform the panel, shrink the glass under it, take the
+            // row away, make the row inert — and each needed to recognise the
+            // thing it was moving first. Recognition is the part that failed,
+            // in both directions: it missed the account switcher for eight
+            // rounds because Instagram never says a sheet is one, and then it
+            // took the inbox's list of conversations for a sheet and moved
+            // that instead, because a list of conversations has exactly the
+            // shape of one.
+            //
+            // A sheet is pinned to the bottom of the viewport. So the row is
+            // put outside the viewport, and every sheet Instagram will ever
+            // open lands above it without anything of Instagram's being
+            // touched, recognised, or named. The inbox is safe for the same
+            // reason: nothing is looking at it any more.
+            //
             // What it costs is the one thing Instagram's own app does that this
-            // now cannot: run content up behind the status bar. The app draws
-            // that strip instead, and has done for several builds — in the
-            // page's own colour until now, and one step off it from here, in
-            // the grey Instagram itself uses. See `clockBand`.
+            // now cannot: run content up behind the status bar and down behind
+            // the row. The app draws both strips instead, in the page's own
+            // colour, so the page appears to reach both edges. See `clockBand`.
             .frame(
                 width: glass.width > 0 ? glass.width : nil,
-                height: glass.height > 0 ? glass.height - topInset : nil
+                height: glass.height > 0 ? glass.height - topInset - furniture : nil
             )
             .padding(.top, topInset)
 
-            // The strip under a sheet that has moved up, painted in the
-            // sheet's own colour so that it still reaches the bottom edge of
-            // the glass and only its contents have gone anywhere.
+            // The strip the row stands on, in the page's own colour.
             //
-            // Over the page rather than taken out of it. Taking it out was
-            // tried and photographed: the glass went a hundred and twenty-eight
-            // points shorter and Instagram's sheet did not rise with it, it was
-            // cut — which is what a sheet placed by a number rather than
-            // anchored to an edge does. The page keeps the whole glass now, and
-            // the sheet is moved in the page.
-            if sheetRoom > 0 {
+            // Under the row and under nothing else: the page ends at the top of
+            // it, so this is the only thing between the last pixel of Instagram
+            // and the bottom edge of the glass. Painted rather than left as the
+            // system's background so that the seam is invisible in both schemes
+            // and on a page that has decided its own.
+            if furniture > 0 {
                 VStack(spacing: 0) {
                     Spacer(minLength: 0)
-                    (surface.sheetTint ?? clockBand)
-                        .frame(height: sheetRoom)
+                    clockBand
+                        .frame(height: furniture)
                 }
                 .allowsHitTesting(false)
                 .accessibilityHidden(true)
@@ -198,10 +196,6 @@ struct BrowserScreen: View {
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: session.isPanelShowing)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: session.isSearchShowing)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: preferences.row)
-        // The page giving up the bottom of the glass to a sheet, and taking it
-        // back. Quick, because it happens while the sheet is still sliding up
-        // and should be over before it lands.
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: surface.isSheetUp)
         // The row leaving for a story and coming back from one, and the mark
         // moving from one entry to the next. Both are the address changing.
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: surface.address)
@@ -315,36 +309,6 @@ struct BrowserScreen: View {
         return ContentRules.isImmersive(surface.address)
     }
 
-    /// Whether the row answers taps.
-    ///
-    /// It always does now, on every sheet the page has been able to make room
-    /// for. Two answers came before this one and both of them moved the row —
-    /// away while a sheet was up, then back where it was and inert so the press
-    /// went through it — and both were answers to the wrong question. The row
-    /// was not in the way because it was answering taps. It was in the way
-    /// because it was drawn across the buttons on the sheet, and a button
-    /// nobody can see is a button nobody can press, whoever is given the tap.
-    ///
-    /// So the sheet is given room to stand clear of the row instead. That is
-    /// the page's work rather than the app's — a sheet belongs to the page, and
-    /// is pinned to the bottom edge of the page's world — and all the app does
-    /// is say how much of the bottom of the glass its row stands on. See
-    /// `giveTheSheetRoom` in trim.js.
-    ///
-    /// Where that could not be done, the old answer still holds. A sheet
-    /// filling the whole glass has nowhere to be moved to, and one built in a
-    /// shape the page does not recognise has not been moved at all; on those
-    /// the row stands down and the press goes to the sheet underneath. The page
-    /// says which it managed, because the page is the only thing that knows.
-    ///
-    /// Live regardless the moment one of Quiet's own pages is up: the row is
-    /// the way out of those, and a sheet left open on the page behind them is
-    /// no reason to take the way out away.
-    private var isRowLive: Bool {
-        if isShowingQuietPage { return true }
-        return !surface.isSheetUp || surface.isSheetClear
-    }
-
     /// The row, along the bottom edge, in the shape Instagram's own is.
     ///
     /// Full width, flush, opaque, with a hairline above it and the system's own
@@ -362,10 +326,6 @@ struct BrowserScreen: View {
                 case .island: island
                 }
             }
-            // Still drawn, and letting everything through, on the one kind of
-            // sheet the page could not move off it. The sheet is what you are
-            // doing; the row is furniture until you are done with it.
-            .allowsHitTesting(isRowLive)
             .transition(.opacity)
         }
     }
@@ -408,50 +368,18 @@ struct BrowserScreen: View {
                 reduceMotion ? nil : .spring(response: 0.34, dampingFraction: 0.86),
                 value: surface.isBarCollapsed
             )
-            // Off the bottom edge, with the page running on beneath it to the
-            // very bottom of the glass. That is the whole point of a row that
-            // floats: what is under it is still the page, not a black band.
+            // Off the bottom edge, with the app's own strip beneath it in the
+            // page's colour, so what is under a row that floats still reads as
+            // the page rather than as a black band.
             .padding(.bottom, Self.islandLift)
     }
 
-    /// How much of the bottom of the glass is painted over while Instagram has
-    /// a sheet up.
-    ///
-    /// This is the whole of the answer, and it is the app's rather than the
-    /// page's on purpose.
-    ///
-    /// Seven attempts at this moved something of Instagram's — pad the panel,
-    /// transform the panel, take the row away, make the row inert — and seven
-    /// photographs came back identical. Whatever the reason for each, and there
-    /// is no reading one off a photograph, they shared one property: every one
-    /// of them asked somebody else's stylesheet for permission.
-    ///
-    /// Shrinking the viewport was the eighth answer and it was half right. It
-    /// did fire — a photograph measures the glass ending a hundred and
-    /// twenty-eight points up, to the point — and Instagram's sheet did not
-    /// rise with it. It was cut, straight through "Log In to an Existing
-    /// Account". A sheet clipped by a shorter viewport is a sheet that is not
-    /// anchored to the bottom of one: it is placed by a number worked out when
-    /// it opened, and nothing done to the viewport moves it.
-    ///
-    /// So the page keeps the whole glass, the sheet is moved in the page by a
-    /// transform — which does not care what put the box where it is — and this
-    /// is the strip of the sheet's own colour painted over the gap that opens
-    /// underneath, so the sheet still reaches the bottom edge.
-    ///
-    /// Two centimetres, which is what was asked for: the row is eighty-nine
-    /// points and this is that with a margin nobody has to measure to believe.
-    private var sheetRoom: CGFloat {
-        surface.isSheetUp && !isImmersive ? Self.sheetLift : 0
-    }
-
-    private static let sheetLift: CGFloat = 128
-
     /// How much of the bottom of the screen the row stands on.
     ///
-    /// The page is kept out of it in both senses: the scroll indicator stops
-    /// above the row rather than running underneath it, and the end of the page
-    /// can be scrolled clear of the bar instead of sitting behind it for ever.
+    /// The page never sees it. This is subtracted from the web view's own
+    /// height, so it is not a strip of page hidden behind the row — it is not
+    /// page at all, and neither the scroll indicator, nor the end of the feed,
+    /// nor anything Instagram pins to the bottom of the viewport can reach it.
     /// Nothing here on a page that has no row.
     private var furniture: CGFloat {
         guard !isImmersive else { return 0 }

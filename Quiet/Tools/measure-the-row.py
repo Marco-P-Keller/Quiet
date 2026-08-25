@@ -120,20 +120,24 @@ TOLERANCE = 2.5
 # The rehearsed sheet's foot, in sRGB. Bright on purpose: nothing on Instagram
 # is this colour, so finding it needs no cleverness at all.
 FOOT = (255, 0, 128)
-# The mark inside the sheet that is anchored to the viewport, at three hundred
-# points from the top. A mechanism that re-anchors it — a transform does, by
-# becoming the containing block for everything fixed inside it — moves this.
+# The mark inside the sheet that is anchored to the viewport, three hundred
+# points up from the bottom of it. A mechanism that re-anchors it — a transform
+# does, by becoming the containing block for everything fixed inside it — moves
+# this. Measured from the same edge as the foot, so neither number depends on
+# how tall this phone's status bar is.
 PIN = (0, 255, 255)
-PIN_AT = 300
+PIN_ABOVE = 300
 NEAR = 40
 
 
 def measure_the_sheet(path):
     """How far the foot of the rehearsed sheet ended up from the bottom edge.
 
-    Zero means the sheet reaches the bottom of the screen and its last control
-    is under Quiet's row. The whole of the fix is that this comes back as the
-    height of the strip the app takes off the glass.
+    Zero means the viewport still runs to the bottom of the glass and the
+    sheet's last control is under Quiet's row. The whole of the fix is that this
+    comes back as the height of the row: the web view stops there, so the bottom
+    of the page's world is the top of the row and everything anchored to it
+    lands above.
     """
     image = Image.open(path).convert("RGB")
     width, height = image.size
@@ -164,7 +168,7 @@ def measure_the_sheet(path):
     x, y = found
 
     pinned = None
-    for py in range(height):
+    for py in range(height - 1, -1, -1):
         for px_ in range(2, width, 8):
             if all(abs(a - b) < NEAR for a, b in zip(pixels[px_, py], PIN)):
                 pinned = py
@@ -176,7 +180,7 @@ def measure_the_sheet(path):
         "screen": f"{width}x{height} px, {points:g} pt wide, {scale:g}x",
         "found": f"x = {x} px",
         "foot": (height - 1 - y) / scale,
-        "pinned": None if pinned is None else pinned / scale,
+        "pinned": None if pinned is None else (height - 1 - pinned) / scale,
     }, None
 
 
@@ -216,23 +220,27 @@ def main():
             print("WRONG. The mark anchored to the viewport is nowhere to be seen,")
             print("so something inside the sheet has been re-anchored.")
             return 1
-        print(f"Pinned mark: {found['pinned']:.1f} pt from the top (should be {PIN_AT})")
-        if abs(found["pinned"] - PIN_AT) > TOLERANCE:
+        wanted = float(sys.argv[sys.argv.index("--expect") + 1]) \
+            if "--expect" in sys.argv else None
+        expected_pin = None if wanted is None else wanted + PIN_ABOVE
+        print(f"Pinned mark: {found['pinned']:.1f} pt above the bottom edge", end="")
+        print("" if expected_pin is None else f" (should be {expected_pin:g})")
+        if expected_pin is not None and abs(found["pinned"] - expected_pin) > TOLERANCE:
             print()
             print("WRONG. A child of the sheet that is anchored to the viewport has")
             print("moved, so the sheet is now the containing block for it — which is")
             print("what a transform does, and what piled Instagram's sheet on top of")
-            print("itself. Whatever moves the sheet must not do that.")
+            print("itself. Nothing should be moving the sheet at all any more.")
             return 1
-        wanted = float(sys.argv[sys.argv.index("--expect") + 1]) \
-            if "--expect" in sys.argv else None
         if wanted is not None:
             off = abs(found["foot"] - wanted)
             if off > TOLERANCE:
                 print()
-                print(f"WRONG. The app takes {wanted:g} pt of glass off the bottom while a")
-                print(f"sheet is up, and the sheet's foot is drawn {found['foot']:.1f} pt above the")
-                print("edge — so it has not moved. That is the eight-round bug, caught here")
+                print(f"WRONG. The row is {wanted:g} pt tall and the web view is supposed to")
+                print(f"stop above it, so the foot of a sheet held against the bottom of the")
+                print(f"viewport belongs {wanted:g} pt above the edge. It is drawn {found['foot']:.1f} pt above")
+                print("it — so the page still owns the strip the row stands on, and the")
+                print("sheet is under the row. That is the eleven-round bug, caught here")
                 print("instead of on somebody's phone.")
                 return 1
             print(f"Agrees with the app ({wanted:g} pt), within {TOLERANCE:g} pt.")

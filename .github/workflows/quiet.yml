@@ -174,20 +174,29 @@ jobs:
           xcrun simctl ui booted appearance light
           python3 Tools/measure-the-row.py island.png --expect "$expected"
 
-          # And the sheet, which is the one that has cost eight builds.
+          # And the sheet, which is the one that has cost eleven builds.
           #
           # A sheet the shape of Instagram's is put on the real page by a
-          # rehearsal — held against the bottom of the glass, the width of it,
-          # saying nothing anywhere about being modal, which is the case that
-          # went unasked for seven rounds. Its foot is a bright band, and the
-          # whole question is how far that band ends up from the bottom edge.
+          # rehearsal — held against the bottom of the viewport, the width of
+          # it, saying nothing anywhere about being modal, which is the case
+          # that went unasked for seven rounds. Its foot is a bright band, and
+          # the whole question is how far that band ends up from the bottom
+          # edge of the screen.
           #
-          # Zero means the sheet still reaches the bottom and its last control
-          # is under Quiet's row. The number the app takes off the glass is what
-          # it should be instead.
-          room=$(sed -n 's/.*sheetLift: CGFloat = \([0-9.]*\).*/\1/p' \
-            Quiet/UI/BrowserScreen.swift)
-          echo "The app takes $room pt off the glass for a sheet."
+          # Zero means the viewport still runs to the bottom of the glass and
+          # the sheet's last control is under Quiet's row. The height of the row
+          # is what it should be instead: the web view stops there, so the
+          # bottom of the page's world is the top of the row.
+          #
+          # Summed out of the three numbers the row is built from rather than
+          # written down here, so the check follows the row when it moves.
+          number() {
+            sed -n "s/.*$1: CGFloat = \([0-9.]*\).*/\1/p" \
+              Quiet/UI/BrowserScreen.swift
+          }
+          room=$(python3 -c \
+            "print($(number islandHeight) + $(number islandLift) + $(number islandAir))")
+          echo "The row is $room pt tall, so the page stops there."
           xcrun simctl terminate booted com.connexa.quiet >/dev/null 2>&1 || true
           xcrun simctl launch booted com.connexa.quiet -QuietRehearsal sheet >/dev/null
           # Long enough for the page to arrive and the sheet to be put on it.
