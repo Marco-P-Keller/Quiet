@@ -1,0 +1,287 @@
+/**
+ * The part of trim.js the app's promise actually rests on.
+ *
+ *     npm install jsdom && node Tools/read-the-trim.js
+ *
+ * The header had a tool of its own because the header had cost the most
+ * commits. These are the checks nobody wrote, and they cover the things that
+ * fail *silently* — which is worse than failing loudly, because an entrance
+ * that quietly reappears looks exactly like an app that is working.
+ *
+ * Four questions:
+ *
+ *   1. Does a tap that would open Reels or Explore get refused, and does a
+ *      profile whose name merely starts with those letters get left alone?
+ *   2. Does a block Instagram inserted get hidden — and, far more important,
+ *      does an ordinary post survive? A reel that gets through is a bug. A gap
+ *      where a friend's photograph used to be is a betrayal.
+ *   3. Does every phrase in the list actually match something? The list is
+ *      twenty-odd hand-written strings in a dozen languages and a typo in any
+ *      one of them is invisible from Swift, from CI and from the phone.
+ *   4. Does the script notice when Instagram's own client changes the page
+ *      without loading anything?
+ */
+
+"use strict";
+
+const { page, scoreboard, TRIM } = require("./page");
+
+const { check, done } = scoreboard("The trim");
+
+const FEED = "https://www.instagram.com/";
+
+/**
+ * The phrase list, read out of trim.js itself.
+ *
+ * Read rather than repeated, so that a phrase added tomorrow is covered
+ * tomorrow. A copy here would be a list that agrees with the script on the day
+ * it is written and never again.
+ */
+function labels() {
+  const block = /var SUGGESTION_LABELS = \[([\s\S]*?)\];/.exec(TRIM);
+  if (!block) throw new Error("SUGGESTION_LABELS is not where this expects it");
+  return block[1]
+    .split("\n")
+    .map((line) => /"([^"]*)"/.exec(line))
+    .filter(Boolean)
+    .map((found) => found[1]);
+}
+
+/**
+ * Let the page's own machinery run.
+ *
+ * A mutation reaches the observer on a microtask, and the observer is what
+ * asks for the frame the trim pass runs in. Draining frames straight after an
+ * edit drains an empty queue — which is not the script failing, it is the test
+ * arriving before it.
+ */
+async function settle(win) {
+  await new Promise((go) => setTimeout(go, 0));
+  win.drain();
+}
+
+/** Tap a link the way a thumb does, and say what the page made of it. */
+function tap(win, selector) {
+  const anchor = win.document.querySelector(selector);
+  const event = new win.MouseEvent("click", { bubbles: true, cancelable: true });
+  anchor.dispatchEvent(event);
+  return {
+    refused: event.defaultPrevented,
+    said: win.sent.filter((m) => m.kind === "refused").map((m) => m.surface),
+  };
+}
+
+(async () => {
+  /* ── 1. Taps ─────────────────────────────────────────────────────────── */
+
+  const doors = {
+    "/reels/": "reels",
+    "/reel/CxYz123/": "reels",
+    "/explore/": "explore",
+    "/explore/tags/sunset/": "explore",
+    "/directory/profiles/": "explore",
+    "/accounts/suggested/": "explore",
+    "/someone/reels/": "reels",
+    /* IGTV's old address, which Instagram kept alive as a redirect into the
+     * same player. The script used to answer "explore" for this, because it
+     * worked the surface out from whether the root began with "reel". */
+    "/tv/CxYz123/": "reels",
+  };
+
+  for (const [href, surface] of Object.entries(doors)) {
+    const win = await page(`<main><a href="${href}">go</a></main>`, FEED);
+    check(`a tap on ${href} is refused as ${surface}`, tap(win, "a"), {
+      refused: true,
+      said: [surface],
+    });
+  }
+
+  /* The bug on the other side, and the one that would be reported as "the app
+   * cannot open my friend". Whole path components, never a prefix. */
+  const spared = [
+    "/reelstuff/",
+    "/explorers/",
+    "/tvtotal/",
+    "/directorycorp/",
+    "/someone/",
+    "/someone/tagged/",
+    "/p/CxYz123/",
+    "/direct/inbox/",
+  ];
+  for (const href of spared) {
+    const win = await page(`<main><a href="${href}">go</a></main>`, FEED);
+    check(`a tap on ${href} is left alone`, tap(win, "a"), {
+      refused: false,
+      said: [],
+    });
+  }
+
+  /* Somebody else's site, linked from a comment. Not this script's business:
+   * the app decides that, by URL, in Swift. */
+  const outside = await page(
+    `<main><a href="https://example.com/reels/">go</a></main>`,
+    FEED
+  );
+  check("a link to somebody else's site is not this script's business",
+    tap(outside, "a"), { refused: false, said: [] });
+
+  /* ── 2. Suggestion blocks ────────────────────────────────────────────── */
+
+  const hidden = (win) =>
+    [...win.document.querySelectorAll("[data-quiet-hidden]")]
+      .map((e) => e.getAttribute("data-name"))
+      .sort();
+
+  const MIXED = `
+    <main>
+      <article data-name="friend">
+        <a href="/someone/"><span>someone</span></a>
+        <span>a photograph of a dog</span>
+      </article>
+      <article data-name="inserted">
+        <span>Suggested for you</span>
+        <a href="/stranger/"><span>stranger</span></a>
+      </article>
+      <article data-name="another-friend">
+        <a href="/else/"><span>else</span></a>
+        <span>a photograph of a lake</span>
+      </article>
+    </main>`;
+
+  const mixed = await page(MIXED, FEED);
+  check("the block Instagram inserted is hidden", hidden(mixed), ["inserted"]);
+  check(
+    "and both of the posts either side of it are untouched",
+    [...mixed.document.querySelectorAll("article")]
+      .filter((a) => !a.hasAttribute("data-quiet-hidden"))
+      .map((a) => a.getAttribute("data-name")),
+    ["friend", "another-friend"]
+  );
+
+  /* A caption that happens to say the words. The rule that separates the two
+   * is that a heading of Instagram's is not inside a link and a caption is. */
+  const caption = await page(
+    `<main>
+       <article data-name="post">
+         <a href="/someone/"><span>Suggested for you</span></a>
+       </article>
+     </main>`,
+    FEED
+  );
+  check("a caption that merely says the words survives", hidden(caption), []);
+
+  /* Longer than a heading ever is. Without the length rule, a comment quoting
+   * the phrase would take the post it is under with it. */
+  const essay = await page(
+    `<main>
+       <article data-name="post">
+         <span>suggested for you is a phrase i have grown to dislike, actually</span>
+       </article>
+     </main>`,
+    FEED
+  );
+  check("a sentence that contains the phrase is not a heading", hidden(essay), []);
+
+  /* Instagram's client recycles DOM nodes: an element inspected while it held
+   * a caption can later hold a heading. A set of seen nodes would never look
+   * at it twice, which is the bug the WeakMap of last-seen *text* fixes. */
+  const recycled = await page(
+    `<main><article data-name="post"><span>a photograph of a dog</span></article></main>`,
+    FEED
+  );
+  check("nothing is hidden yet", hidden(recycled), []);
+  recycled.document.querySelector("span").textContent = "Suggested for you";
+  await settle(recycled);
+  check(
+    "a node that has been recycled into a heading is caught",
+    hidden(recycled),
+    ["post"]
+  );
+
+  /* ── 3. Every phrase in the list ─────────────────────────────────────── */
+
+  const list = labels();
+  check("the phrase list was found and is not empty", list.length > 0, true);
+
+  const missed = [];
+  for (const label of list) {
+    const win = await page(
+      `<main><article data-name="block"><span>${label}</span></article></main>`,
+      FEED
+    );
+    if (hidden(win).length !== 1) missed.push(label);
+  }
+  check(`all ${list.length} phrases match something`, missed, []);
+
+  /* And the same phrases as a person would type them, since the match is made
+   * after lower-casing and trimming and both are easy to lose. */
+  const shouted = [];
+  for (const label of list) {
+    const win = await page(
+      `<main><article data-name="block"><span>  ${label.toUpperCase()}  </span></article></main>`,
+      FEED
+    );
+    if (hidden(win).length !== 1) shouted.push(label);
+  }
+  check("case and stray spaces do not matter", shouted, []);
+
+  /* The three ways a heading arrives written differently from the way it is
+   * written in the list. Every one of these was a phrase that got through. */
+
+  const spellings = {
+    "a Turkish capital dotted I": [
+      "Senin \u0130\u00e7in \u00d6nerilenler", true,
+    ],
+    "a non-breaking space between the words": [
+      "Suggested\u00a0for\u00a0you", true,
+    ],
+    "an accent written as two code points": [
+      "Vorschla\u0308ge fu\u0308r dich", true,
+    ],
+    "a line break inside the heading": [
+      "Suggested\nfor you", true,
+    ],
+    /* And the other side of the same rule: a wider net that still catches
+     * nothing it should not. */
+    "an ordinary caption": ["a photograph of a dog", false],
+  };
+
+  for (const [name, [text, expected]] of Object.entries(spellings)) {
+    const win = await page(
+      `<main><article data-name="block"><span>${text}</span></article></main>`,
+      FEED
+    );
+    check(`${name} is read as the phrase it is`, hidden(win).length === 1, expected);
+  }
+
+  /* ── 4. A page that changes without loading ──────────────────────────── */
+
+  /* Instagram's client replaces the feed with a profile without a navigation
+   * of any kind, and the app's row along the bottom learns where it is from
+   * this message and nothing else. */
+  const moving = await page(`<main></main>`, FEED);
+  const where = () =>
+    moving.sent.filter((m) => m.kind === "where").map((m) => m.path);
+
+  check("the first page says where it is", where(), ["/"]);
+
+  moving.history.pushState({}, "", "/someone/");
+  moving.drain();
+  check("and so does the next one", where(), ["/", "/someone/"]);
+
+  /* The same address twice is not news. */
+  moving.history.replaceState({}, "", "/someone/");
+  moving.drain();
+  check("the same address is not said twice", where(), ["/", "/someone/"]);
+
+  /* Landing on a blocked path without a page load at all — the backstop for
+   * the case where Instagram's own router gets there first. */
+  const landed = await page(`<main></main>`, "https://www.instagram.com/explore/");
+  check(
+    "arriving on a blocked path is refused even with no tap to refuse",
+    landed.sent.filter((m) => m.kind === "refused").map((m) => m.surface),
+    ["explore"]
+  );
+
+  done();
+})();

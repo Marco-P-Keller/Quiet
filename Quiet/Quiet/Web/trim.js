@@ -49,6 +49,7 @@
    * mentions the words is left alone.
    */
   var SUGGESTION_LABELS = [
+    /* English */
     "suggested for you",
     "suggested posts",
     "suggested accounts",
@@ -56,24 +57,110 @@
     "suggested threads",
     "reels",
     "discover people",
+    /* German */
     "vorgeschlagene beiträge",
     "vorschläge für dich",
     "vorgeschlagen für dich",
+    /* Spanish */
     "sugerencias para ti",
     "publicaciones sugeridas",
+    /* French */
     "suggestions pour vous",
     "publications suggérées",
+    /* Italian */
     "suggerimenti per te",
     "post suggeriti",
+    /* Portuguese */
     "sugestões para você",
     "publicações sugeridas",
+    /* Dutch */
     "voorgesteld voor jou",
+    /* Swedish */
     "förslag för dig",
+    /* Danish */
+    "foreslået til dig",
+    /* Norwegian */
+    "foreslått for deg",
+    /* Finnish */
+    "ehdotuksia sinulle",
+    /* Polish */
+    "propozycje dla ciebie",
+    "sugerowane posty",
+    /* Czech */
+    "návrhy pro vás",
+    /* Romanian */
+    "sugestii pentru tine",
+    /* Hungarian */
+    "javaslatok neked",
+    /* Greek */
+    "προτεινόμενα για εσένα",
+    /* Turkish. The reason this file normalises before it compares: a capital
+     * dotted I lower-cases to an i with a combining dot above, which is not
+     * the letter anybody would write in a list like this one. */
+    "senin için önerilenler",
+    "sizin için önerilenler",
+    "önerilen gönderiler",
+    /* Russian */
+    "рекомендации для вас",
+    "рекомендуемые публикации",
+    /* Ukrainian */
+    "рекомендації для вас",
+    /* Indonesian */
+    "disarankan untuk anda",
+    "postingan yang disarankan",
+    /* Vietnamese */
+    "gợi ý cho bạn",
+    /* Arabic */
+    "مقترح لك",
+    "منشورات مقترحة",
+    /* Hindi */
+    "आपके लिए सुझाव",
+    /* Thai */
+    "แนะนำสำหรับคุณ",
+    /* Japanese */
+    "あなたへのおすすめ",
+    "おすすめの投稿",
+    /* Korean */
+    "회원님을 위한 추천",
+    /* Chinese, simplified and traditional */
+    "为你推荐",
+    "為你推薦",
   ];
+
+  /**
+   * One spelling of a phrase, so that two spellings of it match.
+   *
+   * The comparison used to be `trim().toLowerCase()`, which is right for
+   * English and wrong in three different ways for everybody else:
+   *
+   *   * A Turkish capital dotted I lower-cases to an `i` followed by a
+   *     combining dot above. Written the way a person writes it, no Turkish
+   *     phrase in the list above could ever have matched a heading Instagram
+   *     actually draws.
+   *   * Instagram emits non-breaking spaces between words. `trim` removes them
+   *     at the ends and nothing touches the ones in the middle, so a heading
+   *     with one in it was a heading that got through.
+   *   * An accent can be written more than one way in Unicode, and which one
+   *     arrives is not something a page promises.
+   *
+   * Decomposing, dropping the combining marks and collapsing the whitespace
+   * settles all three. It also makes the match accent-blind, which is a
+   * slightly wider net than before — and the two guards that decide whether a
+   * match may hide anything, that it is not inside a link and no longer than a
+   * heading, are unchanged. The net is wider only where widening it is safe.
+   */
+  function normalise(text) {
+    return (text || "")
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+  }
 
   var labelSet = Object.create(null);
   for (var i = 0; i < SUGGESTION_LABELS.length; i++) {
-    labelSet[SUGGESTION_LABELS[i]] = true;
+    labelSet[normalise(SUGGESTION_LABELS[i])] = true;
   }
 
   /** The Reels tab on a profile: /someone/reels/. */
@@ -1575,7 +1662,7 @@
     for (var i = 0; i < candidates.length; i++) {
       var element = candidates[i];
 
-      var text = (element.textContent || "").trim().toLowerCase();
+      var text = normalise(element.textContent);
       if (lastSeenText.get(element) === text) continue;
       lastSeenText.set(element, text);
 
