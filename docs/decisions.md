@@ -1963,5 +1963,30 @@ real page, held against the bottom of the viewport, and its foot is photographed
 against the bottom edge of the screen. It used to have to agree with the number
 the app moved sheets by; it now has to agree with the height of the row, summed
 out of the three constants the row is built from rather than written down in the
-workflow. The mark pinned inside it moved to the same edge, so neither number
-depends on how tall this phone's status bar is.
+workflow. It does: **eighty-nine points, to the point**, on the first run that
+reached it. That is the number eleven mechanisms never produced.
+
+Two things the same run said, both worth keeping.
+
+The row itself had moved seven points up — twenty-five in the source, thirty-two
+in the photograph — the moment the web view stopped being as tall as the screen.
+Seven is exactly what the web view's box lost against the safe area. With no
+child left the height of the glass, the stack worked its own height out from its
+tallest child and came up short at the bottom. It is given the glass outright
+now, which is the same sentence the web view two screens above it already
+carried: ignoring the safe area is a request about edges, and a size is not a
+request. Nobody would have caught seven points by eye, and the row has been
+argued about four times.
+
+And the mark pinned inside the rehearsed sheet, which is there to catch the
+sheet becoming the containing block for what is fixed inside it, was briefly
+moved to the bottom edge so that both numbers would be distances from the same
+place. That was wrong twice over. Held by the bottom it lands in the same spot
+whether it is re-anchored or not, since the sheet's bottom edge *is* the bottom
+of the viewport — a check that cannot fail. And it made the check arithmetic in
+CSS pixels, which are not points: a page that declares no viewport is laid out
+at nine hundred and eighty and scaled to fit, so three hundred came back as a
+hundred and twenty-three. It is held by the top again, and the question is now
+whether the mark is on the screen above the foot at all — which is the same
+answer at every scale, because re-anchoring sends it three hundred down from the
+top of a sheet two hundred and sixty tall, which is off the bottom of the screen.

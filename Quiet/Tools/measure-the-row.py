@@ -120,13 +120,17 @@ TOLERANCE = 2.5
 # The rehearsed sheet's foot, in sRGB. Bright on purpose: nothing on Instagram
 # is this colour, so finding it needs no cleverness at all.
 FOOT = (255, 0, 128)
-# The mark inside the sheet that is anchored to the viewport, three hundred
-# points up from the bottom of it. A mechanism that re-anchors it — a transform
-# does, by becoming the containing block for everything fixed inside it — moves
-# this. Measured from the same edge as the foot, so neither number depends on
-# how tall this phone's status bar is.
+# The mark inside the sheet that is anchored to the top of the viewport. A
+# mechanism that re-anchors it — a transform does, by becoming the containing
+# block for everything fixed inside it — sends it three hundred down from the
+# top of a sheet that is only two hundred and sixty tall, which is off the
+# bottom of the screen. So the question is whether it is on the screen at all,
+# and above the sheet's foot: no arithmetic, and nothing that depends on the
+# status bar or on the scale the page happened to be laid out at. A page that
+# declares no viewport is laid out at nine hundred and eighty and scaled to
+# fit, and three hundred CSS pixels came back as a hundred and twenty-three
+# points — which cost a build to find out.
 PIN = (0, 255, 255)
-PIN_ABOVE = 300
 NEAR = 40
 
 
@@ -168,7 +172,7 @@ def measure_the_sheet(path):
     x, y = found
 
     pinned = None
-    for py in range(height - 1, -1, -1):
+    for py in range(height):
         for px_ in range(2, width, 8):
             if all(abs(a - b) < NEAR for a, b in zip(pixels[px_, py], PIN)):
                 pinned = py
@@ -181,6 +185,7 @@ def measure_the_sheet(path):
         "found": f"x = {x} px",
         "foot": (height - 1 - y) / scale,
         "pinned": None if pinned is None else (height - 1 - pinned) / scale,
+        "pinned_from_top": None if pinned is None else pinned / scale,
     }, None
 
 
@@ -220,18 +225,18 @@ def main():
             print("WRONG. The mark anchored to the viewport is nowhere to be seen,")
             print("so something inside the sheet has been re-anchored.")
             return 1
+        print(f"Pinned mark: {found['pinned']:.1f} pt above the bottom edge, "
+              f"{found['pinned_from_top']:.1f} pt from the top")
+        if found["pinned"] <= found["foot"]:
+            print()
+            print("WRONG. The mark anchored to the top of the viewport is at or below")
+            print("the foot of the sheet, so the sheet has become the containing block")
+            print("for what is fixed inside it — which is what a transform does, and")
+            print("what piled Instagram's sheet on top of itself. Nothing should be")
+            print("moving the sheet at all any more.")
+            return 1
         wanted = float(sys.argv[sys.argv.index("--expect") + 1]) \
             if "--expect" in sys.argv else None
-        expected_pin = None if wanted is None else wanted + PIN_ABOVE
-        print(f"Pinned mark: {found['pinned']:.1f} pt above the bottom edge", end="")
-        print("" if expected_pin is None else f" (should be {expected_pin:g})")
-        if expected_pin is not None and abs(found["pinned"] - expected_pin) > TOLERANCE:
-            print()
-            print("WRONG. A child of the sheet that is anchored to the viewport has")
-            print("moved, so the sheet is now the containing block for it — which is")
-            print("what a transform does, and what piled Instagram's sheet on top of")
-            print("itself. Nothing should be moving the sheet at all any more.")
-            return 1
         if wanted is not None:
             off = abs(found["foot"] - wanted)
             if off > TOLERANCE:

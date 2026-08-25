@@ -129,18 +129,28 @@ enum WebScripts {
           "width: 100%", "background: rgb(255, 0, 128)"
         ].join(";"));
         sheet.appendChild(foot);
-        // A child anchored to the bottom of the viewport, the way Instagram's
+        // A child anchored to the top of the viewport, the way Instagram's
         // sheet anchors its heading — and the thing a transform quietly
         // re-anchors, because an element with a transform becomes the
         // containing block for every fixed thing inside it. A photograph of
         // that came back with the sheet's contents piled on top of each other.
-        // Held by the same edge the sheet is measured from, so the two numbers
-        // a screenshot yields are both distances from the bottom of the glass
-        // and neither needs to know how tall this phone's status bar is.
+        //
+        // Held by the *top* on purpose, and it has to be. Re-anchored, three
+        // hundred down from the top of a sheet two hundred and sixty tall is
+        // off the bottom of the screen, so the mark simply disappears and a
+        // photograph can say so without measuring anything. Held by the bottom
+        // it would land in the same place either way — the sheet's bottom edge
+        // *is* the bottom of the viewport — which is a check that cannot fail.
+        //
+        // Nothing here is measured in points, which is the other half of the
+        // lesson. A page that declares no viewport is laid out at nine hundred
+        // and eighty and scaled to fit, so three hundred CSS pixels came back
+        // as a hundred and twenty-three points. Whether the mark is on the
+        // screen at all is the same answer at every scale.
         var pinned = document.createElement("div");
         pinned.id = "rehearsed-pin";
         pinned.setAttribute("style", [
-          "position: fixed", "bottom: 300px", "left: 0",
+          "position: fixed", "top: 300px", "left: 0",
           "width: 40px", "height: 20px", "background: rgb(0, 255, 255)"
         ].join(";"));
         sheet.appendChild(pinned);
