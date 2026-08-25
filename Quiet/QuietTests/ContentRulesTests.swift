@@ -28,8 +28,23 @@ final class ContentRulesTests: XCTestCase {
             "https://www.instagram.com/reels/audio/123/",
             "https://www.instagram.com/reel/CxYz123/",
             "https://www.instagram.com/someone/reels/",
+            // IGTV's old address. Instagram kept it alive as a redirect into
+            // the video player, so a link written years ago is still a door.
+            "https://www.instagram.com/tv/CxYz123/",
+            "https://www.instagram.com/tv/",
         ] {
             XCTAssertEqual(routing(address), .refuse(.reels), address)
+        }
+    }
+
+    /// The same guard as for `reels`: whole components, never a prefix, or
+    /// every account whose name starts with those two letters disappears.
+    func testAccountsThatMerelyBeginWithTVAreFine() {
+        for address in [
+            "https://www.instagram.com/tvtotal/",
+            "https://www.instagram.com/tv_show/",
+        ] {
+            XCTAssertEqual(routing(address), .allow, address)
         }
     }
 
@@ -171,4 +186,47 @@ final class ContentRulesTests: XCTestCase {
     func testNoAddressIsAnOrdinaryPage() {
         XCTAssertFalse(ContentRules.isImmersive(nil))
     }
+
+    // MARK: - Signing in
+
+    /// Not a rule about what opens. A rule about what gets explained: the one
+    /// failure that makes the app useless on first run is a login handed to
+    /// Safari halfway through, and it used to happen in silence.
+    func testTheSignInFlowIsRecognised() {
+        for address in [
+            "https://www.instagram.com/accounts/login/",
+            "https://www.instagram.com/accounts/login/two_factor?next=%2F",
+            "https://www.instagram.com/accounts/signup/email/",
+            "https://www.instagram.com/accounts/password/reset/",
+            "https://www.instagram.com/accounts/onetap/",
+            "https://www.instagram.com/challenge/AbC/123/",
+            "https://www.facebook.com/login.php",
+            "https://m.facebook.com/v1/dialog/oauth",
+            "https://accountscenter.instagram.com/password_and_security/",
+        ] {
+            XCTAssertTrue(
+                ContentRules.isSignInFlow(URL(string: address)!),
+                address
+            )
+        }
+    }
+
+    /// Reading a feed is not signing in, and a notice about Safari arriving
+    /// while somebody scrolls would be the app talking for no reason.
+    func testOrdinaryInstagramPagesAreNotTheSignInFlow() {
+        for address in [
+            "https://www.instagram.com/",
+            "https://www.instagram.com/someone/",
+            "https://www.instagram.com/direct/inbox/",
+            "https://www.instagram.com/accounts/edit/",
+            "https://example.com/anything",
+        ] {
+            XCTAssertFalse(
+                ContentRules.isSignInFlow(URL(string: address)!),
+                address
+            )
+        }
+        XCTAssertFalse(ContentRules.isSignInFlow(nil))
+    }
+
 }

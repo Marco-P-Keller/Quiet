@@ -19,12 +19,17 @@ protocol StateStore: AnyObject {
     func save<T: Codable>(_ value: T, for key: StoreKey)
     func remove(_ key: StoreKey)
 
-    /// False once a write has failed.
+    /// False while any value the app has tried to write is not written down.
     ///
     /// Quiet's entire promise is that the limit outlives the app. A store that
     /// refuses writes and says nothing turns that into the opposite promise —
     /// every launch a clean slate — and it would look exactly like a working
     /// app. So the failure is carried out of here and said on screen.
+    ///
+    /// It comes back. The refusal that actually happens is a device still
+    /// locked after a restart, which declines everything and then accepts
+    /// everything a passcode later; a store that could only ever go from good
+    /// to bad would leave the banner standing over a healthy keychain.
     var isWritable: Bool { get }
 }
 

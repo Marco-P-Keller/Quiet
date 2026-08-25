@@ -83,7 +83,7 @@ final class Applause {
         let now = uptime()
         since = now
         let elapsed = now - started
-        guard elapsed > 0, elapsed < Self.implausible else { return }
+        guard elapsed > 0, elapsed < Elapsed.plausible else { return }
         spent += elapsed
         defaults.set(spent, forKey: Key.spent)
     }
@@ -106,9 +106,4 @@ final class Applause {
         defaults.removeObject(forKey: Key.spent)
         defaults.removeObject(forKey: Key.asked)
     }
-
-    /// Longer than any stretch of somebody holding a phone that this rule needs
-    /// to believe. A day of standby that woke into the foreground would
-    /// otherwise be five minutes several hundred times over.
-    private static let implausible: TimeInterval = 60 * 60
 }

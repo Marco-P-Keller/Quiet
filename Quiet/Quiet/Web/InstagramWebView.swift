@@ -260,6 +260,18 @@ final class WebSurface {
         address = url
     }
 
+    /// The last address Quiet handed to Safari from inside a sign-in.
+    ///
+    /// Kept for one reason: it is the single most likely cause of "I cannot
+    /// log in", and it is a host name — five words that turn an unreproducible
+    /// report into a one-line fix. Shown in the panel, never sent anywhere.
+    private(set) var handedOff: String?
+
+    fileprivate func note(handedOff url: URL) {
+        guard let host = url.host?.lowercased(), handedOff != host else { return }
+        handedOff = host
+    }
+
     fileprivate func setBar(collapsed: Bool) {
         guard collapsed != isBarCollapsed else { return }
         isBarCollapsed = collapsed
@@ -698,7 +710,7 @@ struct InstagramWebView: UIViewRepresentable {
                     return
                 }
                 decisionHandler(.cancel)
-                UIApplication.shared.open(url)
+                handOff(url)
 
             case .ignore:
                 // A scheme belonging to some app on the phone. The page asked;
@@ -721,12 +733,37 @@ struct InstagramWebView: UIViewRepresentable {
                 case let .refuse(surface):
                     session.report(surface)
                 case .openOutside:
-                    UIApplication.shared.open(url)
+                    handOff(url)
                 case .ignore:
                     break
                 }
             }
             return nil
+        }
+
+        /// Give a page to Safari, and say so when that is about to break
+        /// something.
+        ///
+        /// Handing anything that is not Instagram's to the system is what
+        /// keeps Quiet one app rather than a browser. It has exactly one bad
+        /// moment: a sign-in that passes through a domain the allowlist does
+        /// not know is handed away mid-flow, Safari opens on a page that
+        /// cannot finish the job, and the person comes back to a login form
+        /// that has forgotten them — with nothing anywhere having said what
+        /// happened.
+        ///
+        /// The allowlist cannot be completed by guessing. The explanation can.
+        /// So a hand-off that happens while somebody is signing in names the
+        /// address it gave away, and the panel keeps the last one so it can be
+        /// reported rather than reconstructed from memory.
+        func handOff(_ url: URL) {
+            if ContentRules.isSignInFlow(surface.address) {
+                surface.note(handedOff: url)
+                session.show(String(
+                    localized: "\(url.host ?? "That page") is not part of Instagram, so it opened in Safari. If you were signing in, come back and start again."
+                ))
+            }
+            UIApplication.shared.open(url)
         }
 
         func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {

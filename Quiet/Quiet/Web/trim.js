@@ -30,8 +30,18 @@
   window.__quietTrimInstalled = true;
 
   /** Path roots Quiet does not open. Mirrors ContentRules.blockedRoots. */
-  var BLOCKED = /^\/(reels?|explore|directory)(\/|$)/;
+  var BLOCKED = /^\/(reels?|tv|explore|directory)(\/|$)/;
   var SUGGESTED_ACCOUNTS = /^\/accounts\/suggested(\/|$)/;
+
+  /** Which surface each of those roots belongs to. Mirrors the same table. */
+  var ROOT_SURFACE = {
+    reel: "reels",
+    reels: "reels",
+    /* IGTV's old address, kept alive as a redirect into the video player. */
+    tv: "reels",
+    explore: "explore",
+    directory: "explore",
+  };
 
   /**
    * Headings that mark a block Instagram inserted rather than one your friends
@@ -71,7 +81,11 @@
 
   function surfaceFor(path) {
     var match = BLOCKED.exec(path);
-    if (match) return match[1].indexOf("reel") === 0 ? "reels" : "explore";
+    /* Looked up rather than worked out from the spelling. The old version
+     * asked whether the root began with "reel" and called everything else
+     * Explore, which was true for exactly as long as the table held four
+     * entries — "tv" arrived and started announcing itself as Explore. */
+    if (match) return ROOT_SURFACE[match[1]] || "explore";
     if (SUGGESTED_ACCOUNTS.test(path)) return "explore";
     if (PROFILE_REELS.test(path)) return "reels";
     return null;

@@ -72,6 +72,11 @@ enum ContentRules {
     static let blockedRoots: [String: BlockedSurface] = [
         "reels": .reels,
         "reel": .reels,
+        // IGTV's old address. Instagram folded that product into Reels and
+        // kept the path alive as a redirect, so a link written years ago is
+        // still a way into the video player — and a redirect that is followed
+        // has already loaded the page it redirects to.
+        "tv": .reels,
         "explore": .explore,
         "directory": .explore,
     ]
@@ -163,6 +168,53 @@ enum ContentRules {
         return path.hasPrefix("/stories/")
             || path.hasPrefix("/direct/t/")
             || path.hasPrefix("/direct/new/")
+    }
+
+    /// Whether this address is part of signing in.
+    ///
+    /// Quiet hands anything that is not Instagram's to Safari, which is the
+    /// rule that keeps it one app rather than a browser with a bookmark. That
+    /// rule has one bad moment, and it is the worst moment the app has: a
+    /// sign-in can pass through two-factor, a security checkpoint, a "save
+    /// your login info" page or Facebook, and if any of those arrives on a
+    /// domain this file does not know, the login is handed to Safari and dies
+    /// halfway with nothing anywhere saying why.
+    ///
+    /// The allowlist cannot be made complete by guessing — that is the point
+    /// of an allowlist. What can be made complete is the *explanation*: when a
+    /// page is handed outside while somebody is in the middle of signing in,
+    /// the app says so, and names the address, so the failure is a sentence
+    /// rather than a mystery.
+    static func isSignInFlow(_ url: URL?) -> Bool {
+        guard let url, let host = url.host?.lowercased(),
+              isInternal(host: host) else { return false }
+
+        // Everything that is not Instagram's own name. Quiet never links to
+        // Facebook or to Meta for anything except signing in, so arriving on
+        // one of them is the flow by definition.
+        //
+        // Asked as "is this Instagram" rather than as a suffix on the string,
+        // because `cdninstagram.com` ends with those thirteen characters
+        // without being a subdomain of anything.
+        let isInstagram = host == "instagram.com" || host.hasSuffix(".instagram.com")
+        guard isInstagram else { return true }
+
+        // Identity has a subdomain of its own, and what it serves there is a
+        // sign-in whatever the path happens to be called.
+        if host.hasPrefix("accountscenter.") { return true }
+
+        // Ending in a slash, always, for the same reason `isImmersive` does:
+        // `URL.path` drops a trailing one, so a whole-path match would miss
+        // the page whose path *is* the prefix.
+        let path = url.path.lowercased() + "/"
+        return path.hasPrefix("/accounts/login")
+            || path.hasPrefix("/accounts/signup")
+            || path.hasPrefix("/accounts/password")
+            || path.hasPrefix("/accounts/two_factor")
+            || path.hasPrefix("/accounts/onetap")
+            || path.hasPrefix("/challenge")
+            || path.hasPrefix("/auth_platform/")
+            || path.hasPrefix("/oauth/")
     }
 
     /// The profile page for a handle typed into "Find someone". Returns `nil`

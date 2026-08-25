@@ -41,6 +41,16 @@
         }
       }
     },
+    "%@ is not part of Instagram, so it opened in Safari. If you were signing in, come back and start again.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ gehört nicht zu Instagram und wurde deshalb in Safari geöffnet. Falls du dich gerade anmelden wolltest: komm zurück und fang noch einmal an."
+          }
+        }
+      }
+    },
     "%@ left today.": {
       "localizations": {
         "de": {
@@ -53,24 +63,6 @@
     },
     "%lld minutes": {
       "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "1 minute"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld minutes"
-                }
-              }
-            }
-          }
-        },
         "de": {
           "variations": {
             "plural": {
@@ -88,29 +80,29 @@
               }
             }
           }
-        }
-      }
-    },
-    "%lld minutes left.": {
-      "localizations": {
+        },
         "en": {
           "variations": {
             "plural": {
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "One minute left."
+                  "value": "1 minute"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld minutes left."
+                  "value": "%lld minutes"
                 }
               }
             }
           }
-        },
+        }
+      }
+    },
+    "%lld minutes left.": {
+      "localizations": {
         "de": {
           "variations": {
             "plural": {
@@ -124,6 +116,24 @@
                 "stringUnit": {
                   "state": "translated",
                   "value": "Noch %lld Minuten."
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "One minute left."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld minutes left."
                 }
               }
             }
