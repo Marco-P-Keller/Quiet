@@ -792,6 +792,11 @@ const GROUPED = `
    *
    * So what is checked here is the answer, not the moving. */
   const sheetOf = (win) => win.sent.filter((m) => m.kind === "sheet").pop();
+  const liftOf = (win) => {
+    const moved = win.document.querySelector("[data-quiet-sheet]");
+    return moved ? moved.style.getPropertyValue("--quiet-lift") : null;
+  };
+
 
   const nothingModal = await page(`<main></main>`, FEED);
   check("with nothing modal on screen, nothing is said", sheetOf(nothingModal), undefined);
@@ -1106,6 +1111,78 @@ const GROUPED = `
     "and the sheet is not lost, nor the row, the moment the room is made",
     [sheetOf(foundThenLifted).up, sheetOf(foundThenLifted).clear],
     [true, true]
+  );
+
+  /* ── Moving the sheet ────────────────────────────────────────────────── */
+
+  /* A photograph settled which mechanism is right, and it took shrinking the
+   * viewport to get one: with the glass a hundred and twenty-eight points
+   * shorter, Instagram's sheet did not rise — it was cut, straight through "Log
+   * In to an Existing Account". A sheet clipped by a shorter viewport is a
+   * sheet that is not anchored to the bottom of one, and nothing done to the
+   * viewport will ever move it. */
+  const HELD = 'style="position: fixed; background-color: rgb(38, 38, 38)"';
+
+  const sheetGoesUp = await page(
+    `<div role="dialog" data-name="sheet" ${HELD} data-box="0,500,390,344">x</div><main></main>`,
+    FEED
+  );
+  check("a sheet is moved two centimetres up", liftOf(sheetGoesUp), "128px");
+
+  /* Placed by a number worked out when it opened rather than anchored to the
+   * bottom — which is the shape the photograph turned out to be, and the one a
+   * shorter viewport cuts instead of moving. A transform does not care. */
+  const sheetPlacedByANumber = await page(
+    `<div role="dialog" data-name="sheet"
+          style="position: fixed; top: 500px; background-color: rgb(38, 38, 38)"
+          data-box="0,500,390,344">x</div><main></main>`,
+    FEED
+  );
+  check("one placed by a number is moved just the same", liftOf(sheetPlacedByANumber), "128px");
+
+  /* Once moved it is a hundred and twenty-eight points clear of the bottom
+   * edge and would fail the test that chose it. Letting it go would drop it
+   * back, find it again, and flicker for as long as it was open. */
+  const sheetKeptWhenMoved = await page(
+    `<div data-name="sheet" data-at-bottom ${HELD} data-box="0,500,390,344">x</div><main></main>`,
+    FEED
+  );
+  sheetKeptWhenMoved.document
+    .querySelector('[data-name="sheet"]')
+    .setAttribute("data-box", "0,372,390,344");
+  sheetKeptWhenMoved.document.querySelector("main").appendChild(sheetKeptWhenMoved.document.createElement("div"));
+  await new Promise((go) => setTimeout(go, 0));
+  sheetKeptWhenMoved.drain();
+  check("and it is not let go once it has moved", liftOf(sheetKeptWhenMoved), "128px");
+
+  /* And it is put back when the sheet goes, or the next page inherits a
+   * transform belonging to a sheet nobody can see. */
+  const sheetPutBack = await page(
+    `<div role="dialog" data-name="sheet" ${HELD} data-box="0,500,390,344">x</div><main></main>`,
+    FEED
+  );
+  sheetPutBack.document.querySelector('[data-name="sheet"]').remove();
+  await new Promise((go) => setTimeout(go, 0));
+  sheetPutBack.drain();
+  check("and put back when the sheet goes", liftOf(sheetPutBack), null);
+
+  /* The strip the app paints underneath has to be the sheet's colour. The
+   * thing found is as often the backdrop as the panel, a backdrop is
+   * see-through by design, and climbing up from one lands on the page — which
+   * a photograph showed exactly: the strip in the page's near-black instead of
+   * the sheet's grey. */
+  const colourThroughBackdrop = await page(
+    `<div role="dialog" data-name="sheet" data-box="0,0,390,844"
+          style="position: fixed; background-color: rgba(0, 0, 0, 0.6)">
+       <div data-name="panel" data-box="0,500,390,344"
+            style="background-color: rgb(38, 38, 38)">x</div>
+     </div><main></main>`,
+    FEED
+  );
+  check(
+    "the colour is read down into the panel, not up to the page",
+    (({ red, green, blue }) => [red, green, blue])(sheetOf(colourThroughBackdrop)),
+    [38, 38, 38]
   );
 
   /* ── The colour the clock stands on ──────────────────────────────────── */

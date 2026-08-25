@@ -134,19 +134,27 @@ struct BrowserScreen: View {
             // the grey Instagram itself uses. See `clockBand`.
             .frame(
                 width: glass.width > 0 ? glass.width : nil,
-                height: glass.height > 0 ? glass.height - topInset - sheetRoom : nil
+                height: glass.height > 0 ? glass.height - topInset : nil
             )
             .padding(.top, topInset)
 
-            // The strip of glass taken off the bottom while a sheet is up,
-            // painted in the sheet's own colour so that the sheet still reaches
-            // the edge of the screen and only its contents have moved.
+            // The strip under a sheet that has moved up, painted in the
+            // sheet's own colour so that it still reaches the bottom edge of
+            // the glass and only its contents have gone anywhere.
+            //
+            // Over the page rather than taken out of it. Taking it out was
+            // tried and photographed: the glass went a hundred and twenty-eight
+            // points shorter and Instagram's sheet did not rise with it, it was
+            // cut — which is what a sheet placed by a number rather than
+            // anchored to an edge does. The page keeps the whole glass now, and
+            // the sheet is moved in the page.
             if sheetRoom > 0 {
                 VStack(spacing: 0) {
                     Spacer(minLength: 0)
                     (surface.sheetTint ?? clockBand)
                         .frame(height: sheetRoom)
                 }
+                .allowsHitTesting(false)
                 .accessibilityHidden(true)
             }
 
@@ -406,8 +414,8 @@ struct BrowserScreen: View {
             .padding(.bottom, Self.islandLift)
     }
 
-    /// How much of the glass is taken off the bottom of the page while
-    /// Instagram has a sheet up.
+    /// How much of the bottom of the glass is painted over while Instagram has
+    /// a sheet up.
     ///
     /// This is the whole of the answer, and it is the app's rather than the
     /// page's on purpose.
@@ -418,14 +426,18 @@ struct BrowserScreen: View {
     /// is no reading one off a photograph, they shared one property: every one
     /// of them asked somebody else's stylesheet for permission.
     ///
-    /// The app owns the viewport. A shorter viewport moves everything anchored
-    /// to the bottom of it, because that is what being anchored to the bottom
-    /// of a viewport means, and there is no rule anybody can write that refuses
-    /// it. A sheet is anchored to the bottom — that is what makes it a sheet.
+    /// Shrinking the viewport was the eighth answer and it was half right. It
+    /// did fire — a photograph measures the glass ending a hundred and
+    /// twenty-eight points up, to the point — and Instagram's sheet did not
+    /// rise with it. It was cut, straight through "Log In to an Existing
+    /// Account". A sheet clipped by a shorter viewport is a sheet that is not
+    /// anchored to the bottom of one: it is placed by a number worked out when
+    /// it opened, and nothing done to the viewport moves it.
     ///
-    /// This project already learned this once, for the status bar, and the note
-    /// is still in `InstagramWebView`: the viewport itself is made smaller, and
-    /// everything in it is right by construction.
+    /// So the page keeps the whole glass, the sheet is moved in the page by a
+    /// transform — which does not care what put the box where it is — and this
+    /// is the strip of the sheet's own colour painted over the gap that opens
+    /// underneath, so the sheet still reaches the bottom edge.
     ///
     /// Two centimetres, which is what was asked for: the row is eighty-nine
     /// points and this is that with a margin nobody has to measure to believe.

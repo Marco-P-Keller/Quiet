@@ -747,6 +747,7 @@
   function saySheet() {
     var sheet = theSheet();
     var up = !!sheet;
+    lift(sheet);
     var clear = !up || everythingClearsTheRow(sheet);
     var tint = up ? colourOf(sheet) : null;
     var key = tint ? tint.join(",") : null;
@@ -872,7 +873,12 @@
 
     var box = node.getBoundingClientRect();
     if (box.width < width * 0.8) return false;
-    if (box.bottom < height - SHEET_FOOT || box.bottom > height + 8) return false;
+    /* Where it was before this file moved it. One already moved is a hundred
+     * and twenty-eight points clear of the bottom edge and would fail the test
+     * that chose it — so it would be let go, drop back, be found again, and
+     * flicker for as long as it was open. */
+    var bottom = box.bottom + (node.hasAttribute(SHEET) ? LIFT : 0);
+    if (bottom < height - SHEET_FOOT || bottom > height + 8) return false;
     if (box.height < SHEET_SHORTEST) return false;
     if (box.height > height - 8) return false;
 
@@ -1017,14 +1023,86 @@
    * Climbs until something is opaque, for the same reason the clock's band
    * does: a see-through layer hands back a colour that is never drawn anywhere.
    */
+  /* ── Moving it ────────────────────────────────────────────────────────── */
+
+  var SHEET = "data-quiet-sheet";
+
+  /**
+   * How far the sheet goes up: the two centimetres that were asked for.
+   *
+   * A transform, and only a transform. A photograph settled which mechanism is
+   * right, and it took shrinking the viewport to get one: with the glass a
+   * hundred and twenty-eight points shorter, Instagram's sheet did not rise —
+   * it was *cut*, straight through "Log In to an Existing Account". A sheet
+   * that is clipped by a shorter viewport is a sheet that is not anchored to
+   * the bottom of one. It is placed by a number somebody worked out when it
+   * opened, and no amount of changing the viewport moves it.
+   *
+   * A transform does not care. It moves the painted box and the taps with it,
+   * whatever put the box there — a computed top, a bottom, a translate of
+   * Instagram's own. `!important` in a stylesheet outranks the inline style
+   * their animation leaves behind.
+   *
+   * What a transform cannot do is fill the gap it opens under the sheet, and
+   * that is the app's job now: it paints a strip in the sheet's own colour, so
+   * the sheet still reaches the bottom edge of the glass and only its contents
+   * have moved. Padding was tried for that and is wrong here — on a sheet that
+   * *is* anchored to the bottom it moves the box twice.
+   */
+  var LIFT = 128;
+
+  function lift(sheet) {
+    var already = document.querySelectorAll("[" + SHEET + "]");
+    for (var i = 0; i < already.length; i++) {
+      if (already[i] !== sheet) {
+        already[i].removeAttribute(SHEET);
+        already[i].style.removeProperty("--quiet-lift");
+      }
+    }
+    if (!sheet || !rowStands()) return;
+    /* Written on the element rather than left to the stylesheet, so that how
+     * far it goes is one number in one place and a test can read it back. */
+    if (sheet.style.getPropertyValue("--quiet-lift") !== LIFT + "px") {
+      sheet.style.setProperty("--quiet-lift", LIFT + "px");
+    }
+    if (!sheet.hasAttribute(SHEET)) sheet.setAttribute(SHEET, "up");
+  }
+
+  /**
+   * What colour the sheet is, so the app can paint the strip underneath it.
+   *
+   * Downwards first, and that is the correction: the thing found is as often
+   * the backdrop as the panel, a backdrop is see-through by design, and
+   * climbing *up* from one lands on the page. A photograph showed exactly that
+   * — the strip painted in the page's near-black instead of the sheet's grey.
+   *
+   * So the widest opaque box inside it, which is the panel; and only if there
+   * is none, the way up.
+   */
   function colourOf(sheet) {
-    var node = sheet;
+    var panel = paintedPart(sheet, 0);
+    if (panel) return panel;
+
+    var node = sheet.parentElement;
     var steps = 0;
     while (node && node !== document.body && steps < 6) {
       var colour = colourFrom(window.getComputedStyle(node).backgroundColor);
       if (colour) return colour;
       node = node.parentElement;
       steps += 1;
+    }
+    return null;
+  }
+
+  /** The first opaque colour at or under this node, breadth first. */
+  function paintedPart(node, depth) {
+    if (!node || depth > 4) return null;
+    var own = colourFrom(window.getComputedStyle(node).backgroundColor);
+    if (own) return own;
+    var kids = node.children;
+    for (var i = 0; i < kids.length; i++) {
+      var found = paintedPart(kids[i], depth + 1);
+      if (found) return found;
     }
     return null;
   }

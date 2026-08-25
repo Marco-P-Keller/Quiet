@@ -308,3 +308,23 @@ a[href*="mobile_app_upsell"] {
 html[data-quiet-away] [data-quiet-pinned] {
   transform: translateY(-100%) !important;
 }
+
+/* ── A sheet, moved up off the row ──────────────────────────────────────── */
+/*
+ * A transform, and only a transform.
+ *
+ * A photograph settled which mechanism is right, and it took shrinking the
+ * viewport to get one: with the glass a hundred and twenty-eight points
+ * shorter, Instagram's sheet did not rise, it was cut — straight through "Log
+ * In to an Existing Account". A sheet clipped by a shorter viewport is a sheet
+ * that is not anchored to the bottom of one; it is placed by a number worked
+ * out when it opened, and nothing done to the viewport moves it.
+ *
+ * A transform does not care what put the box there, and `!important` outranks
+ * the inline style Instagram's own animation leaves behind. The gap it opens
+ * underneath is filled by the app, in the sheet's own colour.
+ */
+
+[data-quiet-sheet] {
+  transform: translateY(calc(-1 * var(--quiet-lift, 0px))) !important;
+}

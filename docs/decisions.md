@@ -1786,3 +1786,47 @@ stands down for as long as a sheet is open, and a row you cannot leave a sheet
 by is not a row. `__quietLift` is the app saying what it gave.
 
 Thirteen checks, which is ninety-eight in that file.
+
+## Cut, not moved
+
+The ninth answer shrank the viewport, and a photograph finally measured
+something instead of showing the same picture again:
+
+    0 – 25.9 pt    the app
+    25.9 – 78.4    the island, 52.5 pt tall
+    78.4 – 130.9   the app's strip
+    130.9 –        the sheet
+
+The glass ends a hundred and twenty-eight points up, to the point. The shrink
+fired. And Instagram's sheet did not rise with it — it was cut, straight through
+"Log In to an Existing Account".
+
+Which answers the question the eight rounds before it could not. A sheet clipped
+by a shorter viewport is a sheet that is not anchored to the bottom of one: it is
+placed by a number somebody worked out when it opened, and nothing done to the
+viewport will ever move it. Eight mechanisms failed on detection; the ninth
+found it and then moved the wrong thing.
+
+So the page keeps the whole glass and the sheet is moved in the page, by a
+transform. A transform does not care what put the box where it is — a computed
+top, a bottom, or Instagram's own translate — and `!important` in a stylesheet
+outranks the inline style their animation leaves behind. Padding is wrong here
+and was removed: on a sheet that *is* anchored to the bottom it moves the box
+twice.
+
+What a transform cannot do is fill the gap it opens underneath, so the app paints
+a strip there in the sheet's own colour. That colour was being read by climbing
+*up* from what was found — and what is found is as often the backdrop as the
+panel, a backdrop is see-through by design, and climbing up from one lands on the
+page. The same photograph shows it: the strip in the page's near-black instead of
+the sheet's grey. It reads downwards now, for the widest opaque box inside.
+
+And the rehearsed sheet in CI is no longer anchored to the bottom either. It was,
+and it would have passed a test the real one fails.
+
+One more thing the transform brings with it: once moved, the sheet is a hundred
+and twenty-eight points clear of the bottom edge and fails the test that chose
+it. Letting it go would drop it back, find it again, and flicker for as long as
+it was open — so a sheet already moved is measured where it was.
+
+Five checks, which is a hundred and three.

@@ -137,7 +137,12 @@ enum WebScripts {
         var sheet = document.createElement("div");
         sheet.id = "rehearsed-sheet";
         sheet.setAttribute("style", [
-          "position: fixed", "left: 0", "right: 0", "bottom: 0",
+          // Placed by a number worked out when it opened, not anchored to
+          // the bottom — which is the shape Instagram's turned out to be, and
+          // the one a shorter viewport cuts instead of moving. If the rehearsed
+          // sheet were anchored, it would pass a test the real one fails.
+          "position: fixed", "left: 0", "right: 0",
+          "top: calc(100% - 260px)",
           "height: 260px", "background: rgb(38, 38, 38)",
           "border-radius: 14px 14px 0 0", "z-index: 2147483000",
           "display: flex", "flex-direction: column",
