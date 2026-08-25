@@ -1830,3 +1830,32 @@ it. Letting it go would drop it back, find it again, and flicker for as long as
 it was open — so a sheet already moved is measured where it was.
 
 Five checks, which is a hundred and three.
+
+## A transform is a containing block
+
+The tenth answer moved the sheet with a transform, and the photograph came back
+with the sheet's own contents piled on top of each other: "Switch accounts" and
+an account row drawn on the same line, the rest gone.
+
+That is not a bug in the moving. It is what a transform is. An element with one
+becomes the containing block for every `position: fixed` thing inside it, and
+Instagram's sheet has fixed children that were anchored to the viewport. They
+were suddenly anchored to a box a third of the way down the screen.
+
+Margins instead. A margin moves a box and changes nothing about what anything
+inside it is measured against. Both are set, because the sheet may be held by
+either edge and only one of them can be answering: a box placed by `top` ignores
+the bottom margin, one placed by `bottom` ignores the top, and either way it ends
+up a hundred and twenty-eight points higher.
+
+The rehearsed sheet in CI now carries a mark of its own that is anchored to the
+viewport, three hundred points from the top, and the check fails if it moves.
+That is this failure, reproduced: a mechanism that re-anchors what is inside the
+sheet is caught in nine minutes rather than in a photograph.
+
+Which is the pattern of this whole sequence, written down once more. Every round
+that was settled by looking at a phone took twenty minutes and produced one bit
+of information. Every round where something was measured produced the next
+finding: the glass ends at 128 (so the shrink fired), the sheet was cut (so it is
+not anchored to the bottom), the contents piled up (so the mechanism re-anchored
+them). The checks are worth more than the fixes.

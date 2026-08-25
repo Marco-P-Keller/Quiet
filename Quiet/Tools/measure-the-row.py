@@ -120,6 +120,11 @@ TOLERANCE = 2.5
 # The rehearsed sheet's foot, in sRGB. Bright on purpose: nothing on Instagram
 # is this colour, so finding it needs no cleverness at all.
 FOOT = (255, 0, 128)
+# The mark inside the sheet that is anchored to the viewport, at three hundred
+# points from the top. A mechanism that re-anchors it — a transform does, by
+# becoming the containing block for everything fixed inside it — moves this.
+PIN = (0, 255, 255)
+PIN_AT = 300
 NEAR = 40
 
 
@@ -157,10 +162,21 @@ def measure_the_sheet(path):
                       "either it was never drawn, or something is over it")
 
     x, y = found
+
+    pinned = None
+    for py in range(height):
+        for px_ in range(2, width, 8):
+            if all(abs(a - b) < NEAR for a, b in zip(pixels[px_, py], PIN)):
+                pinned = py
+                break
+        if pinned is not None:
+            break
+
     return {
         "screen": f"{width}x{height} px, {points:g} pt wide, {scale:g}x",
         "found": f"x = {x} px",
         "foot": (height - 1 - y) / scale,
+        "pinned": None if pinned is None else pinned / scale,
     }, None
 
 
@@ -196,6 +212,18 @@ def main():
         print(f"Screen:      {found['screen']}")
         print(f"Found at:    {found['found']}")
         print(f"Sheet foot:  {found['foot']:.1f} pt above the bottom edge")
+        if found["pinned"] is None:
+            print("WRONG. The mark anchored to the viewport is nowhere to be seen,")
+            print("so something inside the sheet has been re-anchored.")
+            return 1
+        print(f"Pinned mark: {found['pinned']:.1f} pt from the top (should be {PIN_AT})")
+        if abs(found["pinned"] - PIN_AT) > TOLERANCE:
+            print()
+            print("WRONG. A child of the sheet that is anchored to the viewport has")
+            print("moved, so the sheet is now the containing block for it — which is")
+            print("what a transform does, and what piled Instagram's sheet on top of")
+            print("itself. Whatever moves the sheet must not do that.")
+            return 1
         wanted = float(sys.argv[sys.argv.index("--expect") + 1]) \
             if "--expect" in sys.argv else None
         if wanted is not None:

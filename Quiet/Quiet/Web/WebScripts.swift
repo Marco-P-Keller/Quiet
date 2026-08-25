@@ -154,6 +154,19 @@ enum WebScripts {
           "width: 100%", "background: rgb(255, 0, 128)"
         ].join(";"));
         sheet.appendChild(foot);
+        // A child anchored to the viewport, the way Instagram's sheet anchors
+        // its heading — and the thing a transform quietly re-anchors, because
+        // an element with a transform becomes the containing block for every
+        // fixed thing inside it. A photograph of that came back with the
+        // sheet's contents piled on top of each other. If this mark leaves the
+        // top of the screen, the mechanism has done it again.
+        var pinned = document.createElement("div");
+        pinned.id = "rehearsed-pin";
+        pinned.setAttribute("style", [
+          "position: fixed", "top: 300px", "left: 0",
+          "width: 40px", "height: 20px", "background: rgb(0, 255, 255)"
+        ].join(";"));
+        sheet.appendChild(pinned);
         document.body.appendChild(sheet);
       }
       if (document.readyState === "loading") {
