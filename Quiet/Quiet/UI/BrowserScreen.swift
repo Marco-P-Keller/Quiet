@@ -160,6 +160,16 @@ struct BrowserScreen: View {
                 cover
             }
 
+            // Nothing arrived. Over the page, under the row: the five entries
+            // still work, so somebody who cannot reach the feed can still open
+            // the panel and see how much of the day is left.
+            if let stumble = surface.stumble {
+                StumbleView(kind: stumble) { surface.reload() }
+                    .padding(.top, topInset)
+                    .padding(.bottom, furniture)
+                    .transition(.opacity)
+            }
+
             // The strip behind the clock belongs to the app.
             //
             // Whatever the page does with its header, nothing of anybody's is
@@ -209,6 +219,7 @@ struct BrowserScreen: View {
         )
         .ignoresSafeArea()
         .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: surface.hasLoaded)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: surface.stumble)
         // The band changing colour: the first answer from a page, and every
         // change of scheme after it. A fade, because a flat area of the screen
         // changing colour in one frame reads as a glitch.

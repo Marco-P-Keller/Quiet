@@ -79,8 +79,44 @@ enum Remembered {
         }
     }
 
+    // MARK: - Who you actually go and see
+
+    private static let visited = "quiet.visited"
+
+    /// How many names are kept.
+    ///
+    /// Short on purpose, and the shortness is the design. This is not a
+    /// history: a list of everybody you have looked at, in order, with dates,
+    /// is one more thing to scroll and one more thing to feel something about.
+    /// It is a shortcut to the handful of people somebody opens the app to see,
+    /// which for almost everybody is fewer than this.
+    private static let howMany = 8
+
+    /// The names most recently opened, newest first.
+    static func visits(defaults: UserDefaults = .standard) -> [String] {
+        defaults.stringArray(forKey: visited) ?? []
+    }
+
+    /// Note that a profile was opened.
+    ///
+    /// Moved to the front rather than added, so somebody's own three or four
+    /// people stay at the top instead of being pushed off by an afternoon of
+    /// looking at strangers.
+    static func remember(visit handle: String, defaults: UserDefaults = .standard) {
+        let name = handle.lowercased()
+        guard !name.isEmpty else { return }
+        var names = visits(defaults: defaults)
+        names.removeAll { $0 == name }
+        names.insert(name, at: 0)
+        defaults.set(Array(names.prefix(howMany)), forKey: visited)
+    }
+
+    static func forgetVisits(defaults: UserDefaults = .standard) {
+        defaults.removeObject(forKey: visited)
+    }
+
     /// For a rehearsal, so that a scene photographs the same app every time.
     static func forget(defaults: UserDefaults = .standard) {
-        [glyphs, name, face].forEach(defaults.removeObject(forKey:))
+        [glyphs, name, face, visited].forEach(defaults.removeObject(forKey:))
     }
 }

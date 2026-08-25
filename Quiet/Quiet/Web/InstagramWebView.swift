@@ -120,6 +120,7 @@ final class WebSurface {
     /// to reload, which is a cold view nobody has navigated yet.
     func reload() {
         guard let webView else { return }
+        note(stumble: nil)
         if webView.url == nil {
             webView.load(URLRequest(url: ContentRules.home))
         } else {
@@ -147,6 +148,33 @@ final class WebSurface {
             self?.open(ContentRules.home)
             completion()
         }
+    }
+
+    /// Throw away what was only ever kept to be quick.
+    ///
+    /// A web view's store grows and nothing in the app ever trimmed it: months
+    /// of cached pages, images and fetch responses, held for a site that
+    /// changes every hour. iOS offers no way to ask how large that has become —
+    /// so rather than invent a number, the app offers the thing somebody
+    /// actually wants when they go looking for one.
+    ///
+    /// Deliberately not `allWebsiteDataTypes`, which is what signing out uses.
+    /// Cookies, local storage and IndexedDB are what being signed in is *made
+    /// of*, and an app that emptied them under a button called "clear cached
+    /// pages" would be logging people out and calling it housekeeping.
+    func clearCaches(completion: @escaping () -> Void = {}) {
+        let caches: Set<String> = [
+            WKWebsiteDataTypeDiskCache,
+            WKWebsiteDataTypeMemoryCache,
+            WKWebsiteDataTypeOfflineWebApplicationCache,
+            WKWebsiteDataTypeFetchCache,
+            WKWebsiteDataTypeServiceWorkerRegistrations,
+        ]
+        WKWebsiteDataStore.default().removeData(
+            ofTypes: caches,
+            modifiedSince: .distantPast,
+            completionHandler: completion
+        )
     }
 
     /// Who matches this name.
@@ -258,6 +286,19 @@ final class WebSurface {
     fileprivate func note(address url: URL?) {
         guard address != url else { return }
         address = url
+    }
+
+    /// What stopped the page arriving, when nothing arrived at all.
+    ///
+    /// Only for the case where there is no page underneath: a failure while
+    /// something is already on screen is a notice, because replacing a page
+    /// somebody is reading with an apology loses them their place over a
+    /// request they did not make.
+    private(set) var stumble: StumbleView.Kind?
+
+    fileprivate func note(stumble kind: StumbleView.Kind?) {
+        guard stumble != kind else { return }
+        stumble = kind
     }
 
     /// Whether the trim pass is still finding anything. See `Health`.
@@ -822,6 +863,9 @@ struct InstagramWebView: UIViewRepresentable {
         }
 
         func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+            // Something arrived, so whatever did not arrive last time is no
+            // longer the news.
+            surface.note(stumble: nil)
             surface.note(address: webView.url)
             tellThisPage(webView)
             keepPullAlive(webView.scrollView)
@@ -835,6 +879,16 @@ struct InstagramWebView: UIViewRepresentable {
             keepPullAlive(webView.scrollView)
         }
 
+        /// The page did not arrive.
+        ///
+        /// Two different situations wearing one error, and they want opposite
+        /// answers. With a page already on screen, this is a failed reload or a
+        /// tap that went nowhere: a notice, because replacing what somebody is
+        /// reading with an apology loses them their place over a request they
+        /// did not make. With nothing on screen — a cold launch on a train —
+        /// the alternative to saying something is WebKit's own grey sentence in
+        /// a white rectangle under a row that Quiet drew, which is the single
+        /// most convincing way to look broken.
         func webView(
             _ webView: WKWebView,
             didFailProvisionalNavigation navigation: WKNavigation!,
@@ -844,10 +898,26 @@ struct InstagramWebView: UIViewRepresentable {
             let code = (error as NSError).code
             guard code != NSURLErrorCancelled else { return }
             surface.markLoaded()
-            if code == NSURLErrorNotConnectedToInternet || code == NSURLErrorNetworkConnectionLost {
+
+            let offline = Self.offlineCodes.contains(code)
+            if webView.url == nil {
+                surface.note(stumble: offline ? .offline : .unreachable)
+            } else if offline {
                 session.show(String(localized: "No connection."))
             }
         }
+
+        /// The codes that mean "there is no network", as against the ones that
+        /// mean "the network is there and something else went wrong". Only the
+        /// difference between those two ever reaches a person, because no
+        /// further detail turns into a sentence that helps anybody.
+        private static let offlineCodes: Set<Int> = [
+            NSURLErrorNotConnectedToInternet,
+            NSURLErrorNetworkConnectionLost,
+            NSURLErrorDataNotAllowed,
+            NSURLErrorInternationalRoamingOff,
+            NSURLErrorCallIsActive,
+        ]
 
         func webView(
             _ webView: WKWebView,

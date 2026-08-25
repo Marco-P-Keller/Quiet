@@ -20,6 +20,7 @@ struct PanelView: View {
     /// rather than sitting there.
     @State private var waitRefused: String?
     @State private var isConfirmingForget = false
+    @State private var hasCleared = false
 
     var body: some View {
         NavigationStack {
@@ -341,6 +342,20 @@ struct PanelView: View {
             trouble
 
             letGo
+
+            Button("Clear cached pages") {
+                surface.clearCaches()
+                hasCleared = true
+            }
+            .font(.quietBody)
+            .buttonStyle(.plain)
+            .disabled(hasCleared)
+
+            if hasCleared {
+                Note("Cleared.")
+            } else {
+                Note("Months of pages, pictures and answers are kept so the site is quick. Throwing them away costs a slower page or two and does not sign you out.")
+            }
 
             VStack(alignment: .leading, spacing: 8) {
                 Note("Quiet has no account, no servers and no analytics. It stores five things on this phone: your limit, today's total, the last time it saw, the day you set it up, and whether you have asked it to forget.")

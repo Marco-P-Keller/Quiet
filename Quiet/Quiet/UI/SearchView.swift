@@ -22,6 +22,8 @@ struct SearchView: View {
 
     @State private var query = ""
     @State private var found: [Person] = []
+    /// The handful of people this phone actually opens.
+    @State private var recent: [String] = Remembered.visits()
     @State private var outcome = Outcome.idle
     @State private var asking: Task<Void, Never>?
     @FocusState private var isFocused: Bool
@@ -43,6 +45,9 @@ struct SearchView: View {
                             .fixedSize(horizontal: false, vertical: true)
                             .padding(.horizontal, 28)
                             .padding(.top, 16)
+                    }
+                    if outcome == .idle, !recent.isEmpty {
+                        recents
                     }
                     Spacer()
                 } else {
@@ -139,6 +144,64 @@ struct SearchView: View {
         }
     }
 
+    /// The three or four people you came here for.
+    ///
+    /// Instagram's search tab is the front door to Explore, which is why it is
+    /// gone; what a person actually wanted from it was *who is my friend on
+    /// here*, and for most people that is the same short list every time. This
+    /// is that list, and it is deliberately not a history: no dates, no order
+    /// of interest, no count, nothing to feel anything about. Eight names, most
+    /// recent first, and a way to wipe them.
+    ///
+    /// It answers before a single letter is typed, which is the entire point —
+    /// a search that has to be searched is a search.
+    private var recents: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                Text("Recently opened")
+                    .font(.quietSmall)
+                    .foregroundStyle(Paper.inkSoft)
+                Spacer()
+                Button("Clear") {
+                    Remembered.forgetVisits()
+                    recent = []
+                }
+                .font(.quietSmall)
+                .foregroundStyle(Paper.inkSoft)
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal, 28)
+            .padding(.top, 22)
+            .padding(.bottom, 4)
+
+            ForEach(recent, id: \.self) { handle in
+                Button {
+                    open(handle)
+                } label: {
+                    HStack(spacing: 13) {
+                        Circle()
+                            .fill(Paper.ink.opacity(0.08))
+                            .frame(width: 32, height: 32)
+                            .overlay(
+                                Text(String(handle.prefix(1)).uppercased())
+                                    .font(.quietSmall)
+                                    .foregroundStyle(Paper.inkSoft)
+                            )
+                        Text(handle)
+                            .font(.quietBody)
+                        Spacer(minLength: 0)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 9)
+                    .padding(.horizontal, 28)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityHint(Text("Opens this profile"))
+            }
+        }
+    }
+
     /// The face, or the letter that stands in for one.
     ///
     /// A picture that will not load is not worth an error or an empty ring: the
@@ -209,6 +272,12 @@ struct SearchView: View {
     private func open(_ handle: String) {
         guard let url = ContentRules.profile(forHandle: handle) else { return }
         asking?.cancel()
+        // The name as the app will use it, rather than as it was typed: a
+        // pasted link and an @ in front of it are the same person.
+        if let name = ContentRules.pathComponents(of: url).first {
+            Remembered.remember(visit: name)
+            recent = Remembered.visits()
+        }
         onOpen(url)
     }
 }

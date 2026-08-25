@@ -266,7 +266,27 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Löschen"
+            "value": "Leeren"
+          }
+        }
+      }
+    },
+    "Clear cached pages": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zwischengespeicherte Seiten löschen"
+          }
+        }
+      }
+    },
+    "Cleared.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gelöscht."
           }
         }
       }
@@ -337,6 +357,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Wie viel Instagram\nwillst du am Tag?"
+          }
+        }
+      }
+    },
+    "Instagram did not answer.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram hat nicht geantwortet."
           }
         }
       }
@@ -437,6 +467,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Minuten am Tag"
+          }
+        }
+      }
+    },
+    "Months of pages, pictures and answers are kept so the site is quick. Throwing them away costs a slower page or two and does not sign you out.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monate an Seiten, Bildern und Antworten werden aufbewahrt, damit die Seite schnell ist. Sie wegzuwerfen kostet ein, zwei langsamere Seiten und meldet dich nicht ab."
           }
         }
       }
@@ -631,6 +671,16 @@
         }
       }
     },
+    "Quiet shows Instagram's own site, so it needs the network to show you anything. Nothing has been lost — your day and your limit are on this phone.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet zeigt Instagrams eigene Seite und braucht dafür Netz. Verloren ist nichts — dein Tag und dein Limit liegen auf diesem Telefon."
+          }
+        }
+      }
+    },
     "Quiet works between %lld and %lld minutes a day.": {
       "localizations": {
         "de": {
@@ -647,6 +697,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Quiets zweites Schloss ist diesmal nicht geladen. Reels und Explore werden weiterhin abgewiesen; es tut das gerade eine Ebene statt zwei."
+          }
+        }
+      }
+    },
+    "Recently opened": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zuletzt geöffnet"
           }
         }
       }
@@ -851,6 +911,16 @@
         }
       }
     },
+    "The page did not arrive. That is usually a moment rather than a problem.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Seite ist nicht angekommen. Das ist meistens ein Moment und kein Problem."
+          }
+        }
+      }
+    },
     "The row along the bottom": {
       "localizations": {
         "de": {
@@ -907,6 +977,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Die sind mit Absicht weg, nicht kaputt. Ein Reel, das dir jemand schickt, sagt beim Antippen genau das, statt sich zu öffnen."
+          }
+        }
+      }
+    },
+    "Try again": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch einmal versuchen"
           }
         }
       }
