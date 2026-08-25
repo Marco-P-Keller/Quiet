@@ -53,6 +53,11 @@ final class CountingTests: XCTestCase {
         super.tearDown()
     }
 
+    /// Isolated explicitly. A type nested inside a main-actor class does not
+    /// inherit that isolation, and the heartbeat it cranks belongs to the main
+    /// actor — so without this the helper is the one thing in the file that is
+    /// not allowed to do the thing the file is about.
+    @MainActor
     private struct World {
         let store: MemoryStore
         let time: FakeTime
