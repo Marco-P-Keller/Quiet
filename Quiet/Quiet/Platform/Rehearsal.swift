@@ -42,7 +42,14 @@ enum Rehearsal {
         /// the page arrives so that the island stands on a flat colour and can
         /// be measured rather than argued about.
         case island
+        /// Browsing, with a sheet the shape of Instagram's put on the page, so
+        /// that what happens to one can be photographed and measured here
+        /// rather than eight builds later.
+        case sheet
     }
+
+    /// Whether this launch puts a sheet on the page for a machine to look at.
+    static var showsASheet: Bool { scene == .sheet }
 
     /// Skip the opening, without asking for a scene.
     ///
@@ -94,7 +101,7 @@ enum Rehearsal {
         // The shape of the row is a preference, so it outlives a launch and
         // would otherwise make the next scene photograph whatever the last one
         // chose.
-        Preferences.rehearse(row: scene == .island ? .island : .bar)
+        Preferences.rehearse(row: scene == .island || scene == .sheet ? .island : .bar)
         guard scene != .fresh else { return }
 
         let today = DayKey(clock.now, calendar: calendar)

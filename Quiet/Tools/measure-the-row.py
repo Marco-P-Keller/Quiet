@@ -117,10 +117,67 @@ def measure(path):
 TOLERANCE = 2.5
 
 
+# The rehearsed sheet's foot, in sRGB. Bright on purpose: nothing on Instagram
+# is this colour, so finding it needs no cleverness at all.
+FOOT = (255, 0, 128)
+NEAR = 40
+
+
+def measure_the_sheet(path):
+    """How far the foot of the rehearsed sheet ended up from the bottom edge.
+
+    Zero means the sheet reaches the bottom of the screen and its last control
+    is under Quiet's row. The whole of the fix is that this comes back as the
+    height of the strip the app takes off the glass.
+    """
+    image = Image.open(path).convert("RGB")
+    width, height = image.size
+    points = POINTS.get(width, width / 3)
+    scale = width / points
+    pixels = image.load()
+
+    x = round(width / 2)
+    found = None
+    for y in range(height - 1, -1, -1):
+        red, green, blue = pixels[x, y]
+        if (abs(red - FOOT[0]) < NEAR and abs(green - FOOT[1]) < NEAR
+                and abs(blue - FOOT[2]) < NEAR):
+            found = y
+            break
+    if found is None:
+        return None, "the rehearsed sheet is not on the screen"
+
+    return {
+        "screen": f"{width}x{height} px, {points:g} pt wide, {scale:g}x",
+        "foot": (height - 1 - found) / scale,
+    }, None
+
+
 def main():
+    if "--sheet" in sys.argv:
+        found, trouble = measure_the_sheet(sys.argv[1])
+        if trouble:
+            print(f"Could not measure the sheet: {trouble}")
+            return 1
+        print(f"Screen:      {found['screen']}")
+        print(f"Sheet foot:  {found['foot']:.1f} pt above the bottom edge")
+        wanted = float(sys.argv[sys.argv.index("--expect") + 1]) \
+            if "--expect" in sys.argv else None
+        if wanted is not None:
+            off = abs(found["foot"] - wanted)
+            if off > TOLERANCE:
+                print()
+                print(f"WRONG. The app takes {wanted:g} pt of glass off the bottom while a")
+                print(f"sheet is up, and the sheet's foot is drawn {found['foot']:.1f} pt above the")
+                print("edge — so it has not moved. That is the eight-round bug, caught here")
+                print("instead of on somebody's phone.")
+                return 1
+            print(f"Agrees with the app ({wanted:g} pt), within {TOLERANCE:g} pt.")
+        return 0
+
     if len(sys.argv) not in (2, 4) or (len(sys.argv) == 4 and sys.argv[2] != "--expect"):
-        print("usage: measure-the-row.py <screenshot.png> [--expect <points>]",
-              file=sys.stderr)
+        print("usage: measure-the-row.py <screenshot.png> [--expect <points>] | "
+              "<screenshot.png> --sheet [--expect <points>]", file=sys.stderr)
         return 2
     found, trouble = measure(sys.argv[1])
     if trouble:

@@ -202,42 +202,6 @@ body {
 }
 
 /* ── Room at the foot of a sheet ────────────────────────────────────────── */
-/*
- * Set by trim.js on the panel of whatever Instagram has put up modally — the
- * account switcher, the share sheet, the menu behind the three dots.
- *
- * A sheet slides over its own tab bar, the way every sheet on a phone does.
- * Quiet's row belongs to the app rather than to the page, so it stayed where it
- * was and was drawn straight through the buttons on the sheet: a photograph of
- * "Switch accounts" shows the row across "Log In to an Existing Account".
- *
- * The row moving was tried twice, away and then inert, and neither is the
- * answer — a button that cannot be seen cannot be pressed by anybody, whoever
- * is given the tap. So the sheet is given the room instead, exactly as much of
- * it as the row stands on, which the app hands over in `--quiet-row`.
- *
- * A padding rather than a margin or a lift, because a padding is the one that
- * keeps the panel where it is. Its foot stays on the bottom edge of the glass
- * and its colour runs on under the row, which is what a sheet looks like when
- * something is standing in front of it; only what is *on* the sheet moves, and
- * it moves up by the height of the row. And the padding box is what a bottom
- * sheet's own height is measured against however it was built, so this works
- * whether the panel is as tall as its contents, capped at a fraction of the
- * screen with its list scrolling inside, or laid out either way around.
- */
-
-[data-quiet-sheet] {
-  /* Moved, rather than laid out again. Padding alone was tried twice and shifted
-   * nothing on a real phone: what stops it is Instagram's own box — a height of
-   * its own, a flex rule, an overflow — and a transform does not go through
-   * layout at all, so none of that can refuse it. The taps follow the drawing.
-   *
-   * The padding is still here and now has one job. The box grows by exactly
-   * what it moves, so its own background goes on reaching the bottom edge of
-   * the glass and there is no strip of dimmed page showing under the sheet. */
-  transform: translateY(calc(-1 * var(--quiet-lift, 0px))) !important;
-  padding-bottom: var(--quiet-lift, 0px) !important;
-}
 
 /* ── The pull at the top ────────────────────────────────────────────────── */
 /*

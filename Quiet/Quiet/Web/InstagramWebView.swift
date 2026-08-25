@@ -112,6 +112,11 @@ final class WebSurface {
     /// Read from the page, which is the only place it exists. See `trim.js`.
     private(set) var isSheetUp = false
 
+    /// The colour the sheet on screen is drawn in, so the app can paint the
+    /// strip of glass it takes away underneath it. `nil` when there is no sheet
+    /// or the page had nothing opaque to report.
+    private(set) var sheetTint: Color?
+
     /// Whether the sheet on the screen is standing clear of the row.
     ///
     /// The page makes the room now: it is told how much of the bottom of the
@@ -303,6 +308,11 @@ final class WebSurface {
         // carrying Instagram's black into a light appearance.
         icons[entry] = image.withRenderingMode(.alwaysTemplate)
         Remembered.remember(icon: entry, data: data)
+    }
+
+    fileprivate func note(sheet up: Bool, clear: Bool, tint: Color?) {
+        if sheetTint != tint { sheetTint = tint }
+        note(sheet: up, clear: clear)
     }
 
     fileprivate func note(sheet up: Bool, clear: Bool) {
@@ -860,7 +870,11 @@ struct InstagramWebView: UIViewRepresentable {
                     // room, and the honest reading of silence is that none was
                     // made: the row stands down, which is never wrong, only
                     // occasionally more careful than it needs to be.
-                    clear: body["clear"] as? Bool ?? false
+                    clear: body["clear"] as? Bool ?? false,
+                    // What colour it is, so the strip of glass the app takes
+                    // away underneath it is painted in the sheet's own colour
+                    // rather than showing as a band of something else.
+                    tint: Chrome.colour(in: body)
                 )
 
             default:

@@ -127,9 +127,21 @@ struct BrowserScreen: View {
             // the grey Instagram itself uses. See `clockBand`.
             .frame(
                 width: glass.width > 0 ? glass.width : nil,
-                height: glass.height > 0 ? glass.height - topInset : nil
+                height: glass.height > 0 ? glass.height - topInset - sheetRoom : nil
             )
             .padding(.top, topInset)
+
+            // The strip of glass taken off the bottom while a sheet is up,
+            // painted in the sheet's own colour so that the sheet still reaches
+            // the edge of the screen and only its contents have moved.
+            if sheetRoom > 0 {
+                VStack(spacing: 0) {
+                    Spacer(minLength: 0)
+                    (surface.sheetTint ?? clockBand)
+                        .frame(height: sheetRoom)
+                }
+                .accessibilityHidden(true)
+            }
 
             if !surface.hasLoaded {
                 cover
@@ -171,6 +183,10 @@ struct BrowserScreen: View {
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: session.isPanelShowing)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: session.isSearchShowing)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: preferences.row)
+        // The page giving up the bottom of the glass to a sheet, and taking it
+        // back. Quick, because it happens while the sheet is still sliding up
+        // and should be over before it lands.
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: surface.isSheetUp)
         // The row leaving for a story and coming back from one, and the mark
         // moving from one entry to the next. Both are the address changing.
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: surface.address)
@@ -382,6 +398,35 @@ struct BrowserScreen: View {
             // floats: what is under it is still the page, not a black band.
             .padding(.bottom, Self.islandLift)
     }
+
+    /// How much of the glass is taken off the bottom of the page while
+    /// Instagram has a sheet up.
+    ///
+    /// This is the whole of the answer, and it is the app's rather than the
+    /// page's on purpose.
+    ///
+    /// Seven attempts at this moved something of Instagram's — pad the panel,
+    /// transform the panel, take the row away, make the row inert — and seven
+    /// photographs came back identical. Whatever the reason for each, and there
+    /// is no reading one off a photograph, they shared one property: every one
+    /// of them asked somebody else's stylesheet for permission.
+    ///
+    /// The app owns the viewport. A shorter viewport moves everything anchored
+    /// to the bottom of it, because that is what being anchored to the bottom
+    /// of a viewport means, and there is no rule anybody can write that refuses
+    /// it. A sheet is anchored to the bottom — that is what makes it a sheet.
+    ///
+    /// This project already learned this once, for the status bar, and the note
+    /// is still in `InstagramWebView`: the viewport itself is made smaller, and
+    /// everything in it is right by construction.
+    ///
+    /// Two centimetres, which is what was asked for: the row is eighty-nine
+    /// points and this is that with a margin nobody has to measure to believe.
+    private var sheetRoom: CGFloat {
+        surface.isSheetUp && !isImmersive ? Self.sheetLift : 0
+    }
+
+    private static let sheetLift: CGFloat = 128
 
     /// How much of the bottom of the screen the row stands on.
     ///

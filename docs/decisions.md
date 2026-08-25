@@ -1673,3 +1673,42 @@ conversation — the row is nothing and none of this runs at all.
 
 The lesson is the one this project keeps relearning and keeps having to pay for:
 ask the screen, not the markup. Six checks, which is a hundred and eight.
+
+## The app owns the viewport, so the app moves the sheet
+
+Eight rounds of this. Pad the panel; refuse the panel for the wrong reason; take
+the row away; leave the row and make it inert; measure whether the padding
+worked; move the panel with a transform; find the sheet by shape instead of by
+what it calls itself. Eight photographs came back and every one was the same
+picture.
+
+Which is the finding, and it took eight to see it. Seven different mechanisms do
+not fail for seven different reasons that often. What they shared is that every
+one of them tried to move something of Instagram's — and a photograph of a row
+over a button says nothing at all about *which* link of that chain broke.
+
+So the page stops moving things. Its whole job now is to answer two questions —
+is there a sheet, and what colour is it — and hand them over.
+
+The app owns the viewport. While a sheet is up it makes the web view a hundred
+and twenty-eight points shorter, and everything anchored to the bottom of the
+page rises by exactly that, because that is what being anchored to the bottom of
+a viewport means. There is no rule anybody can write that refuses it.
+
+This project already learned this, for the status bar, and the note is still in
+`InstagramWebView`: six mechanisms went into keeping Instagram's own bars off the
+clock, each worked on the feed and left the inbox broken, and the answer in the
+end was to make the viewport smaller — everything in it right by construction.
+The same lesson, the same shape of failure, eight rounds later.
+
+The strip of glass taken away is painted in the sheet's own colour, sampled from
+the page, so the sheet still reaches the bottom edge and only its contents have
+moved.
+
+And the thing that should have been built first: CI now puts a sheet on the real
+page. A rehearsal draws one the shape of Instagram's — held against the bottom of
+the glass, the width of it, saying nothing anywhere about being modal, which is
+the case that went unasked for seven rounds — with a bright band at its foot, and
+a script measures how far that band ends up from the bottom edge. Zero is the
+bug. A hundred and twenty-eight is the fix. Nine minutes instead of twenty, and a
+number instead of somebody else's eyes.

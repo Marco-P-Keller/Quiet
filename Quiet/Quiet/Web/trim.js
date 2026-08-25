@@ -596,7 +596,7 @@
    * The number at the other end is not spent on the document, which owes the
    * bottom of the screen nothing: the page runs on beneath the row, where
    * Instagram's next photograph belongs. It is there for the one thing that
-   * cannot run on beneath it, which is a sheet — see `giveTheSheetRoom`.
+   * cannot run on beneath it, which is a sheet — see `saySheet`.
    *
    * Both are set as custom properties rather than as styles, so the rules that
    * use them live in trim.css with every other rule, where they can be read.
@@ -691,128 +691,88 @@
   /* ── Sheets ───────────────────────────────────────────────────────────── */
 
   /**
-   * Whether Instagram has something modal on the screen, and whether it has
-   * been given room to stand clear of Quiet's row.
+   * Instagram puts a sheet up for switching accounts, for sharing, and for the
+   * menu behind the three dots. It slides over its own tab bar the way every
+   * sheet on a phone does, and Quiet's row — which is the app's furniture, not
+   * the page's — stayed exactly where it was, drawn across the buttons on it.
    *
-   * A sheet is not a page. It has no address, nothing about where you are can
-   * see one coming, and Instagram puts one up for switching accounts, for
-   * sharing, and for the menu behind the three dots. It slides over its own tab
-   * bar the way every sheet on a phone does — and Quiet's row, which is the
-   * app's and not the page's, stayed exactly where it was and was drawn
-   * straight through the buttons on it.
+   * Seven answers to that were written and every one of them tried to move
+   * something of Instagram's: pad the panel, transform the panel, move the row,
+   * make the row inert. Seven photographs came back identical. Whatever the
+   * reason for each — and there is no way to read one off a photograph — the
+   * shared property is that they all asked somebody else's stylesheet for
+   * permission.
    *
-   * That was answered twice by moving the row: taken away while a sheet was up,
-   * and then left where it was and made inert so the press went through it.
-   * Neither is what the photograph asks for. The row is not in the way because
-   * it answers taps; it is in the way because it is drawn over the one button
-   * on the sheet, and a button nobody can see is a button nobody can press,
-   * whichever of the two gets the tap.
+   * This file no longer moves anything. Its whole job here is to answer two
+   * questions and hand them to the app:
    *
-   * So the room is made in the page instead. The app says how much of the
-   * bottom of the glass its row stands on, the panel is padded by exactly that,
-   * and every control on the sheet ends above the row while the panel's own
-   * colour runs on underneath it. Nothing of the app moves, nothing of the page
-   * is hidden, and the two stop being in the same place.
+   *   is there a sheet, and what colour is it?
    *
-   * Found by what it is rather than by what it looks like or what it says.
-   * "Modal" is a thing the markup states outright, in an attribute that is the
-   * same in every language and that Instagram has to set for its own screen
-   * reader to work. No class names, no guessing at shapes, nothing to go stale
-   * next Tuesday.
-   *
-   * Only if it is actually drawn. A dialog that is in the tree with no box is
-   * one that has been dismissed and not yet removed, or one built ahead of
-   * being needed, and neither is a reason to say anything at all.
+   * The app owns the viewport. It makes the web view shorter, every bottom-
+   * anchored thing in the page rises by exactly that much because that is what
+   * being anchored to the bottom of a viewport means, and there is no rule
+   * anybody can write that refuses it. It is the same answer the status bar
+   * needed, and it is in this file's own history: "So the viewport itself is
+   * made smaller. Everything in it is right by construction."
    */
+
   var MODAL = '[role="dialog"], [aria-modal="true"], dialog[open]';
 
-  /** What trim.css pads. Set on the panel, and never on the backdrop. */
-  var SHEET = "data-quiet-sheet";
-
-  /* Starts false rather than unknown, because that is the truth on a page that
-   * has just loaded, and because "there is no sheet" is not news. Only a change
-   * is sent. Clear starts true for the same reason: a screen with no sheet on
-   * it has nothing standing in the row's way. */
   var lastSheet = false;
   var lastClear = true;
+  var lastTint = null;
 
   function saySheet() {
-    var modals = drawnModals();
-    var up = modals.length > 0;
-    var clear = giveTheSheetRoom(modals);
+    var sheet = theSheet();
+    var up = !!sheet;
+    var clear = !up || everythingClearsTheRow(sheet);
+    var tint = up ? colourOf(sheet) : null;
+    var key = tint ? tint.join(",") : null;
 
-    if (up && !clear) lookAgain();
-    else settling = 0;
-
-    if (up === lastSheet && clear === lastClear) return;
+    if (up === lastSheet && clear === lastClear && key === lastTint) return;
     lastSheet = up;
     lastClear = clear;
-    post({ kind: "sheet", up: up, clear: clear });
+    lastTint = key;
+
+    var message = { kind: "sheet", up: up, clear: clear };
+    if (tint) {
+      message.red = tint[0];
+      message.green = tint[1];
+      message.blue = tint[2];
+    }
+    post(message);
   }
 
   /**
-   * A few more looks at a sheet that has not been given its room yet.
+   * The sheet, if there is one, by what it says and then by what it is.
    *
-   * A sheet slides up. Arriving is a change to the document and is seen; the
-   * hundred and fifty milliseconds it spends travelling are a transition, which
-   * changes nothing in the document and is seen by nothing here. So a sheet
-   * measured on the frame it appeared is measured half a screen below where it
-   * lands, and a pass that only ever ran on a mutation would decide once, while
-   * it was still moving, that there was no panel to pad.
-   *
-   * Three looks, spaced far enough apart to cover an animation and few enough
-   * to end. A sheet that has its room stops them; so does a sheet that goes
-   * away. What is left running after that is a sheet with no panel to be found
-   * — a full-screen one, or a shape this does not know — and for that the app
-   * has the row stand down, which is the answer it always had.
+   * The markup first, because when Instagram does say a thing is modal that is
+   * the answer and there is nothing to work out. Nothing obliges it to, though,
+   * and when it does not, the symptom is identical to every other way this can
+   * fail — which is how seven rounds went by without the question being asked.
    */
-  var SETTLE = [60, 200, 500];
-  var settling = 0;
-
-  function lookAgain() {
-    if (settling >= SETTLE.length) return;
-    var wait = SETTLE[settling];
-    settling += 1;
-    setTimeout(schedule, wait);
-  }
-
-  function drawnModals() {
-    var drawn = [];
+  function theSheet() {
     var modals = document.querySelectorAll(MODAL);
     for (var i = 0; i < modals.length; i++) {
       var box = modals[i].getBoundingClientRect();
-      if (box.width > 0 && box.height > 0) drawn.push(modals[i]);
+      if (box.width > 0 && box.height > 0) return modals[i];
     }
-    if (drawn.length) return drawn;
-
-    var unnamed = theSheetByItsShape();
-    return unnamed ? [unnamed] : [];
+    return theSheetByItsShape();
   }
 
   /**
-   * A sheet that never said it was one.
+   * A sheet that never said it was one, found the way the header and the upsell
+   * strip are: by asking what is actually drawn along the bottom of the glass.
    *
-   * Five rounds of this went past — pad the panel, move the row, measure
-   * whether it worked, move the sheet — and every one of them was gated on
-   * finding something that says it is modal. Nothing obliges Instagram to say
-   * so, and the symptom when it does not say so is identical to the symptom of
-   * each mechanism failing: the row drawn across the button, every time,
-   * whatever was changed. Five photographs of the same picture, and the thing
-   * they were all evidence of was never looked at.
+   * The tests are what makes something a sheet rather than part of a page. It
+   * reaches the bottom edge; it spans nearly the whole width; it is tall enough
+   * to be a sheet and shorter than the screen, because a backdrop is as tall as
+   * the glass; and it is held over the page rather than laid out in it.
    *
-   * So this asks the screen, the way the header and the upsell strip are asked.
-   * What is actually drawn along the bottom of the glass? Then it decides by
-   * shape, and only by shape.
-   *
-   * The tests are the ones that make something a sheet rather than part of a
-   * page: it reaches the bottom edge, it spans nearly the whole width, it is
-   * tall enough to be a sheet and shorter than the screen — a backdrop is as
-   * tall as the glass — and it is held over the page rather than laid out in
-   * it, which is what a sheet is.
-   *
-   * Nothing of Instagram's own furniture can be picked up by mistake: its floor
-   * is already taken out, and on the screens with their own bottom edge — a
-   * story, a conversation — the row is nothing, so none of this runs at all.
+   * Nothing of Instagram's own is picked up by mistake: its floor is taken out
+   * and carries a mark saying so, a bar is too short, a card does not span the
+   * glass — and on the screens that own their bottom edge, a story or a
+   * conversation, the app draws no row and none of this runs.
    */
   var SHEET_SHORTEST = 120;
 
@@ -821,7 +781,7 @@
 
     var width = window.innerWidth || 0;
     var height = window.innerHeight || 0;
-    if (!width || !height) return null;
+    if (!width || !height || row() <= 0) return null;
 
     var columns = [
       Math.round(width / 2),
@@ -852,13 +812,8 @@
     var box = node.getBoundingClientRect();
     if (box.width < width * 0.8) return false;
     if (box.bottom < height - 2 || box.bottom > height + 8) return false;
-
-    /* Its own height, less whatever this file has already added to it — the
-     * same arithmetic `isPanel` does, and for the same reason: measured with
-     * the padding on, a sheet grows past the test that found it. */
-    var own = box.height - (node.hasAttribute(SHEET) ? amount(node) : 0);
-    if (own < SHEET_SHORTEST) return false;
-    if (own > height - 8) return false;
+    if (box.height < SHEET_SHORTEST) return false;
+    if (box.height > height - 8) return false;
 
     return heldOverThePage(node);
   }
@@ -875,109 +830,27 @@
   }
 
   /**
-   * Pad every panel on the screen by the height of the row, take the padding
-   * off anything that is no longer one, and answer whether all of them are
-   * standing clear of it.
+   * What colour the sheet is, so the app can paint the strip of glass it takes
+   * away underneath it.
    *
-   * The answer is what the app hangs the last resort on. A sheet that has been
-   * given its room needs nothing further from the app: the row is beside it
-   * rather than over it, and can go on answering taps. One that has not — a
-   * shape this cannot recognise, or a sheet that fills the glass — is a sheet
-   * with the row across it, and there the row stands down and lets the press
-   * through, which is what it did for every sheet before this.
+   * Without this the sheet would appear to stop short of the bottom edge with a
+   * band of the app's own colour beneath it, which is not what a sheet looks
+   * like. With it, the sheet reaches the edge exactly as before and only its
+   * contents have moved up.
+   *
+   * Climbs until something is opaque, for the same reason the clock's band
+   * does: a see-through layer hands back a colour that is never drawn anywhere.
    */
-  function giveTheSheetRoom(modals) {
-    /* Nothing is marked on a screen with no row on it — a story, a
-     * conversation — because a padding of nothing is a padding that says
-     * something is being done when nothing is. The sweep below still runs, so
-     * that a sheet open across the change from a screen with a row to one
-     * without has its room taken back off it. */
-    var stands = row() > 0;
-
-    var panels = [];
-    for (var i = 0; stands && i < modals.length; i++) {
-      var panel = panelOf(modals[i]);
-      if (panel) panels.push(panel);
+  function colourOf(sheet) {
+    var node = sheet;
+    var steps = 0;
+    while (node && node !== document.body && steps < 6) {
+      var colour = colourFrom(window.getComputedStyle(node).backgroundColor);
+      if (colour) return colour;
+      node = node.parentElement;
+      steps += 1;
     }
-
-    var padded = document.querySelectorAll("[" + SHEET + "]");
-    for (var j = 0; j < padded.length; j++) {
-      if (panels.indexOf(padded[j]) < 0) {
-        padded[j].removeAttribute(SHEET);
-        padded[j].style.removeProperty("--quiet-lift");
-      }
-    }
-    for (var k = 0; k < panels.length; k++) {
-      lift(panels[k]);
-      if (!panels[k].hasAttribute(SHEET)) panels[k].setAttribute(SHEET, "room");
-    }
-
-    if (!modals.length) return true;
-    /* No row on this screen, so there is nothing for a sheet to be standing in
-     * the way of and nothing to report. */
-    if (!stands) return true;
-    if (panels.length !== modals.length) return false;
-
-    /* And then measured rather than assumed.
-     *
-     * Finding a panel and padding it is not the same as the sheet standing
-     * clear, and the difference is the whole of what went wrong: a padding that
-     * did not move anything reported success, the app left the row answering
-     * taps, and the button stayed underneath it. So the question is asked of
-     * the one thing that matters — is there a control on this sheet under the
-     * row — and it is asked after the padding has been put on.
-     *
-     * When the answer is no, the app has the row stand down and the press goes
-     * through. That is the worse of the two outcomes and it is never the wrong
-     * one: whatever shape the sheet turns out to be, the button can be pressed.
-     */
-    for (var m = 0; m < modals.length; m++) {
-      if (!everythingClearsTheRow(modals[m])) return false;
-    }
-    return true;
-  }
-
-  /**
-   * How far up the sheet goes.
-   *
-   * Two centimetres, which is a hundred and twenty-eight points on a phone at
-   * roughly a hundred and sixty points to the inch. The row itself is
-   * eighty-nine, so this is the row and a comfortable margin — asked for in
-   * centimetres, after three attempts at "exactly clear of the row" produced
-   * three photographs of a button under the row.
-   */
-  var LIFT = 128;
-
-  /* Never so far that the top of the sheet is pushed off the glass. A sheet
-   * that is nearly as tall as the screen has nowhere to go, and cutting its
-   * heading off to free its foot is not a trade worth making. */
-  var HEADROOM = 40;
-
-  /**
-   * Move it, rather than ask its layout to move it.
-   *
-   * Padding was tried twice and moved nothing, on a real phone, in two builds.
-   * Why is Instagram's business — a height of its own, a flex rule, an overflow
-   * — and it does not matter, because a transform does not go through layout at
-   * all. Whatever the box is made of, it and everything in it are drawn a
-   * hundred and twenty-eight points higher, and the taps follow the drawing.
-   *
-   * The padding stays, and now has one job: the box grows by exactly what it
-   * moves, so its own background still reaches the bottom edge of the glass and
-   * there is no gap under the sheet showing the dimmed page through it.
-   */
-  function lift(panel) {
-    var height = window.innerHeight || 0;
-    var own = panel.getBoundingClientRect().height -
-      (panel.hasAttribute(SHEET) ? amount(panel) : 0);
-    var room = Math.max(0, height - own - HEADROOM);
-    var wanted = Math.min(LIFT, room);
-    if (amount(panel) === wanted) return;
-    panel.style.setProperty("--quiet-lift", wanted + "px");
-  }
-
-  function amount(panel) {
-    return parseFloat(panel.style.getPropertyValue("--quiet-lift")) || 0;
+    return null;
   }
 
   /** Anything on the sheet you could press, and whether it is above the row. */
@@ -985,137 +858,31 @@
     'a, button, input, textarea, select, [role="button"], [role="link"], ' +
     '[role="menuitem"], [role="tab"], [contenteditable="true"], [tabindex]';
 
-  function everythingClearsTheRow(modal) {
-    var floor = (window.innerHeight || 0) - row();
-    var controls = modal.querySelectorAll(PRESSABLE);
+  /**
+   * Measured rather than assumed.
+   *
+   * The app has one last resort — standing the row down so the press goes
+   * through it — and this is what decides whether it is needed. A sheet whose
+   * every control is above the row needs nothing further; one that still has a
+   * button underneath gets the row out of the way of the tap even though it
+   * cannot get it out of the way of the eye.
+   */
+  function everythingClearsTheRow(sheet) {
+    var height = window.innerHeight || 0;
+    var floor = height - row();
+    var controls = sheet.querySelectorAll(PRESSABLE);
     for (var i = 0; i < controls.length; i++) {
       var box = controls[i].getBoundingClientRect();
-      /* Nothing drawn is nothing in the way. */
       if (box.width <= 0 || box.height <= 0) continue;
-      /* Above the fold of the sheet, or scrolled out of it. Only what is on
-       * the glass can be under the row. */
-      if (box.top >= (window.innerHeight || 0)) continue;
+      /* Only what is on the glass can be under the row. */
+      if (box.top >= height) continue;
       if (box.bottom > floor + 1) return false;
     }
     return true;
   }
 
   /**
-   * The panel of a sheet: the box pinned to the bottom of the glass that the
-   * buttons are on.
-   *
-   * Picked out by three things a bottom sheet has and the dimmed backdrop
-   * around it does not. It is positioned rather than in the flow of the page,
-   * because being pinned to an edge is what `position` is for. It reaches that
-   * edge, and spans most of the width of the glass, because that is where a
-   * sheet on a phone sits. And it is shorter than the glass, which is the one
-   * that tells it from the backdrop — the backdrop reaches the bottom too, and
-   * reaches everything else as well.
-   *
-   * Shallowest first, so what is found is the box pinned to the edge rather
-   * than something inside it that happens to end at the same place. Padding the
-   * button at the foot of a sheet would make the button taller and move nothing
-   * anywhere.
-   *
-   * Nothing at all for a sheet that fills the glass. Padding a full-height box
-   * is either useless or actively wrong: a backdrop resolves a child's
-   * `bottom: 0` against its own padding box, so the padding meant to lift the
-   * sheet off the row would push it down behind it instead. Those are left
-   * alone and reported as such.
-   */
-  function panelOf(modal) {
-    var width = window.innerWidth || 0;
-    var height = window.innerHeight || 0;
-    if (!width || !height) return null;
-
-    /* Upwards first, and only then down.
-     *
-     * Both find a box of the right shape, and when the dialog and the box
-     * around it are the same rectangle — which is common — either would do. The
-     * outer one is the better answer anyway: it is the box the sheet is drawn
-     * as, so padding it can never be swallowed by an inner box with a height of
-     * its own and its overflow hidden. */
-    var above = panelAbove(modal, width, height);
-    if (above) return above;
-
-    var queue = [modal];
-    var seen = 0;
-
-    while (queue.length && seen < 400) {
-      var node = queue.shift();
-      seen += 1;
-
-      if (isPanel(node, width, height)) return node;
-
-      var kids = node.children;
-      for (var i = 0; i < kids.length; i++) queue.push(kids[i]);
-    }
-    return null;
-  }
-
-  /**
-   * And the case where the dialog is the contents rather than the panel.
-   *
-   * A sheet is often built as a box pinned to the edge with the dialog sitting
-   * inside it, which puts the thing that is pinned one step *outside* the
-   * element that says it is modal — where a search downwards will never find
-   * it. So a few steps are taken upwards as well, by the same test.
-   *
-   * A few, and not as far as the document. What is being looked for is the box
-   * the sheet is drawn as, which is always within a step or two of the dialog;
-   * anything further up is a wrapper around the whole page, and a page padded
-   * at the foot is the black band under the row this file spends three rules
-   * taking back.
-   */
-  function panelAbove(modal, width, height) {
-    var node = modal.parentElement;
-    var steps = 0;
-
-    while (node && node !== document.body && steps < 4) {
-      if (isPanel(node, width, height)) return node;
-      node = node.parentElement;
-      steps += 1;
-    }
-    return null;
-  }
-
-  function isPanel(node, glassWidth, glassHeight) {
-    var box = node.getBoundingClientRect();
-    if (box.width < glassWidth * 0.6) return false;
-    if (box.bottom < glassHeight - 2) return false;
-
-    /* And not one that is still on its way there. A sheet halfway through
-     * sliding up is a box hanging below the bottom of the glass, and padding it
-     * would pad something the eye has not seen yet. One already padded is kept
-     * whatever this measures, because a panel that grows downward under its own
-     * padding would otherwise be chosen and unchosen frame after frame. */
-    if (!node.hasAttribute(SHEET) && box.bottom > glassHeight + 8) return false;
-
-    /* Its own height, less whatever this file has already added to it. Measured
-     * with the padding on, a panel grows past the test that chose it and would
-     * be unchosen on the next frame and chosen again on the one after — a
-     * sheet that jumps for as long as it is open. */
-    var own = box.height - (node.hasAttribute(SHEET) ? row() : 0);
-    if (own > glassHeight - 8) return false;
-
-    /* And that is the whole test.
-     *
-     * It asked for `position` as well until a photograph settled it: a sheet
-     * whose panel is a plain box inside a fixed backdrop — which is how a
-     * flex column with `margin-top: auto` is built, and how Instagram's is —
-     * was refused, no panel was found, and the app fell back to standing the
-     * row down. Which is the answer that had already been photographed twice.
-     *
-     * Being positioned was never what makes something a panel. It was there to
-     * keep the backdrop out, and the backdrop is kept out by being as tall as
-     * the glass, which is the line above. Every candidate here is inside the
-     * dialog or within four steps of it, so there is nothing else down there to
-     * pick by mistake. */
-    return true;
-  }
-
-  /**
-   * How much of the bottom of the glass Quiet's row stands on, in pixels.
+   * How much of the bottom of the glass Quiet's row stands on, in points.
    *
    * Handed over by the app, because the app is the only thing that knows: the
    * row is the app's own furniture, it has two shapes with two heights, and on
