@@ -297,6 +297,10 @@ final class WebSurface {
     private(set) var stumble: StumbleView.Kind?
 
     fileprivate func note(stumble kind: StumbleView.Kind?) {
+        #if DEBUG
+        // Never over a staged photograph. See `Rehearsal.isStaged`.
+        if kind != nil, Rehearsal.isStaged { return }
+        #endif
         guard stumble != kind else { return }
         stumble = kind
     }

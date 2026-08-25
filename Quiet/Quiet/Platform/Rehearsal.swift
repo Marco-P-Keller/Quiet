@@ -51,6 +51,19 @@ enum Rehearsal {
     /// Whether this launch puts a sheet on the page for a machine to look at.
     static var showsASheet: Bool { scene == .sheet }
 
+    /// Whether this launch is a staged photograph rather than somebody using
+    /// the app.
+    ///
+    /// One thing turns on it, and it cost a red run to find. The `island`
+    /// scene is photographed *before the page arrives*, deliberately, because
+    /// that is what leaves the row standing on a flat colour where it can be
+    /// measured rather than argued about. A page that has not arrived is also
+    /// a page that may have failed — and the app now draws its own screen when
+    /// that happens, in its own paper, over the whole glass. Which is right in
+    /// a hand and is precisely the nondeterminism a rehearsal exists to
+    /// remove.
+    static var isStaged: Bool { scene != nil }
+
     /// Skip the opening, without asking for a scene.
     ///
     /// For the one UI test that drives the app from an empty install. A machine

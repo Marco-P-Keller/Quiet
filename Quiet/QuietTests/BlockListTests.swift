@@ -81,19 +81,32 @@ final class BlockListTests: XCTestCase {
         }
     }
 
+    /// The regular expressions are also read out of the serialised document
+    /// rather than from `filters` directly, so that a document which cannot be
+    /// parsed fails every one of these rather than only the first.
+    ///
     /// WebKit compiles `url-filter` with its own engine, not this one. The
     /// syntax used here — anchors, character classes, groups, alternation — is
     /// the subset both understand, which is what makes the two comparable at
     /// all. Anything cleverer than that would make this test a fiction.
     private func matches(_ address: String) -> Bool {
-        let data = BlockList.rules.data(using: .utf8)!
-        let rules = try! JSONSerialization.jsonObject(with: data) as! [[String: Any]]
+        guard let data = BlockList.rules.data(using: .utf8),
+              let rules = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]]
+        else {
+            XCTFail("the rules are not a document anything can read")
+            return false
+        }
         return rules.contains { rule in
-            let filter = (rule["trigger"] as! [String: Any])["url-filter"] as! String
-            let expression = try! NSRegularExpression(
-                pattern: filter,
-                options: [.caseInsensitive]
-            )
+            guard let trigger = rule["trigger"] as? [String: Any],
+                  let filter = trigger["url-filter"] as? String,
+                  let expression = try? NSRegularExpression(
+                      pattern: filter,
+                      options: [.caseInsensitive]
+                  )
+            else {
+                XCTFail("a rule has no readable filter")
+                return false
+            }
             let whole = NSRange(address.startIndex..., in: address)
             return expression.firstMatch(in: address, range: whole) != nil
         }

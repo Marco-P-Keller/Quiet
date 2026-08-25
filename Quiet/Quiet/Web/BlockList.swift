@@ -49,14 +49,9 @@ enum BlockList {
     /// wrong is silently the one that matters.
     private static let roots = "reels?|tv|explore|directory"
 
-    /// The rules, as WebKit's own JSON.
-    ///
-    /// Only `document` and `raw`. Not images, not media, not stylesheets: a
-    /// rule that blocked those would be one bad address away from a feed with
-    /// holes in it, and the whole argument for this layer is that it cannot be
-    /// wrong in a way anybody has to debug from a photograph.
-    static var rules: String {
-        let filters = [
+    /// The addresses this refuses, as regular expressions.
+    static var filters: [String] {
+        [
             // /reels/, /reel/…, /tv/…, /explore/…, /directory/…
             "\(instagram)/(\(roots))(/|$)",
             // /accounts/suggested/ — Explore wearing a different hat.
@@ -64,13 +59,40 @@ enum BlockList {
             // /someone/reels/ — the reels tab on a profile.
             "\(instagram)/[^/]+/reels(/|$)",
         ]
-        let list = filters.map { filter in
-            """
-            {"trigger":{"url-filter":"\(filter)","resource-type":["document","raw"]},\
-            "action":{"type":"block"}}
-            """
+    }
+
+    /// The rules, as WebKit's own JSON.
+    ///
+    /// Only `document` and `raw`. Not images, not media, not stylesheets: a
+    /// rule that blocked those would be one bad address away from a feed with
+    /// holes in it, and the whole argument for this layer is that it cannot be
+    /// wrong in a way anybody has to debug from a photograph.
+    static var rules: String {
+        let list: [[String: Any]] = filters.map { filter in
+            [
+                "trigger": [
+                    "url-filter": filter,
+                    "resource-type": ["document", "raw"],
+                ],
+                "action": ["type": "block"],
+            ]
         }
-        return "[\(list.joined(separator: ","))]"
+        // Serialised rather than written out, and the difference is not
+        // tidiness. Every filter above contains `\.`, which is how a regular
+        // expression spells a full stop and is *not* a legal escape in JSON —
+        // so the hand-built version produced a document nothing could parse.
+        // WebKit would have refused it on a real phone exactly as it refused it
+        // here, the app would have run on one layer instead of two, and the
+        // only thing that would ever have said so is a line in the panel.
+        guard let data = try? JSONSerialization.data(withJSONObject: list),
+              let text = String(data: data, encoding: .utf8) else {
+            // Unreachable for a list of strings, and empty rather than `[]` on
+            // purpose: an empty document fails to compile and is reported,
+            // where `[]` would compile into a lock that holds nothing while
+            // announcing success.
+            return ""
+        }
+        return text
     }
 
     /// Compile the list and hand it to a configuration.
