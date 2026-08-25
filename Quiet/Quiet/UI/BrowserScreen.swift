@@ -187,6 +187,26 @@ struct BrowserScreen: View {
             overlays
                 .padding(.top, topInset + 8)
         }
+        // The glass, said outright, for the same reason the web view is given a
+        // size rather than told to fill something.
+        //
+        // The row moved seven points up the moment the web view stopped being
+        // as tall as the screen — measured, on the run that shipped it: the
+        // source said twenty-five and the photograph said thirty-two. Seven is
+        // exactly what the web view's own box lost against the safe area, which
+        // is the tell: with no child left the height of the glass, the stack
+        // worked its own height out from its tallest child and came up short at
+        // the bottom, and the row and the strip went up with it.
+        //
+        // Ignoring the safe area is a request about edges. It says nothing
+        // about how tall the thing asking is. So the stack is given the glass,
+        // and everything in it stands on the bottom of the screen because the
+        // bottom of the screen is where the stack ends.
+        .frame(
+            width: glass.width > 0 ? glass.width : nil,
+            height: glass.height > 0 ? glass.height : nil,
+            alignment: .top
+        )
         .ignoresSafeArea()
         .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: surface.hasLoaded)
         // The band changing colour: the first answer from a page, and every
