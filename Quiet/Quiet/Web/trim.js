@@ -608,7 +608,7 @@
     var style = document.documentElement.style;
     var top = window.__quietTop;
     if (top) style.setProperty("--quiet-top", top + "px");
-    style.setProperty("--quiet-row", row() + "px");
+    style.setProperty("--quiet-row", rowStands() + "px");
   }
 
   /**
@@ -714,6 +714,28 @@
    * anybody can write that refuses it. It is the same answer the status bar
    * needed, and it is in this file's own history: "So the viewport itself is
    * made smaller. Everything in it is right by construction."
+   *
+   * Which leaves the finding, and the finding is where the eighth photograph
+   * came back the same as the other seven. Three things were wrong with it, and
+   * every one of them says no to a sheet that is really there:
+   *
+   *   * **A sheet arrives by sliding, and a slide is not a mutation.** The
+   *     observer hears the panel appear, and at the moment it appears the panel
+   *     is still below the bottom edge of the glass. Nothing in the document
+   *     changes while it travels up, so the question was asked once, at the one
+   *     moment the honest answer is no, and never asked again. See `settle`.
+   *   * **It had to reach the bottom edge to the pixel.** Two points of
+   *     tolerance, against a panel that can end on a rounded corner or a
+   *     hairline of its own. Forty now, which is still far less than the row.
+   *   * **It had to be held over the page within eight steps.** Instagram's
+   *     tree is deeper than eight almost everywhere, and the fixed element is
+   *     the backdrop, not the panel. The walk goes to the body now.
+   *
+   * And a third way of finding one is asked underneath the other two, which is
+   * the question the photograph itself asks: *is anything a person would press
+   * drawn under Quiet's row?* See `theSheetUnderTheRow`. It knows nothing about
+   * sheets, needs nothing of Instagram's markup to be true, and is the one test
+   * that cannot be wrong about the thing that is actually wrong.
    */
 
   var MODAL = '[role="dialog"], [aria-modal="true"], dialog[open]';
@@ -744,20 +766,52 @@
   }
 
   /**
-   * The sheet, if there is one, by what it says and then by what it is.
+   * The sheet the app is already holding the glass open for.
+   *
+   * Held on to rather than found again every time, because the act of answering
+   * changes the screen the next answer is read off. The app takes a strip of
+   * glass away underneath the sheet, so the row stops standing on the page at
+   * all — and the test that found the sheet by what was drawn under the row
+   * then finds nothing, and the glass would come back, and the sheet would drop
+   * onto the row again, once per frame, for as long as it was open.
+   *
+   * So the answer is only worked out again once the sheet it was about has gone
+   * off the screen.
+   */
+  var known = null;
+
+  function theSheet() {
+    if (known && stillDrawn(known)) return known;
+    known =
+      theSheetItSaysItIs() || theSheetByItsShape() || theSheetUnderTheRow();
+    return known;
+  }
+
+  /** Still in the document, still drawn, and still on the glass. */
+  function stillDrawn(node) {
+    if (node.isConnected === false) return false;
+    if (!document.documentElement.contains(node)) return false;
+    var box = node.getBoundingClientRect();
+    if (box.width <= 0 || box.height <= 0) return false;
+    // Dismissed by sliding back down rather than by being taken out.
+    return box.top < (window.innerHeight || 0);
+  }
+
+  /**
+   * The sheet by what it says it is.
    *
    * The markup first, because when Instagram does say a thing is modal that is
    * the answer and there is nothing to work out. Nothing obliges it to, though,
    * and when it does not, the symptom is identical to every other way this can
    * fail — which is how seven rounds went by without the question being asked.
    */
-  function theSheet() {
+  function theSheetItSaysItIs() {
     var modals = document.querySelectorAll(MODAL);
     for (var i = 0; i < modals.length; i++) {
       var box = modals[i].getBoundingClientRect();
       if (box.width > 0 && box.height > 0) return modals[i];
     }
-    return theSheetByItsShape();
+    return null;
   }
 
   /**
@@ -774,21 +828,32 @@
    * glass — and on the screens that own their bottom edge, a story or a
    * conversation, the app draws no row and none of this runs.
    */
-  var SHEET_SHORTEST = 120;
+  var SHEET_SHORTEST = 100;
+
+  /**
+   * How far above the bottom edge a sheet may stop and still be a sheet.
+   *
+   * Two points, which is what this was, is a measurement rather than a
+   * tolerance: it asks a panel that can end on a rounded corner, a hairline or
+   * a home-indicator strip of its own to land on an exact pixel. Forty is
+   * generous about the foot of a sheet and still less than half the row, so
+   * nothing that stops short enough to clear the row is chased.
+   */
+  var SHEET_FOOT = 40;
 
   function theSheetByItsShape() {
     if (!document.elementsFromPoint) return null;
 
     var width = window.innerWidth || 0;
     var height = window.innerHeight || 0;
-    if (!width || !height || row() <= 0) return null;
+    if (!width || !height || rowStands() <= 0) return null;
 
     var columns = [
       Math.round(width / 2),
       Math.round(width * 0.2),
       Math.round(width * 0.8)
     ];
-    var rows = [height - 2, height - 30];
+    var rows = [height - 2, height - 30, height - 60];
 
     for (var r = 0; r < rows.length; r++) {
       for (var c = 0; c < columns.length; c++) {
@@ -803,30 +868,141 @@
   }
 
   function looksLikeASheet(node, width, height) {
+    if (!ours(node)) return false;
+
+    var box = node.getBoundingClientRect();
+    if (box.width < width * 0.8) return false;
+    if (box.bottom < height - SHEET_FOOT || box.bottom > height + 8) return false;
+    if (box.height < SHEET_SHORTEST) return false;
+    if (box.height > height - 8) return false;
+
+    return heldOverThePage(node) !== null;
+  }
+
+  /** Anything the app has already dealt with, or drawn itself, is not a sheet. */
+  function ours(node) {
     if (!node || !node.getAttribute) return false;
     if (node === document.body || node === document.documentElement) return false;
     if (node.getAttribute("data-quiet-floor") !== null) return false;
     if (node.getAttribute("data-quiet-hidden") !== null) return false;
     if (node.id && node.id.indexOf("quiet-") === 0) return false;
-
-    var box = node.getBoundingClientRect();
-    if (box.width < width * 0.8) return false;
-    if (box.bottom < height - 2 || box.bottom > height + 8) return false;
-    if (box.height < SHEET_SHORTEST) return false;
-    if (box.height > height - 8) return false;
-
-    return heldOverThePage(node);
+    return true;
   }
 
-  /** Held against the glass rather than laid out in the page. */
+  /**
+   * Held against the glass rather than laid out in the page — and which element
+   * is doing the holding.
+   *
+   * The walk used to stop after eight steps, which is a guess about the depth of
+   * somebody else's tree and was wrong about Instagram's: a sheet's panel is a
+   * long way below the fixed backdrop that holds it, and eight steps never
+   * reached it. It goes to the body now, which is the only end there is.
+   *
+   * The element doing the holding is handed back rather than a yes: it is the
+   * panel itself when the panel is the fixed one, and the backdrop when it is
+   * not, and one of the two callers wants to know which.
+   */
   function heldOverThePage(node) {
     var steps = 0;
-    while (node && node !== document.body && steps < 8) {
-      if (window.getComputedStyle(node).position === "fixed") return true;
+    while (node && node !== document.body && steps < 60) {
+      if (window.getComputedStyle(node).position === "fixed") return node;
       node = node.parentElement;
       steps += 1;
     }
-    return false;
+    return null;
+  }
+
+  /**
+   * The question the photograph asks, asked directly: is there anything a
+   * person would press drawn underneath Quiet's row?
+   *
+   * Every other test here is an inference about how Instagram builds a sheet,
+   * and an inference about somebody else's markup is only ever true until they
+   * change it. This one is about the screen. It probes the strip of glass the
+   * row stands on, and if what is drawn there is something pressable held over
+   * the page, then whatever that thing belongs to is in the way — whether or
+   * not it is a sheet, whether or not it says so, and whatever shape it is.
+   *
+   * The page's own content is never picked up. What scrolls is not held over
+   * anything, and content running on beneath the row is exactly what the row is
+   * meant to have under it — that is where Instagram's next photograph goes.
+   * The one further guard is width: a sheet, a menu and a dialog all span most
+   * of the glass, and a stray fixed pill does not.
+   */
+  var OVERLAY_NARROWEST = 0.6;
+
+  function theSheetUnderTheRow() {
+    if (!document.elementsFromPoint) return null;
+
+    var width = window.innerWidth || 0;
+    var height = window.innerHeight || 0;
+    var stands = rowOverThePage();
+    if (!width || !height || stands <= 0) return null;
+
+    var columns = [0.5, 0.15, 0.35, 0.65, 0.85].map(function (part) {
+      return Math.round(width * part);
+    });
+    var rows = [
+      height - 4,
+      height - Math.round(stands / 2),
+      height - stands + 4
+    ];
+
+    for (var r = 0; r < rows.length; r++) {
+      for (var c = 0; c < columns.length; c++) {
+        var stack = document.elementsFromPoint(columns[c], rows[r]);
+        if (!stack) continue;
+        for (var i = 0; i < stack.length; i++) {
+          var control = pressableAt(stack[i]);
+          if (!control) continue;
+          var panel = panelAround(control, width, height);
+          if (panel) return panel;
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * What a control drawn under the row belongs to.
+   *
+   * The largest box around it that is still smaller than the glass, and only if
+   * something on the way up is holding it there. Largest, because the sheet is
+   * the thing the app has to paint a strip underneath and the button is not;
+   * smaller than the glass, because the next box out is the dimmed backdrop,
+   * which is the whole screen and has no colour worth sampling.
+   */
+  function panelAround(control, width, height) {
+    var node = control;
+    var panel = null;
+    var held = false;
+    var steps = 0;
+    while (node && node !== document.body && steps < 60) {
+      if (!ours(node)) return null;
+      if (window.getComputedStyle(node).position === "fixed") held = true;
+      var box = node.getBoundingClientRect();
+      if (box.width >= width * OVERLAY_NARROWEST && box.height < height - 8) {
+        panel = node;
+      }
+      node = node.parentElement;
+      steps += 1;
+    }
+    return held ? panel : null;
+  }
+
+  /**
+   * The control a point lands on: the element itself, or the button whose label
+   * it is. A tap lands on the text inside a button as often as on the button.
+   */
+  function pressableAt(node) {
+    var steps = 0;
+    while (node && node !== document.body && steps < 8) {
+      if (!ours(node)) return null;
+      if (node.matches && node.matches(PRESSABLE)) return node;
+      node = node.parentElement;
+      steps += 1;
+    }
+    return null;
   }
 
   /**
@@ -866,10 +1042,15 @@
    * every control is above the row needs nothing further; one that still has a
    * button underneath gets the row out of the way of the tap even though it
    * cannot get it out of the way of the eye.
+   *
+   * Asked of what the row is still standing on rather than of how tall it is,
+   * so that once the app has taken the glass away the answer becomes yes and
+   * the row goes back to answering taps. A row that stayed inert for as long as
+   * a sheet was open would be a row you could not leave a sheet by.
    */
   function everythingClearsTheRow(sheet) {
     var height = window.innerHeight || 0;
-    var floor = height - row();
+    var floor = height - rowOverThePage();
     var controls = sheet.querySelectorAll(PRESSABLE);
     for (var i = 0; i < controls.length; i++) {
       var box = controls[i].getBoundingClientRect();
@@ -887,11 +1068,27 @@
    * Handed over by the app, because the app is the only thing that knows: the
    * row is the app's own furniture, it has two shapes with two heights, and on
    * the screens that own the bottom edge there is no row at all and the answer
-   * is zero. See `WebScripts.load(top:row:)`.
+   * is zero. See `WebScripts.load(top:row:lift:)`.
    */
-  function row() {
+  function rowStands() {
     var points = window.__quietRow;
     return typeof points === "number" && points > 0 ? points : 0;
+  }
+
+  /**
+   * And how much of that is still over the page.
+   *
+   * Once the app has taken a strip of glass off the bottom for a sheet, the
+   * page's world ends above the row and the row is standing on the app's own
+   * paint rather than on anything of Instagram's. Everything that asks whether
+   * something is *under* the row has to ask about this number instead, or the
+   * answer never changes no matter how much room is made — the sheet and the
+   * floor it is measured against both rise by the same amount.
+   */
+  function rowOverThePage() {
+    var taken = window.__quietLift;
+    taken = typeof taken === "number" && taken > 0 ? taken : 0;
+    return Math.max(0, rowStands() - taken);
   }
 
   /* ── The colour the clock stands on ───────────────────────────────────── */
@@ -1774,7 +1971,6 @@
       guardLocation();
       sayWhere();
       sayChrome();
-      saySheet();
       whoAmI();
       replaceNav();
       headerComesBack();
@@ -1783,7 +1979,59 @@
       dressHeader();
       liftHeader();
       shapeHeader();
+      // Last, because one of the ways a sheet is found is by asking what is
+      // drawn under the row, and everything Quiet takes out of the page is
+      // drawn there until it has been taken out. Instagram's own navigation
+      // row and its door back into the app are both full-width, both held
+      // against the bottom of the glass and both full of things you could
+      // press — which is to say, both indistinguishable from a sheet right up
+      // until the two calls above mark them.
+      saySheet();
+      settle();
     });
+  }
+
+  /**
+   * Ask about the sheet again for a moment, after everything else has been
+   * asked once.
+   *
+   * A sheet arrives by sliding, and a slide is not a mutation. The observer
+   * hears the panel go into the document, and at that moment the panel is
+   * still below the bottom edge of the glass with a transform on it; nothing
+   * in the document changes while it travels, so the pass above runs exactly
+   * once, at the one moment the honest answer is that there is no sheet — and
+   * is never run again until something else rewrites the page.
+   *
+   * That is the whole of what the eighth photograph showed, and it explains
+   * the seven before it: every one of those changed what the app does about a
+   * sheet, and none of them changed whether the app ever heard about one.
+   *
+   * So a change to the document is followed for a moment afterwards. Six looks
+   * over two-thirds of a second, spaced further apart as they go, which
+   * outlasts any sheet animation on the site and costs six calls of a function
+   * that reads a handful of boxes. Only the sheet is asked about again: the
+   * rest of the pass is about the document, and the document has not changed.
+   */
+  var SETTLE = [16, 50, 120, 240, 420, 650];
+
+  var settling = false;
+
+  function settle() {
+    if (settling) return;
+    settling = true;
+    var step = 0;
+    (function again() {
+      if (step >= SETTLE.length) {
+        settling = false;
+        return;
+      }
+      var wait = SETTLE[step] - (step > 0 ? SETTLE[step - 1] : 0);
+      step += 1;
+      setTimeout(function () {
+        saySheet();
+        again();
+      }, wait);
+    })();
   }
 
   var lastRescue = 0;

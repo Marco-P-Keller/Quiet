@@ -1712,3 +1712,77 @@ the case that went unasked for seven rounds — with a bright band at its foot, 
 a script measures how far that band ends up from the bottom edge. Zero is the
 bug. A hundred and twenty-eight is the fix. Nine minutes instead of twenty, and a
 number instead of somebody else's eyes.
+
+## The ninth photograph: nothing was ever asked after the sheet landed
+
+The eighth round moved the answer into the app, where nothing of Instagram's can
+refuse it, and the row was still drawn across "Log in to an Existing Account".
+
+Which is the fourth time a photograph of that button has come back, and this
+time the thing to look at was not the mechanism. Every one of the eight rounds
+changed what the app *does* about a sheet. None of them changed whether the app
+ever hears about one — and there is exactly one place where that is decided.
+
+A sheet arrives by sliding. A slide is not a mutation. The observer hears the
+panel go into the document, and at that moment the panel is still below the
+bottom edge of the glass with a transform on it; nothing in the document changes
+while it travels, so the question was asked once, at the one instant the honest
+answer is *there is no sheet*, and never asked again until something else
+rewrote the page. Every mechanism downstream of that was correct and unreachable.
+
+It had been solved once. "It looks again three times, at sixty, two hundred and
+five hundred milliseconds" is four entries above this one, written when the room
+was still made by padding the panel — and it went out of the file with the
+padding, because it lived in the same function. A rewrite that keeps the
+mechanism and drops the trigger is the most expensive kind, because everything
+that is left still reads correct.
+
+So a change to the document is followed for a moment afterwards: six looks over
+two-thirds of a second, spaced further apart as they go, outlasting any sheet
+animation on the site and costing six calls of a function that reads a handful of
+boxes. Only the sheet is asked about again — the rest of the pass is about the
+document, and the document has not changed.
+
+Two more of the same kind were in the finding, both of them a guess about
+somebody else's markup written as if it were a measurement:
+
+* A sheet had to reach the bottom edge to within **two points**, against a panel
+  that can end on a rounded corner or a hairline of its own. Forty now, which is
+  generous about the foot of a sheet and still less than half the row.
+* What holds a panel against the glass had to be within **eight steps** of it.
+  Instagram's tree is deeper than eight almost everywhere, and the fixed element
+  is the backdrop rather than the panel. The walk goes to the body now.
+
+And underneath both, a third way of finding one, which is the question the
+photograph itself asks: **is anything a person would press drawn underneath
+Quiet's row?** It probes the strip of glass the row stands on, and if what is
+drawn there is something pressable held over the page, then whatever that thing
+belongs to is in the way — whether or not it is a sheet, whether or not it says
+so, and whatever shape it is. It knows nothing about how Instagram builds a
+sheet, which is the only property that matters: every other test here is true
+until somebody else's release, and this one is about the screen.
+
+It is asked last in the pass, after Instagram's own navigation row and its door
+back into the app have been marked. Both of those are full width, held against
+the bottom of the glass and full of things you could press — which is to say,
+both indistinguishable from a sheet until the moment they are taken out. The
+page's own content is never picked up: what scrolls is not held over anything,
+and content running on beneath the row is exactly what belongs under it.
+
+Two things follow from the app being the one that moves.
+
+The sheet is **held on to** while it is on screen. The act of answering changes
+the screen the next answer is read off: once the strip of glass is gone the row
+is no longer standing on the page, the test that found the sheet by what was
+drawn under the row finds nothing, and without this the glass would come back
+and the sheet would drop onto the row again, once per frame, for as long as it
+was open.
+
+And the row is told **how much of it is left over the page**. Both the sheet and
+the floor its buttons are measured against are anchored to the same viewport, so
+both rise by exactly the same amount, and "is anything still underneath" answers
+the same before and after the room is made. Without the second number the row
+stands down for as long as a sheet is open, and a row you cannot leave a sheet
+by is not a row. `__quietLift` is the app saying what it gave.
+
+Thirteen checks, which is ninety-eight in that file.

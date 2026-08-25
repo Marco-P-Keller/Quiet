@@ -46,8 +46,12 @@ function installBoxes(win) {
  *   is what a sheet is given room to stand clear of. Eighty-nine points is the
  *   flush bar on a phone with a home indicator: forty-nine and thirty-four,
  *   rounded. Zero is a story or a conversation, where there is no row.
+ * @param lift how much of the bottom of the glass the app has already taken
+ *   away for a sheet. Zero everywhere except under one, and the number that
+ *   lets the script tell "the room has not been made yet" from "the room has
+ *   been made and the row is standing on the app's own paint".
  */
-async function page(html, url, head, row) {
+async function page(html, url, head, row, lift) {
   const dom = new JSDOM(
     `<!doctype html><html><head>${head || ""}</head><body>${html}</body></html>`,
     { runScripts: "outside-only", url }
@@ -91,6 +95,7 @@ async function page(html, url, head, row) {
   win.fetch = () => new win.Promise(() => {});
   win.__quietTop = 59;
   win.__quietRow = row === undefined ? 89 : row;
+  win.__quietLift = lift === undefined ? 0 : lift;
   win.eval(TRIM);
   win.drain();
   return win;
@@ -923,6 +928,184 @@ const GROUPED = `
     "a sheet that is still there is not announced twice",
     stays.sent.filter((m) => m.kind === "sheet").length,
     1
+  );
+
+  /* ── Sheets, and the three ways of missing one ───────────────────────── */
+
+  /* A sheet arrives by sliding, and a slide is not a mutation. The observer
+   * hears the panel go into the document while the panel is still below the
+   * bottom edge, and nothing in the document changes while it travels — so the
+   * question was asked once, at the one moment the honest answer is no, and
+   * never asked again. That is the whole of the eighth photograph, and it is
+   * why the seven before it all came back the same: every one of them changed
+   * what the app does about a sheet, and none of them changed whether the app
+   * ever heard about one. */
+  const sliding = await page(
+    `<div data-name="sheet" data-at-bottom
+          style="position: fixed; background-color: rgb(38, 38, 38)"
+          data-box="0,844,390,190">x</div><main></main>`,
+    FEED
+  );
+  check("a sheet still below the edge is not one yet", sheetOf(sliding), undefined);
+
+  sliding.document
+    .querySelector('[data-name="sheet"]')
+    .setAttribute("data-box", "0,654,390,190");
+  await new Promise((go) => setTimeout(go, 300));
+  check(
+    "and is found when it lands, with nothing having changed in the document",
+    sheetOf(sliding) && sheetOf(sliding).up,
+    true
+  );
+
+  /* Two points of tolerance at the foot is a measurement, not a tolerance: it
+   * asks a panel that can end on a rounded corner or a hairline of its own to
+   * land on an exact pixel. */
+  const shortOfTheEdge = await page(shape("0,634,390,180"), FEED);
+  check(
+    "a sheet that stops a little short of the edge is still one",
+    shortOfTheEdge.sent.filter((m) => m.kind === "sheet").length && sheetOf(shortOfTheEdge).up,
+    true
+  );
+
+  const wellShortOfIt = await page(shape("0,554,390,180"), FEED);
+  check("and one that stops well short of it is not", sheetOf(wellShortOfIt), undefined);
+
+  /* The walk for what is holding the panel against the glass used to stop after
+   * eight steps, which is a guess about the depth of somebody else's tree.
+   * Instagram's is deeper than that almost everywhere, and the fixed element is
+   * the backdrop rather than the panel. */
+  const deep = await page(
+    `<div style="position: fixed" data-box="0,0,390,844">
+       <div><div><div><div><div><div><div><div><div>
+         <div data-name="sheet" data-at-bottom
+              style="background-color: rgb(38, 38, 38)"
+              data-box="0,654,390,190">x</div>
+       </div></div></div></div></div></div></div></div></div>
+     <main></main>`,
+    FEED
+  );
+  check(
+    "a panel a long way below the backdrop holding it is still held over the page",
+    sheetOf(deep) && sheetOf(deep).up,
+    true
+  );
+
+  /* ── And the question the photograph itself asks ─────────────────────── */
+
+  /* Every test above is an inference about how Instagram builds a sheet, and an
+   * inference about somebody else's markup is true until they change it. This
+   * one is about the screen: is there anything a person would press drawn
+   * underneath Quiet's row? It knows nothing about sheets and needs nothing of
+   * Instagram's markup to be true. */
+  const menu = await page(
+    `<div data-name="menu" data-at-bottom
+          style="position: fixed; background-color: rgb(38, 38, 38)"
+          data-box="60,600,270,220">
+       <button data-at-bottom data-box="70,780,250,44">Log in to an Existing Account</button>
+     </div><main></main>`,
+    FEED
+  );
+  check(
+    "a menu that does not span the glass, with a button under the row, is in the way",
+    [sheetOf(menu).up, sheetOf(menu).clear],
+    [true, false]
+  );
+
+  /* The page's own content runs on beneath the row on purpose — that is where
+   * Instagram's next photograph goes. What scrolls is not held over anything. */
+  const running = await page(
+    `<main><a data-at-bottom href="/marco/" data-box="16,780,358,44">marco</a></main>`,
+    FEED
+  );
+  check("what the page runs on under the row is not one", sheetOf(running), undefined);
+
+  /* A sheet, a menu and a dialog all span most of the glass. A stray fixed pill
+   * does not, and taking a strip of glass away for one would be the app moving
+   * the whole page for a button. */
+  const pill = await page(
+    `<div data-at-bottom style="position: fixed" data-box="120,780,150,44">
+       <button data-at-bottom data-box="120,780,150,44">New posts</button>
+     </div><main></main>`,
+    FEED
+  );
+  check("a pill too narrow to be a sheet is left alone", sheetOf(pill), undefined);
+
+  /* And what comes back is the panel rather than the dimmed backdrop around it.
+   * The backdrop is the whole screen and has no colour worth painting a strip
+   * of glass in — the strip is there so the sheet still reaches the bottom edge
+   * and only its contents have moved. */
+  const behindABackdrop = await page(
+    `<div style="position: fixed; background-color: rgb(0, 0, 0)"
+          data-box="0,0,390,844">
+       <div data-name="panel" data-at-bottom
+            style="background-color: rgb(38, 38, 38)" data-box="0,560,390,220">
+         <button data-at-bottom data-box="16,720,358,44">Log In</button>
+       </div>
+     </div><main></main>`,
+    FEED
+  );
+  check(
+    "and it is the panel that is found, not the backdrop behind it",
+    (({ up, clear, red, green, blue }) => [up, clear, red, green, blue])(
+      sheetOf(behindABackdrop)
+    ),
+    [true, false, 38, 38, 38]
+  );
+
+  /* ── And what the room being made does to the answer ─────────────────── */
+
+  /* The app takes a strip of glass off the bottom, and the sheet rises with it
+   * — and so does the floor it is measured against, because both are anchored
+   * to the same viewport. So the row has to be asked about what is left of it
+   * over the page, or "is anything still underneath" answers the same before
+   * and after the room is made, and the row stands down for as long as the
+   * sheet is open. A row you cannot leave a sheet by is not a row. */
+  const roomMade = await page(
+    `<div role="dialog" data-name="sheet" ${HIGH}>
+       <button data-box="16,790,358,44">Log In</button>
+     </div><main></main>`,
+    FEED,
+    undefined,
+    89,
+    128
+  );
+  check(
+    "with the room already made, nothing is under the row any more",
+    sheetOf(roomMade).clear,
+    true
+  );
+
+  /* And the sheet itself is held on to while it is on screen. The act of
+   * answering changes the screen the next answer is read off: once the strip
+   * is gone the row is standing on the app's own paint, the test that found
+   * the sheet by what was drawn under the row finds nothing, and without this
+   * the glass would come back and the sheet would drop onto the row again,
+   * once per frame, for as long as it was open. */
+  const foundThenLifted = await page(
+    `<div data-name="sheet" data-at-bottom
+          style="position: fixed; background-color: rgb(38, 38, 38)"
+          data-box="0,654,390,190">
+       <button data-at-bottom data-box="16,790,358,44">Log In</button>
+     </div><main></main>`,
+    FEED
+  );
+  check(
+    "a nameless sheet with a button under the row stands the row down",
+    [sheetOf(foundThenLifted).up, sheetOf(foundThenLifted).clear],
+    [true, false]
+  );
+
+  foundThenLifted.__quietLift = 128;
+  foundThenLifted.document
+    .querySelector("main")
+    .appendChild(foundThenLifted.document.createElement("div"));
+  await new Promise((go) => setTimeout(go, 0));
+  foundThenLifted.drain();
+  check(
+    "and the sheet is not lost, nor the row, the moment the room is made",
+    [sheetOf(foundThenLifted).up, sheetOf(foundThenLifted).clear],
+    [true, true]
   );
 
   /* ── The colour the clock stands on ──────────────────────────────────── */

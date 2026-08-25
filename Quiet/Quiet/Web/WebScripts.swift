@@ -46,7 +46,25 @@ enum WebScripts {
     ///   row, two heights, and nothing at all on the screens that own the
     ///   bottom edge — so it is handed over rather than written down. See
     ///   `saySheet` in trim.js.
-    static func load(from bundle: Bundle = .main, top: CGFloat, row: CGFloat) -> Payload {
+    ///
+    /// - Parameter lift: how much of the bottom of the glass the app has
+    ///   already taken away for a sheet, in points.
+    ///
+    ///   Zero everywhere except under a sheet. It is the other half of the
+    ///   number above: while the strip is gone the row is standing on the app's
+    ///   own paint rather than on the page, and the page's answer to "is
+    ///   anything on this sheet still under the row" has to be asked about
+    ///   what is left of the row over the page. Without it the answer is the
+    ///   same before and after the room is made — the sheet and the floor it is
+    ///   measured against both rise by exactly the same amount — and the row
+    ///   would stand down for as long as a sheet was open. See `rowOverThePage`
+    ///   in trim.js.
+    static func load(
+        from bundle: Bundle = .main,
+        top: CGFloat,
+        row: CGFloat,
+        lift: CGFloat = 0
+    ) -> Payload {
         var scripts: [WKUserScript] = []
         var missing: [String] = []
 
@@ -56,10 +74,10 @@ enum WebScripts {
             missing.append("trim.css")
         }
 
-        // The three numbers the page needs from the app, injected before the
+        // The four numbers the page needs from the app, injected before the
         // trim runs so that all of them are there before its first paint.
         //
-        // A fourth used to be here: the name of Quiet's own settings, for a mark
+        // A fifth used to be here: the name of Quiet's own settings, for a mark
         // the script drew beside Instagram's on your own profile. That door is
         // in the row along the bottom now, on every page rather than on one, so
         // the string it was announced under has nothing left to label.
@@ -67,6 +85,7 @@ enum WebScripts {
         window.__quietAppID = \(quoted(WebScripts.appID));
         window.__quietTop = \(Int(top.rounded()));
         window.__quietRow = \(Int(row.rounded()));
+        window.__quietLift = \(Int(lift.rounded()));
         """))
 
         if let js = text(named: "trim", extension: "js", in: bundle) {

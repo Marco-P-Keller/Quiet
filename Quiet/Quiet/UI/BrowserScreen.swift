@@ -99,7 +99,14 @@ struct BrowserScreen: View {
                     left: 0,
                     bottom: furniture,
                     right: 0
-                )
+                ),
+                // How much of the glass the app has already taken off the
+                // bottom for a sheet. The page needs it to answer the one
+                // question it is asked about a sheet — whether anything on it
+                // is still under the row — because once the strip is gone the
+                // row is standing on the app's own paint rather than on the
+                // page. See `rowOverThePage` in trim.js.
+                lift: sheetRoom
             )
             // The glass, less the clock — and starting below it.
             //

@@ -202,6 +202,28 @@ body {
 }
 
 /* ── Room at the foot of a sheet ────────────────────────────────────────── */
+/*
+ * There is deliberately no rule here, and this heading is left standing so that
+ * nobody writes one.
+ *
+ * Instagram puts a sheet up for switching accounts, for sharing, and for the
+ * menu behind the three dots, and Quiet's row was drawn straight across the
+ * buttons on it. Seven answers to that were written and four of them were
+ * stylesheet rules — pad the panel, transform the panel, move the row, make the
+ * row inert. Every one asked somebody else's stylesheet for permission, and
+ * every photograph came back identical.
+ *
+ * The room is made by the app now, which owns the viewport: the web view is
+ * made shorter, and everything anchored to the bottom of a viewport rises with
+ * it because that is what being anchored to the bottom of a viewport means.
+ * There is no rule anybody can write that refuses it. See `sheetRoom` in
+ * `BrowserScreen`, and `saySheet` in trim.js for how the app hears about one.
+ *
+ * `--quiet-row` is set on the document by trim.js all the same, and nothing in
+ * this file reads it. It is the number the script measures a sheet's buttons
+ * against, and having it written on the root is how anybody with an inspector
+ * can see what the app said the row was standing on.
+ */
 
 /* ── The pull at the top ────────────────────────────────────────────────── */
 /*

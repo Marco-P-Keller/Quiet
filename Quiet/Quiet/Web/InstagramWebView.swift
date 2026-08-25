@@ -421,6 +421,17 @@ struct InstagramWebView: UIViewRepresentable {
     /// every bar along the bottom of an iPhone has done since the first one.
     var inset: UIEdgeInsets
 
+    /// And how much of the bottom of the glass the app has already taken away
+    /// for a sheet, in points.
+    ///
+    /// Zero on every screen that has nothing modal on it. While a sheet is up
+    /// the web view is that much shorter, and the row is then standing on the
+    /// strip the app paints underneath it rather than on the page — so the
+    /// page's own answer to "is anything on this sheet still under the row"
+    /// has to be asked about what is left of the row over the page, or it can
+    /// never become no. See `rowOverThePage` in trim.js.
+    var lift: CGFloat
+
     func makeCoordinator() -> Coordinator {
         Coordinator(session: session, surface: surface)
     }
@@ -439,7 +450,11 @@ struct InstagramWebView: UIViewRepresentable {
         // And what the row stands on at the other end, which the page needs for
         // one thing only: keeping a sheet's own buttons off it.
         context.coordinator.row = inset.bottom
-        let payload = WebScripts.load(top: top, row: inset.bottom)
+        // Nothing is taken off the bottom until a sheet asks for it, but the
+        // page is told the number anyway so that it never has to read a value
+        // that is not there.
+        context.coordinator.lift = lift
+        let payload = WebScripts.load(top: top, row: inset.bottom, lift: lift)
 
         let controller = WKUserContentController()
         payload.scripts.forEach(controller.addUserScript)
@@ -517,10 +532,23 @@ struct InstagramWebView: UIViewRepresentable {
         // the two shapes it can be drawn in are a setting, and a story or a
         // conversation has no row at all. A sheet that is open across either
         // change should be given the room the row is actually standing on.
-        if context.coordinator.top != top || context.coordinator.row != inset.bottom {
+        let moved = context.coordinator.top != top || context.coordinator.row != inset.bottom
+        // The strip taken off the bottom for a sheet is not told to every page,
+        // only to this one. It changes several times while a single sheet is
+        // open — none of it before the sheet arrives, all of it once it has —
+        // and it is never true of a page that has not loaded yet, because
+        // loading one is the end of any sheet that was open over it.
+        let lifted = context.coordinator.lift != lift
+        if moved {
             context.coordinator.top = top
             context.coordinator.row = inset.bottom
             context.coordinator.tellEveryPage(webView, top: top, row: inset.bottom)
+        }
+        // Only when one of them has actually changed. This runs on every pass
+        // SwiftUI makes over the view, and a page asked to run a script on
+        // every frame of every animation is a page that stutters.
+        if moved || lifted {
+            context.coordinator.lift = lift
             context.coordinator.tellThisPage(webView)
         }
         context.coordinator.session = session
@@ -660,8 +688,12 @@ struct InstagramWebView: UIViewRepresentable {
 
         /// And how much of the bottom of the glass Quiet's row stands on, which
         /// the page is told for the sake of the one thing in it that is pinned
-        /// to that edge: a sheet. See `WebScripts.load(top:row:)`.
+        /// to that edge: a sheet. See `WebScripts.load(top:row:lift:)`.
         var row: CGFloat = 0
+
+        /// And how much of it the app has already taken away for a sheet, which
+        /// is how much of the row is no longer over the page at all.
+        var lift: CGFloat = 0
 
         /// Rebuild the injected scripts around the real number, so that every
         /// page from here on is told it before its first paint.
@@ -710,6 +742,11 @@ struct InstagramWebView: UIViewRepresentable {
             window.__quietRow = \(stands);
             document.documentElement.style.setProperty("--quiet-row", "\(stands)px");
             """)
+            // Zero is the honest answer on every screen with nothing modal on
+            // it, and the number has to arrive on the page that is already on
+            // screen rather than on the next one: a sheet is opened and closed
+            // without anything ever loading.
+            lines.append("window.__quietLift = \(Int(lift.rounded()));")
             webView.evaluateJavaScript(lines.joined(separator: "\n"))
         }
 
