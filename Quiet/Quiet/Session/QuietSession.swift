@@ -200,6 +200,31 @@ final class QuietSession {
         }
     }
 
+    /// Ask for a different wait between increases.
+    ///
+    /// Longer is free; shorter is subject to the wait it is trying to shorten,
+    /// and spends it. See `LimitPolicy.requestCooldown`.
+    @discardableResult
+    func requestCooldown(_ days: Int) -> Result<Int, LimitRefusal> {
+        // A clock that is not where it should be cannot buy a shorter wait,
+        // for the same reason it cannot buy a larger limit. A longer one is
+        // never refused: nothing about a stricter rule needs a trustworthy
+        // date to be safe.
+        if days < limit.cooldownDays {
+            if isClockRewound { return .failure(.clockRewound) }
+            if isClockAdvanced { return .failure(.clockAdvanced) }
+        }
+
+        switch LimitPolicy.requestCooldown(days, from: limit, today: today) {
+        case let .success(state):
+            limit = state
+            persist()
+            return .success(days)
+        case let .failure(refusal):
+            return .failure(refusal)
+        }
+    }
+
     /// A clock that is not where it should be only threatens increases. Asking
     /// for less is always allowed, whatever the date says.
     ///

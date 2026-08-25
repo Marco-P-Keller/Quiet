@@ -176,3 +176,104 @@ private func XCTAssertEqual(
         XCTFail("expected \(expected), got \(actual). \(message())", file: file, line: line)
     }
 }
+
+/// How long the wait is, which is itself a thing that can be asked about.
+///
+/// The whole app is one asymmetry — asking for less is free, asking for more
+/// waits — and the wait is the load-bearing half of it. So the number saying
+/// how long the wait is has to obey the same rule, or it becomes the way around
+/// it: the one dial you could turn down at the exact moment it started to bite.
+final class CooldownTests: XCTestCase {
+    private let day0 = DayKey(ordinal: 20_000)
+
+    private func state(cooldown: Int? = nil, lastIncrease: DayKey? = nil) -> LimitState {
+        LimitState(minutes: 30, lastIncrease: lastIncrease, cooldown: cooldown)
+    }
+
+    func testAWeekUnlessSomebodySaysOtherwise() {
+        XCTAssertEqual(state().cooldownDays, LimitPolicy.defaultCooldownDays)
+        XCTAssertEqual(state(cooldown: 30).cooldownDays, 30)
+    }
+
+    /// A state written before this number existed decodes without it. A
+    /// synthesised decoder throws for a missing key rather than reaching for a
+    /// default, which is why it is optional and read through an accessor.
+    func testAStateWrittenBeforeThisExistedStillReads() throws {
+        let old = #"{"minutes":45}"#.data(using: .utf8)!
+        let read = try JSONDecoder().decode(LimitState.self, from: old)
+        XCTAssertEqual(read.minutes, 45)
+        XCTAssertEqual(read.cooldownDays, 7)
+    }
+
+    func testAskingToBeHeldToAStricterRuleIsFree() throws {
+        // Even with an increase asked for today, which would refuse anything
+        // that made the rule looser.
+        let after = try LimitPolicy.requestCooldown(
+            30, from: state(lastIncrease: day0), today: day0
+        ).get()
+        XCTAssertEqual(after.cooldownDays, 30)
+    }
+
+    func testAskingForALooserRuleWaits() {
+        let result = LimitPolicy.requestCooldown(
+            7, from: state(cooldown: 30, lastIncrease: day0), today: day0.adding(days: 5)
+        )
+        XCTAssertEqual(result, .failure(.tooSoon(nextAllowed: day0.adding(days: 30))))
+    }
+
+    /// And when it is allowed, it spends the wait — otherwise shortening the
+    /// wait would be the free move that shortening the limit is, and the weekly
+    /// rule would have a door in it.
+    func testALooserRuleCostsTheWaitItJustUsed() throws {
+        let after = try LimitPolicy.requestCooldown(
+            7, from: state(cooldown: 30, lastIncrease: day0), today: day0.adding(days: 30)
+        ).get()
+
+        XCTAssertEqual(after.cooldownDays, 7)
+        XCTAssertEqual(after.lastIncrease, day0.adding(days: 30))
+        XCTAssertEqual(
+            LimitPolicy.request(60, from: after, today: day0.adding(days: 30)),
+            .failure(.tooSoon(nextAllowed: day0.adding(days: 37))),
+            "the new wait starts now rather than being backdated to the old one"
+        )
+    }
+
+    /// A first change, with nothing to wait for yet.
+    func testWithNoIncreaseEverAskedForTheWaitCanBeSetEitherWay() throws {
+        let after = try LimitPolicy.requestCooldown(
+            14, from: state(cooldown: 30), today: day0
+        ).get()
+        XCTAssertEqual(after.cooldownDays, 14)
+    }
+
+    func testTheSameNumberIsNotAChange() {
+        XCTAssertEqual(
+            LimitPolicy.requestCooldown(7, from: state(), today: day0),
+            .failure(.unchanged)
+        )
+    }
+
+    func testOnlyTheWaitsOnOfferAreAccepted() {
+        for days in [0, 1, 6, 8, 365] {
+            XCTAssertEqual(
+                LimitPolicy.requestCooldown(days, from: state(), today: day0),
+                .failure(.outOfRange(7...30)),
+                "\(days)"
+            )
+        }
+    }
+
+    /// The rule the whole thing rests on, said as a sentence: the wait in force
+    /// is the one that decides when the next increase is allowed.
+    func testALongerWaitActuallyMakesTheNextIncreaseWait() {
+        let strict = state(cooldown: 30, lastIncrease: day0)
+        XCTAssertEqual(
+            LimitPolicy.request(60, from: strict, today: day0.adding(days: 8)),
+            .failure(.tooSoon(nextAllowed: day0.adding(days: 30)))
+        )
+        XCTAssertEqual(
+            LimitPolicy.nextIncreaseDay(strict, today: day0.adding(days: 8)),
+            day0.adding(days: 30)
+        )
+    }
+}

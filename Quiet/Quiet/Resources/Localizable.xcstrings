@@ -71,6 +71,46 @@
         }
       }
     },
+    "%lld days": {
+      "localizations": {
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "1 Tag"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Tage"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "1 day"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld days"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld minutes": {
       "localizations": {
         "de": {
@@ -167,6 +207,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Um %@ am Tag bitten"
+          }
+        }
+      }
+    },
+    "Asking to wait longer takes effect at once. Asking to wait less has to wait — otherwise this would be the one rule you could relax at the moment it started to matter.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Länger warten zu wollen gilt sofort. Weniger warten zu wollen muss warten — sonst wäre das die eine Regel, die du genau in dem Moment lockern könntest, in dem sie anfängt zu wirken."
           }
         }
       }
@@ -691,6 +741,16 @@
         }
       }
     },
+    "The date on this phone is ahead of Instagram's. The wait can be made longer, but not shorter, until the two agree.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Datum auf diesem Telefon geht Instagram voraus. Die Wartezeit kann verlängert, aber nicht verkürzt werden, bis beide übereinstimmen."
+          }
+        }
+      }
+    },
     "The date on this phone is ahead of Instagram's. Until the two agree, the limit can go down but not up.": {
       "localizations": {
         "de": {
@@ -711,6 +771,16 @@
         }
       }
     },
+    "The date on this phone is behind where Quiet last saw it. The wait can be made longer, but not shorter, until it catches up.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Datum auf diesem Telefon liegt hinter dem, was Quiet zuletzt gesehen hat. Die Wartezeit kann verlängert, aber nicht verkürzt werden, bis es aufgeholt hat."
+          }
+        }
+      }
+    },
     "The date on this phone is behind where Quiet last saw it. Until it catches up, the limit can go down but not up.": {
       "localizations": {
         "de": {
@@ -727,6 +797,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Die Reihe am unteren Rand"
+          }
+        }
+      }
+    },
+    "The wait between increases": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Wartezeit zwischen Erhöhungen"
           }
         }
       }
@@ -817,6 +897,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Um mehr kannst du einmal pro Woche bitten, und es beginnt am nächsten Tag — nie in dem Moment, in dem du fünf Minuten mehr willst."
+          }
+        }
+      }
+    },
+    "You can shorten the wait once the wait is over, %@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Wartezeit kannst du verkürzen, wenn die Wartezeit vorbei ist, %@."
           }
         }
       }

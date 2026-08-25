@@ -132,6 +132,10 @@ enum Phrase {
         minutes(max(0, Int(ceil(seconds / 60))))
     }
 
+    static func days(_ count: Int) -> String {
+        String(localized: "\(count) days")
+    }
+
     static func clockTime(_ date: Date) -> String {
         date.formatted(date: .omitted, time: .shortened)
     }

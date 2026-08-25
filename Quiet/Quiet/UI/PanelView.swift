@@ -15,11 +15,18 @@ struct PanelView: View {
     @State private var isConfirmingSignOut = false
     @State private var isChangingLimit = false
 
+    /// Why the last request to change the wait was turned down, if it was.
+    /// Cleared by the next tap, so it answers the thing that was just pressed
+    /// rather than sitting there.
+    @State private var waitRefused: String?
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     timeSection
+                    Divider().overlay(Paper.rule).padding(.vertical, 24)
+                    theWait
                     Divider().overlay(Paper.rule).padding(.vertical, 24)
                     findSomeone
                     Divider().overlay(Paper.rule).padding(.vertical, 24)
@@ -133,6 +140,80 @@ struct PanelView: View {
 
     private var subhead: String {
         String(localized: "Resets at \(Phrase.clockTime(session.resetsAt)). Only time with Instagram on screen counts.")
+    }
+
+    // MARK: - How long the wait is
+
+    /// The one number in the app that had to be allowed to move, and the one
+    /// that most obviously must not move freely.
+    ///
+    /// A week is the rule the app was built around and it is also somebody's
+    /// guess. For a reader who knows themselves it is the wrong guess in a
+    /// knowable direction, and refusing to let them be stricter would be the
+    /// app standing between somebody and a smaller number — the exact thing it
+    /// promises never to do.
+    ///
+    /// So it moves, under the same asymmetry as everything else: longer at
+    /// once, shorter only after the wait it is trying to shorten. Read the
+    /// other way round, that is the whole point — without it, the cooldown
+    /// would be the single dial you could turn down at the moment it started
+    /// to bite, and the app would have spent all this effort building a door
+    /// into its own rule.
+    private var theWait: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("The wait between increases")
+                .font(.quietBody)
+
+            HStack(spacing: 10) {
+                ForEach(LimitPolicy.cooldowns, id: \.self) { days in
+                    wait(days)
+                }
+            }
+
+            if let waitRefused {
+                Note(verbatim: waitRefused)
+            } else {
+                Note("Asking to wait longer takes effect at once. Asking to wait less has to wait — otherwise this would be the one rule you could relax at the moment it started to matter.")
+            }
+        }
+    }
+
+    private func wait(_ days: Int) -> some View {
+        let chosen = session.limit.cooldownDays == days
+        return Button {
+            waitRefused = nil
+            if case let .failure(refusal) = session.requestCooldown(days) {
+                waitRefused = explain(refusal)
+            }
+        } label: {
+            Text(Phrase.days(days))
+                .font(.quietBody)
+                .foregroundStyle(chosen ? Paper.page : Paper.ink)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 9)
+                .background(Capsule().fill(chosen ? Paper.ink : Color.clear))
+                .overlay(Capsule().strokeBorder(Paper.rule, lineWidth: chosen ? 0 : 1))
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(chosen ? .isSelected : [])
+    }
+
+    /// The same words the change screen uses, because they are answers to the
+    /// same refusals and two wordings would be two rules.
+    private func explain(_ refusal: LimitRefusal) -> String? {
+        switch refusal {
+        case .unchanged:
+            return nil
+        case let .tooSoon(next):
+            return String(localized: "You can shorten the wait once the wait is over, \(Phrase.day(next, relativeTo: session.today)).")
+        case .clockRewound:
+            return String(localized: "The date on this phone is behind where Quiet last saw it. The wait can be made longer, but not shorter, until it catches up.")
+        case .clockAdvanced:
+            return String(localized: "The date on this phone is ahead of Instagram's. The wait can be made longer, but not shorter, until the two agree.")
+        case .outOfRange:
+            return nil
+        }
     }
 
     // MARK: - Find someone
