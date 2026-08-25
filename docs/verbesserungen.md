@@ -135,6 +135,17 @@ Nicht Teil der 38, aber beim Bauen aufgefallen:
   `.github/workflows/pages.yml`. Zwei Handgriffe bleiben: Pages einschalten, und
   eine echte Kontaktadresse statt des Platzhalters — der Workflow verweigert die
   Veröffentlichung, solange der Platzhalter drinsteht.
+* **Der Content-Blocker war nie lesbar.** ✅ Jedes Filter enthält `\.` — in
+  einem regulären Ausdruck ein Punkt, in JSON keine gültige Escape-Sequenz. Das
+  handgeschriebene Dokument war unparsebar; WebKit hätte es auf dem Telefon
+  genauso abgelehnt, und die App wäre auf einer Ebene statt zwei gelaufen. Der
+  Test hat es vor dem Telefon gefangen. Jetzt serialisiert statt geschrieben.
+* **Die Preferences wurden vor der Rehearsal gebaut.** ✅ Beim Hochziehen der
+  Preferences in `QuietApp` landeten sie *vor* `Rehearsal.prepare` — die
+  Inselform wurde also geschrieben, nachdem sie gelesen worden war, und die
+  App wurde als Leiste fotografiert. Vorher lag die Reihenfolge zufällig
+  richtig, weil die View sie besaß. Die Leistenmessung in CI hat es gefangen,
+  genau wozu sie da ist.
 * **`surfaceFor` in `trim.js` hätte sich verrechnet.** Es leitete die Fläche aus
   der Schreibweise ab („beginnt mit reel"), was für vier Einträge stimmte. `tv`
   hätte sich als Explore gemeldet. Jetzt eine Tabelle. ✅

@@ -22,12 +22,24 @@ struct QuietApp: App {
     init() {
         let store = KeychainStore()
         let clock = MonotonicClock(store: store)
-        let preferences = Preferences()
         #if DEBUG
         // Nothing unless a launch argument asks for it, and none of it exists
         // in a build anybody can install.
         Rehearsal.prepare(store: store, clock: clock)
         #endif
+        // After the rehearsal, and the order is load-bearing.
+        //
+        // Everything else here is read later: the session loads the store in
+        // `start()`, long after this runs. Preferences are the one thing read
+        // in an initialiser, so building them first means building them from
+        // whatever was on the phone before the rehearsal wrote anything — and
+        // a rehearsal that asks for the island then gets photographed wearing
+        // the bar.
+        //
+        // It worked by accident until preferences moved up here: the view that
+        // used to own them was built after this, which put it on the right side
+        // of the rehearsal without anybody choosing that.
+        let preferences = Preferences()
         _preferences = State(initialValue: preferences)
         _session = State(initialValue: QuietSession(
             store: store,
