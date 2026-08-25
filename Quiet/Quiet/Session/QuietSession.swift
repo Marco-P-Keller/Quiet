@@ -86,19 +86,29 @@ final class QuietSession {
     /// then not again.
     static let warnings = [5, 1]
 
+    /// Two of these are `nil` rather than a real default, and it is not a
+    /// matter of taste.
+    ///
+    /// A default argument is evaluated at the call site, in whatever context
+    /// the caller happens to be in — and that context is not this type's. Both
+    /// `Preferences` and `RunLoopHeartbeat` belong to the main actor, so
+    /// writing them as defaults asks for them to be built somewhere that is not
+    /// allowed to build them, which the compiler refuses. Built in the body
+    /// instead, which is isolated, and `nil` means "whichever the app would
+    /// have used".
     init(
         store: any StateStore,
         clock: MonotonicClock,
-        preferences: Preferences = Preferences(),
+        preferences: Preferences? = nil,
         calendar: Calendar = .current,
-        heartbeat: any Heartbeat = RunLoopHeartbeat(),
+        heartbeat: (any Heartbeat)? = nil,
         uptime: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime }
     ) {
         self.store = store
         self.clock = clock
-        self.preferences = preferences
+        self.preferences = preferences ?? Preferences()
         self.calendar = calendar
-        self.heartbeat = heartbeat
+        self.heartbeat = heartbeat ?? RunLoopHeartbeat()
         self.uptime = uptime
         ledger = UsageLedger(day: DayKey(clock.now, calendar: calendar))
     }

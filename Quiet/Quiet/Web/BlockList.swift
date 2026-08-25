@@ -83,20 +83,25 @@ enum BlockList {
     ///
     /// A failure is reported rather than swallowed. It means the app is running
     /// on one layer instead of two, which is not a crisis and is not nothing.
+    @MainActor
     static func install(
         into configuration: WKWebViewConfiguration,
         store: WKContentRuleListStore? = .default(),
         then report: @escaping @MainActor (Error?) -> Void = { _ in }
     ) {
         guard let store else {
-            Task { @MainActor in report(Failure.noStore) }
+            report(Failure.noStore)
             return
         }
         store.compileContentRuleList(
             forIdentifier: identifier,
             encodedContentRuleList: rules
         ) { list, error in
-            Task { @MainActor in
+            // WebKit answers on the main thread. Said out loud rather than
+            // hopped to, the way `ScriptRelay` does it a file away: a `Task`
+            // here would carry a configuration that is not `Sendable` across a
+            // boundary it never actually crosses.
+            MainActor.assumeIsolated {
                 if let list {
                     configuration.userContentController.add(list)
                     report(nil)
