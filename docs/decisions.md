@@ -1859,3 +1859,25 @@ of information. Every round where something was measured produced the next
 finding: the glass ends at 128 (so the shrink fired), the sheet was cut (so it is
 not anchored to the bottom), the contents piled up (so the mechanism re-anchored
 them). The checks are worth more than the fixes.
+
+## The inbox is not a sheet
+
+The same build that piled the account switcher on top of itself did it to the
+inbox as well, and that one is the more useful photograph. Nothing modal was
+open. The list of conversations had simply been taken for a sheet, moved up a
+hundred and twenty-eight points, and — because the mechanism was a transform —
+re-anchored the inbox's own fixed header on the way.
+
+It passes every test a sheet passes. It spans the glass, it starts under the
+header, it reaches the bottom edge, and it sits inside something held against
+the screen. By shape it is a sheet, and shape is all that was being asked.
+
+A sheet is put in *front* of the page, and the page is what is inside `main`.
+Instagram builds its modals where every framework builds them, at the foot of
+the body, outside the document's own content. So the shape test now refuses
+anything inside `main`.
+
+The declaration is still believed anywhere, and the asymmetry is deliberate.
+Saying "I am modal" is a statement of intent that only a sheet makes; being the
+shape of a sheet is a guess, and the inbox is what the guess costs when it is
+wrong. The guess is refused inside the page's own content; the statement is not.

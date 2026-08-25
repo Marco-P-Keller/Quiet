@@ -1113,6 +1113,43 @@ const GROUPED = `
     [true, true]
   );
 
+  /* The inbox, which is the case that made this necessary. Its list of
+   * conversations spans the glass, starts under the header, reaches the bottom
+   * edge, and sits inside something held against the screen — every test a
+   * sheet passes, it passes. A photograph of it moved a hundred and twenty-eight
+   * points up, with the inbox's own header piled on top of itself, is what this
+   * check is made of.
+   *
+   * A sheet is put in front of the page, and the page is what is inside `main`.
+   */
+  const theInbox = await page(
+    `<main>
+       <div data-name="list" data-at-bottom
+            style="position: fixed; background-color: rgb(0, 0, 0)"
+            data-box="0,120,390,724">conversations</div>
+     </main>`,
+    FEED
+  );
+  check("the inbox's own list is not a sheet", sheetOf(theInbox), undefined);
+
+  /* But one that says outright that it is modal is believed, wherever it is.
+   *
+   * The asymmetry is the point. Saying "I am modal" is a statement of intent
+   * that only a sheet makes; being the shape of a sheet is a guess, and the
+   * inbox shows what the guess costs when it is wrong. So the guess is refused
+   * inside the page's own content and the statement is not. */
+  const saysSoInMain = await page(
+    `<main>
+       <div role="dialog" data-name="sheet"
+            style="position: fixed; background-color: rgb(38, 38, 38)"
+            data-box="0,500,390,344">x</div>
+     </main>`,
+    FEED
+  );
+  check("but one that says so is believed wherever it is", sheetOf(saysSoInMain), {
+    kind: "sheet", up: true, clear: true, red: 38, green: 38, blue: 38,
+  });
+
   /* ── Moving the sheet ────────────────────────────────────────────────── */
 
   /* A photograph settled which mechanism is right, and it took shrinking the

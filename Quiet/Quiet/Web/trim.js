@@ -892,7 +892,27 @@
     if (node.getAttribute("data-quiet-floor") !== null) return false;
     if (node.getAttribute("data-quiet-hidden") !== null) return false;
     if (node.id && node.id.indexOf("quiet-") === 0) return false;
+    if (partOfThePage(node)) return false;
     return true;
+  }
+
+  /**
+   * Page content, which is never a sheet however much it looks like one.
+   *
+   * The inbox is the case that made this necessary, and a photograph of it is
+   * unmistakable: its list of conversations spans the glass, starts under the
+   * header, reaches the bottom edge and sits inside something held against the
+   * screen. Every test a sheet passes, it passes. So it was moved a hundred and
+   * twenty-eight points up and the inbox's own header piled on top of itself.
+   *
+   * A sheet is put in front of the page, and the page is what is inside `main`.
+   * Instagram builds its modals where every framework builds them — at the foot
+   * of the body, outside the document's own content — and nothing that is
+   * inside `main` is ever standing in front of it.
+   */
+  function partOfThePage(node) {
+    var main = document.querySelector("main");
+    return !!main && main.contains(node);
   }
 
   /**
