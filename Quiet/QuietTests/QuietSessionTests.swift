@@ -271,4 +271,109 @@ final class QuietSessionTests: XCTestCase {
         XCTAssertEqual(world.session.screen, .spent)
         XCTAssertEqual(world.session.remaining, 0)
     }
+
+    // MARK: - A clock pushed forward
+
+    /// A world whose uptime the test controls, so that "how much real time has
+    /// passed" and "what the phone says the date is" can be moved apart — which
+    /// is exactly what a settings screen does.
+    private struct AdvancedWorld {
+        let store: MemoryStore
+        let time: FakeTime
+        let session: QuietSession
+        let uptime: Uptime
+    }
+
+    private final class Uptime {
+        var seconds: TimeInterval = 5_000
+        var reading: () -> TimeInterval { { [self] in seconds } }
+    }
+
+    private func makeAdvancedWorld(used: TimeInterval) -> AdvancedWorld {
+        let store = MemoryStore()
+        var ledger = UsageLedger(day: today, endsAt: today.end())
+        ledger.add(used)
+        store.save(today, for: .setupDay)
+        store.save(LimitState(minutes: 20), for: .limit)
+        store.save(ledger, for: .usage)
+
+        let time = FakeTime(noon)
+        let uptime = Uptime()
+        let clock = MonotonicClock(base: time, store: store, uptime: uptime.reading)
+        return AdvancedWorld(
+            store: store,
+            time: time,
+            session: QuietSession(store: store, clock: clock),
+            uptime: uptime
+        )
+    }
+
+    /// The attack the app could not see at all until Instagram's own `Date`
+    /// header was read: reach the curtain, set the date to tomorrow, get a
+    /// whole fresh day.
+    func testTurningTheClockForwardDoesNotHandOutANewDay() {
+        let world = makeAdvancedWorld(used: 20 * 60)
+        world.session.start()
+        XCTAssertEqual(world.session.screen, .spent)
+
+        // A page loaded a moment ago, and Instagram said what time it was.
+        world.session.vouchForTime(noon)
+
+        // Ten seconds of real time, and a settings screen claiming two days.
+        world.uptime.seconds += 10
+        world.time.now = noon.addingTimeInterval(2 * 24 * 3600)
+        world.session.setForeground(true)
+        defer { world.session.setForeground(false) }
+
+        XCTAssertTrue(world.session.isClockAdvanced)
+        XCTAssertEqual(world.session.screen, .spent, "ten seconds is not tomorrow")
+        XCTAssertEqual(world.session.remaining, 0)
+    }
+
+    func testRaisingIsRefusedWhileTheClockIsAhead() {
+        let world = makeAdvancedWorld(used: 0)
+        world.session.start()
+        world.session.vouchForTime(noon)
+
+        world.uptime.seconds += 10
+        world.time.now = noon.addingTimeInterval(8 * 24 * 3600)
+
+        XCTAssertTrue(world.session.isClockAdvanced)
+        XCTAssertEqual(world.session.requestLimit(60), .failure(.clockAdvanced))
+    }
+
+    /// The rule that never bends. The app must never stand between somebody and
+    /// a smaller number, whatever either clock says.
+    func testLoweringIsStillAllowedWhileTheClockIsAhead() {
+        let world = makeAdvancedWorld(used: 0)
+        world.session.start()
+        world.session.vouchForTime(noon)
+
+        world.uptime.seconds += 10
+        world.time.now = noon.addingTimeInterval(8 * 24 * 3600)
+
+        XCTAssertEqual(world.session.requestLimit(10), .success(.now(10)))
+        XCTAssertEqual(world.session.limit.minutes, 10)
+    }
+
+    /// A day that really has passed still passes. The anchor moves with real
+    /// time, so a phone left alone overnight gets its morning.
+    func testARealDayStillTurns() {
+        let world = makeAdvancedWorld(used: 20 * 60)
+        world.session.start()
+        XCTAssertEqual(world.session.screen, .spent)
+
+        world.session.vouchForTime(noon)
+
+        // A day of real elapsed time, and a device clock that agrees with it.
+        world.uptime.seconds += 24 * 3600
+        world.time.now = noon.addingTimeInterval(24 * 3600)
+        world.session.setForeground(true)
+        defer { world.session.setForeground(false) }
+
+        XCTAssertFalse(world.session.isClockAdvanced)
+        XCTAssertEqual(world.session.screen, .browsing)
+        XCTAssertEqual(world.session.remaining, 20 * 60)
+    }
+
 }

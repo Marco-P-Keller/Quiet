@@ -109,6 +109,8 @@ struct LimitView: View {
             return String(localized: "You raised your limit less than a week ago. You can ask for more again \(Phrase.day(next, relativeTo: session.today)).")
         case .failure(.clockRewound):
             return String(localized: "The date on this phone is behind where Quiet last saw it. Until it catches up, the limit can go down but not up.")
+        case .failure(.clockAdvanced):
+            return String(localized: "The date on this phone is ahead of Instagram's. Until the two agree, the limit can go down but not up.")
         case let .failure(.outOfRange(range)):
             return String(localized: "Quiet works between \(range.lowerBound) and \(range.upperBound) minutes a day.")
         }

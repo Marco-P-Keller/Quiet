@@ -621,6 +621,26 @@
         }
       }
     },
+    "The date on this phone is ahead of Instagram's, so Quiet is going by Instagram's. The limit can be lowered, but not raised, until the two agree.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Datum auf diesem Telefon geht Instagram voraus, also richtet Quiet sich nach Instagram. Das Limit kann gesenkt, aber nicht erhöht werden, bis beide übereinstimmen."
+          }
+        }
+      }
+    },
+    "The date on this phone is ahead of Instagram's. Until the two agree, the limit can go down but not up.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Datum auf diesem Telefon geht Instagram voraus. Bis beide übereinstimmen, kann das Limit sinken, aber nicht steigen."
+          }
+        }
+      }
+    },
     "The date on this phone is behind where Quiet last saw it. The limit can be lowered, but not raised, until it catches up.": {
       "localizations": {
         "de": {

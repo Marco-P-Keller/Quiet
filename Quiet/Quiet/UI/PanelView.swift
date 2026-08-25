@@ -109,6 +109,15 @@ struct PanelView: View {
                     .foregroundStyle(Paper.inkSoft)
                     .padding(.top, 10)
                     .fixedSize(horizontal: false, vertical: true)
+            } else if session.isClockAdvanced {
+                // The other half of the same sentence. It reads as an accusation
+                // if it is written as one, so it is not: two clocks disagree,
+                // and the app says which one it is going by.
+                Text("The date on this phone is ahead of Instagram's, so Quiet is going by Instagram's. The limit can be lowered, but not raised, until the two agree.")
+                    .font(.quietSmall)
+                    .foregroundStyle(Paper.inkSoft)
+                    .padding(.top, 10)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }

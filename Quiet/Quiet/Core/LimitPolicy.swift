@@ -41,6 +41,8 @@ enum LimitRefusal: Equatable, Error, Sendable {
     case outOfRange(ClosedRange<Int>)
     /// The device clock is behind time Quiet has already seen.
     case clockRewound
+    /// The device clock is ahead of a time Instagram's own servers vouched for.
+    case clockAdvanced
 }
 
 /// The rule that makes Quiet worth installing.

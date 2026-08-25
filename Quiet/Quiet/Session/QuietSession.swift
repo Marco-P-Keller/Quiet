@@ -133,6 +133,20 @@ final class QuietSession {
     /// True when the device clock sits behind time the app has already seen.
     var isClockRewound: Bool { clock.isRewound }
 
+    /// True when the device clock sits ahead of a time Instagram's own servers
+    /// vouched for. The mirror image of a rewind, and until there was an anchor
+    /// to compare against it was the one attack the app could not see at all.
+    var isClockAdvanced: Bool { clock.isAdvanced }
+
+    /// Instagram's servers said what time it is.
+    ///
+    /// Handed straight through to the clock. The session does not decide
+    /// anything about it — the point of putting the rule in one object is that
+    /// there is one place to read to know what the app believes and why.
+    func vouchForTime(_ instant: Date) {
+        clock.vouch(instant)
+    }
+
     /// False once the store has refused a write. At that point nothing the app
     /// is told survives a relaunch — the limit least of all — and the only
     /// honest thing to do is stop implying otherwise.
@@ -171,16 +185,23 @@ final class QuietSession {
         }
     }
 
-    /// A rewound clock only threatens increases. Asking for less is always
-    /// allowed, whatever the date says.
+    /// A clock that is not where it should be only threatens increases. Asking
+    /// for less is always allowed, whatever the date says.
     ///
     /// "Less" is measured against everything already agreed to, today's limit
     /// and any increase already queued for tomorrow. Measuring it against today
     /// alone refused a revision of a queued increase *downward* — a reduction —
     /// while the screen was saying the limit could go down but not up.
+    ///
+    /// Both directions count. A rewind was always caught here; a jump forward
+    /// used to arrive as a perfectly ordinary week having passed, which is the
+    /// whole of what the weekly rule is made of.
     private func guardRail(_ minutes: Int) -> LimitRefusal? {
         let agreed = max(limit.minutes, limit.pending?.minutes ?? limit.minutes)
-        return minutes > agreed && isClockRewound ? .clockRewound : nil
+        guard minutes > agreed else { return nil }
+        if isClockRewound { return .clockRewound }
+        if isClockAdvanced { return .clockAdvanced }
+        return nil
     }
 
     // MARK: - Notices

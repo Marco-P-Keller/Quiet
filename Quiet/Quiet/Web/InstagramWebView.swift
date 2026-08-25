@@ -719,6 +719,28 @@ struct InstagramWebView: UIViewRepresentable {
             }
         }
 
+        /// Every page comes back saying what time it is.
+        ///
+        /// This is the whole of Quiet's answer to a clock pushed forward, and
+        /// it costs one line of a response the app was reading anyway. No
+        /// request is made, nothing is asked of anybody, and nothing leaves the
+        /// phone — a `Date` header is already on the answer to a page load, put
+        /// there by the server that served it.
+        ///
+        /// Only Instagram's own hosts, and only over HTTPS. That check lives in
+        /// `ServerDate` so it can be tested without a web view.
+        func webView(
+            _ webView: WKWebView,
+            decidePolicyFor navigationResponse: WKNavigationResponse,
+            decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void
+        ) {
+            if let response = navigationResponse.response as? HTTPURLResponse,
+               let instant = ServerDate.vouched(by: response) {
+                session.vouchForTime(instant)
+            }
+            decisionHandler(.allow)
+        }
+
         func webView(
             _ webView: WKWebView,
             createWebViewWith configuration: WKWebViewConfiguration,
