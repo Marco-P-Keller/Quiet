@@ -19,6 +19,67 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # The riskiest file in the project, asked about on a page that is not
+  # Instagram's.
+  #
+  # `trim.js` is sixteen hundred lines, it is the layer Instagram can break by
+  # renaming something, and until now nothing anywhere checked it. It also
+  # fails in the worst possible way: an entrance that quietly comes back looks
+  # exactly like an app that is working, and the only witness is somebody
+  # scrolling a real feed.
+  #
+  # Cheap, so it runs first and on Linux. A red line here costs seconds; the
+  # same fact found on a phone costs a build, an upload and an evening.
+  check:
+    name: Check the trim
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: Quiet
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # The one dependency these tools have, and the only reason for it is that
+      # something has to provide a DOM. Installed rather than assumed, so the
+      # job does not depend on what happens to be checked in.
+      - name: A DOM to ask
+        run: npm install --no-save --no-audit --no-fund jsdom
+
+      - name: What the trim does
+        run: node Tools/read-the-trim.js
+
+      - name: What it makes of the header
+        run: node Tools/read-the-header.js
+
+      # Every sentence in the app, in both languages.
+      #
+      # The failure this catches is not a crash and does not look like one: a
+      # sentence written in Swift, added to the catalogue with no German beside
+      # it, shipping in English inside a German app on a screen nobody who
+      # wrote it ever reads in German. It has happened here before.
+      - name: Both languages
+        run: python3 Tools/read-the-strings.py
+
+      # Formatting, so that nobody has to have an opinion about it in a review.
+      #
+      # `--strict` rather than `--in-place`: a job that quietly rewrote the
+      # source would make the checkout disagree with the branch, and the point
+      # is to be told, not to be tidied up after.
+      - name: Formatting
+        run: |
+          set -euo pipefail
+          if ! command -v swift-format >/dev/null 2>&1; then
+            echo "No swift-format on this runner, so formatting was not checked."
+            exit 0
+          fi
+          swift-format lint --strict --recursive Quiet QuietTests QuietUITests
+
   test:
     name: Build and test
     runs-on: macos-15
