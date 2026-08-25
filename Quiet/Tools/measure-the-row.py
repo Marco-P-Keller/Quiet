@@ -136,21 +136,53 @@ def measure_the_sheet(path):
     scale = width / points
     pixels = image.load()
 
-    x = round(width / 2)
+    def isFoot(pixel):
+        return all(abs(a - b) < NEAR for a, b in zip(pixel, FOOT))
+
+    # The whole picture, not one column. Quiet's row floats over the middle of
+    # the bottom of the screen and the app paints a strip there too; a scan that
+    # only ever looked down the centre answered "not on the screen" for a band
+    # that was on it, behind something.
     found = None
     for y in range(height - 1, -1, -1):
-        red, green, blue = pixels[x, y]
-        if (abs(red - FOOT[0]) < NEAR and abs(green - FOOT[1]) < NEAR
-                and abs(blue - FOOT[2]) < NEAR):
-            found = y
+        for x in range(2, width, 12):
+            if isFoot(pixels[x, y]):
+                found = (x, y)
+                break
+        if found:
             break
-    if found is None:
-        return None, "the rehearsed sheet is not on the screen"
 
+    if found is None:
+        return None, ("the rehearsed sheet's foot is nowhere on the screen — "
+                      "either it was never drawn, or something is over it")
+
+    x, y = found
     return {
         "screen": f"{width}x{height} px, {points:g} pt wide, {scale:g}x",
-        "foot": (height - 1 - found) / scale,
+        "found": f"x = {x} px",
+        "foot": (height - 1 - y) / scale,
     }, None
+
+
+def down_the_middle(path):
+    """What the bottom of the screen actually looks like, every two points.
+
+    Printed whenever the sheet cannot be measured. A check that fails without
+    saying what it saw is a check that costs a build to learn nothing from.
+    """
+    image = Image.open(path).convert("RGB")
+    width, height = image.size
+    scale = width / POINTS.get(width, width / 3)
+    pixels = image.load()
+    x = round(width / 2)
+    rows = []
+    for pt in range(0, 240, 4):
+        y = height - 1 - round(pt * scale)
+        if y < 0:
+            break
+        red, green, blue = pixels[x, y]
+        rows.append(f"{pt}:{red},{green},{blue}")
+    return " ".join(rows)
 
 
 def main():
@@ -158,8 +190,11 @@ def main():
         found, trouble = measure_the_sheet(sys.argv[1])
         if trouble:
             print(f"Could not measure the sheet: {trouble}")
+            print("Down the middle, every 4 pt from the bottom edge:")
+            print(f"  {down_the_middle(sys.argv[1])}")
             return 1
         print(f"Screen:      {found['screen']}")
+        print(f"Found at:    {found['found']}")
         print(f"Sheet foot:  {found['foot']:.1f} pt above the bottom edge")
         wanted = float(sys.argv[sys.argv.index("--expect") + 1]) \
             if "--expect" in sys.argv else None

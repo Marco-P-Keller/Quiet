@@ -193,7 +193,16 @@ jobs:
           # Long enough for the page to arrive and the sheet to be put on it.
           sleep 16
           xcrun simctl io booted screenshot --type=png sheet.png
-          python3 Tools/measure-the-row.py sheet.png --sheet --expect "$room"
+          # And the picture itself when it cannot be measured. A check that
+          # fails without showing what it saw costs a build to learn nothing.
+          if ! python3 Tools/measure-the-row.py sheet.png --sheet --expect "$room"; then
+            sips -Z 420 -s format jpeg -s formatOptions 68 sheet.png \
+              --out sheet.jpg >/dev/null
+            echo "----BEGIN SHEET----"
+            base64 -b 200 -i sheet.jpg
+            echo "----END SHEET----"
+            exit 1
+          fi
 
       # The full log is thousands of lines of module compilation. What anybody
       # actually needs after a red run is the handful of lines naming what
