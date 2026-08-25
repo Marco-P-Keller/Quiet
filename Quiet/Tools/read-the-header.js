@@ -957,6 +957,51 @@ const GROUPED = `
     putBack.document.querySelector('[data-name="panel"]').style.getPropertyValue("--quiet-lift"),
   ], [false, ""]);
 
+  /* And the one that was never asked. Five rounds of this went past — pad the
+   * panel, move the row, measure whether it worked, move the sheet — and all of
+   * them were gated on finding something that says it is modal. Nothing obliges
+   * Instagram to say so, and the symptom when it does not is identical to the
+   * symptom of each mechanism failing. */
+  const nameless = (inside, box, position) => `
+    <div data-name="sheet" data-at-bottom
+         style="position: ${position || "fixed"}"
+         data-box="${box || "0,500,390,344"}">${inside || "x"}</div>
+    <main></main>`;
+
+  const quiet = await page(nameless(), FEED);
+  check(
+    "a sheet that never said it was one is found by its shape",
+    liftIn(quiet),
+    "128px"
+  );
+
+  /* Not everything held against the bottom is a sheet. Instagram's own floor is
+   * already taken out, and something the height of a bar is a bar. */
+  const bar = await page(nameless("x", "0,795,390,49"), FEED);
+  check("a bar is too short to be a sheet", liftIn(bar), null);
+
+  /* A backdrop is as tall as the glass, and moving it moves the page. */
+  const asTallAsTheGlass = await page(nameless("x", "0,0,390,844"), FEED);
+  check("and a backdrop is too tall to be one", liftIn(asTallAsTheGlass), null);
+
+  /* Laid out in the page rather than held over it. A sheet is held over it —
+   * that is what a sheet is. */
+  const inFlow = await page(nameless("x", "0,500,390,344", "static"), FEED);
+  check("what is laid out in the page is part of the page", liftIn(inFlow), null);
+
+  /* Narrower than the glass is a card, not a sheet. */
+  const card = await page(nameless("x", "60,500,270,344"), FEED);
+  check("and what does not span the glass is not one either", liftIn(card), null);
+
+  /* Instagram's own floor reaches the bottom and spans the glass, and is
+   * already taken out. It must never be picked up as a sheet and moved. */
+  const floor = await page(
+    `<div data-name="sheet" data-at-bottom data-quiet-floor="row"
+          style="position: fixed" data-box="0,500,390,344">x</div><main></main>`,
+    FEED
+  );
+  check("Instagram's own floor is never mistaken for one", liftIn(floor), null);
+
   /* Finding a panel and padding it is not the same as the sheet standing clear,
    * and the difference is what let two builds go past: a padding that moved
    * nothing reported success, so the app left the row answering taps and the

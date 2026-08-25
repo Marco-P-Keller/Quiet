@@ -783,7 +783,95 @@
       var box = modals[i].getBoundingClientRect();
       if (box.width > 0 && box.height > 0) drawn.push(modals[i]);
     }
-    return drawn;
+    if (drawn.length) return drawn;
+
+    var unnamed = theSheetByItsShape();
+    return unnamed ? [unnamed] : [];
+  }
+
+  /**
+   * A sheet that never said it was one.
+   *
+   * Five rounds of this went past — pad the panel, move the row, measure
+   * whether it worked, move the sheet — and every one of them was gated on
+   * finding something that says it is modal. Nothing obliges Instagram to say
+   * so, and the symptom when it does not say so is identical to the symptom of
+   * each mechanism failing: the row drawn across the button, every time,
+   * whatever was changed. Five photographs of the same picture, and the thing
+   * they were all evidence of was never looked at.
+   *
+   * So this asks the screen, the way the header and the upsell strip are asked.
+   * What is actually drawn along the bottom of the glass? Then it decides by
+   * shape, and only by shape.
+   *
+   * The tests are the ones that make something a sheet rather than part of a
+   * page: it reaches the bottom edge, it spans nearly the whole width, it is
+   * tall enough to be a sheet and shorter than the screen — a backdrop is as
+   * tall as the glass — and it is held over the page rather than laid out in
+   * it, which is what a sheet is.
+   *
+   * Nothing of Instagram's own furniture can be picked up by mistake: its floor
+   * is already taken out, and on the screens with their own bottom edge — a
+   * story, a conversation — the row is nothing, so none of this runs at all.
+   */
+  var SHEET_SHORTEST = 120;
+
+  function theSheetByItsShape() {
+    if (!document.elementsFromPoint) return null;
+
+    var width = window.innerWidth || 0;
+    var height = window.innerHeight || 0;
+    if (!width || !height) return null;
+
+    var columns = [
+      Math.round(width / 2),
+      Math.round(width * 0.2),
+      Math.round(width * 0.8)
+    ];
+    var rows = [height - 2, height - 30];
+
+    for (var r = 0; r < rows.length; r++) {
+      for (var c = 0; c < columns.length; c++) {
+        var stack = document.elementsFromPoint(columns[c], rows[r]);
+        if (!stack) continue;
+        for (var i = 0; i < stack.length; i++) {
+          if (looksLikeASheet(stack[i], width, height)) return stack[i];
+        }
+      }
+    }
+    return null;
+  }
+
+  function looksLikeASheet(node, width, height) {
+    if (!node || !node.getAttribute) return false;
+    if (node === document.body || node === document.documentElement) return false;
+    if (node.getAttribute("data-quiet-floor") !== null) return false;
+    if (node.getAttribute("data-quiet-hidden") !== null) return false;
+    if (node.id && node.id.indexOf("quiet-") === 0) return false;
+
+    var box = node.getBoundingClientRect();
+    if (box.width < width * 0.8) return false;
+    if (box.bottom < height - 2 || box.bottom > height + 8) return false;
+
+    /* Its own height, less whatever this file has already added to it — the
+     * same arithmetic `isPanel` does, and for the same reason: measured with
+     * the padding on, a sheet grows past the test that found it. */
+    var own = box.height - (node.hasAttribute(SHEET) ? amount(node) : 0);
+    if (own < SHEET_SHORTEST) return false;
+    if (own > height - 8) return false;
+
+    return heldOverThePage(node);
+  }
+
+  /** Held against the glass rather than laid out in the page. */
+  function heldOverThePage(node) {
+    var steps = 0;
+    while (node && node !== document.body && steps < 8) {
+      if (window.getComputedStyle(node).position === "fixed") return true;
+      node = node.parentElement;
+      steps += 1;
+    }
+    return false;
   }
 
   /**

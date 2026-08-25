@@ -1646,3 +1646,30 @@ points — and nothing at all is written when that comes to nothing.
 Five checks: how far it goes, a sheet with no room, one with a little, the box
 around the dialog being the one moved, and the transform being taken off again
 when the sheet goes. A hundred and two.
+
+## The sheet never said it was a sheet
+
+Five rounds went past on this — pad the panel, take the row away, leave it and
+make it inert, measure whether the padding worked, move the sheet two
+centimetres — and every one of them was gated on the same line: find something
+in the markup that says it is modal.
+
+Nothing obliges Instagram to say so. And when it does not, the symptom is
+identical to the symptom of each of those five mechanisms failing: the row drawn
+across the button, in every photograph, whatever had been changed. Five pictures
+of the same thing, and the one thing they were all evidence of was the one thing
+never looked at.
+
+It is found by shape now, the way the header and the upsell strip are: what is
+actually drawn along the bottom of the glass. It reaches the bottom edge, spans
+nearly the whole width, is tall enough to be a sheet and shorter than the screen
+— a backdrop is as tall as the glass — and it is held over the page rather than
+laid out in it, which is what a sheet is.
+
+Nothing of Instagram's own can be picked up by mistake. Its floor is already
+taken out and carries a mark saying so; a bar is too short; a card does not span
+the glass; and on the screens that own their bottom edge — a story, a
+conversation — the row is nothing and none of this runs at all.
+
+The lesson is the one this project keeps relearning and keeps having to pay for:
+ask the screen, not the markup. Six checks, which is a hundred and eight.
