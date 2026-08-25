@@ -23,6 +23,8 @@ struct PanelView: View {
                     Divider().overlay(Paper.rule).padding(.vertical, 24)
                     findSomeone
                     Divider().overlay(Paper.rule).padding(.vertical, 24)
+                    warnings
+                    Divider().overlay(Paper.rule).padding(.vertical, 24)
                     rowShape
                     Divider().overlay(Paper.rule).padding(.vertical, 24)
                     about
@@ -154,6 +156,37 @@ struct PanelView: View {
         // right for a reader and ambiguous for a test. An identifier is not
         // spoken aloud and tells the two apart.
         .accessibilityIdentifier("panel.findSomeone")
+    }
+
+    // MARK: - What the app says on the way down
+
+    /// The one setting that changes what the app says rather than what it
+    /// allows.
+    ///
+    /// It is not a hole in the rule and it was worth checking that twice. A
+    /// warning changes nothing about how much time there is: the limit is the
+    /// limit whether or not anybody is counted down to it, the curtain falls
+    /// at the same second either way, and turning this off buys not one
+    /// minute. The single argument this app refuses to have is about *how
+    /// much*, and this is not that argument.
+    ///
+    /// What it does buy, for some people, is not being told. "Five minutes
+    /// left" is a useful thing to hear and it is also, for a certain kind of
+    /// reader, the sentence that starts a last five minutes. Both are true and
+    /// neither is true of everybody, which is exactly the shape of a setting.
+    private var warnings: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Toggle(isOn: Binding(
+                get: { preferences.saysWhatIsLeft },
+                set: { preferences.saysWhatIsLeft = $0 }
+            )) {
+                Text("Say what is left")
+                    .font(.quietBody)
+            }
+            .tint(Paper.ink)
+
+            Note("Two quiet notices, at five minutes and at one. Turning them off does not add any time — the day ends at the same moment either way.")
+        }
     }
 
     // MARK: - The row along the bottom

@@ -16,11 +16,15 @@ import SwiftUI
 struct RootView: View {
     let session: QuietSession
 
+    /// How the app looks and what it says, as against what it promises.
+    ///
+    /// Handed down rather than put in the environment: several views need it,
+    /// and a missing environment value is a crash rather than a compile error.
+    /// Built in `QuietApp` rather than here, because the session reads it too
+    /// and one of the two would otherwise have been holding a second copy.
+    let preferences: Preferences
+
     @State private var surface = WebSurface()
-    /// How the app looks, as against what it promises. Handed down rather than
-    /// put in the environment: three views need it, and a missing environment
-    /// value is a crash rather than a compile error.
-    @State private var preferences = Preferences()
     /// Whether the app has earned the right to ask what you think of it.
     @State private var applause = Applause()
     /// True for the first second and a half of a launch.

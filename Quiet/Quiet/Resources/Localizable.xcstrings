@@ -1,6 +1,16 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    " It does not give the week back: you can ask for more again %@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " Die Woche kommt dadurch nicht zurück: um mehr bitten kannst du wieder %@."
+          }
+        }
+      }
+    },
     " You can ask for more again %@.": {
       "localizations": {
         "de": {
@@ -551,6 +561,16 @@
         }
       }
     },
+    "Say what is left": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sagen, was übrig ist"
+          }
+        }
+      }
+    },
     "Search is not answering. An exact name still works: type it and press search.": {
       "localizations": {
         "de": {
@@ -737,6 +757,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dieses Telefon lässt Quiet nichts aufschreiben. Bis sich das ändert, überlebt dein Limit das Schließen der App nicht."
+          }
+        }
+      }
+    },
+    "Two quiet notices, at five minutes and at one. Turning them off does not add any time — the day ends at the same moment either way.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zwei leise Hinweise, bei fünf Minuten und bei einer. Sie auszuschalten bringt keine Zeit — der Tag endet so oder so im selben Moment."
           }
         }
       }

@@ -45,6 +45,15 @@ final class QuietSession {
     private let clock: MonotonicClock
     private let calendar: Calendar
 
+    /// The handful of things that are settings rather than promises.
+    ///
+    /// Handed in rather than built here, and built once in `QuietApp` rather
+    /// than once per view, because two objects now read it — this one, for
+    /// whether to say anything as the day runs out, and the panel, for the
+    /// shape of the row. Two copies of a preference are two preferences, and
+    /// the one that is wrong is whichever one the reader is not looking at.
+    let preferences: Preferences
+
     private var isForeground = false
     private var ticker: Timer?
     private var lastSample: TimeInterval?
@@ -62,9 +71,15 @@ final class QuietSession {
     /// then not again.
     static let warnings = [5, 1]
 
-    init(store: any StateStore, clock: MonotonicClock, calendar: Calendar = .current) {
+    init(
+        store: any StateStore,
+        clock: MonotonicClock,
+        preferences: Preferences = Preferences(),
+        calendar: Calendar = .current
+    ) {
         self.store = store
         self.clock = clock
+        self.preferences = preferences
         self.calendar = calendar
         ledger = UsageLedger(day: DayKey(clock.now, calendar: calendar))
     }
@@ -335,6 +350,7 @@ final class QuietSession {
     }
 
     private func announceIfNeeded() {
+        guard preferences.saysWhatIsLeft else { return }
         let due = Self.warningsDue(
             minutesLeft: Int(ceil(remaining / 60)),
             alreadySaid: announced

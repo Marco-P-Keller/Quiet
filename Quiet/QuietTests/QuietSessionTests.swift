@@ -376,4 +376,37 @@ final class QuietSessionTests: XCTestCase {
         XCTAssertEqual(world.session.remaining, 20 * 60)
     }
 
+
+    // MARK: - Being told, and not being told
+
+    /// Turning the notices off must not buy a single minute. The one argument
+    /// this app refuses to have is about how much time there is, and a setting
+    /// that quietly moved the curtain would be that argument wearing a
+    /// different hat.
+    func testSilenceDoesNotBuyTime() {
+        let suite = "quiet.tests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { UserDefaults().removePersistentDomain(forName: suite) }
+
+        let preferences = Preferences(defaults: defaults)
+        preferences.saysWhatIsLeft = false
+
+        let store = MemoryStore()
+        var ledger = UsageLedger(day: today, endsAt: today.end())
+        ledger.add(20 * 60)
+        store.save(today, for: .setupDay)
+        store.save(LimitState(minutes: 20), for: .limit)
+        store.save(ledger, for: .usage)
+
+        let session = QuietSession(
+            store: store,
+            clock: MonotonicClock(base: FakeTime(noon), store: store),
+            preferences: preferences
+        )
+        session.start()
+
+        XCTAssertEqual(session.screen, .spent, "the day ends when the day ends")
+        XCTAssertEqual(session.remaining, 0)
+    }
+
 }

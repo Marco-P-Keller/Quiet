@@ -53,6 +53,7 @@ enum RowShape: String, CaseIterable, Sendable {
 /// without stepping onto the main actor to do it.
 private enum Key {
     static let row = "quiet.row.shape"
+    static let saysWhatIsLeft = "quiet.says.what.is.left"
 }
 
 @MainActor
@@ -69,6 +70,25 @@ final class Preferences {
         }
     }
 
+    /// Whether the app says anything as the day runs out.
+    ///
+    /// On by default, and the default is the considered answer: a screen that
+    /// replaces itself with no warning reads as a fault, and two quiet notices
+    /// are the smallest thing that stops the end of the day being a surprise.
+    ///
+    /// It can be turned off, and that is not a hole in the rule. Nothing about
+    /// a warning changes how much time there is — the limit is the limit
+    /// whether or not anybody is counted down to it — and for some people a
+    /// notice saying five minutes remain is precisely the thing that starts a
+    /// last five minutes. The one argument the app refuses to have is about
+    /// *how much*; this is not that argument.
+    var saysWhatIsLeft: Bool {
+        didSet {
+            guard saysWhatIsLeft != oldValue else { return }
+            defaults.set(saysWhatIsLeft, forKey: Key.saysWhatIsLeft)
+        }
+    }
+
     /// For a rehearsal, so that a machine can photograph either shape.
     nonisolated static func rehearse(row: RowShape, in defaults: UserDefaults = .standard) {
         defaults.set(row.rawValue, forKey: Key.row)
@@ -78,5 +98,10 @@ final class Preferences {
         self.defaults = defaults
         self.row = defaults.string(forKey: Key.row)
             .flatMap(RowShape.init(rawValue:)) ?? .standard(on: hardware)
+        // `bool(forKey:)` answers false for a key nobody has written, which is
+        // the wrong way round for a thing that is on unless it has been turned
+        // off. Asked as an object first, so that "never chosen" and "chosen
+        // false" are two different answers.
+        self.saysWhatIsLeft = defaults.object(forKey: Key.saysWhatIsLeft) as? Bool ?? true
     }
 }

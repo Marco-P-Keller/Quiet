@@ -119,9 +119,19 @@ struct LimitView: View {
     private func describe(_ change: LimitChange, resulting state: LimitState) -> String {
         switch change {
         case .now:
-            let lead = minutes == session.limit.minutes
+            // Cancelling a queued increase is the one change whose consequence
+            // is not on the screen anywhere. It does not give the week back —
+            // deliberately, because a cooldown that a reduction reset would let
+            // anybody raise the limit, drop it the next day and raise it again
+            // — and somebody who cancels without being told that has been
+            // charged a week for nothing.
+            var lead = minutes == session.limit.minutes
                 ? String(localized: "Cancels the increase you asked for.")
                 : String(localized: "Takes effect now.")
+            if minutes == session.limit.minutes,
+               let next = LimitPolicy.nextIncreaseDay(state, today: session.today) {
+                lead += String(localized: " It does not give the week back: you can ask for more again \(Phrase.day(next, relativeTo: session.today)).")
+            }
             if session.ledger.isSpent(limitMinutes: minutes) {
                 return lead + String(localized: " You have already used more than that today, so today ends here.")
             }
