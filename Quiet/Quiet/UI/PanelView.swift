@@ -19,6 +19,7 @@ struct PanelView: View {
     /// Cleared by the next tap, so it answers the thing that was just pressed
     /// rather than sitting there.
     @State private var waitRefused: String?
+    @State private var isConfirmingForget = false
 
     var body: some View {
         NavigationStack {
@@ -339,13 +340,64 @@ struct PanelView: View {
 
             trouble
 
+            letGo
+
             VStack(alignment: .leading, spacing: 8) {
-                Note("Quiet has no account, no servers and no analytics. It stores four things on this phone: your limit, today's total, the last time it saw, and the day you set it up.")
+                Note("Quiet has no account, no servers and no analytics. It stores five things on this phone: your limit, today's total, the last time it saw, the day you set it up, and whether you have asked it to forget.")
                 Note("Your limit is kept in the keychain, which outlives the app. Deleting Quiet and installing it again does not reset it.")
                 Note("Quiet is not affiliated with or endorsed by Instagram or Meta.")
                 Note(verbatim: Build.versionLine)
             }
             .padding(.top, 6)
+        }
+    }
+
+    // MARK: - The way out
+
+    /// The door that was missing.
+    ///
+    /// The limit lives in the keychain because it has to outlive the app being
+    /// deleted; that is the promise and the setup screen says so. What nobody
+    /// wrote down is the consequence: there was no way out at all. The only
+    /// exit was for somebody to know that a keychain exists and to go and find
+    /// it, which is not an exit — it is a trap with documentation.
+    ///
+    /// So the door exists, and it is the same shape as every other door here.
+    /// It opens slowly, after the wait currently in force, and it can be shut
+    /// again at any moment before then for nothing. Somebody changing their
+    /// mind about being released is asking to be held to the rule, and the app
+    /// has never stood in the way of that.
+    @ViewBuilder
+    private var letGo: some View {
+        if let day = session.forgetOn {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Quiet forgets everything \(Phrase.day(day, relativeTo: session.today)).")
+                    .font(.quietBody)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Button("Keep my limit") { session.keepRemembering() }
+                    .font(.quietBody)
+                    .buttonStyle(.plain)
+
+                Note("Until that day nothing changes. Changing your mind costs nothing and can be done at any time.")
+            }
+        } else {
+            Button("Make Quiet forget everything") {
+                isConfirmingForget = true
+            }
+            .font(.quietBody)
+            .buttonStyle(.plain)
+            .confirmationDialog(
+                "Make Quiet forget everything?",
+                isPresented: $isConfirmingForget,
+                titleVisibility: .visible
+            ) {
+                Button("Ask to be forgotten", role: .destructive) {
+                    session.askToBeForgotten()
+                }
+            } message: {
+                Text("Your limit, your day and the wait are thrown away — after \(Phrase.days(session.limit.cooldownDays)), not now. You can call it off at any time before then. Your Instagram sign-in is a separate thing and is not touched.")
+            }
         }
     }
 

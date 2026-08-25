@@ -211,6 +211,16 @@
         }
       }
     },
+    "Ask to be forgotten": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Darum bitten, vergessen zu werden"
+          }
+        }
+      }
+    },
     "Asking to wait longer takes effect at once. Asking to wait less has to wait — otherwise this would be the one rule you could relax at the moment it started to matter.": {
       "localizations": {
         "de": {
@@ -361,6 +371,16 @@
         }
       }
     },
+    "Keep my limit": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mein Limit behalten"
+          }
+        }
+      }
+    },
     "Less takes effect at once. More starts the next day, and only once a week.": {
       "localizations": {
         "de": {
@@ -377,6 +397,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Suche …"
+          }
+        }
+      }
+    },
+    "Make Quiet forget everything": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet alles vergessen lassen"
+          }
+        }
+      }
+    },
+    "Make Quiet forget everything?": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet alles vergessen lassen?"
           }
         }
       }
@@ -497,6 +537,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Quiet konnte %@ nicht aus dem eigenen Bundle laden. Dieser Build ist kaputt; installiere ihn neu."
+          }
+        }
+      }
+    },
+    "Quiet forgets everything %@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet vergisst alles %@."
+          }
+        }
+      }
+    },
+    "Quiet has no account, no servers and no analytics. It stores five things on this phone: your limit, today's total, the last time it saw, the day you set it up, and whether you have asked it to forget.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet hat kein Konto, keine Server und keine Analyse. Es speichert fünf Dinge auf diesem Telefon: dein Limit, das heutige Gesamt, die letzte Zeit die es gesehen hat, den Tag der Einrichtung, und ob du es gebeten hast, zu vergessen."
           }
         }
       }
@@ -841,6 +901,16 @@
         }
       }
     },
+    "Those are gone on purpose, not missing. Tapping a Reel a friend sends you will say so rather than open it.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die sind mit Absicht weg, nicht kaputt. Ein Reel, das dir jemand schickt, sagt beim Antippen genau das, statt sich zu öffnen."
+          }
+        }
+      }
+    },
     "Two quiet notices, at five minutes and at one. Turning them off does not add any time — the day ends at the same moment either way.": {
       "localizations": {
         "de": {
@@ -857,6 +927,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tippe einen Namen. Quiet sucht nach Menschen und sonst nichts — kein Explore, keine Hashtags, keine Orte."
+          }
+        }
+      }
+    },
+    "Until that day nothing changes. Changing your mind costs nothing and can be done at any time.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bis dahin ändert sich nichts. Es sich anders zu überlegen kostet nichts und geht jederzeit."
           }
         }
       }
@@ -967,6 +1047,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dein Limit ist jetzt %@ am Tag."
+          }
+        }
+      }
+    },
+    "Your limit, your day and the wait are thrown away — after %@, not now. You can call it off at any time before then. Your Instagram sign-in is a separate thing and is not touched.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Limit, dein Tag und die Wartezeit werden weggeworfen — nach %@, nicht jetzt. Bis dahin kannst du es jederzeit abblasen. Deine Instagram-Anmeldung ist etwas anderes und bleibt unberührt."
           }
         }
       }

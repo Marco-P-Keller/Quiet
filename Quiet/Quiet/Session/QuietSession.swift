@@ -29,6 +29,12 @@ final class QuietSession {
     /// The day the limit was first chosen. `nil` on a fresh install.
     private(set) var setupDay: DayKey?
 
+    /// The day everything is to be thrown away, if somebody has asked.
+    ///
+    /// `nil` almost always, which is the whole point: this is not a feature
+    /// anybody uses twice. See `askToBeForgotten`.
+    private(set) var forgetOn: DayKey?
+
     /// Bound to the panel's presentation. While the panel is up, the clock stops:
     /// time spent deciding how much time you want is not time on Instagram.
     var isPanelShowing = false {
@@ -54,8 +60,17 @@ final class QuietSession {
     /// the one that is wrong is whichever one the reader is not looking at.
     let preferences: Preferences
 
+    /// What calls back once a second while the app is on screen, and the
+    /// reading of elapsed time it is counted against.
+    ///
+    /// Both are handed in for the same reason: everything that only happens
+    /// inside a tick — the ledger accruing, the two warnings, the curtain —
+    /// used to be testable only by waiting, which means it was not tested.
+    private let heartbeat: any Heartbeat
+    private let uptime: () -> TimeInterval
+
     private var isForeground = false
-    private var ticker: Timer?
+    private var isBeating = false
     private var lastSample: TimeInterval?
     private var unsavedSeconds: TimeInterval = 0
     private var announced: Set<Int> = []
@@ -75,12 +90,16 @@ final class QuietSession {
         store: any StateStore,
         clock: MonotonicClock,
         preferences: Preferences = Preferences(),
-        calendar: Calendar = .current
+        calendar: Calendar = .current,
+        heartbeat: any Heartbeat = RunLoopHeartbeat(),
+        uptime: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime }
     ) {
         self.store = store
         self.clock = clock
         self.preferences = preferences
         self.calendar = calendar
+        self.heartbeat = heartbeat
+        self.uptime = uptime
         ledger = UsageLedger(day: DayKey(clock.now, calendar: calendar))
     }
 
@@ -89,12 +108,18 @@ final class QuietSession {
     /// Load what was saved and decide which screen to show. Safe to call twice.
     func start() {
         setupDay = store.load(DayKey.self, for: .setupDay)
+        forgetOn = store.load(DayKey.self, for: .forgetOn)
         if let saved = store.load(LimitState.self, for: .limit) {
             limit = saved
         }
         if let saved = store.load(UsageLedger.self, for: .usage) {
             ledger = saved
         }
+        guard setupDay != nil else {
+            screen = .setup
+            return
+        }
+        forgetIfDue()
         guard setupDay != nil else {
             screen = .setup
             return
@@ -244,6 +269,60 @@ final class QuietSession {
         return nil
     }
 
+    // MARK: - Letting go
+
+    /// Ask Quiet to forget everything, after the wait currently in force.
+    ///
+    /// The limit lives in the keychain because it has to outlive the app being
+    /// deleted — that is the promise, and it is said plainly during setup. The
+    /// consequence nobody wrote down is that there was no way out at all. The
+    /// only exit was for somebody to know that a keychain exists, and to go and
+    /// find it, which is not an exit, it is a trap with documentation.
+    ///
+    /// So there is a door, and it is the same shape as every other door here:
+    /// it opens slowly. The wait is whatever the wait between increases is,
+    /// which means it cannot be shortened in the moment either — shortening
+    /// that number is itself subject to it.
+    ///
+    /// The Instagram session is not part of this. Signing out is its own
+    /// button and always was, and bundling the two would mean somebody asking
+    /// to be released from a rule was also, a week later and without being
+    /// asked again, logged out.
+    @discardableResult
+    func askToBeForgotten() -> DayKey {
+        let day = today.adding(days: limit.cooldownDays)
+        forgetOn = day
+        store.save(day, for: .forgetOn)
+        checkMemory()
+        return day
+    }
+
+    /// Change your mind. Free, at any moment before the day comes, because
+    /// changing your mind about being released is asking to be held to the
+    /// rule — and the app never stands in the way of that.
+    func keepRemembering() {
+        guard forgetOn != nil else { return }
+        forgetOn = nil
+        store.remove(.forgetOn)
+    }
+
+    /// Throw it all away, if the day has come.
+    ///
+    /// Every key, including the mark the clock keeps, because "everything"
+    /// that quietly kept one thing would be a worse promise than not offering
+    /// this at all. What is left is an app that has never been run.
+    private func forgetIfDue() {
+        guard let forgetOn, today >= forgetOn else { return }
+        for key in StoreKey.allCases { store.remove(key) }
+        self.forgetOn = nil
+        setupDay = nil
+        limit = LimitState(minutes: 20)
+        ledger = UsageLedger(day: today, endsAt: today.end(calendar: calendar))
+        announced.removeAll()
+        notice = nil
+        screen = .setup
+    }
+
     // MARK: - Notices
 
     func report(_ surface: BlockedSurface) {
@@ -276,23 +355,21 @@ final class QuietSession {
         shouldTick && screen == .browsing && !isPanelShowing && !isSearchShowing
     }
 
-    /// Start or stop the ticker to match `shouldCount`. Never reentrant: nothing
-    /// it calls changes `screen`, `isForeground`, or either sheet's flag.
+    /// Start or stop the heartbeat to match `shouldTick`. Never reentrant:
+    /// nothing it calls changes `screen`, `isForeground`, or either sheet's
+    /// flag.
     private func syncCounting() {
         if shouldTick {
-            guard ticker == nil else { return }
-            lastSample = ProcessInfo.processInfo.systemUptime
-            let timer = Timer(timeInterval: Self.sampleInterval, repeats: true) { [weak self] _ in
-                Task { @MainActor in self?.tick() }
+            guard !isBeating else { return }
+            isBeating = true
+            lastSample = uptime()
+            heartbeat.start(every: Self.sampleInterval) { [weak self] in
+                self?.tick()
             }
-            // `.common` so the count keeps running while a finger is on a scroll
-            // view — which is exactly when it matters.
-            RunLoop.main.add(timer, forMode: .common)
-            ticker = timer
         } else {
-            guard let timer = ticker else { return }
-            ticker = nil
-            timer.invalidate()
+            guard isBeating else { return }
+            isBeating = false
+            heartbeat.stop()
             accrue()
             lastSample = nil
             flush()
@@ -319,10 +396,10 @@ final class QuietSession {
     /// Fold elapsed foreground time into the ledger. Accounting only: it never
     /// changes which screen is showing.
     private func accrue() {
-        let uptime = ProcessInfo.processInfo.systemUptime
-        defer { lastSample = uptime }
+        let now = uptime()
+        defer { lastSample = now }
         guard let previous = lastSample else { return }
-        let elapsed = uptime - previous
+        let elapsed = now - previous
 
         rollIfNeeded()
         ledger.add(elapsed)
@@ -337,6 +414,10 @@ final class QuietSession {
     private func rollIfNeeded() {
         let day = today
         guard day != ledger.day else { return }
+        // Before the new day is opened, in case the new day is the one on
+        // which there is nothing left to open it for.
+        forgetIfDue()
+        guard setupDay != nil else { return }
         // A different day is not the same thing as a day that has passed. The
         // date changes the instant a time zone does, and a time zone is two taps
         // away; the ending this day was given when it began does not move.
@@ -390,14 +471,25 @@ final class QuietSession {
 
     // MARK: - Persistence
 
+    /// Nothing is written while there is nothing to be written about.
+    ///
+    /// Before setup there is no limit and no day; after being forgotten there
+    /// is neither again. Both used to reach here anyway — the ticker stops a
+    /// beat after the screen changes, and the beat in between was enough to
+    /// write today's total back out on top of an app that had just been
+    /// emptied.
+    private var hasSomethingToRemember: Bool { setupDay != nil }
+
     private func flush() {
         unsavedSeconds = 0
+        guard hasSomethingToRemember else { return }
         store.save(ledger, for: .usage)
         checkMemory()
     }
 
     private func persist() {
         unsavedSeconds = 0
+        guard hasSomethingToRemember else { return }
         store.save(limit, for: .limit)
         store.save(ledger, for: .usage)
         checkMemory()

@@ -62,6 +62,12 @@ struct SetupView: View {
 
             VStack(alignment: .leading, spacing: 14) {
                 Line("No Reels. No Explore. No accounts suggested between your friends.")
+                // The one-star review this app was always going to get, headed
+                // off in one sentence: somebody who opens it expecting all of
+                // Instagram and finds Reels missing has not found a broken app,
+                // and there is no way for them to know that unless it is said
+                // here. Nobody reads a store listing.
+                Line("Those are gone on purpose, not missing. Tapping a Reel a friend sends you will say so rather than open it.")
                 Line("Your feed, your stories, your messages, your profile. Everything else works the way it always did.")
                 Line("You sign in on Instagram's own page. Your password never touches Quiet.")
                 Line("Quiet runs on Instagram's mobile site, so pages load a beat slower and a few things are missing.")
