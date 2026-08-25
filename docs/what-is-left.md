@@ -10,8 +10,14 @@ the difference between an app that works and one worth keeping on the first
 screen.
 
 What is *not* on this list is anything the runner can already answer: the build,
-the 62 unit tests, the UI test that walks from an empty install to Instagram and
-back through a relaunch. Those run on every push and are green.
+the unit tests, the UI test that walks from an empty install to Instagram and
+back through a relaunch, the trim pass asked forty-odd questions on a page that
+is not Instagram's, and every sentence in the app checked in both languages.
+Those run on every push and are green.
+
+A companion to this page — [verbesserungen.md](verbesserungen.md) — tracks the
+thirty-eight improvements found in a read-through of the whole project, with
+what has been done and what has not.
 
 ---
 
@@ -39,16 +45,22 @@ five: home, search, create, reels, profile.
 unmade: search is the doorway to Explore, and finding someone already lives in
 the panel. If the tab stays, Explore is one tap away behind a different door.
 
-### 1.3 Logging in, all the way through
+### 1.3 Logging in, all the way through — *still the most important line here*
 
 `ContentRules.internalDomains` holds five domains. A real sign-in can pass
 through two-factor, a "save your login info" page, a security checkpoint, or
 Facebook. Any of those on a sixth domain gets handed to Safari, and the login
 dies halfway.
 
-**Check:** sign in from a clean install, with 2FA on. **This is the failure that
-makes the app useless on first run**, so it is the single most important thing
-on this page.
+The allowlist cannot be completed by guessing; that is what an allowlist is. So
+what changed is not the list but the silence around it: a hand-off that happens
+while somebody is in the middle of signing in now says so, names the address,
+and the panel keeps that host. The failure has gone from "it does not work" to a
+sentence with a domain in it.
+
+**Check:** sign in from a clean install, with 2FA on. **This is still the
+failure that makes the app useless on first run.** If it happens, the panel has
+the answer written down.
 
 ### 1.4 Whether being signed in survives
 
@@ -58,16 +70,19 @@ it across a cold launch.
 **Check:** sign in, kill the app, come back tomorrow morning. You should not see
 a login page.
 
-### 1.5 Posting a photo
+### 1.5 Posting a photo — *the app can no longer be killed by a tap*
 
-`Info.plist` declares no `NSCameraUsageDescription` and no
-`NSMicrophoneUsageDescription`. If a page's file input offers the camera, iOS
-terminates the app on the spot — no crash report that names the cause, just a
+`Info.plist` declared no `NSCameraUsageDescription` and no
+`NSMicrophoneUsageDescription`. If a page's file input offered the camera, iOS
+terminated the app on the spot — no crash report naming the cause, just a
 disappearing app.
 
-**Decide, then do:** either add both strings, or establish that posting from
-Quiet is not a thing and watch what actually happens when someone taps `+`.
-Leaving it as it is means the app can be killed by a tap.
+Four strings now, in both languages: camera, microphone, photo library, and
+adding to the photo library. Quiet uses none of them itself and every sentence
+says so; they exist so that a tap on somebody else's page cannot end the app.
+
+**Check:** tap `+`, and long-press a picture and save it. What happens after the
+prompt is Instagram's business, and whatever it is, the app is still running.
 
 ### 1.6 Video that waits to be asked
 
@@ -132,16 +147,29 @@ third-party trademark, deliberately.
 Expect a conversation, not a rubber stamp. That part is not a task anybody can
 finish in advance.
 
-### 2.2 A privacy policy and a support page that exist — *written; one switch left*
+### 2.2 A privacy policy and a support page that exist — *now they do*
 
-Both are in [`site/`](../site) and published to the `gh-pages` branch by a
-workflow, so what is served is what is in the repository rather than a copy that
-drifts. They need GitHub Pages turned on once, by hand:
+This section used to say both were written, in `site/`, published to `gh-pages`
+by a workflow. None of that was true: there was no `site/`, there was no
+workflow, and the `privacy.html` at the root of the repository belongs to a
+different app entirely. It is the only thing on this page that has ever claimed
+work that had not been done, which is worth recording, because a plan that lies
+in one place is a plan nobody can use as a checklist.
 
-> **Settings → Pages → Source: Deploy from a branch → `gh-pages` → `/ (root)`**
+They exist now. [`Quiet/site/`](../Quiet/site) holds an index, a privacy page
+and a support page, each in English and German, served from what is in the
+repository rather than from a copy pasted into a hosting panel — a privacy
+policy that has drifted from the app it describes is worse than none, because it
+is a wrong answer with a URL. `.github/workflows/pages.yml` publishes them, and
+refuses to publish while the support page still carries its placeholder address.
 
-Then `https://marco-p-keller.github.io/Quiet/privacy.html` and `/support.html`
-resolve, which is what App Store Connect demands.
+Two things left, both by hand and both once:
+
+> **Settings → Pages → Source: GitHub Actions**
+
+and a real contact address in `site/support.html`, replacing
+`support@example.invalid`. The workflow fails until that is done rather than
+publishing a page that would fail review a week later.
 
 ### 2.3 The listing — *written*
 
@@ -179,6 +207,20 @@ than assumed.
 
 `MARKETING_VERSION` is 1.0 and stays there. The build number comes from the
 workflow's run number and only ever climbs, so it never has to be typed.
+
+---
+
+### 2.7 What the store listing now has to say
+
+Three things arrived after the listing was written and belong in it:
+
+* the app asks for camera, microphone and photo permissions — it does not use
+  any of them itself, and the strings say so, but the reviewer's questionnaire
+  asks;
+* there is a way to have the app forget everything, which answers the obvious
+  question about a limit kept in the keychain;
+* Reels and Explore being deliberately absent is now said on the first screen
+  rather than only in the listing.
 
 ---
 

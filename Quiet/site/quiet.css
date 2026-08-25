@@ -1,0 +1,30 @@
+/* The same paper the app is made of: warm, plain, one thing to read at a time.
+   No fonts are fetched — a support page that waits on a font server is a
+   support page somebody reads on a bad connection. */
+:root {
+  --page: #f7f4ef;
+  --ink: #1b1916;
+  --soft: #6b6660;
+  --rule: #e2ddd4;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --page: #121110; --ink: #efece6; --soft: #9a948c; --rule: #2b2825; }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font: 17px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+main { max-width: 34rem; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+h1 { font-family: Georgia, "Times New Roman", serif; font-size: 2rem; margin: 0 0 .25rem; }
+h2 { font-family: Georgia, "Times New Roman", serif; font-size: 1.2rem; margin: 2.4rem 0 .6rem; }
+h3 { font-size: 1rem; margin: 1.6rem 0 .4rem; }
+.lede { color: var(--soft); margin: 0 0 2rem; }
+.stamp { color: var(--soft); font-size: .9rem; }
+a { color: var(--ink); text-decoration-color: var(--soft); }
+ul { padding-left: 1.2rem; }
+li { margin: .35rem 0; }
+hr { border: 0; border-top: 1px solid var(--rule); margin: 3rem 0; }
+code { font-size: .95em; }

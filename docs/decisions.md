@@ -1990,3 +1990,95 @@ hundred and twenty-three. It is held by the top again, and the question is now
 whether the mark is on the screen above the foot at all — which is the same
 answer at every scale, because re-anchoring sends it three hundred down from the
 top of a sheet two hundred and sixty tall, which is off the bottom of the screen.
+
+---
+
+## Instagram's own answer is the clock
+
+For a long time the trade-offs said a date moved *forward* could not be caught
+without a server, and Quiet has no server. That was true about a server and
+false about the answer.
+
+Every page the app loads comes back carrying a `Date` header, put there by the
+machine that served it. Nothing is asked of anybody, no request is made, and
+nothing leaves the phone — it is one line of a response the app was already
+reading. Paired with the device's uptime, which counts real elapsed time from
+the last restart and which no settings screen can reach, it says what time it is
+regardless of what the phone claims.
+
+Ten minutes of tolerance, which is far more room than either a `Date` header or
+a phone on automatic time needs, and three orders of magnitude short of the
+thing being defended against.
+
+It fixed the other direction too, which nothing else could. A clock pushed
+forward and then pulled back used to poison the high-water mark for as long as
+the jump was wide: the app froze, correctly by its own rule and uselessly for
+the person holding it. An instant somebody else vouched for, sitting behind the
+mark, is evidence the mark was made of a lie — and it is the one thing in the
+app allowed to bring the mark down.
+
+## The wait can be chosen, and choosing it obeys itself
+
+A week is the rule this app was built around and it is also somebody's guess.
+Refusing to let a reader be *stricter* would be the app standing between
+somebody and a smaller number, which is the one thing it promises never to do.
+
+So the wait is seven days, a fortnight or a month — under the same asymmetry as
+everything else, which is the only way it can move at all. Longer takes effect
+at once. Shorter is subject to the wait it is trying to shorten, and spends it.
+Without that second half, shortening the wait would be the free move that
+shortening the limit is, and the weekly rule would have a door in it: the
+cooldown would be the single dial you could turn down at the exact moment it
+started to bite.
+
+Not offered during setup. First run asks two questions, and the reason it asks
+only two is written above; a third would be a decision nobody has enough
+information to make yet.
+
+## There is a way out, and it opens slowly
+
+The limit lives in the keychain because it has to outlive the app being deleted.
+That is the promise. The consequence nobody had written down is that there was
+no way out at all — the only exit was for somebody to know that a keychain
+exists and to go and find it, which is not an exit, it is a trap with
+documentation.
+
+So there is a door, the same shape as every other door here. "Make Quiet forget
+everything" takes effect after the wait currently in force, and can be called
+off at any moment before then for nothing, because changing your mind about
+being released is asking to be held to the rule.
+
+The Instagram session is not part of it. Signing out has its own button and
+always did; bundling the two would mean somebody asking to be released from a
+rule was also, a week later and without being asked again, logged out.
+
+## Time on Instagram includes reading messages
+
+Never argued about in writing, which is why it is here.
+
+Quiet counts every second the site is on screen, and a conversation is the site
+being on screen. Two arguments were weighed. Messages are the part of Instagram
+that is unambiguously *for* something, and charging for them makes the app
+slightly worse at the thing nobody objects to. But an exemption for messages is
+an exemption anybody can stand in: the inbox is one tap from the feed, and a
+budget with a room in it that does not count is a budget with a room people
+learn to sit in.
+
+The panel is free and the search is free because neither of them is Instagram —
+they are the app's own furniture, and time spent deciding how much time you want
+is not time spent. A conversation is not furniture.
+
+## The notices can be turned off; the limit cannot
+
+The two warnings on the way down are a setting. It is worth being careful about
+why that is not a hole.
+
+A warning changes nothing about how much time there is. The limit is the limit
+whether or not anybody is counted down to it, the curtain falls at the same
+second either way, and turning them off buys not one minute — a test insists on
+exactly that. The single argument this app refuses to have is about *how much*,
+and this is not that argument.
+
+What it buys, for a certain kind of reader, is not being told that five minutes
+remain, since that sentence is precisely the thing that starts a last five
+minutes.
