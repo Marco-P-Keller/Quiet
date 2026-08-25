@@ -83,17 +83,25 @@ enum BlockList {
     ///
     /// A failure is reported rather than swallowed. It means the app is running
     /// on one layer instead of two, which is not a crisis and is not nothing.
+    /// `store` is `nil` rather than `.default()` for the reason two other
+    /// initialisers in this project now carry a paragraph about: a default
+    /// argument is evaluated at the call site, and that store belongs to the
+    /// main actor. Resolved in the body, which is isolated.
     @MainActor
     static func install(
         into configuration: WKWebViewConfiguration,
-        store: WKContentRuleListStore? = .default(),
+        store: WKContentRuleListStore? = nil,
         then report: @escaping @MainActor (Error?) -> Void = { _ in }
     ) {
-        guard let store else {
+        // Annotated, because `default()` is an implicitly unwrapped optional
+        // and `??` would otherwise flatten the whole thing to something there
+        // is nothing left to bind.
+        let resolved: WKContentRuleListStore? = store ?? WKContentRuleListStore.default()
+        guard let resolved else {
             report(Failure.noStore)
             return
         }
-        store.compileContentRuleList(
+        resolved.compileContentRuleList(
             forIdentifier: identifier,
             encodedContentRuleList: rules
         ) { list, error in

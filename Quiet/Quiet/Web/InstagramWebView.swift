@@ -162,7 +162,7 @@ final class WebSurface {
     /// Cookies, local storage and IndexedDB are what being signed in is *made
     /// of*, and an app that emptied them under a button called "clear cached
     /// pages" would be logging people out and calling it housekeeping.
-    func clearCaches(completion: @escaping () -> Void = {}) {
+    func clearCaches(completion: @escaping @Sendable () -> Void = {}) {
         let caches: Set<String> = [
             WKWebsiteDataTypeDiskCache,
             WKWebsiteDataTypeMemoryCache,

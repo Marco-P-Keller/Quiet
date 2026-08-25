@@ -75,11 +75,6 @@ final class PreferencesTests: XCTestCase {
             XCTAssertFalse(shape.name.isEmpty, "\(shape) must have a name")
         }
     }
-}
-
-private extension Hardware {
-    static let iPhone14Pro = Hardware(model: "iPhone15,2", systemMajorVersion: 26)
-    static let iPhone15 = Hardware(model: "iPhone15,4", systemMajorVersion: 26)
 
     // MARK: - What the app says on the way down
 
@@ -103,5 +98,9 @@ private extension Hardware {
             Preferences(defaults: defaults, hardware: .iPhone15).saysWhatIsLeft
         )
     }
+}
 
+private extension Hardware {
+    static let iPhone14Pro = Hardware(model: "iPhone15,2", systemMajorVersion: 26)
+    static let iPhone15 = Hardware(model: "iPhone15,4", systemMajorVersion: 26)
 }
