@@ -7,10 +7,12 @@ on:
   push:
     paths:
       - 'Quiet/**'
+      - 'site/**'
       - '.github/workflows/quiet.yml'
   pull_request:
     paths:
       - 'Quiet/**'
+      - 'site/**'
       - '.github/workflows/quiet.yml'
   workflow_dispatch:
 
@@ -65,6 +67,17 @@ jobs:
       # wrote it ever reads in German. It has happened here before.
       - name: Both languages
         run: python3 Tools/read-the-strings.py
+
+      # The two published pages, against the app they describe.
+      #
+      # `site/privacy.html` is the only document here that is a promise to a
+      # stranger, and it is the one furthest from the code — nothing imports
+      # it, so nothing notices when it goes stale. It went stale twice in a
+      # row: the keychain grew a fifth key and then a sixth while the page went
+      # on saying four. That is not an out-of-date document, it is the wrong
+      # answer to the one question App Review asks it.
+      - name: The site against the app
+        run: python3 Tools/read-the-site.py
 
       # Formatting, so that nobody has to have an opinion about it in a review.
       #
