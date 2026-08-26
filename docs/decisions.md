@@ -2253,3 +2253,94 @@ never be a minute apart.
 A fourth was on the list and turned out to be already built: tapping the entry
 you are already standing on scrolls the page back to the top, the way Instagram's
 own app does.
+
+---
+
+## A sheet is what is in front of the page
+
+The row already steps aside for a sheet, and the account switcher still came
+back photographed with the pill drawn through "Log in to an Existing Account".
+Three questions were being asked, all of them at the foot of the glass: does
+Instagram say this is a dialog, is there something the shape of a sheet down
+there, and has the page stopped scrolling. The switcher can slip all three. It
+says nothing about being modal. Where its panel sits in Instagram's tree, and
+what `position` they gave it, are theirs to change on any Tuesday. And whether
+the page behind it is pinned is a line in somebody else's stylesheet.
+
+The fourth question is asked in the middle of the glass instead, and it is the
+one that says what a sheet *is* before it says what one looks like: **is the
+page still the thing on the screen?** Every sheet on the mobile web puts a
+dimmed sheet of nothing between you and the page, because that is what a tap
+outside has to land on. It spans the glass, it is drawn on top rather than laid
+out, and it is not part of the page.
+
+`main` tells those two apart, the same way it already does for the shape test.
+The page is what Instagram puts inside `main`; an overlay is drawn in front of
+it; the shell that holds both *contains* it. So the walk out from the point ends
+three ways — inside the page, is the page's shell, or is Quiet's own — and only
+what is left can be a sheet. The last of those three refusals is the one that
+matters most, and it has a check of its own: a wrapper the size of the glass
+that is merely laid out is not a sheet, because that is what a page whose
+content lives outside `main` looks like, and it is the one shape this could have
+taken the row away from for good.
+
+Nothing of Instagram's is marked, moved, padded, lifted or hidden — which is
+still the whole of it. A wrong answer costs a row that fades for a moment, and
+the first flick of a thumb puts it back.
+
+Five checks, which is ninety-one.
+
+## One dark, and it is the one already on the screen
+
+Quiet's paper is warm off-white by day and was warm near-black by night, and the
+argument for the second was the first: paper is warm, and there is no reason for
+it to stop being warm after dark. That argument holds for a screen that is on
+its own and loses for one standing next to somebody else's page — which is the
+same way the hairline under the clock lost, two hundred lines above this.
+
+Three darks were meeting down one screen. Instagram's is a cool near-black. The
+system's — which is what the ground under the web view, the blank held over it
+before the first page and the bar along the bottom were all painted in — is pure
+black. Quiet's own was brown. Two seams, both visible, neither of them anything
+anybody chose.
+
+So there is one dark now: a shade off black, cool rather than warm, sitting
+where the tone Instagram draws its own chrome in already sits. It is not sampled
+from the page — this colour has to be right for screens that are up before any
+page has loaded and after the day is over — but it is chosen to stand beside
+that tone without a line where the two meet. The band behind the clock goes on
+being sampled, as it has been all along; what changed is only what it falls back
+to and what surrounds it.
+
+Nothing changes by day. Instagram's page is white and the system's is white, so
+the ground stays the system's own and Quiet's paper stays the cream it was. The
+warmth was never what made the app's own screens feel unlike the site — the
+serif and the emptiness are — and in the dark it was only ever a brown seam.
+
+## The hole in the launch
+
+A photograph of the second between Quiet's opening screen and Instagram's first
+paint: the band behind the clock in the app's own near-black, and everything
+below it pure black.
+
+Two lines had been setting the web view's background colour to that same
+near-black for several builds, and they did nothing at all. **An opaque
+`WKWebView` never shows its own background colour.** WebKit fills the view with
+the page's colour, a page that has not painted yet has none, and the base it
+falls back to under a dark appearance is pure black. So every surface in the app
+was one colour and the largest one on screen was another, for about a second, on
+every cold launch.
+
+`isOpaque = false` is the whole fix, and it is worth naming what it costs:
+a composite, which WebKit was doing anyway the moment anything on the page was
+translucent. What it buys is a launch that is one colour from the opening screen
+through to Instagram — and the step at the end, from Quiet's near-black to
+Instagram's black, is the one the ground colour was chosen for in the first
+place.
+
+`underPageBackgroundColor` goes with it, for the strip WebKit paints itself when
+the page is pulled past its own ends.
+
+The lesson is the one this project keeps meeting: a line that looks like it
+configures something is not evidence that anything is configured. The colour was
+set, written down, and invisible.

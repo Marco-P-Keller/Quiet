@@ -124,6 +124,28 @@ final class WebSurface {
     /// that has not painted yet.
     private(set) var hasLoaded = false
 
+    /// Whether the page has anything on it — a picture, a glyph, a word.
+    ///
+    /// `hasLoaded` answers a question about a request, and a request finishing
+    /// is not the same event as a page appearing. Instagram is a shell: the
+    /// navigation settles, the cover comes off, and what is on the glass for
+    /// the next second or two is Instagram's own black rectangle with nothing
+    /// in it. A photograph of that is why this exists — a black void under a
+    /// grey band, which reads as a broken app rather than a loading one.
+    ///
+    /// So the cover stays up until the page says it has drawn something. The
+    /// page only ever says this on the way up: it goes quiet for good the
+    /// first time there is something to see, so a client-side move between
+    /// pages — which empties Instagram's own main element for a frame — can
+    /// never bring the cover back over a page somebody is reading. See
+    /// `sayBare` in trim.js.
+    ///
+    /// False until the page says otherwise, which is deliberate: a page whose
+    /// script never ran cannot answer, and a cover held up forever over one is
+    /// worse than the black rectangle. That case has its own screen anyway —
+    /// see `stumble`.
+    private(set) var isBare = false
+
     func open(_ url: URL) {
         webView?.load(URLRequest(url: url))
     }
@@ -303,6 +325,7 @@ final class WebSurface {
         self.webView = webView
         missingResources = missing
         hasLoaded = false
+        isBare = false
     }
 
     /// Called when the first navigation settles, whether it worked or not. A
@@ -310,6 +333,11 @@ final class WebSurface {
     /// looking at an empty page with no explanation.
     fileprivate func markLoaded() {
         hasLoaded = true
+    }
+
+    fileprivate func note(bare: Bool) {
+        guard isBare != bare else { return }
+        isBare = bare
     }
 
     fileprivate func note(path: String) {
@@ -548,8 +576,26 @@ struct InstagramWebView: UIViewRepresentable {
         webView.uiDelegate = context.coordinator
         webView.allowsBackForwardNavigationGestures = true
         webView.customUserAgent = UserAgent.mobileSafari(systemVersion: UIDevice.current.systemVersion)
-        webView.backgroundColor = .systemBackground
-        webView.scrollView.backgroundColor = .systemBackground
+        // The blank between Quiet's own opening and Instagram's first paint.
+        //
+        // The two lines below were already here and did nothing at all, which
+        // is the whole of the bug: **an opaque WKWebView never shows its own
+        // background colour.** WebKit fills the view with the page's colour,
+        // and a page that has not painted yet has none — so it uses its base,
+        // which under a dark appearance is pure black. Every other surface in
+        // the app is `Paper.ground`, a shade off black, so the launch went
+        // ground, black, Instagram: one colour, a hole, and then a page.
+        //
+        // Asking the view not to be opaque is what makes the colour underneath
+        // real. It costs a composite that WebKit was doing anyway the moment
+        // anything on the page was translucent, and it buys a launch that is
+        // one colour all the way through.
+        webView.isOpaque = false
+        webView.backgroundColor = Paper.groundColour
+        webView.scrollView.backgroundColor = Paper.groundColour
+        // And the strip above and below the page while it is pulled past its
+        // own ends, which WebKit paints itself and would otherwise paint white.
+        webView.underPageBackgroundColor = Paper.groundColour
 
         // The page is given the whole screen. All of it.
         //
@@ -1040,6 +1086,11 @@ struct InstagramWebView: UIViewRepresentable {
                 if let colour = Chrome.colour(in: body) {
                     surface.note(chrome: colour)
                 }
+
+            case "bare":
+                // Whether Instagram has drawn anything yet. The cover over the
+                // top of it stays up until this says there is something to see.
+                surface.note(bare: body["on"] as? Bool ?? false)
 
             case "health":
                 // What the trim pass found, and did not find. The one message
