@@ -800,6 +800,37 @@ const GROUPED = `
   );
   check("and it is left entirely alone", marks(conversations, "threads"), "||||");
 
+  /* The one that does not depend on Instagram's markup at all.
+   *
+   * A photograph of the real switcher came back with the pill still drawn
+   * across it, so the shape test did not find it — and the honest reading is
+   * that it never will reliably, because it turns on where the panel sits in
+   * somebody else's tree. What is not theirs to change is what a modal *is*:
+   * every one of them stops the page behind it from scrolling. */
+  const locked = await page(
+    `<main><article>a post</article></main>`,
+    FEED,
+    "<style>body { overflow: hidden }</style>"
+  );
+  check("a page that cannot scroll has something modal on it", sheetOf(locked)?.up, true);
+
+  const pinned = await page(
+    `<main><article>a post</article></main>`,
+    FEED,
+    "<style>body { position: fixed }</style>"
+  );
+  check("and so does one whose body has been pinned", sheetOf(pinned)?.up, true);
+
+  /* Which cannot catch the inbox, and that is the whole point of choosing it:
+   * a list of conversations scrolls, and a page that scrolls is not locked. */
+  const scrollingInbox = await page(
+    `<main><div data-name="threads" data-at-bottom data-box="0,120,390,700">
+       <a href="/direct/t/1/">marco</a>
+     </div></main>`,
+    "https://www.instagram.com/direct/inbox/"
+  );
+  check("a page that still scrolls has not", sheetOf(scrollingInbox), undefined);
+
   /* A backdrop is as tall as the glass. The sheet is the thing inside it. */
   const backdrop = await page(
     `<div data-name="backdrop" data-at-bottom style="position: fixed"

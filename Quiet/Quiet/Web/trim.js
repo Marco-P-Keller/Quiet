@@ -1156,6 +1156,14 @@
       lastY = y;
 
       showOrHideHeader(isFeed() && y > CLEAR_OF_THE_TOP && delta > 0);
+      // And the row, which is the safety valve on the whole sheet question. A
+      // page that is scrolling is a page that is not locked, so if the app is
+      // holding its row down for a modal that has since gone — because the
+      // closing never showed up as a mutation, or because Instagram forgot to
+      // unlock — the first flick of a thumb puts it back. The row is the only
+      // way to Quiet's own settings, and it must never be possible to be
+      // stranded without it.
+      saySheet();
     }, { passive: true });
   }
 
@@ -1664,7 +1672,45 @@
   }
 
   function theSheet() {
-    return theSheetItSaysItIs() || theSheetByItsShape();
+    return theSheetItSaysItIs() || theSheetByItsShape() || theLockedPage();
+  }
+
+  /**
+   * The page itself, stopped — which is the most reliable of the three and the
+   * only one that needs nothing of Instagram's markup to be true.
+   *
+   * A photograph of the real account switcher, on a build that had the two
+   * tests above, came back with the pill still drawn through "Log in to an
+   * Existing Account". So the shape test did not find it, and the honest
+   * reading is that it never will reliably: it turns on where the panel sits in
+   * somebody else's tree and what `position` they gave it, and both are theirs
+   * to change on any Tuesday.
+   *
+   * What is not theirs to change is what a modal *is*. Every one of them stops
+   * the page behind it from scrolling, because a background that scrolls under
+   * a sheet is the oldest bug on the mobile web — so they set `overflow:
+   * hidden`, or the iOS trick of pinning the body. That is a fact about the
+   * document, in the document's own stylesheet, and it is exactly as true for a
+   * sheet Instagram ships next month.
+   *
+   * It cannot catch the inbox, which is what the shape test caught: a list of
+   * conversations scrolls, and a page that scrolls is not locked. Nothing in
+   * trim.css sets `overflow` on either element, so the only hand that can have
+   * written it is Instagram's.
+   */
+  function theLockedPage() {
+    return scrollIsLocked() ? document.body : null;
+  }
+
+  function scrollIsLocked() {
+    if (!document.body) return false;
+    var body = window.getComputedStyle(document.body);
+    /* Pinning the body is how the mobile web stops iOS scrolling a background,
+     * and it is never done for any other reason. */
+    if (body.position === "fixed") return true;
+    if (body.overflow === "hidden" || body.overflowY === "hidden") return true;
+    var root = window.getComputedStyle(document.documentElement);
+    return root.overflow === "hidden" || root.overflowY === "hidden";
   }
 
   /** The easy half, and the one Instagram is under no obligation to give. */
