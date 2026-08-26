@@ -249,15 +249,17 @@ jobs:
           # is what it should be instead: the web view stops there, so the
           # bottom of the page's world is the top of the row.
           #
-          # Summed out of the three numbers the row is built from rather than
-          # written down here, so the check follows the row when it moves.
-          number() {
-            sed -n "s/.*$1: CGFloat = \([0-9.]*\).*/\1/p" \
-              Quiet/UI/BrowserScreen.swift
-          }
-          room=$(python3 -c \
-            "print($(number islandHeight) + $(number islandLift) + $(number islandAir))")
-          echo "The row is $room pt tall, so the page stops there."
+          # Photographed on the bar, which is the shape where the page stops
+          # above the row. On the island it runs to the bottom edge on purpose
+          # — a pill floating over a black band is not floating over anything —
+          # so the same photograph would only ever say zero. See `pageGivesUp`.
+          #
+          # The bar's own height comes out of the source; the thirty-four points
+          # under it are the home indicator on the simulator this job pins.
+          bar=$(sed -n 's/.*barHeight: CGFloat = \([0-9.]*\).*/\1/p' \
+            Quiet/UI/BrowserScreen.swift)
+          room=$(python3 -c "print($bar + 34)")
+          echo "The bar stands on $room pt, so the page stops there."
           xcrun simctl terminate booted com.connexa.quiet >/dev/null 2>&1 || true
           xcrun simctl launch booted com.connexa.quiet -QuietRehearsal sheet >/dev/null
           # Long enough for the page to arrive and the sheet to be put on it.

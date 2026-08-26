@@ -114,7 +114,12 @@ enum Rehearsal {
         // The shape of the row is a preference, so it outlives a launch and
         // would otherwise make the next scene photograph whatever the last one
         // chose.
-        Preferences.rehearse(row: scene == .island || scene == .sheet ? .island : .bar)
+        // The sheet is photographed on the bar, and that is the point of it:
+        // the bar is the shape where the page stops above the row, so a sheet
+        // held against the bottom of the viewport has to land above it. On the
+        // island the page runs to the bottom edge on purpose, and the same
+        // photograph would only ever say zero.
+        Preferences.rehearse(row: scene == .island ? .island : .bar)
         guard scene != .fresh else { return }
 
         let today = DayKey(clock.now, calendar: calendar)

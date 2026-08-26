@@ -83,17 +83,23 @@ struct BrowserScreen: View {
         ZStack(alignment: .top) {
             Color(uiColor: .systemBackground)
 
-            // The page's whole world, and nothing taken off it afterwards:
-            // the view is the size of it, so there is no strip left over for
-            // the page to be asked to keep clear of. Asking as well would move
-            // everything twice. See `InstagramWebView`.
+            // The page's world: the glass, less the clock — and less the row
+            // as well, but only where the row is opaque.
             InstagramWebView(
                 surface: surface,
                 session: session,
-                inset: UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+                // What the page is asked to keep clear of, which is the part of
+                // the row it is allowed to run underneath. Nothing under a bar,
+                // because the page stops above one; the whole row under an
+                // island, so the scroll indicator does not run beneath the pill
+                // and the last post can be scrolled out from behind it.
+                inset: UIEdgeInsets(
+                    top: 0,
+                    left: 0,
+                    bottom: furniture - pageGivesUp,
+                    right: 0
+                )
             )
-            // The glass, less the clock — and starting below it.
-            //
             // Six mechanisms went into keeping Instagram's own bars off the
             // status bar: a content inset, a padding on the document, a lift on
             // whatever the page had pinned, and three attempts at finding that
@@ -104,57 +110,30 @@ struct BrowserScreen: View {
             // layout does — and a padding on the document cannot move it, and a
             // rule for sticky elements never sees it.
             //
-            // So the viewport itself is made smaller. The page's world starts
-            // at the bottom of the clock and ends at the top of the row.
-            // Everything in it is right by construction: what is fixed, what is
-            // sticky, what is absolute, and what asks for a hundred per cent of
-            // the height. There is nothing left to find and nothing left to
-            // lift.
+            // So the viewport itself is made smaller at the top. Everything in
+            // it is right by construction: what is fixed, what is sticky, what
+            // is absolute, and what asks for a hundred per cent of the height.
+            // There is nothing left to find and nothing left to lift.
             //
-            // The bottom end of that is the twelfth answer to the sheet, and
-            // the first that is not a mechanism. Eleven were, and they shared a
-            // shape: each of them moved something of Instagram's — pad the
-            // panel, transform the panel, shrink the glass under it, take the
-            // row away, make the row inert — and each needed to recognise the
-            // thing it was moving first. Recognition is the part that failed,
-            // in both directions: it missed the account switcher for eight
-            // rounds because Instagram never says a sheet is one, and then it
-            // took the inbox's list of conversations for a sheet and moved
-            // that instead, because a list of conversations has exactly the
-            // shape of one.
+            // The same medicine was applied at the bottom, and it is the
+            // twelfth answer to the sheet — the first that is not a mechanism.
+            // Eleven were, and they shared a shape: each of them moved
+            // something of Instagram's, and each had to recognise the thing it
+            // was moving first. Recognition is the half that failed, in both
+            // directions: it missed the account switcher for eight rounds
+            // because Instagram never says a sheet is one, and then it took the
+            // inbox's list of conversations for a sheet and moved that instead.
+            // A sheet is anchored to the bottom of the viewport, so putting the
+            // row outside the viewport lands every sheet above it, with nothing
+            // of Instagram's touched, recognised or named.
             //
-            // A sheet is pinned to the bottom of the viewport. So the row is
-            // put outside the viewport, and every sheet Instagram will ever
-            // open lands above it without anything of Instagram's being
-            // touched, recognised, or named. The inbox is safe for the same
-            // reason: nothing is looking at it any more.
-            //
-            // What it costs is the one thing Instagram's own app does that this
-            // now cannot: run content up behind the status bar and down behind
-            // the row. The app draws both strips instead, in the page's own
-            // colour, so the page appears to reach both edges. See `clockBand`.
+            // It is applied to one of the two shapes, and which one is not a
+            // compromise — it is what the shapes *are*. See `pageGivesUp`.
             .frame(
                 width: glass.width > 0 ? glass.width : nil,
-                height: glass.height > 0 ? glass.height - topInset - furniture : nil
+                height: glass.height > 0 ? glass.height - topInset - pageGivesUp : nil
             )
             .padding(.top, topInset)
-
-            // The strip the row stands on, in the page's own colour.
-            //
-            // Under the row and under nothing else: the page ends at the top of
-            // it, so this is the only thing between the last pixel of Instagram
-            // and the bottom edge of the glass. Painted rather than left as the
-            // system's background so that the seam is invisible in both schemes
-            // and on a page that has decided its own.
-            if furniture > 0 {
-                VStack(spacing: 0) {
-                    Spacer(minLength: 0)
-                    clockBand
-                        .frame(height: furniture)
-                }
-                .allowsHitTesting(false)
-                .accessibilityHidden(true)
-            }
 
             if !surface.hasLoaded {
                 cover
@@ -407,11 +386,39 @@ struct BrowserScreen: View {
 
     /// How much of the bottom of the screen the row stands on.
     ///
-    /// The page never sees it. This is subtracted from the web view's own
-    /// height, so it is not a strip of page hidden behind the row — it is not
-    /// page at all, and neither the scroll indicator, nor the end of the feed,
-    /// nor anything Instagram pins to the bottom of the viewport can reach it.
     /// Nothing here on a page that has no row.
+
+    /// How much of that the *page* gives up, which is not the same number and
+    /// depends on which shape the row is drawn in.
+    ///
+    /// **The bar gives up its own height.** It is opaque and the width of the
+    /// glass, so a page running underneath it is a page nobody can see. The
+    /// pixels cost nothing to hand over — and handing them over is what puts
+    /// every sheet Instagram opens above the row instead of behind it, without
+    /// anything of Instagram's being recognised or moved. Eleven mechanisms
+    /// tried to do that by recognition and failed in both directions.
+    ///
+    /// **The island gives up nothing.** A pill that floats over a black band is
+    /// not floating over anything: seeing the feed move underneath it, blurred
+    /// through the material, is the entire reason to choose that shape rather
+    /// than Instagram's own. Taking the page away beneath it turns the nicer
+    /// object into a worse one, which was the first thing anybody said about
+    /// it after a build.
+    ///
+    /// So the cost lands where the choice was made. Choose the island and a
+    /// sheet reaches the bottom edge, which means Instagram's account switcher
+    /// puts its last button under the pill; choose the bar and it never can.
+    /// That is a real trade and it is stated here rather than hidden, because
+    /// the alternative — recognising sheets — is the thing that took eleven
+    /// builds to stop doing.
+    private var pageGivesUp: CGFloat {
+        guard !isImmersive else { return 0 }
+        switch preferences.row {
+        case .bar: return Self.barHeight + bottomInset
+        case .island: return 0
+        }
+    }
+
     private var furniture: CGFloat {
         guard !isImmersive else { return 0 }
         switch preferences.row {
