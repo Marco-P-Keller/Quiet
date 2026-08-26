@@ -54,6 +54,9 @@ enum RowShape: String, CaseIterable, Sendable {
 private enum Key {
     static let row = "quiet.row.shape"
     static let saysWhatIsLeft = "quiet.says.what.is.left"
+    static let appointmentIsOn = "quiet.appointment.on"
+    static let appointmentAt = "quiet.appointment.at"
+    static let carriesBetweenDevices = "quiet.carries.between.devices"
 }
 
 @MainActor
@@ -89,6 +92,39 @@ final class Preferences {
         }
     }
 
+    /// The daily reminder: whether it rings, and at what hour.
+    ///
+    /// A preference rather than a promise, so it lives here with the others
+    /// and not in the keychain. Somebody who deletes the app and installs it
+    /// again keeps their limit, because that is the promise — and gets asked
+    /// about the reminder again, because a notification arranging itself
+    /// behind a fresh install would be a surprise.
+    var appointment: Appointment {
+        didSet {
+            guard appointment != oldValue else { return }
+            defaults.set(appointment.isOn, forKey: Key.appointmentIsOn)
+            defaults.set(appointment.minutesAfterMidnight, forKey: Key.appointmentAt)
+        }
+    }
+
+    /// Whether the limit, the wait and today's total follow you to your other
+    /// devices through iCloud.
+    ///
+    /// Off until asked for, like everything else here. It is the only setting
+    /// in the app that sends anything anywhere, and a thing that leaves the
+    /// phone should be a thing somebody switched on rather than a thing they
+    /// were opted into — even when the somewhere is their own iCloud and nobody
+    /// else can read it.
+    ///
+    /// A preference rather than a promise: switching it off stops the sending,
+    /// and the limit it was carrying is exactly as binding as it was before.
+    var carriesBetweenDevices: Bool {
+        didSet {
+            guard carriesBetweenDevices != oldValue else { return }
+            defaults.set(carriesBetweenDevices, forKey: Key.carriesBetweenDevices)
+        }
+    }
+
     /// For a rehearsal, so that a machine can photograph either shape.
     nonisolated static func rehearse(row: RowShape, in defaults: UserDefaults = .standard) {
         defaults.set(row.rawValue, forKey: Key.row)
@@ -103,5 +139,14 @@ final class Preferences {
         // off. Asked as an object first, so that "never chosen" and "chosen
         // false" are two different answers.
         self.saysWhatIsLeft = defaults.object(forKey: Key.saysWhatIsLeft) as? Bool ?? true
+        self.carriesBetweenDevices = defaults.bool(forKey: Key.carriesBetweenDevices)
+        self.appointment = Appointment(
+            isOn: defaults.bool(forKey: Key.appointmentIsOn),
+            // `integer(forKey:)` answers zero for a key nobody has written,
+            // and midnight is a legitimate hour to choose, so the two have to
+            // be told apart. Asked as an object first.
+            minutesAfterMidnight: defaults.object(forKey: Key.appointmentAt) as? Int
+                ?? Appointment.standard.minutesAfterMidnight
+        )
     }
 }

@@ -12,12 +12,18 @@ It does not get you:
 * **Speed.** Pages load a beat slower than the native app, always.
 * **Anything Instagram ships only in its own client**, which changes without
   notice and always will.
-* **Push notifications.** Quiet does not send any, and the web client cannot.
-  This is worth naming as the cost it is rather than only as a decision: with no
-  notifications, "have I got a message" is a question that can only be answered
-  by opening the app, which is a reason to open it more often, not less. A daily
-  summary would be the answer and it needs a server, which is a different
-  project.
+* **Push notifications.** Quiet cannot tell you that a message arrived, and no
+  amount of engineering changes that: only Instagram knows, and Instagram pushes
+  to its own app. Anything else — a server, CloudKit, Firebase, all of them land
+  in the same place — means something somewhere else logged in as you, which is
+  the one thing this app is built never to be.
+  This is worth naming as the cost it is: with no notifications, "have I got a
+  message" is a question that can only be answered by opening the app, which is
+  a reason to open it more often, not less.
+  What exists instead is an appointment, and it answers a different question. A
+  single reminder a day, at an hour you choose, saying only that the window is
+  open — and none at all on a day you have already been. It cannot tell you
+  whether anything happened. It can take away the reason to keep finding out.
 
 ## Because of what Quiet removes on purpose
 
@@ -86,7 +92,16 @@ It does not get you:
   keeps the ending it was given when it began: the day you are in is as long as
   it was born to be, and the next one starts at 4 a.m. wherever you have
   landed.
-* **Nothing syncs.** A second device has its own limit and its own day.
+* **Syncing is off until you ask for it, and it does not need a server.** A
+  second device used to be a second allowance — two phones with a thirty-minute
+  limit are an hour, which is the rule walked around by owning an iPad. The
+  limit, the wait and today's total can now follow you through your own iCloud.
+  What that costs is honesty about the merge: two devices *can* disagree, and
+  what happens then is written down in `Carried.merge` rather than left to
+  whichever spoke last. Less time never waits; more time does. The one door it
+  cannot close is two devices, both offline, both queuing an increase in the
+  same week — and even that buys the smaller of the two, which is no more than
+  asking once.
 * **There is no backup.** The state lives in this phone's keychain. Restoring an
   encrypted iPhone backup carries it over; anything else starts fresh.
 

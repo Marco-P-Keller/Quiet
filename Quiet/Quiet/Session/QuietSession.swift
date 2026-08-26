@@ -69,6 +69,18 @@ final class QuietSession {
     private let heartbeat: any Heartbeat
     private let uptime: () -> TimeInterval
 
+    /// What puts the daily reminder on the phone. See `Appointment`.
+    private let ringer: any Ringer
+
+    /// Where the agreement is left for this reader's other phones, and the name
+    /// this one writes its own figures under. See `Carried`.
+    private let cloud: any Cloud
+    private let phone: String
+
+    /// The last agreement reconciled with those phones, as far as this one
+    /// knows. Its version is what lets two copies say which was written later.
+    private var carried: Carried?
+
     private var isForeground = false
     private var isBeating = false
     private var lastSample: TimeInterval?
@@ -102,7 +114,10 @@ final class QuietSession {
         preferences: Preferences? = nil,
         calendar: Calendar = .current,
         heartbeat: (any Heartbeat)? = nil,
-        uptime: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime }
+        uptime: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime },
+        ringer: (any Ringer)? = nil,
+        cloud: (any Cloud)? = nil,
+        phone: String? = nil
     ) {
         self.store = store
         self.clock = clock
@@ -110,6 +125,9 @@ final class QuietSession {
         self.calendar = calendar
         self.heartbeat = heartbeat ?? RunLoopHeartbeat()
         self.uptime = uptime
+        self.ringer = ringer ?? SystemRinger()
+        self.cloud = cloud ?? CloudMirror()
+        self.phone = phone ?? ThisPhone.name()
         ledger = UsageLedger(day: DayKey(clock.now, calendar: calendar))
     }
 
@@ -119,6 +137,7 @@ final class QuietSession {
     func start() {
         setupDay = store.load(DayKey.self, for: .setupDay)
         forgetOn = store.load(DayKey.self, for: .forgetOn)
+        carried = store.load(Carried.self, for: .carried)
         if let saved = store.load(LimitState.self, for: .limit) {
             limit = saved
         }
@@ -137,6 +156,8 @@ final class QuietSession {
         rollIfNeeded()
         evaluateScreen()
         syncCounting()
+        mindTheAppointment()
+        Task { await catchUp() }
     }
 
     /// Finish first run with the chosen limit. This one applies immediately: the
@@ -149,6 +170,7 @@ final class QuietSession {
         setupDay = today
         store.save(today, for: .setupDay)
         persist()
+        noteLocalChange()
         screen = .browsing
         syncCounting()
     }
@@ -160,10 +182,22 @@ final class QuietSession {
         if active {
             rollIfNeeded()
             evaluateScreen()
+            // Every time the app comes forward, because the limit is enforced
+            // when somebody opens it and this is the last moment it can be
+            // brought up to date without anybody waiting for it.
+            Task { await catchUp() }
         } else {
             checkpoint()
+            // And on the way out, so the other phone learns about this session
+            // before it is next opened rather than after. Both halves are local
+            // file writes — iCloud carries them when it can — so this is not a
+            // network call being started in front of a suspension.
+            Task { await catchUp() }
         }
         syncCounting()
+        // After the checkpoint, so that a day which has just been spent is
+        // spent as far as the reminder is concerned too.
+        mindTheAppointment()
     }
 
     // MARK: - The day
@@ -225,6 +259,7 @@ final class QuietSession {
         case let .success((state, change)):
             limit = state
             persist()
+            noteLocalChange()
             // A smaller limit can land below what has already been spent. Ending
             // the day right then is the honest reading of the request.
             evaluateScreen()
@@ -254,6 +289,7 @@ final class QuietSession {
         case let .success(state):
             limit = state
             persist()
+            noteLocalChange()
             return .success(days)
         case let .failure(refusal):
             return .failure(refusal)
@@ -331,6 +367,205 @@ final class QuietSession {
         announced.removeAll()
         notice = nil
         screen = .setup
+        preferences.appointment.isOn = false
+        ringer.silence()
+        carried = nil
+        // Including the copy in iCloud, or the next phone to open would put it
+        // straight back and "forget everything" would have meant "wait a week
+        // and then get it back".
+        Task { [cloud] in await cloud.forget() }
+    }
+
+    // MARK: - The other phones
+
+    /// Whether the agreement follows this reader to their other devices.
+    var carriesBetweenDevices: Bool { preferences.carriesBetweenDevices }
+
+    /// Start or stop carrying it.
+    ///
+    /// Switching it on reconciles at once, so the phone that was behind catches
+    /// up while somebody is still looking at the switch. Switching it off takes
+    /// the copy down: a record left in iCloud after somebody said stop would be
+    /// a record they had no way to reach.
+    func carryBetweenDevices(_ on: Bool) {
+        guard on != preferences.carriesBetweenDevices else { return }
+        preferences.carriesBetweenDevices = on
+        if on {
+            Task { await catchUp() }
+        } else {
+            Task { [cloud] in await cloud.forget() }
+        }
+    }
+
+    /// Pull down what the reader's other phones have said, reconcile it with
+    /// what this one knows, and put the answer back.
+    ///
+    /// Best effort in every direction. No iCloud account, no signal, iCloud
+    /// having a bad afternoon — all of them come back as "nothing up there",
+    /// and the app carries on exactly as it did before this feature existed.
+    /// Nothing here is allowed to block anybody from opening Instagram, and
+    /// nothing here is allowed to fail loudly: a limit that stops working when
+    /// the network does is not a limit.
+    ///
+    /// Every question about what happens when the two copies disagree is
+    /// answered by `Carried.merge`, which is pure and has its own tests. This
+    /// function only decides *when* to ask and what to do with the answer.
+    func catchUp() async {
+        guard preferences.carriesBetweenDevices, hasSomethingToRemember else { return }
+
+        var ours = Carried(
+            version: carried?.version ?? 0,
+            limit: limit,
+            day: ledger.day,
+            byDevice: carried?.day == ledger.day ? (carried?.byDevice ?? [:]) : [:]
+        )
+        ours.byDevice[phone] = spentHere
+
+        let theirs = await cloud.fetch()
+        let merged = theirs.map { Carried.merge(ours, $0) } ?? ours
+        adopt(merged)
+        // Only when it would change what is up there. A write that says what
+        // the record already says is a sync for nobody.
+        if merged != theirs {
+            await cloud.put(merged)
+        }
+    }
+
+    /// What the other phones had spent today, as of the last reconciliation.
+    private var elsewhere: TimeInterval {
+        guard let carried, carried.day == ledger.day else { return 0 }
+        return carried.byDevice
+            .filter { $0.key != phone }
+            .values
+            .reduce(0, +)
+    }
+
+    /// What this phone alone has spent today.
+    ///
+    /// The ledger holds the whole day's total, wherever it was spent, because
+    /// that is the number every rule in the app is written against. This phone's
+    /// own share is the part of it that did not come from anywhere else — which
+    /// is the only figure it has any business writing down.
+    private var spentHere: TimeInterval {
+        max(0, ledger.seconds - elsewhere)
+    }
+
+    /// Take a reconciled agreement as the truth.
+    private func adopt(_ merged: Carried) {
+        carried = merged
+        store.save(merged, for: .carried)
+
+        let total = merged.byDevice.values.reduce(0, +)
+        if merged.day == ledger.day {
+            if total != ledger.seconds {
+                ledger = UsageLedger(day: ledger.day, seconds: total, endsAt: ledger.endsAt)
+            }
+        } else if merged.day > ledger.day, ledger.hasEnded(by: clock.now) {
+            ledger = UsageLedger(
+                day: merged.day,
+                seconds: total,
+                endsAt: merged.day.end(calendar: calendar)
+            )
+            announced.removeAll()
+        }
+        // The remaining case is two phones in two time zones, one of them
+        // already into tomorrow while this one's day has not ended. Only the
+        // agreement crosses over; the figures do not, because a day that has
+        // not ended here cannot be ended by a phone somewhere else. See
+        // `UsageLedger.hasEnded`, which is the same rule a single phone follows
+        // when it travels.
+
+        if merged.limit != limit {
+            limit = merged.limit
+        }
+        persist()
+        evaluateScreen()
+        syncCounting()
+        mindTheAppointment()
+    }
+
+    /// Say that something on this phone has changed, so the other phones can
+    /// tell which copy came later.
+    ///
+    /// A counter rather than a timestamp, and deliberately: the app already
+    /// refuses to trust this phone's clock about anything that matters, and it
+    /// would be a strange place to start.
+    private func noteLocalChange() {
+        let noted = Carried(
+            version: (carried?.version ?? 0) + 1,
+            limit: limit,
+            day: ledger.day,
+            byDevice: carried?.day == ledger.day ? (carried?.byDevice ?? [:]) : [:]
+        )
+        carried = noted
+        store.save(noted, for: .carried)
+        guard preferences.carriesBetweenDevices else { return }
+        Task { await catchUp() }
+    }
+
+    // MARK: - The appointment
+
+    /// The daily reminder, as it stands.
+    var appointment: Appointment { preferences.appointment }
+
+    /// Switch the reminder on, at the hour already chosen.
+    ///
+    /// Asks the phone first, and stays off if the phone says no. A switch that
+    /// slides across while nothing was actually granted is worse than no switch
+    /// at all: it promises a reminder that will never arrive, which is exactly
+    /// the failure this feature exists to avoid.
+    @discardableResult
+    func turnOnAppointment() async -> Bool {
+        guard await ringer.ask() else { return false }
+        preferences.appointment.isOn = true
+        mindTheAppointment()
+        return true
+    }
+
+    func turnOffAppointment() {
+        preferences.appointment.isOn = false
+        mindTheAppointment()
+    }
+
+    /// Move it to another hour. Free, in both directions, at any time.
+    ///
+    /// Nothing about when a reminder rings changes how much time there is, so
+    /// none of the waiting rules apply. This is the one setting in Quiet that
+    /// is purely about the shape of your day rather than about the promise.
+    func moveAppointment(to minutesAfterMidnight: Int) {
+        let wrapped = ((minutesAfterMidnight % 1440) + 1440) % 1440
+        guard wrapped != preferences.appointment.minutesAfterMidnight else { return }
+        preferences.appointment.minutesAfterMidnight = wrapped
+        mindTheAppointment()
+    }
+
+    /// Whether Instagram has been on screen today.
+    ///
+    /// Read off the ledger rather than kept separately, because the ledger is
+    /// already the app's answer to "how much of today has been spent" and a
+    /// second record of the same fact is a second fact. A day whose ledger has
+    /// rolled has nothing spent in it yet, which is the honest answer at four
+    /// in the morning.
+    private var hasOpenedToday: Bool {
+        ledger.day == today && ledger.seconds > 0
+    }
+
+    /// Put the coming week's reminders on the phone, or take them off.
+    ///
+    /// Recomputed from scratch every time rather than adjusted, so there is one
+    /// answer to what is pending and it is this function's. Nothing before
+    /// setup and nothing after being forgotten: an app that has never been used
+    /// has no window to remind anybody about.
+    private func mindTheAppointment() {
+        guard hasSomethingToRemember else {
+            ringer.silence()
+            return
+        }
+        ringer.ring(at: preferences.appointment.rings(
+            after: clock.now,
+            openedToday: hasOpenedToday,
+            calendar: calendar
+        ))
     }
 
     // MARK: - Notices

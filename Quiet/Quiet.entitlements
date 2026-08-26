@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- The one thing Quiet sends anywhere, and only when somebody switches it
+	     on: the limit, the wait and today's total, in the reader's own iCloud,
+	     so that a second device is not a second allowance.
+
+	     The key-value store rather than CloudKit's database, because a CKRecord
+	     needs a schema pushed to production by hand from a desktop browser
+	     before a TestFlight build can write a single field — and until somebody
+	     does that, the feature is silently dead with no way to tell from the
+	     phone. See `CloudMirror`. -->
+	<key>com.apple.developer.ubiquity-kvstore-identifier</key>
+	<string>$(TeamIdentifierPrefix)$(CFBundleIdentifier)</string>
+</dict>
+</plist>

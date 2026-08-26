@@ -24,7 +24,7 @@ die vier Dokumente daneben bleiben Englisch.
 | 3 | DMs kosten Limit wie Scrollen — ungeschriebene Entscheidung | ✅ | `docs/decisions.md` |
 | 4 | Warnschwellen 5/1 sind hart und nicht abschaltbar | ✅ | `Core/RowShape.swift`, Panel |
 | 5 | Cooldown fest auf 7 Tage | ✅ | `Core/LimitPolicy.swift`, Panel |
-| 6 | Kein Sync, kein Backup | ⏸ | Braucht einen Server. Steht in den Trade-offs. |
+| 6 | Kein Sync, kein Backup | ✅ | `Core/Carried.swift`, `Platform/CloudMirror.swift` — über die eigene iCloud, ohne Server |
 | 7 | Kein ehrlicher Ausstieg | ✅ | `Session/QuietSession.swift`, Panel |
 | 8 | `isWritable` heilte nie | ✅ | `Platform/KeychainStore.swift` |
 | 9 | Die Stunde stand zweimal im Code | ✅ | `Core/Elapsed.swift` |
@@ -70,7 +70,7 @@ soll.
 | 19 | Skripte laufen in Instagrams eigener JS-Welt | ⬜ | Abwägung offen — siehe unten |
 | 20 | Keine App-Intents / Shortcuts | ⬜ | in den Trade-offs benannt |
 | 21 | Kein Widget | 👤 | Neues Target, App Group, Keychain-Sharing |
-| 22 | Keine Benachrichtigungen → man öffnet öfter „nur kurz" | ⏸ | Ohne Server und im Web-Client nicht möglich |
+| 22 | Keine Benachrichtigungen → man öffnet öfter „nur kurz" | ✅ | `Core/Appointment.swift`, `Platform/Appointments.swift`, Panel — als Termin, nicht als Meldung |
 | 23 | Kein eigener Offline-Zustand | ✅ | `UI/StumbleView.swift` |
 | 24 | Website-Daten wachsen unbegrenzt | ✅ | `Web/InstagramWebView.swift`, Panel |
 | 25 | iPad/Landscape nirgends dokumentiert | ✅ | `docs/trade-offs.md` |
@@ -158,12 +158,12 @@ Nicht Teil der 38, aber beim Bauen aufgefallen:
 
 | # | Punkt | Warum noch nicht |
 |---|---|---|
-| 6 | Sync zwischen Geräten | Braucht einen Server |
+| 6 | Backup ausserhalb der eigenen iCloud | Braucht einen Server |
 | 16 | Reels im Chat still markieren statt Toast | Machbar, aber nur an einem echten Chat beurteilbar |
 | 19 | Skripte in isolierter JS-Welt | Echte Abwägung, siehe oben — nicht blind zu entscheiden |
 | 20 | App-Intents / Shortcuts | Möglich, nicht gebaut |
 | 21 | Widget | Neues Target, App Group, Keychain-Sharing |
-| 22 | Benachrichtigungen | Ohne Server unmöglich |
+| 22 | Benachrichtigungen über Instagram | Weiss nur Instagram; ersetzt durch den täglichen Termin |
 | 26 | Bold Text / Kontrast | Braucht ein Auge auf einem echten Gerät |
 | 27 | Restzeit im VoiceOver-Rotor | Machbar, nicht gebaut |
 | 28 | Weitere Sprachen | Ein Mensch pro Sprache, kein Skript |
@@ -172,8 +172,12 @@ Nicht Teil der 38, aber beim Bauen aufgefallen:
 | 34 | Screenshots als Prüfung statt Artefakt | Braucht eingecheckte Referenzbilder |
 | 38 | Performance-Grundlinie | Machbar, nicht gebaut |
 
-**25 von 38 eingebaut. 2 bewusst verworfen (6, 22), 2 brauchen einen
-Menschen (21, 28), 9 offen.**
+**27 von 38 eingebaut. 2 brauchen einen Menschen (21, 28), 9 offen.**
+
+6 und 22 standen hier lange als „braucht einen Server". Beide sind jetzt
+gebaut, und beide anders als ursprünglich gedacht: 6 über die eigene iCloud
+statt über einen Server, 22 als Termin statt als Meldung — denn ob auf
+Instagram etwas passiert ist, weiss nur Instagram.
 
 ## Was zuerst
 

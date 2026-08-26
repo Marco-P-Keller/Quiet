@@ -32,6 +32,7 @@ targets:
     settings:
       base:
         INFOPLIST_FILE: Info.plist
+        CODE_SIGN_ENTITLEMENTS: Quiet.entitlements
         GENERATE_INFOPLIST_FILE: NO
         PRODUCT_BUNDLE_IDENTIFIER: com.connexa.quiet
         DEVELOPMENT_TEAM: B97SQSQBMR

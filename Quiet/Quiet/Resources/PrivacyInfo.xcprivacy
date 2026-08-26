@@ -31,9 +31,11 @@
 			</array>
 		</dict>
 		<dict>
-			<!-- UserDefaults, in Preferences, Applause and Remembered: the
-			     shape of the row, how long the app has been on screen, and the
-			     glyphs the row was drawn with last time. All of it is written
+			<!-- UserDefaults, in Preferences, Applause, Remembered and
+			     ThisPhone: the shape of the row, the daily reminder, how long
+			     the app has been on screen, the glyphs the row was drawn with
+			     last time, and the anonymous name this device writes its own
+			     figures under when the limit is carried between devices. All of it is written
 			     and read by this app alone — there is no app group and no
 			     sharing of any kind — which is precisely reason CA92.1. The
 			     one thing that has to outlive a reinstall, the limit, is not
