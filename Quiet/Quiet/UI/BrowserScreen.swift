@@ -363,12 +363,22 @@ struct BrowserScreen: View {
 
     /// Whether the row is answering for itself at all.
     ///
+    /// It stands down for two things, and both are the same thing said twice:
+    /// while it would be *over* what you are doing rather than beside it.
+    ///
+    /// A sheet covers the foot of the glass. So does a keyboard — every box you
+    /// write into on Instagram is pinned to the bottom of the page, which is
+    /// exactly where a floating row is, and a send button under a pill is a
+    /// send button nobody can press. Comments, messages, search: all of them.
+    /// It is also what every tab bar on this phone does, and the hand already
+    /// expects it.
+    ///
     /// Live regardless the moment one of Quiet's own pages is up: the row is
     /// the way out of those, and a sheet left open on the page behind them is
     /// no reason to take the way out away.
     private var isRowLive: Bool {
         if isShowingQuietPage { return true }
-        return !surface.isSheetUp
+        return !surface.isSheetUp && !surface.isTyping
     }
 
     /// Instagram's own: the full width of the glass, flush against the bottom

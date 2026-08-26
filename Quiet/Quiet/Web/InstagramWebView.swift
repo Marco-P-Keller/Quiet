@@ -101,6 +101,15 @@ final class WebSurface {
     /// that the change is not something you can catch happening.
     private(set) var chrome: Color?
 
+    /// Whether a field on the page has the keyboard.
+    ///
+    /// The same message the session uses to hold the curtain for one sentence,
+    /// read here for a second reason: the row steps aside while somebody is
+    /// writing. A comment box, a message, a search field — all of them are
+    /// pinned to the bottom of the page, which is exactly where a floating row
+    /// is, and a send button under a pill is a send button nobody can press.
+    private(set) var isTyping = false
+
     /// Whether Instagram has something modal up.
     ///
     /// Read from the page, which is the only place it exists, and used for one
@@ -382,6 +391,11 @@ final class WebSurface {
         // carrying Instagram's black into a light appearance.
         icons[entry] = image.withRenderingMode(.alwaysTemplate)
         Remembered.remember(icon: entry, data: data)
+    }
+
+    fileprivate func note(typing on: Bool) {
+        guard isTyping != on else { return }
+        isTyping = on
     }
 
     fileprivate func note(sheet up: Bool) {
@@ -1037,7 +1051,9 @@ struct InstagramWebView: UIViewRepresentable {
             case "typing":
                 // Somebody is halfway through a message. The session decides
                 // what that is worth, and caps it.
-                session.setTyping(body["on"] as? Bool ?? false)
+                let typing = body["on"] as? Bool ?? false
+                surface.note(typing: typing)
+                session.setTyping(typing)
 
             case "sheet":
                 // Something modal is covering the foot of the glass. The row
