@@ -857,6 +857,63 @@ const GROUPED = `
   );
   check("what Quiet has already taken out is not a sheet", sheetOf(ownRow), undefined);
 
+  /* And the fourth question, asked in the middle of the glass rather than at
+   * the foot of it: is the page still the thing on the screen?
+   *
+   * The switcher can slip the other three — it says nothing about being modal,
+   * its panel sits where Instagram chooses to put it, and whether the page
+   * behind it is pinned is Instagram's business. What no sheet on the mobile
+   * web skips is the dimmed sheet of nothing behind it, because that is what a
+   * tap outside lands on. */
+  const scrim = await page(
+    `<main><article>a post</article></main>
+     <div data-name="scrim" data-at-top style="position: fixed" data-box="0,0,390,844">
+       <div data-name="panel" data-box="0,540,390,304">${PANEL}</div>
+     </div>`,
+    FEED
+  );
+  check("something drawn over the whole page is a sheet", sheetOf(scrim)?.up, true);
+  check("and nothing of it is marked or moved either", marks(scrim, "panel"), "||||");
+
+  /* The page showing through is the page, however big the thing at that point
+   * happens to be. */
+  const showing = await page(
+    `<main><article data-name="post" data-at-top data-box="0,0,390,844">a post</article></main>`,
+    FEED
+  );
+  check("the page itself is not something over the page", sheetOf(showing), undefined);
+
+  /* The shell Instagram draws everything in is as big as the glass and is
+   * often positioned. It holds the page rather than covering it. */
+  const holding = await page(
+    `<div data-name="shell" data-at-top style="position: fixed" data-box="0,0,390,844">
+       <main><article>a post</article></main>
+     </div>`,
+    FEED
+  );
+  check("nor is the shell the page is drawn in", sheetOf(holding), undefined);
+
+  /* A toast, a cookie bar, a tooltip: over the page and nowhere near all of
+   * it. */
+  const toast = await page(
+    `<div data-name="toast" data-at-top style="position: fixed" data-box="20,60,350,80">
+       <button>Undo</button>
+     </div><main></main>`,
+    FEED
+  );
+  check("something over part of it is not", sheetOf(toast), undefined);
+
+  /* And a wrapper the size of the glass that is laid out rather than drawn on
+   * top — which is what a page whose content lives outside `main` looks like,
+   * and the one shape this could have taken the row away from for good. */
+  const outside = await page(
+    `<div data-name="elsewhere" data-at-top data-box="0,0,390,844">
+       <article>a post</article>
+     </div><main></main>`,
+    FEED
+  );
+  check("and neither is a page that simply fills the glass", sheetOf(outside), undefined);
+
   /* ── Somebody mid-sentence ───────────────────────────────────────────── */
 
   /* The app is meant to be strict and not rude. Taking half a message away when
@@ -957,6 +1014,69 @@ const GROUPED = `
   check(
     "the same colour is not said twice",
     twice.sent.filter((m) => m.kind === "chrome").length,
+    1
+  );
+
+  /* ── Whether there is anything on the page at all ────────────────────── */
+
+  /* `hasLoaded` answers a question about a request, and Instagram is a shell:
+   * the request finishes, and what is on the glass for the next second or two
+   * is a black rectangle with nothing in it. The app keeps its own cover over
+   * that, and this is what tells it when to take the cover off. */
+  const bareOf = (win) => win.sent.filter((m) => m.kind === "bare").pop();
+
+  const bareShell = await page(`<main></main>`, FEED);
+  check("a page with nothing drawn on it says so", bareOf(bareShell)?.on, true);
+
+  const painting = await page(
+    `<main><img data-name="photo" data-box="0,100,390,390"></main>`,
+    FEED
+  );
+  check("and one with a photograph on it says the opposite", bareOf(painting)?.on, false);
+
+  /* An element in the document that nobody can see is not a page. This is the
+   * case that matters: Instagram's own row is hidden rather than removed, so
+   * its five glyphs are still there on a page that has painted nothing else. */
+  const hiddenRow = await page(
+    `<nav data-name="row" data-box="0,800,390,44">
+       <a href="/" data-name="home"><svg data-box="0,800,24,24"></svg></a>
+       <a href="/direct/inbox/" data-name="messages"><svg data-box="40,800,24,24"></svg></a>
+       <a href="/someone/" data-name="me"><svg data-box="80,800,24,24"></svg></a>
+     </nav>
+     <main></main>`,
+    FEED
+  );
+  check("the row Quiet has taken away does not count as a page", bareOf(hiddenRow)?.on, true);
+
+  /* And an element with no box at all, whoever hid it. */
+  const invisible = await page(`<main><p data-name="nothing"></p></main>`, FEED);
+  check("nor does anything else with no box", bareOf(invisible)?.on, true);
+
+  /* Said once, and only on the way up. Instagram empties its own main element
+   * on every client-side move between pages, and a cover that answered that
+   * would flash over the screen every time somebody opened a profile. */
+  const emptiedAgain = await page(
+    `<main><img data-name="photo" data-box="0,100,390,390"></main>`,
+    FEED
+  );
+  emptiedAgain.document.querySelector("main").innerHTML = "";
+  emptiedAgain.drain();
+  check(
+    "a page that empties itself after painting does not bring the cover back",
+    emptiedAgain.sent.filter((m) => m.kind === "bare").map((m) => m.on),
+    [false]
+  );
+
+  /* The observer runs on every mutation, and an answer that has not changed
+   * must not be sent again. */
+  const stillEmpty = await page(`<main></main>`, FEED);
+  stillEmpty.document.querySelector("main").appendChild(
+    stillEmpty.document.createElement("div")
+  );
+  stillEmpty.drain();
+  check(
+    "and the same answer is not said twice",
+    stillEmpty.sent.filter((m) => m.kind === "bare").length,
     1
   );
 

@@ -81,7 +81,7 @@ struct BrowserScreen: View {
         // screen. Everything inside is then positioned against the glass, which
         // is what both the strip and the notices want.
         ZStack(alignment: .top) {
-            Color(uiColor: .systemBackground)
+            Paper.ground
 
             // The page's world: the glass, less the clock — and less the row
             // as well, but only where the row is opaque.
@@ -135,7 +135,7 @@ struct BrowserScreen: View {
             )
             .padding(.top, topInset)
 
-            if !surface.hasLoaded {
+            if isCovered {
                 cover
             }
 
@@ -198,6 +198,7 @@ struct BrowserScreen: View {
         )
         .ignoresSafeArea()
         .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: surface.hasLoaded)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: surface.isBare)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: surface.stumble)
         // The band changing colour: the first answer from a page, and every
         // change of scheme after it. A fade, because a flat area of the screen
@@ -216,14 +217,47 @@ struct BrowserScreen: View {
         }
     }
 
-    /// Quiet's own paper, held over the web view until the first page settles.
-    /// A cold launch should look like the app deciding to start, not like a
-    /// blank browser.
+    /// Whether Quiet's own blank is over the top of the web view.
+    ///
+    /// Two conditions, because there are two ways to have nothing on the
+    /// glass. Until the first navigation settles there is no page at all. And
+    /// after it settles there is often still nothing to look at: Instagram is
+    /// a shell, and the second or two between the request finishing and the
+    /// first screen appearing is its own black rectangle. Both are the app
+    /// starting, and both should look like it. See `WebSurface.isBare`.
+    private var isCovered: Bool {
+        !surface.hasLoaded || surface.isBare
+    }
+
+    /// What Quiet holds over the web view until there is a page under it.
+    ///
+    /// **The colour is the band's.** It was the app's own ground for as long
+    /// as the cover was only ever up before the first frame, and against a
+    /// sampled band that is a second dark on the same screen: the photograph
+    /// that started this shows a grey strip across the top and a black void
+    /// under it, with the seam between them the most visible thing on the
+    /// glass. One colour, top to bottom — whatever the clock is standing on is
+    /// what the whole screen is — so a cold start reads as one surface waiting
+    /// rather than as two surfaces disagreeing. When the page arrives it is one
+    /// colour fading to another, which is what the band already does.
+    ///
+    /// **And it says whose blank it is.** Small, low-contrast, in the middle:
+    /// enough to answer "is this thing broken" and not enough to be a splash
+    /// screen. The line is the app's name and the promise under it, and it is
+    /// the same line in every language — it is a wordmark, not a sentence, so
+    /// it is `verbatim` rather than something the catalogue would ask German
+    /// for.
     private var cover: some View {
-        Color(uiColor: .systemBackground)
-            .ignoresSafeArea()
-            .transition(.opacity)
-            .accessibilityHidden(true)
+        ZStack {
+            clockBand
+            Text(verbatim: "Quiet: No More Doomscrolling")
+                .font(.quietSmall)
+                .foregroundStyle(Paper.inkSoft)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+        }
+        .ignoresSafeArea()
+        .transition(.opacity)
     }
 
     // MARK: - Quiet's own pages
@@ -395,7 +429,7 @@ struct BrowserScreen: View {
             Color.clear
                 .frame(height: bottomInset)
         }
-        .background(Color(uiColor: .systemBackground))
+        .background(Paper.ground)
     }
 
     /// The other one: a pill, inset from both edges, with the page running
@@ -561,13 +595,13 @@ struct BrowserScreen: View {
     /// is sampled rather than written down here, so it follows the phone from
     /// light to dark, the app from the feed to a story, and Instagram through a
     /// redesign, with nothing here touched. See `WebSurface.chrome`.
-    private var clockBand: Color { surface.chrome ?? Self.systemBand }
+    private var clockBand: Color { surface.chrome ?? Self.groundBand }
 
     /// Until the page has answered, and for a page that has nothing to say.
-    /// The system's own page colour, which is what the cover underneath is
-    /// painted in — so the handover from Quiet's blank to Instagram's page is
-    /// one colour changing, not a band appearing.
-    private static let systemBand = Color(uiColor: .systemBackground)
+    /// The colour the cover underneath is painted in — so the handover from
+    /// Quiet's blank to Instagram's page is one colour changing, not a band
+    /// appearing.
+    private static let groundBand = Paper.ground
 
     /// The height every bar along the bottom of an iPhone has been since the
     /// first one, and the height of Instagram's.
