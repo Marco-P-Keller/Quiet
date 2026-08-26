@@ -89,6 +89,11 @@ struct RootView: View {
             .task(id: scenePhase) { await countTowardsAsking() }
             .onChange(of: scenePhase, initial: true) { _, phase in
                 session.setForeground(phase == .active)
+                // The last moment the page is certain to still be there. iOS
+                // discards web views under memory pressure without asking, so
+                // anything not written down now is a feed from the top the next
+                // time somebody opens the app. See `ThePlace`.
+                if phase != .active { surface.keepThePlace() }
             }
             // Only this one transition. Opening the app onto a day that was
             // already gone goes from setup to the curtain, and a phone that

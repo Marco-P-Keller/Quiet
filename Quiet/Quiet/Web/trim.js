@@ -719,6 +719,41 @@
     return node.getAttribute && node.getAttribute("contenteditable") === "true";
   }
 
+  /* ── Somebody mid-sentence ────────────────────────────────────────────── */
+
+  /**
+   * Say when a message is being typed, and when it stops.
+   *
+   * For one thing only: the end of the day arriving while somebody is halfway
+   * through a sentence takes the sentence with it. That is not strict, it is
+   * rude — and the app can be strict without being rude. What the app does
+   * with this is in `QuietSession`, and it is capped there.
+   *
+   * The page is the only place that knows. A keyboard is not a fact the app can
+   * see, and the field being typed in belongs to Instagram.
+   */
+  var typing = false;
+
+  function sayTyping(on) {
+    if (on === typing) return;
+    typing = on;
+    post({ kind: "typing", on: on });
+  }
+
+  function watchForTyping() {
+    document.addEventListener("focusin", function (event) {
+      if (beingTypedIn(event.target)) sayTyping(true);
+    }, true);
+    document.addEventListener("focusout", function () {
+      /* On the next turn, because moving between two fields blurs one before it
+       * focuses the other, and a gap of one frame is not somebody stopping. */
+      setTimeout(function () {
+        var here = document.activeElement;
+        sayTyping(!!here && beingTypedIn(here));
+      }, 0);
+    }, true);
+  }
+
   /** The name the app used before there were three of them. */
   window.__quietOpenProfile = function () {
     return window.__quietGo("profile");
@@ -2032,6 +2067,8 @@
       scheme.addListener(schedule);
     }
   }
+
+  watchForTyping();
 
   new MutationObserver(schedule).observe(document.documentElement, {
     childList: true,

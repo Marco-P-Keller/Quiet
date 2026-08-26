@@ -2206,3 +2206,50 @@ a reader's own private iCloud, which the developer cannot read and never
 receives, is not data the developer collects — the same category as a document
 in their iCloud Drive. "Data Not Collected" still holds, and the About screen
 says in as many words what goes up and what does not.
+
+## Three courtesies
+
+None of these changes what the app promises. All three change what it is like to
+hold, which is the part nobody writes down.
+
+**Coming back to where you were.** The app opened at the top of the feed every
+time, and not because anybody chose that: iOS discards a web view under memory
+pressure and what comes back is a fresh page, so you scroll the same eight posts
+again. `interactionState` is WebKit's own answer — page, history and scroll
+position in one value, restored without a load, so it is there before the first
+frame instead of a spinner.
+
+The judgement is the twenty minutes, not the mechanism. Coming back to where you
+were is a courtesy while you are still in the middle of something; coming back
+to this morning's feed at seven in the evening is an app that has not noticed
+the day moved on. Nothing is more irritating than a restore that restores the
+wrong thing, so the window is short and the value is thrown away rather than
+kept. Two refusals go with it: a place from the future is a clock that moved,
+not a place; and an address the app would no longer open is not restored, because
+a restored state never passes the navigation delegate and would otherwise walk
+back in through the side door.
+
+**Not cutting somebody off mid-sentence.** The day ending while a message is half
+typed takes the message with it. That is not strict, it is rude, and the app can
+be one without being the other. So the curtain waits — once a day, for twenty
+seconds, and only while a field actually has the keyboard.
+
+The shape matters more than the number. The seconds are *counted*: the ledger
+goes over, the day ends a little over rather than a little later, and nothing is
+given away. Stopping typing ends it immediately, because the point of it was the
+sentence. And it cannot be had twice, or the day could be extended twenty
+seconds at a time by anybody willing to keep tapping into a message box.
+
+**The last five minutes, without a countdown.** The app refuses to show a
+ticking clock, and the refusal is right: a clock you can watch is a clock you do
+watch, and a number counting down turns the last ten minutes into the loudest
+ten of the day. But there is a middle. The glyph in the middle of the row
+changes once, at five minutes, from a clock to an hourglass with the sand
+through it. No number, no ticking, nothing that rewards looking twice — one
+state, and you already know. The five is read off `QuietSession.warnings` rather
+than written down again, so the glyph and the sentence the app says out loud can
+never be a minute apart.
+
+A fourth was on the list and turned out to be already built: tapping the entry
+you are already standing on scrolls the page back to the top, the way Instagram's
+own app does.

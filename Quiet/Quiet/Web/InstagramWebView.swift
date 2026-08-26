@@ -139,6 +139,18 @@ final class WebSurface {
     }
 
     /// What a tap on the status bar has always done.
+    /// Write down where you are, because the app may not be given a say in
+    /// coming back.
+    ///
+    /// iOS discards a web view under memory pressure without asking, and by the
+    /// time anybody notices there is nothing left to ask. So the page is put
+    /// away every time the app leaves the screen, which is the last moment it
+    /// is certain to be there. See `ThePlace`.
+    func keepThePlace() {
+        guard let webView else { return }
+        ThePlace.keep(webView)
+    }
+
     func scrollToTop() {
         guard let scrollView = webView?.scrollView else { return }
         scrollView.setContentOffset(
@@ -150,6 +162,9 @@ final class WebSurface {
     /// Forget the Instagram session entirely: cookies, storage, caches. Quiet
     /// never held the password, so this is the whole of what there is to forget.
     func signOut(completion: @escaping () -> Void = {}) {
+        // Including where you were. A page kept from before somebody signed out
+        // is a page they did not ask to see again.
+        ThePlace.forget()
         let store = WKWebsiteDataStore.default()
         store.removeData(
             ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
@@ -556,7 +571,16 @@ struct InstagramWebView: UIViewRepresentable {
         // The indicator is the one thing that should still respect the app's
         // furniture: a scroll bar running under the row reads as a fault.
         webView.scrollView.verticalScrollIndicatorInsets = inset
-        webView.load(URLRequest(url: ContentRules.home))
+        // Where you were, if you were there in the last twenty minutes.
+        //
+        // Restoring puts the page back without a load, so it is there before
+        // the first frame rather than a spinner and a feed from the top. When
+        // there is nothing to put back — a cold start, a stale place, an
+        // address the app no longer shows — this falls through to the feed,
+        // which is exactly what happened before it existed. See `ThePlace`.
+        if !ThePlace.restore(into: webView) {
+            webView.load(URLRequest(url: ContentRules.home))
+        }
 
         context.coordinator.watch(webView.scrollView)
         context.coordinator.addPull(to: webView.scrollView)
@@ -1009,6 +1033,11 @@ struct InstagramWebView: UIViewRepresentable {
                 if let reading = Health(message: body) {
                     surface.note(health: reading)
                 }
+
+            case "typing":
+                // Somebody is halfway through a message. The session decides
+                // what that is worth, and caps it.
+                session.setTyping(body["on"] as? Bool ?? false)
 
             case "sheet":
                 // Something modal is covering the foot of the glass. The row

@@ -857,6 +857,36 @@ const GROUPED = `
   );
   check("what Quiet has already taken out is not a sheet", sheetOf(ownRow), undefined);
 
+  /* ── Somebody mid-sentence ───────────────────────────────────────────── */
+
+  /* The app is meant to be strict and not rude. Taking half a message away when
+   * the day ends is rude, so the curtain waits twenty seconds — once. What the
+   * app does with this is capped in `QuietSession`; the page's only job is to
+   * say when a message is being typed, and a keyboard is not a fact the app can
+   * see for itself. */
+  const typingOf = (win) => win.sent.filter((m) => m.kind === "typing").pop();
+
+  const midSentence = await page(
+    `<main><textarea data-name="box"></textarea></main>`,
+    "https://www.instagram.com/direct/t/1/"
+  );
+  check("nothing is said until somebody types", typingOf(midSentence), undefined);
+
+  midSentence.document.querySelector('[data-name="box"]').dispatchEvent(
+    new midSentence.Event("focusin", { bubbles: true })
+  );
+  check("a field taking the keyboard says so", typingOf(midSentence)?.on, true);
+
+  /* An ordinary button taking the focus is not somebody typing. */
+  const tapped = await page(
+    `<main><button data-name="like">Like</button></main>`,
+    FEED
+  );
+  tapped.document.querySelector('[data-name="like"]').dispatchEvent(
+    new tapped.Event("focusin", { bubbles: true })
+  );
+  check("a button taking the focus is not", typingOf(tapped), undefined);
+
   /* ── The colour the clock stands on ──────────────────────────────────── */
 
   /* The app owns the pixels the time and the battery sit on, so something has

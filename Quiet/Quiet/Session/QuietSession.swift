@@ -365,11 +365,14 @@ final class QuietSession {
         limit = LimitState(minutes: 20)
         ledger = UsageLedger(day: today, endsAt: today.end(calendar: calendar))
         announced.removeAll()
+        graceUsed = false
+        graceEnds = nil
         notice = nil
         screen = .setup
         preferences.appointment.isOn = false
         ringer.silence()
         carried = nil
+        ThePlace.forget()
         // Including the copy in iCloud, or the next phone to open would put it
         // straight back and "forget everything" would have meant "wait a week
         // and then get it back".
@@ -568,6 +571,50 @@ final class QuietSession {
         ))
     }
 
+    // MARK: - Somebody mid-sentence
+
+    /// Whether a message is being typed on the page right now.
+    private var isTyping = false
+
+    /// When the courtesy runs out, on the uptime clock. `nil` when none is
+    /// running.
+    private var graceEnds: TimeInterval?
+
+    /// Once a day. Spent whether or not it was needed for long.
+    private var graceUsed = false
+
+    /// How long the day may run over so that a sentence can be finished.
+    ///
+    /// Twenty seconds, and the number matters less than the shape: this is not
+    /// extra time on Instagram, it is the end of one sentence. Long enough to
+    /// finish what your thumbs were already doing, far too short to be worth
+    /// opening a keyboard for.
+    static let courtesy: TimeInterval = 20
+
+    /// The page saying somebody is typing, or has stopped.
+    ///
+    /// Stopping ends the courtesy immediately rather than letting it run out:
+    /// the sentence is finished, and the point of it was the sentence.
+    func setTyping(_ on: Bool) {
+        guard isTyping != on else { return }
+        isTyping = on
+        if !on { graceEnds = nil }
+        evaluateScreen()
+        syncCounting()
+    }
+
+    /// Whether the curtain is being held for a moment.
+    ///
+    /// The time still counts. Nothing here is given away — the day simply ends
+    /// twenty seconds over, on the ledger as much as on the screen — which is
+    /// what makes this a courtesy rather than a hole. The one door it could
+    /// have opened is shut by the cap and by `graceUsed`: it cannot be had
+    /// twice, and it cannot be extended by typing faster.
+    private var isFinishingASentence: Bool {
+        guard let graceEnds else { return false }
+        return uptime() < graceEnds
+    }
+
     // MARK: - Notices
 
     func report(_ surface: BlockedSurface) {
@@ -670,6 +717,8 @@ final class QuietSession {
         ledger.roll(to: day, endingAt: day.end(calendar: calendar))
         limit = LimitPolicy.rolled(limit, to: day)
         announced.removeAll()
+        graceUsed = false
+        graceEnds = nil
         persist()
     }
 
@@ -680,7 +729,16 @@ final class QuietSession {
         // returned early every time and a returning user was shown the
         // onboarding question forever.
         guard setupDay != nil else { return }
-        let target: Screen = ledger.isSpent(limitMinutes: limit.minutes) ? .spent : .browsing
+
+        // The day has run out while somebody is mid-sentence. Once, for twenty
+        // seconds, the curtain waits — see `courtesy`.
+        if ledger.isSpent(limitMinutes: limit.minutes), isTyping, !graceUsed, graceEnds == nil {
+            graceUsed = true
+            graceEnds = uptime() + Self.courtesy
+        }
+
+        let spent = ledger.isSpent(limitMinutes: limit.minutes) && !isFinishingASentence
+        let target: Screen = spent ? .spent : .browsing
         guard target != screen else { return }
         screen = target
         if target == .spent {

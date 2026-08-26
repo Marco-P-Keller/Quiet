@@ -465,7 +465,7 @@ struct BrowserScreen: View {
         HStack(spacing: 0) {
             barButton(.home, "house", "house.fill", Text("Home"))
             barButton(.search, "magnifyingglass", "magnifyingglass", Text("Find someone"))
-            barButton(.clock, "clock", "clock.fill", Text("Quiet settings"))
+            barButton(.clock, theClock(filled: false), theClock(filled: true), Text("Quiet settings"))
                 .accessibilityValue(Text(timeLeftAloud))
             barButton(.messages, "paperplane", "paperplane.fill", Text("Messages"))
             // Only once the page has said who is signed in. A button that leads
@@ -498,6 +498,33 @@ struct BrowserScreen: View {
     /// obeys the same switch. Turned off, the clock is a button called Quiet
     /// settings, and the number is still one tap away inside, for a reader who
     /// went looking for it.
+    /// The middle entry, and the one place the day's end is visible without
+    /// anybody going to look for it.
+    ///
+    /// The app refuses to show a countdown, and the refusal is right: a clock
+    /// you can watch is a clock you do watch, and a number ticking down turns
+    /// the last ten minutes into the loudest ten of the day. But there is a
+    /// middle, and this is it — the glyph changes **once**, at five minutes, to
+    /// an hourglass with the sand through it. No number, no ticking, and
+    /// nothing that rewards looking twice: one state, and you already know.
+    ///
+    /// In the last five minutes it is the hourglass whether you are standing on
+    /// this entry or not. The row's usual two states answer "where am I", and
+    /// for those five minutes that is not the question.
+    private func theClock(filled: Bool) -> String {
+        if isNearlyOut { return "hourglass.bottomhalf.filled" }
+        return filled ? "clock.fill" : "clock"
+    }
+
+    private var isNearlyOut: Bool {
+        session.screen == .browsing && session.remaining <= Self.lastStretch
+    }
+
+    /// Five minutes — read off the first thing the app says out loud as the day
+    /// runs out rather than written down again, so the glyph and the sentence
+    /// can never be a minute apart. See `QuietSession.warnings`.
+    private static let lastStretch = TimeInterval((QuietSession.warnings.max() ?? 5) * 60)
+
     private var timeLeftAloud: String {
         guard preferences.saysWhatIsLeft else { return "" }
         switch session.screen {
