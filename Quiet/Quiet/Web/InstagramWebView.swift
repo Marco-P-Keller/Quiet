@@ -101,6 +101,14 @@ final class WebSurface {
     /// that the change is not something you can catch happening.
     private(set) var chrome: Color?
 
+    /// Whether Instagram has something modal up.
+    ///
+    /// Read from the page, which is the only place it exists, and used for one
+    /// thing: Quiet's own row steps aside while it is true. Nothing of
+    /// Instagram's is touched to make that happen — see the sheet section in
+    /// `trim.js` for why that distinction is the whole of it.
+    private(set) var isSheetUp = false
+
     /// False until the first page has finished, or failed. While it is false the
     /// browsing screen keeps Quiet's own paper over the top, so a cold launch
     /// shows a considered blank rather than the white rectangle of a web view
@@ -359,6 +367,11 @@ final class WebSurface {
         // carrying Instagram's black into a light appearance.
         icons[entry] = image.withRenderingMode(.alwaysTemplate)
         Remembered.remember(icon: entry, data: data)
+    }
+
+    fileprivate func note(sheet up: Bool) {
+        guard isSheetUp != up else { return }
+        isSheetUp = up
     }
 
     fileprivate func note(chrome colour: Color) {
@@ -996,6 +1009,11 @@ struct InstagramWebView: UIViewRepresentable {
                 if let reading = Health(message: body) {
                     surface.note(health: reading)
                 }
+
+            case "sheet":
+                // Something modal is covering the foot of the glass. The row
+                // steps aside until it goes; see `quietBar` in BrowserScreen.
+                surface.note(sheet: body["up"] as? Bool ?? false)
 
             case "me":
                 // Read out of Instagram's navigation before it was taken out.

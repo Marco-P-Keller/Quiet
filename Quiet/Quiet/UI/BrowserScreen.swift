@@ -336,8 +336,39 @@ struct BrowserScreen: View {
                 case .island: island
                 }
             }
+            // Out of the way while Instagram has a sheet up, and back the
+            // moment it goes.
+            //
+            // The row is the one part of the screen that is always in the same
+            // place, and taking it away was argued against on exactly those
+            // grounds once. The photograph settles it the other way: a sheet
+            // covers the foot of the glass, the pill floats over the foot of
+            // the glass, and "Log in to an Existing Account" was drawn through
+            // the middle of it. A button nobody can see is a button nobody can
+            // press. A sheet is also the one thing you can be doing that has
+            // nowhere else to go — so for as long as it is up, it is the
+            // screen, and the furniture stands down.
+            //
+            // Faded rather than removed, and inert while faded, so nothing
+            // takes a tap meant for the sheet underneath it.
+            .opacity(isRowLive ? 1 : 0)
+            .allowsHitTesting(isRowLive)
+            .animation(
+                reduceMotion ? nil : .easeInOut(duration: 0.18),
+                value: isRowLive
+            )
             .transition(.opacity)
         }
+    }
+
+    /// Whether the row is answering for itself at all.
+    ///
+    /// Live regardless the moment one of Quiet's own pages is up: the row is
+    /// the way out of those, and a sheet left open on the page behind them is
+    /// no reason to take the way out away.
+    private var isRowLive: Bool {
+        if isShowingQuietPage { return true }
+        return !surface.isSheetUp
     }
 
     /// Instagram's own: the full width of the glass, flush against the bottom
@@ -435,12 +466,43 @@ struct BrowserScreen: View {
             barButton(.home, "house", "house.fill", Text("Home"))
             barButton(.search, "magnifyingglass", "magnifyingglass", Text("Find someone"))
             barButton(.clock, "clock", "clock.fill", Text("Quiet settings"))
+                .accessibilityValue(Text(timeLeftAloud))
             barButton(.messages, "paperplane", "paperplane.fill", Text("Messages"))
             // Only once the page has said who is signed in. A button that leads
             // nowhere is worse than one that arrives a second late.
             if surface.me != nil {
                 myProfileButton
             }
+        }
+    }
+
+    /// What the clock says to somebody who cannot see it.
+    ///
+    /// The number was reachable in exactly one way: open the panel, hear it,
+    /// close the panel. For anybody reading the screen with a finger that is
+    /// three deliberate moves and a modal to get back out of, to answer the
+    /// question a sighted reader answers by looking at a row they were already
+    /// looking at. The clock is the element that means "your time"; it should
+    /// say what it means.
+    ///
+    /// A value rather than a longer label, because that is what VoiceOver reads
+    /// second and what the rotor carries — "Quiet settings, twelve minutes left
+    /// today, button" — and because a label that changed every minute would
+    /// change what the button is called.
+    ///
+    /// **And it is not always said.** The app has a switch for whether it
+    /// counts anybody down, and the reason it exists is that for some people a
+    /// sentence saying five minutes remain is precisely what starts a last five
+    /// minutes. A spoken value on the row is a countdown — more of one than the
+    /// panel is, since it arrives on the way past rather than when asked — so it
+    /// obeys the same switch. Turned off, the clock is a button called Quiet
+    /// settings, and the number is still one tap away inside, for a reader who
+    /// went looking for it.
+    private var timeLeftAloud: String {
+        guard preferences.saysWhatIsLeft else { return "" }
+        switch session.screen {
+        case .spent: return String(localized: "No time left today.")
+        default: return String(localized: "\(Phrase.remaining(session.remaining)) left today.")
         }
     }
 

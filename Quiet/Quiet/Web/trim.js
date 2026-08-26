@@ -1619,6 +1619,175 @@
     node.setAttribute("data-quiet-pinned", "");
   }
 
+  /* ── Something modal, and nothing done about it ───────────────────────── */
+
+  /**
+   * Whether Instagram has a sheet up, said once and acted on by nobody here.
+   *
+   * Instagram puts one up for switching accounts, for sharing, and for the menu
+   * behind the three dots. It covers the foot of the glass, which is where
+   * Quiet's own row floats, and the row is drawn straight across the last
+   * button on it.
+   *
+   * Eleven mechanisms went into fixing that and every one of them *moved
+   * something of Instagram's* — pad the panel, transform it, give it a margin,
+   * take the glass away underneath it. Each had to recognise the sheet before
+   * it could touch it, and recognition failed in both directions: it missed the
+   * account switcher for eight rounds, because Instagram never says a sheet is
+   * one; then it caught the inbox and moved a list of conversations up over its
+   * own header.
+   *
+   * This does none of that. Nothing here is marked, moved, padded, lifted or
+   * hidden. The page answers one question and the app decides what to do about
+   * its own furniture — which is what makes recognition affordable again. A
+   * wrong answer now costs a row that fades for a moment. It used to cost a
+   * page that came back broken.
+   */
+  var MODAL = '[role="dialog"], [aria-modal="true"], dialog[open]';
+
+  /* Tall enough to be a sheet rather than a bar, and short enough to be a sheet
+   * rather than the dimmed backdrop around one. */
+  var SHEET_SHORTEST = 120;
+  /* How far above the bottom edge a sheet may stop and still be one. */
+  var SHEET_FOOT = 48;
+
+  /* False rather than nothing, so a screen with no sheet on it says nothing at
+   * all. The app starts from the same answer, and a message that only ever
+   * confirms the obvious is a message worth not sending. */
+  var lastSheet = false;
+
+  function saySheet() {
+    var up = !!theSheet();
+    if (up === lastSheet) return;
+    lastSheet = up;
+    post({ kind: "sheet", up: up });
+  }
+
+  function theSheet() {
+    return theSheetItSaysItIs() || theSheetByItsShape();
+  }
+
+  /** The easy half, and the one Instagram is under no obligation to give. */
+  function theSheetItSaysItIs() {
+    var modals = document.querySelectorAll(MODAL);
+    for (var i = 0; i < modals.length; i += 1) {
+      if (isSheet(modals[i], true)) return modals[i];
+    }
+    return null;
+  }
+
+  /**
+   * The hard half: ask the screen what is drawn over the foot of the glass.
+   *
+   * Three columns rather than one, because a sheet is full width and something
+   * of Instagram's own may be over the middle of it. Shallowest first, so what
+   * is found is the panel rather than a button inside it that happens to end in
+   * the same place.
+   */
+  function theSheetByItsShape() {
+    if (!document.elementsFromPoint) return null;
+    var width = window.innerWidth || 390;
+    var height = window.innerHeight || 844;
+    var columns = [
+      Math.round(width * 0.2),
+      Math.round(width / 2),
+      Math.round(width * 0.8)
+    ];
+    for (var c = 0; c < columns.length; c += 1) {
+      var stack = document.elementsFromPoint(columns[c], height - 8) || [];
+      for (var i = stack.length - 1; i >= 0; i -= 1) {
+        if (isSheet(stack[i], false)) return stack[i];
+      }
+    }
+    return null;
+  }
+
+  /**
+   * What makes something a sheet rather than a part of the page.
+   *
+   * `declared` relaxes the shape but never the two refusals below it: something
+   * that says it is modal is believed about being modal, not about being
+   * somewhere it is not.
+   */
+  function isSheet(node, declared) {
+    if (!node || !node.getAttribute) return false;
+    if (node === document.body || node === document.documentElement) return false;
+    if (ours(node)) return false;
+    /* Page content is never a sheet, however much it looks like one. A sheet is
+     * put in *front* of the page, and the page is what is inside `main` — which
+     * is exactly where the inbox keeps its list of conversations, the thing an
+     * earlier version of this took for a sheet and moved. */
+    if (insideThePage(node)) return false;
+
+    var box = node.getBoundingClientRect();
+    if (!box || box.width <= 0 || box.height <= 0) return false;
+
+    var width = window.innerWidth || 390;
+    var height = window.innerHeight || 844;
+    /* A sheet spans the glass. A card, a toast and a menu tucked into a corner
+     * do not. */
+    if (box.width < width * 0.9) return false;
+    if (box.bottom < height - SHEET_FOOT) return false;
+    if (declared) return true;
+
+    if (box.height < SHEET_SHORTEST) return false;
+    /* As tall as the glass is the backdrop, not the sheet. */
+    if (box.height > height - SHEET_FOOT) return false;
+    var style = window.getComputedStyle(node);
+    if (style.position !== "fixed" &&
+        style.position !== "absolute" &&
+        style.position !== "sticky") return false;
+    /* Something to press. A sheet is a question; a spacer is not. */
+    return !!node.querySelector('a, button, [role="button"], input');
+  }
+
+  /** Anything Quiet has drawn or already dealt with. */
+  function ours(node) {
+    if (node.id && node.id.indexOf("quiet-") === 0) return true;
+    if (node.getAttribute("data-quiet-hidden") !== null) return true;
+    if (node.getAttribute("data-quiet-floor") !== null) return true;
+    return false;
+  }
+
+  function insideThePage(node) {
+    var main = document.querySelector("main");
+    return !!main && main.contains(node);
+  }
+
+  /**
+   * Ask again for a moment, because a sheet arrives by sliding and a slide is
+   * not a mutation.
+   *
+   * The observer hears the panel go into the document, and at that moment the
+   * panel is still below the bottom edge with a transform on it; nothing in the
+   * document changes while it travels. So the pass above runs exactly once, at
+   * the one instant the honest answer is that there is no sheet. That was the
+   * whole of the eighth photograph, and it explains the seven before it: every
+   * one of them changed what the app *did* about a sheet, and none of them
+   * changed whether the app ever heard about one.
+   */
+  var SETTLE = [16, 50, 120, 240, 420, 650];
+
+  var settling = false;
+
+  function settle() {
+    if (settling) return;
+    settling = true;
+    var step = 0;
+    (function again() {
+      if (step >= SETTLE.length) {
+        settling = false;
+        return;
+      }
+      var wait = SETTLE[step] - (step > 0 ? SETTLE[step - 1] : 0);
+      step += 1;
+      setTimeout(function () {
+        saySheet();
+        again();
+      }, wait);
+    })();
+  }
+
   /* ── Whether any of this is still working ─────────────────────────────── */
 
   /**
@@ -1765,6 +1934,12 @@
       liftHeader();
       shapeHeader();
       sayHealth();
+      // Last, because Instagram's own bottom navigation and its door back into
+      // the app are both full-width things at the foot of the glass — which is
+      // to say, both indistinguishable from a sheet right up until the calls
+      // above mark them.
+      saySheet();
+      settle();
     });
   }
 

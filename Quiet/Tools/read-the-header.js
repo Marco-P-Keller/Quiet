@@ -720,34 +720,35 @@ const GROUPED = `
     "upsell"
   );
 
-  /* ── Sheets, which are nobody's business here any more ───────────────── */
+  /* ── Something modal, and nothing done about it ──────────────────────── */
 
   /* Instagram puts a sheet up for switching accounts, for sharing, and for the
-   * menu behind the three dots, and Quiet's row was drawn straight across the
+   * menu behind the three dots, and Quiet's row is drawn straight across the
    * buttons on it. Eleven answers to that were written and every one of them
-   * moved something of Instagram's — which meant every one of them had to
-   * recognise the thing it was moving first, and that is the half that failed.
-   * It missed the account switcher for eight rounds, because Instagram never
-   * says a sheet is one; then it caught the inbox's list of conversations,
-   * because a list of conversations has exactly the shape of a sheet, and moved
-   * that instead.
+   * moved something of Instagram's — which meant every one had to recognise the
+   * thing it was moving first, and that is the half that failed. It missed the
+   * account switcher for eight rounds, because Instagram never says a sheet is
+   * one; then it caught the inbox's list of conversations, because a list of
+   * conversations has exactly the shape of a sheet, and moved that instead.
    *
-   * The room is made by the app now, once, for everything: the web view is a
-   * frame that stops at the top of the row, so the bottom of the viewport *is*
-   * the top of the row and every sheet Instagram opens is anchored above it.
-   * Nothing of Instagram's is touched, and there is nothing to recognise.
+   * So the moving is gone and only the question is left. The page says whether
+   * something modal is covering the foot of the glass; the app fades its own
+   * row out while it is. Nothing of Instagram's is marked, moved, padded or
+   * hidden — which is what makes recognising a sheet affordable again. A wrong
+   * answer costs a row that fades for a moment, not a page that comes back
+   * broken.
    *
-   * So these check the absence. They are worth more than the thirty-seven
-   * checks they replace, because the mechanism they guard against is one
-   * somebody would reasonably write again. */
-  const untouched = (win, name) => {
+   * These check both halves: that the answer is right, and that nothing was
+   * touched to arrive at it. */
+  const sheetOf = (win) => win.sent.filter((m) => m.kind === "sheet").pop();
+  const marks = (win, name) => {
     const node = win.document.querySelector(`[data-name="${name}"]`);
     return [
       node.getAttribute("data-quiet-sheet"),
       node.getAttribute("data-quiet-hidden"),
-      node.style.getPropertyValue("--quiet-lift"),
       node.style.transform || "",
-      node.style.marginBottom || ""
+      node.style.marginBottom || "",
+      node.style.paddingBottom || ""
     ].join("|");
   };
 
@@ -755,26 +756,36 @@ const GROUPED = `
     '<button data-name="one">marco</button>' +
     '<button data-name="two">Log In to an Existing Account</button>';
 
+  /* With nothing modal on screen, nothing is said. */
+  const plainFeed = await page(`<main><article>a post</article></main>`, FEED);
+  check("with nothing modal on screen, nothing is said", sheetOf(plainFeed), undefined);
+
   /* The account switcher: held against the bottom, the width of the glass,
-   * full of things to press, and saying nothing anywhere about being modal. */
+   * full of things to press, and saying nothing anywhere about being modal.
+   * This is the one that went unfound for eight rounds. */
   const switcher = await page(
     `<div data-name="switcher" data-at-bottom style="position: fixed"
           data-box="0,300,390,520">${PANEL}</div><main></main>`,
     FEED
   );
-  check("a sheet is not marked, moved, or hidden", untouched(switcher, "switcher"), "||||");
+  check("a sheet that never said it was one is found by its shape", sheetOf(switcher), {
+    kind: "sheet",
+    up: true
+  });
+  check("and nothing on it is marked or moved", marks(switcher, "switcher"), "||||");
 
-  /* And one that does say so, which earlier versions believed outright. */
+  /* Said outright, which Instagram is under no obligation to do. */
   const declared = await page(
     `<div data-name="declared" role="dialog" data-at-bottom style="position: fixed"
           data-box="0,300,390,520">${PANEL}</div><main></main>`,
     FEED
   );
-  check("nor is one that says it is one", untouched(declared, "declared"), "||||");
+  check("one that says it is one is believed", sheetOf(declared)?.up, true);
 
   /* The inbox, which is the photograph that started this: a list of
    * conversations reaches the bottom of the screen, spans the glass and is full
-   * of things to press. Every test a sheet passed, it passed. */
+   * of things to press. Every test a sheet passes, it passes — except being in
+   * front of the page. */
   const conversations = await page(
     `<main><div data-name="threads" data-at-bottom data-box="0,120,390,700">
        <a href="/direct/t/1/">marco</a>
@@ -783,17 +794,37 @@ const GROUPED = `
     "https://www.instagram.com/direct/inbox/"
   );
   check(
-    "and the inbox, which was moved for eleven builds, is left alone",
-    untouched(conversations, "threads"),
-    "||||"
+    "the inbox, which was moved for eleven builds, is not a sheet",
+    sheetOf(conversations),
+    undefined
   );
+  check("and it is left entirely alone", marks(conversations, "threads"), "||||");
 
-  /* Nothing is said about one either. The app has no opinion left to hold. */
-  check(
-    "nothing about a sheet is sent up to the app",
-    switcher.sent.some((m) => m.kind === "sheet"),
-    false
+  /* A backdrop is as tall as the glass. The sheet is the thing inside it. */
+  const backdrop = await page(
+    `<div data-name="backdrop" data-at-bottom style="position: fixed"
+          data-box="0,0,390,844"><button>x</button></div><main></main>`,
+    FEED
   );
+  check("the dimmed backdrop is not the sheet", sheetOf(backdrop), undefined);
+
+  /* Something tucked into a corner is a menu or a toast, not a sheet. */
+  const corner = await page(
+    `<div data-name="corner" data-at-bottom style="position: fixed"
+          data-box="200,500,180,300"><button>x</button></div><main></main>`,
+    FEED
+  );
+  check("something that does not span the glass is not a sheet", sheetOf(corner), undefined);
+
+  /* Instagram's own navigation row is full width and at the foot of the glass,
+   * and it is taken out before the question is asked. */
+  const ownRow = await page(
+    `<div data-name="theirs" data-quiet-hidden="nav" data-at-bottom
+          style="position: fixed" data-box="0,300,390,520"><a href="/">home</a></div>
+     <main></main>`,
+    FEED
+  );
+  check("what Quiet has already taken out is not a sheet", sheetOf(ownRow), undefined);
 
   /* ── The colour the clock stands on ──────────────────────────────────── */
 
