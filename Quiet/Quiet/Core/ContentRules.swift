@@ -130,7 +130,6 @@ enum ContentRules {
         internalDomains.contains { host == $0 || host.hasSuffix("." + $0) }
     }
 
-    /// Where the app opens, and where the home button goes.
     /// Where Quiet opens.
     ///
     /// Not `instagram.com`, which serves a signed-out visitor a page whose
@@ -143,6 +142,39 @@ enum ContentRules {
     /// The feed. Where the home entry in Quiet's row goes — which is not the
     /// same address the app opens on, since that one is the login form.
     static let feed = URL(string: "https://www.instagram.com/")!
+
+    /// The addresses Quiet will try, in order, to get its first page on screen.
+    ///
+    /// `home` is a path Instagram chose and Instagram can retire. If it ever
+    /// does, every launch of this app lands on nothing — and the only thing on
+    /// screen is a **Try again** button that asks for the same dead address
+    /// again, for ever. That is the shape of the failure: not a crash, not a
+    /// wrong page, an app that is simply over, on a phone whose network is
+    /// fine.
+    ///
+    /// So there is a second address, and it is the site's own front door. A
+    /// signed-in reader lands on their feed; a signed-out one gets Instagram's
+    /// signed-out page, which is the page `home` exists to avoid — its largest
+    /// element is a button into Instagram's own app. That is a worse first
+    /// screen and it is the right trade: the button goes nowhere here, because
+    /// the `instagram:` scheme is refused whatever page offers it, and a worse
+    /// first screen beats no first screen.
+    ///
+    /// Two, and no more. A list of guesses at addresses Instagram has never
+    /// served would be a slower way to arrive at the same failure.
+    static let openings: [URL] = [home, feed]
+
+    /// The next address to try after this one did not arrive, or `nil` when
+    /// there is nothing left to try and the failure belongs on screen.
+    ///
+    /// An address that is not one of the openings has no next: a page somebody
+    /// navigated to is theirs, and quietly sending them somewhere else because
+    /// it failed would be the app deciding where they meant to go.
+    static func opening(after url: URL?) -> URL? {
+        guard let url, let index = openings.firstIndex(of: url) else { return nil }
+        let next = openings.index(after: index)
+        return next < openings.endIndex ? openings[next] : nil
+    }
 
     /// Where the messages live.
     static let messages = URL(string: "https://www.instagram.com/direct/inbox/")!

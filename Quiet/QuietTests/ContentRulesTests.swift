@@ -229,4 +229,48 @@ final class ContentRulesTests: XCTestCase {
         XCTAssertFalse(ContentRules.isSignInFlow(nil))
     }
 
+    // MARK: - Where it opens, and where it goes when that fails
+
+    /// The first address is the login form, deliberately, and the second is the
+    /// site's own front door. Both belong to Instagram: a fallback that left
+    /// the domain would be handed to Safari by the app's own rule.
+    func testTheOpeningsAreInstagramsOwnAndInThatOrder() {
+        XCTAssertEqual(ContentRules.openings, [ContentRules.home, ContentRules.feed])
+        for url in ContentRules.openings {
+            XCTAssertEqual(ContentRules.routing(for: url), .allow, url.absoluteString)
+            XCTAssertTrue(ContentRules.isInternal(host: url.host!), url.absoluteString)
+        }
+    }
+
+    /// The failure this exists for: Instagram retires the login path, and every
+    /// launch lands on nothing with a button that asks for it again.
+    func testAFailedOpeningHasSomewhereElseToGo() {
+        XCTAssertEqual(ContentRules.opening(after: ContentRules.home), ContentRules.feed)
+    }
+
+    /// And the walk ends. A list that never ran out would be an app that
+    /// retried for ever instead of saying what happened.
+    func testTheLastOpeningHasNothingAfterIt() {
+        XCTAssertNil(ContentRules.opening(after: ContentRules.feed))
+        XCTAssertNil(ContentRules.opening(after: ContentRules.openings.last))
+    }
+
+    /// A page somebody navigated to is theirs. Sending them to the feed because
+    /// their profile did not load would be the app deciding where they meant to
+    /// go, which is a different app.
+    func testAPageNobodyOpenedOnHasNoNextAddress() {
+        XCTAssertNil(ContentRules.opening(after: nil))
+        for address in [
+            "https://www.instagram.com/someone/",
+            "https://www.instagram.com/direct/inbox/",
+            "https://example.com/anything",
+            // The feed with a trailing difference is not the feed. Equality is
+            // the whole guard here: anything looser and a page that merely
+            // resembles an opening inherits the fallback.
+            "https://www.instagram.com",
+            "https://instagram.com/",
+        ] {
+            XCTAssertNil(ContentRules.opening(after: URL(string: address)!), address)
+        }
+    }
 }

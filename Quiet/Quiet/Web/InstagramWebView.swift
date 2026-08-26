@@ -116,13 +116,15 @@ final class WebSurface {
     /// What the pull at the top of the feed does, and the only way back from a
     /// page that failed to arrive — a web view that could not load has an
     /// address but nothing on it, and `reload` is the request that fixes both.
-    /// Falls back to the home address for the one case where there is nothing
-    /// to reload, which is a cold view nobody has navigated yet.
+    /// Falls back to the first opening address for the one case where there is
+    /// nothing to reload, which is a cold view nobody has navigated yet. The
+    /// first rather than the one that failed: this is somebody asking to start
+    /// over, and the walk down `ContentRules.openings` starts again with it.
     func reload() {
         guard let webView else { return }
         note(stumble: nil)
         if webView.url == nil {
-            webView.load(URLRequest(url: ContentRules.home))
+            webView.load(URLRequest(url: ContentRules.openings[0]))
         } else {
             webView.reload()
         }
@@ -899,16 +901,36 @@ struct InstagramWebView: UIViewRepresentable {
             withError error: Error
         ) {
             endPull()
-            let code = (error as NSError).code
+            let failure = error as NSError
+            let code = failure.code
             guard code != NSURLErrorCancelled else { return }
             surface.markLoaded()
 
             let offline = Self.offlineCodes.contains(code)
-            if webView.url == nil {
-                surface.note(stumble: offline ? .offline : .unreachable)
-            } else if offline {
-                session.show(String(localized: "No connection."))
+            guard webView.url == nil else {
+                if offline { session.show(String(localized: "No connection.")) }
+                return
             }
+
+            // Nothing on screen, and the network is there. That is the one
+            // failure where a second address is worth trying: the app opens on
+            // a path Instagram chose and Instagram can retire, and a retired
+            // path would otherwise leave every launch on a **Try again** button
+            // asking for the same dead address for ever.
+            //
+            // Not when offline. A phone with no network fails at the second
+            // address exactly as it failed at the first, and all the attempt
+            // buys is a slower way to say the true thing.
+            //
+            // The address that failed comes out of the error rather than off
+            // the view, which by now is holding nothing.
+            let failed = failure.userInfo[NSURLErrorFailingURLErrorKey] as? URL
+            if !offline, let next = ContentRules.opening(after: failed) {
+                surface.open(next)
+                return
+            }
+
+            surface.note(stumble: offline ? .offline : .unreachable)
         }
 
         /// The codes that mean "there is no network", as against the ones that
