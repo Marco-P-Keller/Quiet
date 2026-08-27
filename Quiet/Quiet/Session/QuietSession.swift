@@ -372,7 +372,7 @@ final class QuietSession {
         preferences.appointment.isOn = false
         ringer.silence()
         carried = nil
-        ThePlace.forget()
+        ThePlace.forgetEverything()
         // Including the copy in iCloud, or the next phone to open would put it
         // straight back and "forget everything" would have meant "wait a week
         // and then get it back".

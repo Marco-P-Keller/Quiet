@@ -177,7 +177,7 @@ struct RootView: View {
                 surface: surface,
                 onDone: { session.isSearchShowing = false },
                 onOpen: { url in
-                    surface.open(url)
+                    surface.visit(url)
                     session.isSearchShowing = false
                 }
             )

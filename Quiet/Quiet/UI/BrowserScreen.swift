@@ -32,6 +32,14 @@ import UIKit
 /// bottom edge, and a row drawn over the top of it covers the one control the
 /// screen exists for. See `isImmersive`.
 ///
+/// The three that are Instagram's are three pages, open at once. Tapping one is
+/// not a navigation: the page is already there, already scrolled where it was
+/// left, with the half-written message still in the box. It used to be one page
+/// and five entries pointing at it, and coming back from the inbox meant
+/// Instagram building the feed again — its router unmounts what you left, which
+/// is the site's behaviour and not something an app outside a single page can
+/// talk it out of. See `Pane` and `PaneStack`.
+///
 /// The two screens that are Quiet's own — the settings behind the clock, and
 /// finding someone — are pages here rather than sheets over the top. A sheet
 /// takes the whole screen and the row with it, so the app it belongs to
@@ -294,7 +302,7 @@ struct BrowserScreen: View {
                             surface: surface,
                             onDone: { session.isSearchShowing = false },
                             onOpen: { url in
-                                surface.open(url)
+                                surface.visit(url)
                                 session.isSearchShowing = false
                             }
                         )
@@ -325,12 +333,21 @@ struct BrowserScreen: View {
         case home, search, clock, messages, profile
     }
 
-    /// Where the page is, whatever is drawn over the top of it.
+    /// Which of Instagram's three you are standing in.
+    ///
+    /// The pane, now, rather than the address. Three pages are open at once and
+    /// each keeps its own place, so "where you are" is which of them is on the
+    /// glass — and that is also what a tab bar has always marked. Tap a friend
+    /// in the feed and you are still standing in **home**, the way you are
+    /// still standing in a tab on every phone ever made; the address said
+    /// otherwise, and had to, because with one page there was nothing else to
+    /// ask.
     private var pageEntry: Entry {
-        let path = surface.address?.path ?? "/"
-        if path.hasPrefix("/direct") { return .messages }
-        if let me = surface.me, path == "/\(me)" || path == "/\(me)/" { return .profile }
-        return .home
+        switch surface.pane {
+        case .home: return .home
+        case .messages: return .messages
+        case .profile: return .profile
+        }
     }
 
     private var current: Entry {
