@@ -137,6 +137,89 @@ jobs:
 
           file shots/*.png | sed 's|.*/||'
 
+      # The listing's own screenshots, which are a different job from the
+      # diagnostic ones above. Those exist to show whether a layout survived;
+      # these exist to be uploaded. Dark, because that is the appearance every
+      # screen in the set was designed around and the one Instagram's own app
+      # is usually in; both languages, because the first frames are the ones
+      # worth localising; and one scene per launch, same as above.
+      #
+      # Not one of them photographs Instagram. That is deliberate and the
+      # reasoning is in docs/store-listing.md: the app being sold is the
+      # limiter, and a listing made of somebody else's product raises 5.2.1
+      # before a reviewer has read a word.
+      - name: Photograph for the store
+        timeout-minutes: 15
+        run: |
+          set -euo pipefail
+          # 9:41 and a full battery are what Apple's own screenshots carry. The
+          # bar is cropped off every frame anyway; this is here so that nothing
+          # odd — a runner's date, a charging bolt, one bar of signal — can
+          # arrive in a frame if that crop is ever a few points out.
+          xcrun simctl status_bar booted override \
+            --time 9:41 --batteryState charged --batteryLevel 100 \
+            --cellularMode active --cellularBars 4 \
+            --dataNetwork wifi --wifiMode active --wifiBars 3
+          xcrun simctl ui booted appearance dark
+
+          store () {
+            local lang="$1" name="$2" scene="$3"; shift 3
+            mkdir -p "shots/store/$lang"
+            xcrun simctl terminate booted com.connexa.quiet >/dev/null 2>&1 || true
+            xcrun simctl launch booted com.connexa.quiet -QuietRehearsal "$scene" "$@" >/dev/null
+            sleep 6
+            xcrun simctl io booted screenshot --type=png "shots/store/$lang/$name.png"
+          }
+
+          # scene:name — the scenes are states of the app, the names are what
+          # the listing calls them.
+          scenes="opening:opening limit:limit spent:curtain panel:panel fresh:setup"
+          for pair in $scenes; do store en "${pair#*:}" "${pair%:*}"; done
+          german="-AppleLanguages (de) -AppleLocale de_DE"
+          for pair in $scenes; do store de "${pair#*:}" "${pair%:*}" $german; done
+
+          xcrun simctl status_bar booted clear
+          xcrun simctl ui booted appearance light
+          file shots/store/*/*.png | sed 's|.*/store/||'
+
+      # Caption, crop, compose, and then check the result the way a machine can:
+      # the size to the pixel, no alpha channel, ink in the caption band and a
+      # photograph in the card. Every one of those failures looks fine on a
+      # screen and costs a rejected upload.
+      - name: Compose the App Store frames
+        timeout-minutes: 10
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet --disable-pip-version-check pillow \
+            || python3 -m pip install --quiet --break-system-packages pillow
+          python3 Tools/make-the-store-shots.py \
+            --source shots/store --out shots/store-frames
+          python3 Tools/read-the-shots.py shots/store-frames
+
+      # Big enough to read a caption at, because the caption is the only part
+      # of these a run can get wrong in a way the checks above cannot see.
+      - name: Look at the frames
+        if: always()
+        run: |
+          set -euo pipefail
+          for f in shots/store-frames/*/*.png; do
+            [ -f "$f" ] || continue
+            name=$(echo "$f" | sed 's|shots/store-frames/||; s|/|-|; s|\.png$||')
+            sips -Z 640 -s format jpeg -s formatOptions 62 "$f" --out "/tmp/$name.jpg" >/dev/null
+            echo "----BEGIN $name----"
+            base64 -b 200 -i "/tmp/$name.jpg"
+            echo "----END $name----"
+          done
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: app-store-screenshots
+          path: |
+            Quiet/shots/store-frames/**
+            Quiet/shots/store/**
+          if-no-files-found: error
+
       # The row is a different shape on a phone with a home button, and a claim
       # about a shape is worth exactly what a picture of it is worth. The same
       # build installs on any simulator, so this costs a boot and nothing else.
