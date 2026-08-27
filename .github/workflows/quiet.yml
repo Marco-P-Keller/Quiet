@@ -7,10 +7,12 @@ on:
   push:
     paths:
       - 'Quiet/**'
+      - 'site/**'
       - '.github/workflows/quiet.yml'
   pull_request:
     paths:
       - 'Quiet/**'
+      - 'site/**'
       - '.github/workflows/quiet.yml'
   workflow_dispatch:
 
@@ -19,6 +21,78 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # The riskiest file in the project, asked about on a page that is not
+  # Instagram's.
+  #
+  # `trim.js` is sixteen hundred lines, it is the layer Instagram can break by
+  # renaming something, and until now nothing anywhere checked it. It also
+  # fails in the worst possible way: an entrance that quietly comes back looks
+  # exactly like an app that is working, and the only witness is somebody
+  # scrolling a real feed.
+  #
+  # Cheap, so it runs first and on Linux. A red line here costs seconds; the
+  # same fact found on a phone costs a build, an upload and an evening.
+  check:
+    name: Check the trim
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: Quiet
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # The one dependency these tools have, and the only reason for it is that
+      # something has to provide a DOM. Installed rather than assumed, so the
+      # job does not depend on what happens to be checked in.
+      - name: A DOM to ask
+        run: npm install --no-save --no-audit --no-fund jsdom
+
+      - name: What the trim does
+        run: node Tools/read-the-trim.js
+
+      - name: What it makes of the header
+        run: node Tools/read-the-header.js
+
+      # Every sentence in the app, in both languages.
+      #
+      # The failure this catches is not a crash and does not look like one: a
+      # sentence written in Swift, added to the catalogue with no German beside
+      # it, shipping in English inside a German app on a screen nobody who
+      # wrote it ever reads in German. It has happened here before.
+      - name: Both languages
+        run: python3 Tools/read-the-strings.py
+
+      # The two published pages, against the app they describe.
+      #
+      # `site/privacy.html` is the only document here that is a promise to a
+      # stranger, and it is the one furthest from the code — nothing imports
+      # it, so nothing notices when it goes stale. It went stale twice in a
+      # row: the keychain grew a fifth key and then a sixth while the page went
+      # on saying four. That is not an out-of-date document, it is the wrong
+      # answer to the one question App Review asks it.
+      - name: The site against the app
+        run: python3 Tools/read-the-site.py
+
+      # Formatting, so that nobody has to have an opinion about it in a review.
+      #
+      # `--strict` rather than `--in-place`: a job that quietly rewrote the
+      # source would make the checkout disagree with the branch, and the point
+      # is to be told, not to be tidied up after.
+      - name: Formatting
+        run: |
+          set -euo pipefail
+          if ! command -v swift-format >/dev/null 2>&1; then
+            echo "No swift-format on this runner, so formatting was not checked."
+            exit 0
+          fi
+          swift-format lint --strict --recursive Quiet QuietTests QuietUITests
+
   test:
     name: Build and test
     runs-on: macos-15
@@ -139,6 +213,22 @@ jobs:
             --predicate 'process == "Quiet"' 2>/dev/null | head -40 || echo "(nothing)"
           echo "----END APP LOG----"
 
+      # A number, so that two millimetres is never argued about again.
+      #
+      # A disagreement about the gap under the floating row cost four rounds of
+      # build, upload, install and look, and two of those rounds went on which
+      # build was on the phone. That is not a question anybody should answer by
+      # eye. If this says the island stands twenty-five points off the bottom
+      # edge and a photograph says thirteen, the photograph is of an older
+      # build and there is nothing left to discuss.
+      #
+      # Measured on the drawn thing rather than read back out of the source,
+      # which would prove only that the source says what it says.
+      #
+      # Dark, and before the page arrives: the island stands on a flat colour
+      # with nothing under it, and its shadow — which is black, and which on a
+      # light background is an edge of its own — is invisible.
+      #
       # And it is checked against what the source says, so it fails rather than
       # merely reports. It has already earned that once: a container added
       # between the app and the window was centring the browsing screen and
@@ -188,15 +278,17 @@ jobs:
           # is what it should be instead: the web view stops there, so the
           # bottom of the page's world is the top of the row.
           #
-          # Summed out of the three numbers the row is built from rather than
-          # written down here, so the check follows the row when it moves.
-          number() {
-            sed -n "s/.*$1: CGFloat = \([0-9.]*\).*/\1/p" \
-              Quiet/UI/BrowserScreen.swift
-          }
-          room=$(python3 -c \
-            "print($(number islandHeight) + $(number islandLift) + $(number islandAir))")
-          echo "The row is $room pt tall, so the page stops there."
+          # Photographed on the bar, which is the shape where the page stops
+          # above the row. On the island it runs to the bottom edge on purpose
+          # — a pill floating over a black band is not floating over anything —
+          # so the same photograph would only ever say zero. See `pageGivesUp`.
+          #
+          # The bar's own height comes out of the source; the thirty-four points
+          # under it are the home indicator on the simulator this job pins.
+          bar=$(sed -n 's/.*barHeight: CGFloat = \([0-9.]*\).*/\1/p' \
+            Quiet/UI/BrowserScreen.swift)
+          room=$(python3 -c "print($bar + 34)")
+          echo "The bar stands on $room pt, so the page stops there."
           xcrun simctl terminate booted com.connexa.quiet >/dev/null 2>&1 || true
           xcrun simctl launch booted com.connexa.quiet -QuietRehearsal sheet >/dev/null
           # Long enough for the page to arrive and the sheet to be put on it.
@@ -237,7 +329,10 @@ jobs:
             section "Failed tests" "grep -E '^Test Case .* failed' build.log | sort -u | head -40"
             section "Warnings"     "grep -E 'warning:' build.log | $strip | sort -u | head -60"
             grep -E "^Executed [0-9]+ test" build.log | tail -2 || true
-          } >> "$GITHUB_STEP_SUMMARY"
+          # Both places. The summary is where somebody reads it on a phone; the
+          # log is where it can be fetched without downloading a sixty-megabyte
+          # result bundle, which is what a red run cost before this line.
+          } | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Keep the log and the result bundle
         if: failure()

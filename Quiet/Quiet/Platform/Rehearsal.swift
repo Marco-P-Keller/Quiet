@@ -51,6 +51,19 @@ enum Rehearsal {
     /// Whether this launch puts a sheet on the page for a machine to look at.
     static var showsASheet: Bool { scene == .sheet }
 
+    /// Whether this launch is a staged photograph rather than somebody using
+    /// the app.
+    ///
+    /// One thing turns on it, and it cost a red run to find. The `island`
+    /// scene is photographed *before the page arrives*, deliberately, because
+    /// that is what leaves the row standing on a flat colour where it can be
+    /// measured rather than argued about. A page that has not arrived is also
+    /// a page that may have failed — and the app now draws its own screen when
+    /// that happens, in its own paper, over the whole glass. Which is right in
+    /// a hand and is precisely the nondeterminism a rehearsal exists to
+    /// remove.
+    static var isStaged: Bool { scene != nil }
+
     /// Skip the opening, without asking for a scene.
     ///
     /// For the one UI test that drives the app from an empty install. A machine
@@ -101,7 +114,12 @@ enum Rehearsal {
         // The shape of the row is a preference, so it outlives a launch and
         // would otherwise make the next scene photograph whatever the last one
         // chose.
-        Preferences.rehearse(row: scene == .island || scene == .sheet ? .island : .bar)
+        // The sheet is photographed on the bar, and that is the point of it:
+        // the bar is the shape where the page stops above the row, so a sheet
+        // held against the bottom of the viewport has to land above it. On the
+        // island the page runs to the bottom edge on purpose, and the same
+        // photograph would only ever say zero.
+        Preferences.rehearse(row: scene == .island ? .island : .bar)
         guard scene != .fresh else { return }
 
         let today = DayKey(clock.now, calendar: calendar)

@@ -32,6 +32,20 @@
 	     here would have to be laid out twice, in two different systems, and
 	     would still not know the reader's text size. What this buys is that
 	     nothing flashes between the two. -->
+	<!-- Instagram's own pages carry file inputs: the composer, a profile
+	     picture, a photo in a message. When one of them offers the camera, iOS
+	     reads these strings out loud — and an app that has not written them is
+	     terminated on the spot, with no crash report that names the cause.
+	     Quiet does not use the camera itself and never asks for it; these exist
+	     so that a tap on somebody else's page cannot end the app. -->
+	<key>NSCameraUsageDescription</key>
+	<string>Instagram asks for the camera when you add a photo or a story. Quiet never uses it on its own.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Instagram asks for the microphone when you record a video or a voice message. Quiet never uses it on its own.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Instagram asks for your photos when you choose one to post or to send. Quiet never looks at them itself.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Saving a picture from Instagram puts it in your photo library. Quiet adds nothing else.</string>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>

@@ -12,6 +12,13 @@ import SwiftUI
 struct QuietApp: App {
     @State private var session: QuietSession
 
+    /// How the app looks and what it says, as against what it promises.
+    ///
+    /// Built here rather than in the view that happens to need it first,
+    /// because the session consults it too. It used to live in `RootView` and
+    /// nowhere else, which was right for as long as only views cared.
+    @State private var preferences: Preferences
+
     init() {
         let store = KeychainStore()
         let clock = MonotonicClock(store: store)
@@ -20,12 +27,30 @@ struct QuietApp: App {
         // in a build anybody can install.
         Rehearsal.prepare(store: store, clock: clock)
         #endif
-        _session = State(initialValue: QuietSession(store: store, clock: clock))
+        // After the rehearsal, and the order is load-bearing.
+        //
+        // Everything else here is read later: the session loads the store in
+        // `start()`, long after this runs. Preferences are the one thing read
+        // in an initialiser, so building them first means building them from
+        // whatever was on the phone before the rehearsal wrote anything — and
+        // a rehearsal that asks for the island then gets photographed wearing
+        // the bar.
+        //
+        // It worked by accident until preferences moved up here: the view that
+        // used to own them was built after this, which put it on the right side
+        // of the rehearsal without anybody choosing that.
+        let preferences = Preferences()
+        _preferences = State(initialValue: preferences)
+        _session = State(initialValue: QuietSession(
+            store: store,
+            clock: clock,
+            preferences: preferences
+        ))
     }
 
     var body: some Scene {
         WindowGroup {
-            RootView(session: session)
+            RootView(session: session, preferences: preferences)
         }
     }
 }

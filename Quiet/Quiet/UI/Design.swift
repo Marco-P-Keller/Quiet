@@ -4,17 +4,59 @@ import UIKit
 /// Quiet's own surfaces look nothing like the site it shows.
 ///
 /// Instagram is bright, dense and full of things to press. The three screens
-/// Quiet owns — setup, the panel, the curtain — are paper: warm, plain, mostly
-/// empty, one thing to read at a time. The difference is the point. When the
+/// Quiet owns — setup, the panel, the curtain — are paper: warm by day, plain,
+/// mostly empty, one thing to read at a time. The difference is the point. When the
 /// curtain comes down you should be able to feel that you have left.
 enum Paper {
-    /// Background. Warm off-white by day, warm near-black by night; never pure
-    /// white or pure black, both of which glare.
+    /// The one dark the app stands in, and every surface of it stands in the
+    /// same one.
+    ///
+    /// It was a warm near-black for as long as Quiet had only its own screens
+    /// to think about: paper is warm by day and there is no reason for it to
+    /// stop being warm at night. Around somebody else's page that argument
+    /// loses, and it loses for the same reason the hairline under the clock
+    /// did. Instagram's dark is a cool near-black. The system's — which is what
+    /// the ground under the web view, the blank before the first page and the
+    /// bar along the bottom were all painted in — is pure black. Quiet's was
+    /// brown. Three darks down one screen, meeting at seams, and every seam
+    /// visible.
+    ///
+    /// So: one dark, a shade off black and cool rather than warm, sitting where
+    /// the tone Instagram draws its own chrome in already sits. Not sampled
+    /// from the page — this is the colour of screens that are up before any
+    /// page has loaded and after the day is over — but chosen to stand beside
+    /// it without a line where the two meet.
+    static let night = UIColor(red: 0.059, green: 0.067, blue: 0.078, alpha: 1)
+
+    /// Background. Warm off-white by day, the app's own dark by night; never
+    /// pure white or pure black, both of which glare.
     static let page = Color(uiColor: UIColor { traits in
         traits.userInterfaceStyle == .dark
-            ? UIColor(red: 0.071, green: 0.067, blue: 0.063, alpha: 1)
+            ? night
             : UIColor(red: 0.969, green: 0.957, blue: 0.937, alpha: 1)
     })
+
+    /// The pixels Quiet owns *around* somebody else's page: the ground the web
+    /// view stands on, the blank held over it until the first page arrives, the
+    /// bar along the bottom, and the band behind the clock until the page says
+    /// what colour it is.
+    ///
+    /// The system's own page colour by day, because Instagram's is white and so
+    /// is that, and there is nothing to see. By night the system's is pure
+    /// black and nothing else on the screen is, so by night it is `night`.
+    ///
+    /// Not `page`: this is not paper. It is what shows in the half-second
+    /// before Instagram paints and in the inch behind a bar, and warm off-white
+    /// in front of a white page would be a flash of cream at every cold start.
+    static let ground = Color(uiColor: groundColour)
+
+    /// The same colour, for the two places that need a `UIColor` — the web
+    /// view's own background and the one behind its scrolling.
+    static let groundColour = UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? night
+            : UIColor.systemBackground.resolvedColor(with: traits)
+    }
 
     /// Body and headline text.
     static let ink = Color(uiColor: UIColor { traits in
@@ -130,6 +172,10 @@ enum Phrase {
     /// running.
     static func remaining(_ seconds: TimeInterval) -> String {
         minutes(max(0, Int(ceil(seconds / 60))))
+    }
+
+    static func days(_ count: Int) -> String {
+        String(localized: "\(count) days")
     }
 
     static func clockTime(_ date: Date) -> String {

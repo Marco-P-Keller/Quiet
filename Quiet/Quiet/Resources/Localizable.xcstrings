@@ -1,6 +1,16 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    " It does not give the week back: you can ask for more again %@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " Die Woche kommt dadurch nicht zurück: um mehr bitten kannst du wieder %@."
+          }
+        }
+      }
+    },
     " You can ask for more again %@.": {
       "localizations": {
         "de": {
@@ -41,6 +51,16 @@
         }
       }
     },
+    "%@ is not part of Instagram, so it opened in Safari. If you were signing in, come back and start again.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ gehört nicht zu Instagram und wurde deshalb in Safari geöffnet. Falls du dich gerade anmelden wolltest: komm zurück und fang noch einmal an."
+          }
+        }
+      }
+    },
     "%@ left today.": {
       "localizations": {
         "de": {
@@ -51,26 +71,48 @@
         }
       }
     },
-    "%lld minutes": {
+    "%lld days": {
       "localizations": {
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "1 Tag"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Tage"
+                }
+              }
+            }
+          }
+        },
         "en": {
           "variations": {
             "plural": {
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "1 minute"
+                  "value": "1 day"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld minutes"
+                  "value": "%lld days"
                 }
               }
             }
           }
-        },
+        }
+      }
+    },
+    "%lld minutes": {
+      "localizations": {
         "de": {
           "variations": {
             "plural": {
@@ -88,29 +130,29 @@
               }
             }
           }
-        }
-      }
-    },
-    "%lld minutes left.": {
-      "localizations": {
+        },
         "en": {
           "variations": {
             "plural": {
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "One minute left."
+                  "value": "1 minute"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld minutes left."
+                  "value": "%lld minutes"
                 }
               }
             }
           }
-        },
+        }
+      }
+    },
+    "%lld minutes left.": {
+      "localizations": {
         "de": {
           "variations": {
             "plural": {
@@ -128,6 +170,44 @@
               }
             }
           }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "One minute left."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld minutes left."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "A page at %@ was opened in Safari during a sign-in. If signing in did not work, that is the address to report.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Seite auf %@ wurde während einer Anmeldung in Safari geöffnet. Falls die Anmeldung nicht geklappt hat, ist das die Adresse, die man melden sollte."
+          }
+        }
+      }
+    },
+    "A time for Instagram": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Zeit für Instagram"
+          }
         }
       }
     },
@@ -137,6 +217,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Um %@ am Tag bitten"
+          }
+        }
+      }
+    },
+    "Ask to be forgotten": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Darum bitten, vergessen zu werden"
+          }
+        }
+      }
+    },
+    "Asking to wait longer takes effect at once. Asking to wait less has to wait — otherwise this would be the one rule you could relax at the moment it started to matter.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Länger warten zu wollen gilt sofort. Weniger warten zu wollen muss warten — sonst wäre das die eine Regel, die du genau in dem Moment lockern könntest, in dem sie anfängt zu wirken."
           }
         }
       }
@@ -171,12 +271,42 @@
         }
       }
     },
+    "Carry this between your devices": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf deinen Geräten mitnehmen"
+          }
+        }
+      }
+    },
     "Clear": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Löschen"
+            "value": "Leeren"
+          }
+        }
+      }
+    },
+    "Clear cached pages": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zwischengespeicherte Seiten löschen"
+          }
+        }
+      }
+    },
+    "Cleared.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gelöscht."
           }
         }
       }
@@ -251,6 +381,26 @@
         }
       }
     },
+    "If you carry it between your devices, three of those go into your own iCloud — the limit, the wait, and how much each device has spent today. Nothing else, nowhere else, and only while the switch above is on.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wenn du es auf deinen Geräten mitnimmst, gehen drei davon in deine eigene iCloud — das Limit, die Wartezeit und wie viel jedes Gerät heute verbraucht hat. Nichts sonst, nirgendwo sonst, und nur solange der Schalter oben an ist."
+          }
+        }
+      }
+    },
+    "Instagram did not answer.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram hat nicht geantwortet."
+          }
+        }
+      }
+    },
     "Instagram,\nminus the parts\nthat keep you there.": {
       "localizations": {
         "de": {
@@ -281,6 +431,16 @@
         }
       }
     },
+    "Keep my limit": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mein Limit behalten"
+          }
+        }
+      }
+    },
     "Less takes effect at once. More starts the next day, and only once a week.": {
       "localizations": {
         "de": {
@@ -301,6 +461,26 @@
         }
       }
     },
+    "Make Quiet forget everything": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet alles vergessen lassen"
+          }
+        }
+      }
+    },
+    "Make Quiet forget everything?": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet alles vergessen lassen?"
+          }
+        }
+      }
+    },
     "Messages": {
       "localizations": {
         "de": {
@@ -317,6 +497,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Minuten am Tag"
+          }
+        }
+      }
+    },
+    "Months of pages, pictures and answers are kept so the site is quick. Throwing them away costs a slower page or two and does not sign you out.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monate an Seiten, Bildern und Antworten werden aufbewahrt, damit die Seite schnell ist. Sie wegzuwerfen kostet ein, zwei langsamere Seiten und meldet dich nicht ab."
           }
         }
       }
@@ -381,6 +571,16 @@
         }
       }
     },
+    "One reminder a day, at an hour you choose — and none at all on a day you have already been. It cannot say whether anything happened on Instagram; nothing outside Instagram's own app can. What it can do is give the checking an hour, so the rest of the day does not need one.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Erinnerung am Tag, zu einer Uhrzeit, die du wählst — und keine an einem Tag, an dem du schon da warst. Ob auf Instagram etwas passiert ist, kann sie nicht sagen; das kann nichts ausserhalb von Instagrams eigener App. Was sie kann: dem Nachschauen eine Uhrzeit geben, damit der Rest des Tages keine braucht."
+          }
+        }
+      }
+    },
     "Opens this profile": {
       "localizations": {
         "de": {
@@ -411,12 +611,52 @@
         }
       }
     },
+    "Quiet could not load %@ from its own bundle. This build is broken; reinstall it.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet konnte %@ nicht aus dem eigenen Bundle laden. Dieser Build ist kaputt; installiere ihn neu."
+          }
+        }
+      }
+    },
+    "Quiet forgets everything %@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet vergisst alles %@."
+          }
+        }
+      }
+    },
+    "Quiet has no account, no server of its own and no analytics. It stores six things on this phone: your limit, today's total, the last time it saw, the day you set it up, whether you have asked it to forget, and what your other devices have spent today.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet hat kein Konto, keinen eigenen Server und keine Analyse. Es speichert sechs Dinge auf diesem Telefon: dein Limit, das heutige Total, die zuletzt gesehene Zeit, den Tag der Einrichtung, ob du ums Vergessen gebeten hast, und was deine anderen Geräte heute verbraucht haben."
+          }
+        }
+      }
+    },
     "Quiet has no account, no servers and no analytics. It stores four things on this phone: your limit, today's total, the last time it saw, and the day you set it up.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Quiet hat kein Konto, keine Server und keine Analyse. Es speichert vier Dinge auf diesem Telefon: dein Limit, den heutigen Stand, den spätesten Zeitpunkt, den es gesehen hat, und den Tag, an dem du es eingerichtet hast."
+          }
+        }
+      }
+    },
+    "Quiet has not been able to find Instagram's own layout on the last few pages. Instagram has probably changed something. Reels and Explore are still closed — those are refused by address — but the tidying up around them may not be.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet hat auf den letzten Seiten Instagrams eigenes Layout nicht gefunden. Wahrscheinlich hat Instagram etwas geändert. Reels und Explore bleiben zu — die werden nach Adresse abgewiesen — aber das Aufräumen drumherum vielleicht nicht."
           }
         }
       }
@@ -471,12 +711,42 @@
         }
       }
     },
+    "Quiet shows Instagram's own site, so it needs the network to show you anything. Nothing has been lost — your day and your limit are on this phone.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet zeigt Instagrams eigene Seite und braucht dafür Netz. Verloren ist nichts — dein Tag und dein Limit liegen auf diesem Telefon."
+          }
+        }
+      }
+    },
     "Quiet works between %lld and %lld minutes a day.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Quiet arbeitet zwischen %lld und %lld Minuten am Tag."
+          }
+        }
+      }
+    },
+    "Quiet's second lock did not load this time. Reels and Explore are still refused; there is one layer doing it rather than two.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiets zweites Schloss ist diesmal nicht geladen. Reels und Explore werden weiterhin abgewiesen; es tut das gerade eine Ebene statt zwei."
+          }
+        }
+      }
+    },
+    "Recently opened": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zuletzt geöffnet"
           }
         }
       }
@@ -497,6 +767,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zurückgesetzt um %@. Es zählt nur Zeit, in der Instagram auf dem Bildschirm ist."
+          }
+        }
+      }
+    },
+    "Say what is left": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sagen, was übrig ist"
           }
         }
       }
@@ -611,12 +891,52 @@
         }
       }
     },
+    "The date on this phone is ahead of Instagram's, so Quiet is going by Instagram's. The limit can be lowered, but not raised, until the two agree.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Datum auf diesem Telefon geht Instagram voraus, also richtet Quiet sich nach Instagram. Das Limit kann gesenkt, aber nicht erhöht werden, bis beide übereinstimmen."
+          }
+        }
+      }
+    },
+    "The date on this phone is ahead of Instagram's. The wait can be made longer, but not shorter, until the two agree.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Datum auf diesem Telefon geht Instagram voraus. Die Wartezeit kann verlängert, aber nicht verkürzt werden, bis beide übereinstimmen."
+          }
+        }
+      }
+    },
+    "The date on this phone is ahead of Instagram's. Until the two agree, the limit can go down but not up.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Datum auf diesem Telefon geht Instagram voraus. Bis beide übereinstimmen, kann das Limit sinken, aber nicht steigen."
+          }
+        }
+      }
+    },
     "The date on this phone is behind where Quiet last saw it. The limit can be lowered, but not raised, until it catches up.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Das Datum auf diesem Telefon liegt hinter dem, was Quiet zuletzt gesehen hat. Das Limit kann gesenkt werden, aber nicht erhöht, bis es aufgeholt hat."
+          }
+        }
+      }
+    },
+    "The date on this phone is behind where Quiet last saw it. The wait can be made longer, but not shorter, until it catches up.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Datum auf diesem Telefon liegt hinter dem, was Quiet zuletzt gesehen hat. Die Wartezeit kann verlängert, aber nicht verkürzt werden, bis es aufgeholt hat."
           }
         }
       }
@@ -631,12 +951,42 @@
         }
       }
     },
+    "The hour Quiet reminds you": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Uhrzeit, zu der Quiet dich erinnert"
+          }
+        }
+      }
+    },
+    "The page did not arrive. That is usually a moment rather than a problem.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Seite ist nicht angekommen. Das ist meistens ein Moment und kein Problem."
+          }
+        }
+      }
+    },
     "The row along the bottom": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Die Reihe am unteren Rand"
+          }
+        }
+      }
+    },
+    "The wait between increases": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Wartezeit zwischen Erhöhungen"
           }
         }
       }
@@ -661,12 +1011,72 @@
         }
       }
     },
+    "This phone has notifications turned off for Quiet, so the reminder has nowhere to arrive. It can be switched on again in Settings.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Telefon hat Mitteilungen für Quiet ausgeschaltet, die Erinnerung hätte also nirgendwo anzukommen. In den Einstellungen lässt sie sich wieder einschalten."
+          }
+        }
+      }
+    },
+    "This phone is refusing to let Quiet write anything down. Your limit will not survive closing the app until that changes.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Telefon lässt Quiet nichts aufschreiben. Bis sich das ändert, überlebt dein Limit das Schließen der App nicht."
+          }
+        }
+      }
+    },
+    "Those are gone on purpose, not missing. Tapping a Reel a friend sends you will say so rather than open it.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die sind mit Absicht weg, nicht kaputt. Ein Reel, das dir jemand schickt, sagt beim Antippen genau das, statt sich zu öffnen."
+          }
+        }
+      }
+    },
+    "Try again": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch einmal versuchen"
+          }
+        }
+      }
+    },
+    "Two quiet notices, at five minutes and at one. Turning them off does not add any time — the day ends at the same moment either way.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zwei leise Hinweise, bei fünf Minuten und bei einer. Sie auszuschalten bringt keine Zeit — der Tag endet so oder so im selben Moment."
+          }
+        }
+      }
+    },
     "Type a name. Quiet searches for people and nothing else — no Explore, no hashtags, no places.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Tippe einen Namen. Quiet sucht nach Menschen und sonst nichts — kein Explore, keine Hashtags, keine Orte."
+          }
+        }
+      }
+    },
+    "Until that day nothing changes. Changing your mind costs nothing and can be done at any time.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bis dahin ändert sich nichts. Es sich anders zu überlegen kostet nichts und geht jederzeit."
           }
         }
       }
@@ -711,6 +1121,16 @@
         }
       }
     },
+    "You can shorten the wait once the wait is over, %@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Wartezeit kannst du verkürzen, wenn die Wartezeit vorbei ist, %@."
+          }
+        }
+      }
+    },
     "You raised your limit less than a week ago. You can ask for more again %@.": {
       "localizations": {
         "de": {
@@ -727,6 +1147,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Du meldest dich auf Instagrams eigener Seite an. Dein Passwort berührt Quiet nie."
+          }
+        }
+      }
+    },
+    "Your Instagram window is open.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Instagram-Fenster ist offen."
           }
         }
       }
@@ -767,6 +1197,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dein Limit ist jetzt %@ am Tag."
+          }
+        }
+      }
+    },
+    "Your limit, your day and the wait are thrown away — after %@, not now. You can call it off at any time before then. Your Instagram sign-in is a separate thing and is not touched.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Limit, dein Tag und die Wartezeit werden weggeworfen — nach %@, nicht jetzt. Bis dahin kannst du es jederzeit abblasen. Deine Instagram-Anmeldung ist etwas anderes und bleibt unberührt."
+          }
+        }
+      }
+    },
+    "Your limit, your wait and today's total, kept in your own iCloud so a second device is not a second allowance. Nothing else is sent, and nobody but you can read it — not even us, because there is no us: Quiet has no server and no account. Switching this off takes the copy down again.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Limit, deine Wartezeit und das heutige Total, abgelegt in deiner eigenen iCloud — damit ein zweites Gerät nicht ein zweites Kontingent ist. Mehr wird nicht gesendet, und niemand ausser dir kann es lesen: nicht einmal wir, denn es gibt kein wir. Quiet hat keinen Server und kein Konto. Ausschalten nimmt die Kopie wieder herunter."
           }
         }
       }

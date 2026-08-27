@@ -53,6 +53,10 @@ enum RowShape: String, CaseIterable, Sendable {
 /// without stepping onto the main actor to do it.
 private enum Key {
     static let row = "quiet.row.shape"
+    static let saysWhatIsLeft = "quiet.says.what.is.left"
+    static let appointmentIsOn = "quiet.appointment.on"
+    static let appointmentAt = "quiet.appointment.at"
+    static let carriesBetweenDevices = "quiet.carries.between.devices"
 }
 
 @MainActor
@@ -69,6 +73,58 @@ final class Preferences {
         }
     }
 
+    /// Whether the app says anything as the day runs out.
+    ///
+    /// On by default, and the default is the considered answer: a screen that
+    /// replaces itself with no warning reads as a fault, and two quiet notices
+    /// are the smallest thing that stops the end of the day being a surprise.
+    ///
+    /// It can be turned off, and that is not a hole in the rule. Nothing about
+    /// a warning changes how much time there is — the limit is the limit
+    /// whether or not anybody is counted down to it — and for some people a
+    /// notice saying five minutes remain is precisely the thing that starts a
+    /// last five minutes. The one argument the app refuses to have is about
+    /// *how much*; this is not that argument.
+    var saysWhatIsLeft: Bool {
+        didSet {
+            guard saysWhatIsLeft != oldValue else { return }
+            defaults.set(saysWhatIsLeft, forKey: Key.saysWhatIsLeft)
+        }
+    }
+
+    /// The daily reminder: whether it rings, and at what hour.
+    ///
+    /// A preference rather than a promise, so it lives here with the others
+    /// and not in the keychain. Somebody who deletes the app and installs it
+    /// again keeps their limit, because that is the promise — and gets asked
+    /// about the reminder again, because a notification arranging itself
+    /// behind a fresh install would be a surprise.
+    var appointment: Appointment {
+        didSet {
+            guard appointment != oldValue else { return }
+            defaults.set(appointment.isOn, forKey: Key.appointmentIsOn)
+            defaults.set(appointment.minutesAfterMidnight, forKey: Key.appointmentAt)
+        }
+    }
+
+    /// Whether the limit, the wait and today's total follow you to your other
+    /// devices through iCloud.
+    ///
+    /// Off until asked for, like everything else here. It is the only setting
+    /// in the app that sends anything anywhere, and a thing that leaves the
+    /// phone should be a thing somebody switched on rather than a thing they
+    /// were opted into — even when the somewhere is their own iCloud and nobody
+    /// else can read it.
+    ///
+    /// A preference rather than a promise: switching it off stops the sending,
+    /// and the limit it was carrying is exactly as binding as it was before.
+    var carriesBetweenDevices: Bool {
+        didSet {
+            guard carriesBetweenDevices != oldValue else { return }
+            defaults.set(carriesBetweenDevices, forKey: Key.carriesBetweenDevices)
+        }
+    }
+
     /// For a rehearsal, so that a machine can photograph either shape.
     nonisolated static func rehearse(row: RowShape, in defaults: UserDefaults = .standard) {
         defaults.set(row.rawValue, forKey: Key.row)
@@ -78,5 +134,19 @@ final class Preferences {
         self.defaults = defaults
         self.row = defaults.string(forKey: Key.row)
             .flatMap(RowShape.init(rawValue:)) ?? .standard(on: hardware)
+        // `bool(forKey:)` answers false for a key nobody has written, which is
+        // the wrong way round for a thing that is on unless it has been turned
+        // off. Asked as an object first, so that "never chosen" and "chosen
+        // false" are two different answers.
+        self.saysWhatIsLeft = defaults.object(forKey: Key.saysWhatIsLeft) as? Bool ?? true
+        self.carriesBetweenDevices = defaults.bool(forKey: Key.carriesBetweenDevices)
+        self.appointment = Appointment(
+            isOn: defaults.bool(forKey: Key.appointmentIsOn),
+            // `integer(forKey:)` answers zero for a key nobody has written,
+            // and midnight is a legitimate hour to choose, so the two have to
+            // be told apart. Asked as an object first.
+            minutesAfterMidnight: defaults.object(forKey: Key.appointmentAt) as? Int
+                ?? Appointment.standard.minutesAfterMidnight
+        )
     }
 }

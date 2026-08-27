@@ -81,19 +81,25 @@ struct BrowserScreen: View {
         // screen. Everything inside is then positioned against the glass, which
         // is what both the strip and the notices want.
         ZStack(alignment: .top) {
-            Color(uiColor: .systemBackground)
+            Paper.ground
 
-            // The page's whole world, and nothing taken off it afterwards:
-            // the view is the size of it, so there is no strip left over for
-            // the page to be asked to keep clear of. Asking as well would move
-            // everything twice. See `InstagramWebView`.
+            // The page's world: the glass, less the clock — and less the row
+            // as well, but only where the row is opaque.
             InstagramWebView(
                 surface: surface,
                 session: session,
-                inset: UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+                // What the page is asked to keep clear of, which is the part of
+                // the row it is allowed to run underneath. Nothing under a bar,
+                // because the page stops above one; the whole row under an
+                // island, so the scroll indicator does not run beneath the pill
+                // and the last post can be scrolled out from behind it.
+                inset: UIEdgeInsets(
+                    top: 0,
+                    left: 0,
+                    bottom: furniture - pageGivesUp,
+                    right: 0
+                )
             )
-            // The glass, less the clock — and starting below it.
-            //
             // Six mechanisms went into keeping Instagram's own bars off the
             // status bar: a content inset, a padding on the document, a lift on
             // whatever the page had pinned, and three attempts at finding that
@@ -104,60 +110,43 @@ struct BrowserScreen: View {
             // layout does — and a padding on the document cannot move it, and a
             // rule for sticky elements never sees it.
             //
-            // So the viewport itself is made smaller. The page's world starts
-            // at the bottom of the clock and ends at the top of the row.
-            // Everything in it is right by construction: what is fixed, what is
-            // sticky, what is absolute, and what asks for a hundred per cent of
-            // the height. There is nothing left to find and nothing left to
-            // lift.
+            // So the viewport itself is made smaller at the top. Everything in
+            // it is right by construction: what is fixed, what is sticky, what
+            // is absolute, and what asks for a hundred per cent of the height.
+            // There is nothing left to find and nothing left to lift.
             //
-            // The bottom end of that is the twelfth answer to the sheet, and
-            // the first that is not a mechanism. Eleven were, and they shared a
-            // shape: each of them moved something of Instagram's — pad the
-            // panel, transform the panel, shrink the glass under it, take the
-            // row away, make the row inert — and each needed to recognise the
-            // thing it was moving first. Recognition is the part that failed,
-            // in both directions: it missed the account switcher for eight
-            // rounds because Instagram never says a sheet is one, and then it
-            // took the inbox's list of conversations for a sheet and moved
-            // that instead, because a list of conversations has exactly the
-            // shape of one.
+            // The same medicine was applied at the bottom, and it is the
+            // twelfth answer to the sheet — the first that is not a mechanism.
+            // Eleven were, and they shared a shape: each of them moved
+            // something of Instagram's, and each had to recognise the thing it
+            // was moving first. Recognition is the half that failed, in both
+            // directions: it missed the account switcher for eight rounds
+            // because Instagram never says a sheet is one, and then it took the
+            // inbox's list of conversations for a sheet and moved that instead.
+            // A sheet is anchored to the bottom of the viewport, so putting the
+            // row outside the viewport lands every sheet above it, with nothing
+            // of Instagram's touched, recognised or named.
             //
-            // A sheet is pinned to the bottom of the viewport. So the row is
-            // put outside the viewport, and every sheet Instagram will ever
-            // open lands above it without anything of Instagram's being
-            // touched, recognised, or named. The inbox is safe for the same
-            // reason: nothing is looking at it any more.
-            //
-            // What it costs is the one thing Instagram's own app does that this
-            // now cannot: run content up behind the status bar and down behind
-            // the row. The app draws both strips instead, in the page's own
-            // colour, so the page appears to reach both edges. See `clockBand`.
+            // It is applied to one of the two shapes, and which one is not a
+            // compromise — it is what the shapes *are*. See `pageGivesUp`.
             .frame(
                 width: glass.width > 0 ? glass.width : nil,
-                height: glass.height > 0 ? glass.height - topInset - furniture : nil
+                height: glass.height > 0 ? glass.height - topInset - pageGivesUp : nil
             )
             .padding(.top, topInset)
 
-            // The strip the row stands on, in the page's own colour.
-            //
-            // Under the row and under nothing else: the page ends at the top of
-            // it, so this is the only thing between the last pixel of Instagram
-            // and the bottom edge of the glass. Painted rather than left as the
-            // system's background so that the seam is invisible in both schemes
-            // and on a page that has decided its own.
-            if furniture > 0 {
-                VStack(spacing: 0) {
-                    Spacer(minLength: 0)
-                    clockBand
-                        .frame(height: furniture)
-                }
-                .allowsHitTesting(false)
-                .accessibilityHidden(true)
+            if isCovered {
+                cover
             }
 
-            if !surface.hasLoaded {
-                cover
+            // Nothing arrived. Over the page, under the row: the five entries
+            // still work, so somebody who cannot reach the feed can still open
+            // the panel and see how much of the day is left.
+            if let stumble = surface.stumble {
+                StumbleView(kind: stumble) { surface.reload() }
+                    .padding(.top, topInset)
+                    .padding(.bottom, furniture)
+                    .transition(.opacity)
             }
 
             // The strip behind the clock belongs to the app.
@@ -209,6 +198,8 @@ struct BrowserScreen: View {
         )
         .ignoresSafeArea()
         .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: surface.hasLoaded)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: surface.isBare)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: surface.stumble)
         // The band changing colour: the first answer from a page, and every
         // change of scheme after it. A fade, because a flat area of the screen
         // changing colour in one frame reads as a glitch.
@@ -226,14 +217,47 @@ struct BrowserScreen: View {
         }
     }
 
-    /// Quiet's own paper, held over the web view until the first page settles.
-    /// A cold launch should look like the app deciding to start, not like a
-    /// blank browser.
+    /// Whether Quiet's own blank is over the top of the web view.
+    ///
+    /// Two conditions, because there are two ways to have nothing on the
+    /// glass. Until the first navigation settles there is no page at all. And
+    /// after it settles there is often still nothing to look at: Instagram is
+    /// a shell, and the second or two between the request finishing and the
+    /// first screen appearing is its own black rectangle. Both are the app
+    /// starting, and both should look like it. See `WebSurface.isBare`.
+    private var isCovered: Bool {
+        !surface.hasLoaded || surface.isBare
+    }
+
+    /// What Quiet holds over the web view until there is a page under it.
+    ///
+    /// **The colour is the band's.** It was the app's own ground for as long
+    /// as the cover was only ever up before the first frame, and against a
+    /// sampled band that is a second dark on the same screen: the photograph
+    /// that started this shows a grey strip across the top and a black void
+    /// under it, with the seam between them the most visible thing on the
+    /// glass. One colour, top to bottom — whatever the clock is standing on is
+    /// what the whole screen is — so a cold start reads as one surface waiting
+    /// rather than as two surfaces disagreeing. When the page arrives it is one
+    /// colour fading to another, which is what the band already does.
+    ///
+    /// **And it says whose blank it is.** Small, low-contrast, in the middle:
+    /// enough to answer "is this thing broken" and not enough to be a splash
+    /// screen. The line is the app's name and the promise under it, and it is
+    /// the same line in every language — it is a wordmark, not a sentence, so
+    /// it is `verbatim` rather than something the catalogue would ask German
+    /// for.
     private var cover: some View {
-        Color(uiColor: .systemBackground)
-            .ignoresSafeArea()
-            .transition(.opacity)
-            .accessibilityHidden(true)
+        ZStack {
+            clockBand
+            Text(verbatim: "Quiet: No More Doomscrolling")
+                .font(.quietSmall)
+                .foregroundStyle(Paper.inkSoft)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+        }
+        .ignoresSafeArea()
+        .transition(.opacity)
     }
 
     // MARK: - Quiet's own pages
@@ -346,8 +370,49 @@ struct BrowserScreen: View {
                 case .island: island
                 }
             }
+            // Out of the way while Instagram has a sheet up, and back the
+            // moment it goes.
+            //
+            // The row is the one part of the screen that is always in the same
+            // place, and taking it away was argued against on exactly those
+            // grounds once. The photograph settles it the other way: a sheet
+            // covers the foot of the glass, the pill floats over the foot of
+            // the glass, and "Log in to an Existing Account" was drawn through
+            // the middle of it. A button nobody can see is a button nobody can
+            // press. A sheet is also the one thing you can be doing that has
+            // nowhere else to go — so for as long as it is up, it is the
+            // screen, and the furniture stands down.
+            //
+            // Faded rather than removed, and inert while faded, so nothing
+            // takes a tap meant for the sheet underneath it.
+            .opacity(isRowLive ? 1 : 0)
+            .allowsHitTesting(isRowLive)
+            .animation(
+                reduceMotion ? nil : .easeInOut(duration: 0.18),
+                value: isRowLive
+            )
             .transition(.opacity)
         }
+    }
+
+    /// Whether the row is answering for itself at all.
+    ///
+    /// It stands down for two things, and both are the same thing said twice:
+    /// while it would be *over* what you are doing rather than beside it.
+    ///
+    /// A sheet covers the foot of the glass. So does a keyboard — every box you
+    /// write into on Instagram is pinned to the bottom of the page, which is
+    /// exactly where a floating row is, and a send button under a pill is a
+    /// send button nobody can press. Comments, messages, search: all of them.
+    /// It is also what every tab bar on this phone does, and the hand already
+    /// expects it.
+    ///
+    /// Live regardless the moment one of Quiet's own pages is up: the row is
+    /// the way out of those, and a sheet left open on the page behind them is
+    /// no reason to take the way out away.
+    private var isRowLive: Bool {
+        if isShowingQuietPage { return true }
+        return !surface.isSheetUp && !surface.isTyping
     }
 
     /// Instagram's own: the full width of the glass, flush against the bottom
@@ -364,7 +429,7 @@ struct BrowserScreen: View {
             Color.clear
                 .frame(height: bottomInset)
         }
-        .background(Color(uiColor: .systemBackground))
+        .background(Paper.ground)
     }
 
     /// The other one: a pill, inset from both edges, with the page running
@@ -396,11 +461,39 @@ struct BrowserScreen: View {
 
     /// How much of the bottom of the screen the row stands on.
     ///
-    /// The page never sees it. This is subtracted from the web view's own
-    /// height, so it is not a strip of page hidden behind the row — it is not
-    /// page at all, and neither the scroll indicator, nor the end of the feed,
-    /// nor anything Instagram pins to the bottom of the viewport can reach it.
     /// Nothing here on a page that has no row.
+
+    /// How much of that the *page* gives up, which is not the same number and
+    /// depends on which shape the row is drawn in.
+    ///
+    /// **The bar gives up its own height.** It is opaque and the width of the
+    /// glass, so a page running underneath it is a page nobody can see. The
+    /// pixels cost nothing to hand over — and handing them over is what puts
+    /// every sheet Instagram opens above the row instead of behind it, without
+    /// anything of Instagram's being recognised or moved. Eleven mechanisms
+    /// tried to do that by recognition and failed in both directions.
+    ///
+    /// **The island gives up nothing.** A pill that floats over a black band is
+    /// not floating over anything: seeing the feed move underneath it, blurred
+    /// through the material, is the entire reason to choose that shape rather
+    /// than Instagram's own. Taking the page away beneath it turns the nicer
+    /// object into a worse one, which was the first thing anybody said about
+    /// it after a build.
+    ///
+    /// So the cost lands where the choice was made. Choose the island and a
+    /// sheet reaches the bottom edge, which means Instagram's account switcher
+    /// puts its last button under the pill; choose the bar and it never can.
+    /// That is a real trade and it is stated here rather than hidden, because
+    /// the alternative — recognising sheets — is the thing that took eleven
+    /// builds to stop doing.
+    private var pageGivesUp: CGFloat {
+        guard !isImmersive else { return 0 }
+        switch preferences.row {
+        case .bar: return Self.barHeight + bottomInset
+        case .island: return 0
+        }
+    }
+
     private var furniture: CGFloat {
         guard !isImmersive else { return 0 }
         switch preferences.row {
@@ -416,13 +509,71 @@ struct BrowserScreen: View {
         HStack(spacing: 0) {
             barButton(.home, "house", "house.fill", Text("Home"))
             barButton(.search, "magnifyingglass", "magnifyingglass", Text("Find someone"))
-            barButton(.clock, "clock", "clock.fill", Text("Quiet settings"))
+            barButton(.clock, theClock(filled: false), theClock(filled: true), Text("Quiet settings"))
+                .accessibilityValue(Text(timeLeftAloud))
             barButton(.messages, "paperplane", "paperplane.fill", Text("Messages"))
             // Only once the page has said who is signed in. A button that leads
             // nowhere is worse than one that arrives a second late.
             if surface.me != nil {
                 myProfileButton
             }
+        }
+    }
+
+    /// What the clock says to somebody who cannot see it.
+    ///
+    /// The number was reachable in exactly one way: open the panel, hear it,
+    /// close the panel. For anybody reading the screen with a finger that is
+    /// three deliberate moves and a modal to get back out of, to answer the
+    /// question a sighted reader answers by looking at a row they were already
+    /// looking at. The clock is the element that means "your time"; it should
+    /// say what it means.
+    ///
+    /// A value rather than a longer label, because that is what VoiceOver reads
+    /// second and what the rotor carries — "Quiet settings, twelve minutes left
+    /// today, button" — and because a label that changed every minute would
+    /// change what the button is called.
+    ///
+    /// **And it is not always said.** The app has a switch for whether it
+    /// counts anybody down, and the reason it exists is that for some people a
+    /// sentence saying five minutes remain is precisely what starts a last five
+    /// minutes. A spoken value on the row is a countdown — more of one than the
+    /// panel is, since it arrives on the way past rather than when asked — so it
+    /// obeys the same switch. Turned off, the clock is a button called Quiet
+    /// settings, and the number is still one tap away inside, for a reader who
+    /// went looking for it.
+    /// The middle entry, and the one place the day's end is visible without
+    /// anybody going to look for it.
+    ///
+    /// The app refuses to show a countdown, and the refusal is right: a clock
+    /// you can watch is a clock you do watch, and a number ticking down turns
+    /// the last ten minutes into the loudest ten of the day. But there is a
+    /// middle, and this is it — the glyph changes **once**, at five minutes, to
+    /// an hourglass with the sand through it. No number, no ticking, and
+    /// nothing that rewards looking twice: one state, and you already know.
+    ///
+    /// In the last five minutes it is the hourglass whether you are standing on
+    /// this entry or not. The row's usual two states answer "where am I", and
+    /// for those five minutes that is not the question.
+    private func theClock(filled: Bool) -> String {
+        if isNearlyOut { return "hourglass.bottomhalf.filled" }
+        return filled ? "clock.fill" : "clock"
+    }
+
+    private var isNearlyOut: Bool {
+        session.screen == .browsing && session.remaining <= Self.lastStretch
+    }
+
+    /// Five minutes — read off the first thing the app says out loud as the day
+    /// runs out rather than written down again, so the glyph and the sentence
+    /// can never be a minute apart. See `QuietSession.warnings`.
+    private static let lastStretch = TimeInterval((QuietSession.warnings.max() ?? 5) * 60)
+
+    private var timeLeftAloud: String {
+        guard preferences.saysWhatIsLeft else { return "" }
+        switch session.screen {
+        case .spent: return String(localized: "No time left today.")
+        default: return String(localized: "\(Phrase.remaining(session.remaining)) left today.")
         }
     }
 
@@ -444,13 +595,13 @@ struct BrowserScreen: View {
     /// is sampled rather than written down here, so it follows the phone from
     /// light to dark, the app from the feed to a story, and Instagram through a
     /// redesign, with nothing here touched. See `WebSurface.chrome`.
-    private var clockBand: Color { surface.chrome ?? Self.systemBand }
+    private var clockBand: Color { surface.chrome ?? Self.groundBand }
 
     /// Until the page has answered, and for a page that has nothing to say.
-    /// The system's own page colour, which is what the cover underneath is
-    /// painted in — so the handover from Quiet's blank to Instagram's page is
-    /// one colour changing, not a band appearing.
-    private static let systemBand = Color(uiColor: .systemBackground)
+    /// The colour the cover underneath is painted in — so the handover from
+    /// Quiet's blank to Instagram's page is one colour changing, not a band
+    /// appearing.
+    private static let groundBand = Paper.ground
 
     /// The height every bar along the bottom of an iPhone has been since the
     /// first one, and the height of Instagram's.

@@ -101,11 +101,50 @@ final class WebSurface {
     /// that the change is not something you can catch happening.
     private(set) var chrome: Color?
 
+    /// Whether a field on the page has the keyboard.
+    ///
+    /// The same message the session uses to hold the curtain for one sentence,
+    /// read here for a second reason: the row steps aside while somebody is
+    /// writing. A comment box, a message, a search field — all of them are
+    /// pinned to the bottom of the page, which is exactly where a floating row
+    /// is, and a send button under a pill is a send button nobody can press.
+    private(set) var isTyping = false
+
+    /// Whether Instagram has something modal up.
+    ///
+    /// Read from the page, which is the only place it exists, and used for one
+    /// thing: Quiet's own row steps aside while it is true. Nothing of
+    /// Instagram's is touched to make that happen — see the sheet section in
+    /// `trim.js` for why that distinction is the whole of it.
+    private(set) var isSheetUp = false
+
     /// False until the first page has finished, or failed. While it is false the
     /// browsing screen keeps Quiet's own paper over the top, so a cold launch
     /// shows a considered blank rather than the white rectangle of a web view
     /// that has not painted yet.
     private(set) var hasLoaded = false
+
+    /// Whether the page has anything on it — a picture, a glyph, a word.
+    ///
+    /// `hasLoaded` answers a question about a request, and a request finishing
+    /// is not the same event as a page appearing. Instagram is a shell: the
+    /// navigation settles, the cover comes off, and what is on the glass for
+    /// the next second or two is Instagram's own black rectangle with nothing
+    /// in it. A photograph of that is why this exists — a black void under a
+    /// grey band, which reads as a broken app rather than a loading one.
+    ///
+    /// So the cover stays up until the page says it has drawn something. The
+    /// page only ever says this on the way up: it goes quiet for good the
+    /// first time there is something to see, so a client-side move between
+    /// pages — which empties Instagram's own main element for a frame — can
+    /// never bring the cover back over a page somebody is reading. See
+    /// `sayBare` in trim.js.
+    ///
+    /// False until the page says otherwise, which is deliberate: a page whose
+    /// script never ran cannot answer, and a cover held up forever over one is
+    /// worse than the black rectangle. That case has its own screen anyway —
+    /// see `stumble`.
+    private(set) var isBare = false
 
     func open(_ url: URL) {
         webView?.load(URLRequest(url: url))
@@ -116,18 +155,33 @@ final class WebSurface {
     /// What the pull at the top of the feed does, and the only way back from a
     /// page that failed to arrive — a web view that could not load has an
     /// address but nothing on it, and `reload` is the request that fixes both.
-    /// Falls back to the home address for the one case where there is nothing
-    /// to reload, which is a cold view nobody has navigated yet.
+    /// Falls back to the first opening address for the one case where there is
+    /// nothing to reload, which is a cold view nobody has navigated yet. The
+    /// first rather than the one that failed: this is somebody asking to start
+    /// over, and the walk down `ContentRules.openings` starts again with it.
     func reload() {
         guard let webView else { return }
+        note(stumble: nil)
         if webView.url == nil {
-            webView.load(URLRequest(url: ContentRules.home))
+            webView.load(URLRequest(url: ContentRules.openings[0]))
         } else {
             webView.reload()
         }
     }
 
     /// What a tap on the status bar has always done.
+    /// Write down where you are, because the app may not be given a say in
+    /// coming back.
+    ///
+    /// iOS discards a web view under memory pressure without asking, and by the
+    /// time anybody notices there is nothing left to ask. So the page is put
+    /// away every time the app leaves the screen, which is the last moment it
+    /// is certain to be there. See `ThePlace`.
+    func keepThePlace() {
+        guard let webView else { return }
+        ThePlace.keep(webView)
+    }
+
     func scrollToTop() {
         guard let scrollView = webView?.scrollView else { return }
         scrollView.setContentOffset(
@@ -139,6 +193,9 @@ final class WebSurface {
     /// Forget the Instagram session entirely: cookies, storage, caches. Quiet
     /// never held the password, so this is the whole of what there is to forget.
     func signOut(completion: @escaping () -> Void = {}) {
+        // Including where you were. A page kept from before somebody signed out
+        // is a page they did not ask to see again.
+        ThePlace.forget()
         let store = WKWebsiteDataStore.default()
         store.removeData(
             ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
@@ -147,6 +204,33 @@ final class WebSurface {
             self?.open(ContentRules.home)
             completion()
         }
+    }
+
+    /// Throw away what was only ever kept to be quick.
+    ///
+    /// A web view's store grows and nothing in the app ever trimmed it: months
+    /// of cached pages, images and fetch responses, held for a site that
+    /// changes every hour. iOS offers no way to ask how large that has become —
+    /// so rather than invent a number, the app offers the thing somebody
+    /// actually wants when they go looking for one.
+    ///
+    /// Deliberately not `allWebsiteDataTypes`, which is what signing out uses.
+    /// Cookies, local storage and IndexedDB are what being signed in is *made
+    /// of*, and an app that emptied them under a button called "clear cached
+    /// pages" would be logging people out and calling it housekeeping.
+    func clearCaches(completion: @escaping @Sendable () -> Void = {}) {
+        let caches: Set<String> = [
+            WKWebsiteDataTypeDiskCache,
+            WKWebsiteDataTypeMemoryCache,
+            WKWebsiteDataTypeOfflineWebApplicationCache,
+            WKWebsiteDataTypeFetchCache,
+            WKWebsiteDataTypeServiceWorkerRegistrations,
+        ]
+        WKWebsiteDataStore.default().removeData(
+            ofTypes: caches,
+            modifiedSince: .distantPast,
+            completionHandler: completion
+        )
     }
 
     /// Who matches this name.
@@ -241,6 +325,7 @@ final class WebSurface {
         self.webView = webView
         missingResources = missing
         hasLoaded = false
+        isBare = false
     }
 
     /// Called when the first navigation settles, whether it worked or not. A
@@ -248,6 +333,11 @@ final class WebSurface {
     /// looking at an empty page with no explanation.
     fileprivate func markLoaded() {
         hasLoaded = true
+    }
+
+    fileprivate func note(bare: Bool) {
+        guard isBare != bare else { return }
+        isBare = bare
     }
 
     fileprivate func note(path: String) {
@@ -258,6 +348,61 @@ final class WebSurface {
     fileprivate func note(address url: URL?) {
         guard address != url else { return }
         address = url
+    }
+
+    /// What stopped the page arriving, when nothing arrived at all.
+    ///
+    /// Only for the case where there is no page underneath: a failure while
+    /// something is already on screen is a notice, because replacing a page
+    /// somebody is reading with an apology loses them their place over a
+    /// request they did not make.
+    private(set) var stumble: StumbleView.Kind?
+
+    fileprivate func note(stumble kind: StumbleView.Kind?) {
+        #if DEBUG
+        // Never over a staged photograph. See `Rehearsal.isStaged`.
+        if kind != nil, Rehearsal.isStaged { return }
+        #endif
+        guard stumble != kind else { return }
+        stumble = kind
+    }
+
+    /// Whether the trim pass is still finding anything. See `Health`.
+    private(set) var health = Health()
+
+    /// Whether WebKit accepted the block list.
+    ///
+    /// `nil` while nobody has answered yet, which is the first half-second of a
+    /// launch. A failure here is not a crisis — the navigation delegate and the
+    /// trim pass are both still standing — but it is the app running on one
+    /// layer instead of two, and that is worth a line in the panel rather than
+    /// a line in a log nobody reads.
+    private(set) var blockListFailed = false
+
+    fileprivate func note(blockList error: Error?) {
+        let failed = error != nil
+        if let error {
+            NSLog("Quiet: the block list would not compile (%@)", String(describing: error))
+        }
+        guard blockListFailed != failed else { return }
+        blockListFailed = failed
+    }
+
+    fileprivate func note(health reading: Health) {
+        guard health != reading else { return }
+        health = reading
+    }
+
+    /// The last address Quiet handed to Safari from inside a sign-in.
+    ///
+    /// Kept for one reason: it is the single most likely cause of "I cannot
+    /// log in", and it is a host name — five words that turn an unreproducible
+    /// report into a one-line fix. Shown in the panel, never sent anywhere.
+    private(set) var handedOff: String?
+
+    fileprivate func note(handedOff url: URL) {
+        guard let host = url.host?.lowercased(), handedOff != host else { return }
+        handedOff = host
     }
 
     fileprivate func setBar(collapsed: Bool) {
@@ -274,6 +419,16 @@ final class WebSurface {
         // carrying Instagram's black into a light appearance.
         icons[entry] = image.withRenderingMode(.alwaysTemplate)
         Remembered.remember(icon: entry, data: data)
+    }
+
+    fileprivate func note(typing on: Bool) {
+        guard isTyping != on else { return }
+        isTyping = on
+    }
+
+    fileprivate func note(sheet up: Bool) {
+        guard isSheetUp != up else { return }
+        isSheetUp = up
     }
 
     fileprivate func note(chrome colour: Color) {
@@ -409,13 +564,38 @@ struct InstagramWebView: UIViewRepresentable {
         // the hooks and among the easiest to remove.
         configuration.mediaTypesRequiringUserActionForPlayback = .all
 
+        // The second lock, made of addresses, applied by WebKit before
+        // anything of Quiet's is asked. See `BlockList` for what it does and,
+        // more usefully, for what it does not.
+        BlockList.install(into: configuration) { [surface] error in
+            surface.note(blockList: error)
+        }
+
         let webView = QuietWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
         webView.uiDelegate = context.coordinator
         webView.allowsBackForwardNavigationGestures = true
         webView.customUserAgent = UserAgent.mobileSafari(systemVersion: UIDevice.current.systemVersion)
-        webView.backgroundColor = .systemBackground
-        webView.scrollView.backgroundColor = .systemBackground
+        // The blank between Quiet's own opening and Instagram's first paint.
+        //
+        // The two lines below were already here and did nothing at all, which
+        // is the whole of the bug: **an opaque WKWebView never shows its own
+        // background colour.** WebKit fills the view with the page's colour,
+        // and a page that has not painted yet has none — so it uses its base,
+        // which under a dark appearance is pure black. Every other surface in
+        // the app is `Paper.ground`, a shade off black, so the launch went
+        // ground, black, Instagram: one colour, a hole, and then a page.
+        //
+        // Asking the view not to be opaque is what makes the colour underneath
+        // real. It costs a composite that WebKit was doing anyway the moment
+        // anything on the page was translucent, and it buys a launch that is
+        // one colour all the way through.
+        webView.isOpaque = false
+        webView.backgroundColor = Paper.groundColour
+        webView.scrollView.backgroundColor = Paper.groundColour
+        // And the strip above and below the page while it is pulled past its
+        // own ends, which WebKit paints itself and would otherwise paint white.
+        webView.underPageBackgroundColor = Paper.groundColour
 
         // The page is given the whole screen. All of it.
         //
@@ -451,7 +631,16 @@ struct InstagramWebView: UIViewRepresentable {
         // The indicator is the one thing that should still respect the app's
         // furniture: a scroll bar running under the row reads as a fault.
         webView.scrollView.verticalScrollIndicatorInsets = inset
-        webView.load(URLRequest(url: ContentRules.home))
+        // Where you were, if you were there in the last twenty minutes.
+        //
+        // Restoring puts the page back without a load, so it is there before
+        // the first frame rather than a spinner and a feed from the top. When
+        // there is nothing to put back — a cold start, a stale place, an
+        // address the app no longer shows — this falls through to the feed,
+        // which is exactly what happened before it existed. See `ThePlace`.
+        if !ThePlace.restore(into: webView) {
+            webView.load(URLRequest(url: ContentRules.home))
+        }
 
         context.coordinator.watch(webView.scrollView)
         context.coordinator.addPull(to: webView.scrollView)
@@ -698,13 +887,35 @@ struct InstagramWebView: UIViewRepresentable {
                     return
                 }
                 decisionHandler(.cancel)
-                UIApplication.shared.open(url)
+                handOff(url)
 
             case .ignore:
                 // A scheme belonging to some app on the phone. The page asked;
                 // the person did not.
                 decisionHandler(.cancel)
             }
+        }
+
+        /// Every page comes back saying what time it is.
+        ///
+        /// This is the whole of Quiet's answer to a clock pushed forward, and
+        /// it costs one line of a response the app was reading anyway. No
+        /// request is made, nothing is asked of anybody, and nothing leaves the
+        /// phone — a `Date` header is already on the answer to a page load, put
+        /// there by the server that served it.
+        ///
+        /// Only Instagram's own hosts, and only over HTTPS. That check lives in
+        /// `ServerDate` so it can be tested without a web view.
+        func webView(
+            _ webView: WKWebView,
+            decidePolicyFor navigationResponse: WKNavigationResponse,
+            decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void
+        ) {
+            if let response = navigationResponse.response as? HTTPURLResponse,
+               let instant = ServerDate.vouched(by: response) {
+                session.vouchForTime(instant)
+            }
+            decisionHandler(.allow)
         }
 
         func webView(
@@ -721,7 +932,7 @@ struct InstagramWebView: UIViewRepresentable {
                 case let .refuse(surface):
                     session.report(surface)
                 case .openOutside:
-                    UIApplication.shared.open(url)
+                    handOff(url)
                 case .ignore:
                     break
                 }
@@ -729,7 +940,35 @@ struct InstagramWebView: UIViewRepresentable {
             return nil
         }
 
+        /// Give a page to Safari, and say so when that is about to break
+        /// something.
+        ///
+        /// Handing anything that is not Instagram's to the system is what
+        /// keeps Quiet one app rather than a browser. It has exactly one bad
+        /// moment: a sign-in that passes through a domain the allowlist does
+        /// not know is handed away mid-flow, Safari opens on a page that
+        /// cannot finish the job, and the person comes back to a login form
+        /// that has forgotten them — with nothing anywhere having said what
+        /// happened.
+        ///
+        /// The allowlist cannot be completed by guessing. The explanation can.
+        /// So a hand-off that happens while somebody is signing in names the
+        /// address it gave away, and the panel keeps the last one so it can be
+        /// reported rather than reconstructed from memory.
+        func handOff(_ url: URL) {
+            if ContentRules.isSignInFlow(surface.address) {
+                surface.note(handedOff: url)
+                session.show(String(
+                    localized: "\(url.host ?? "That page") is not part of Instagram, so it opened in Safari. If you were signing in, come back and start again."
+                ))
+            }
+            UIApplication.shared.open(url)
+        }
+
         func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+            // Something arrived, so whatever did not arrive last time is no
+            // longer the news.
+            surface.note(stumble: nil)
             surface.note(address: webView.url)
             tellThisPage(webView)
             keepPullAlive(webView.scrollView)
@@ -743,19 +982,65 @@ struct InstagramWebView: UIViewRepresentable {
             keepPullAlive(webView.scrollView)
         }
 
+        /// The page did not arrive.
+        ///
+        /// Two different situations wearing one error, and they want opposite
+        /// answers. With a page already on screen, this is a failed reload or a
+        /// tap that went nowhere: a notice, because replacing what somebody is
+        /// reading with an apology loses them their place over a request they
+        /// did not make. With nothing on screen — a cold launch on a train —
+        /// the alternative to saying something is WebKit's own grey sentence in
+        /// a white rectangle under a row that Quiet drew, which is the single
+        /// most convincing way to look broken.
         func webView(
             _ webView: WKWebView,
             didFailProvisionalNavigation navigation: WKNavigation!,
             withError error: Error
         ) {
             endPull()
-            let code = (error as NSError).code
+            let failure = error as NSError
+            let code = failure.code
             guard code != NSURLErrorCancelled else { return }
             surface.markLoaded()
-            if code == NSURLErrorNotConnectedToInternet || code == NSURLErrorNetworkConnectionLost {
-                session.show(String(localized: "No connection."))
+
+            let offline = Self.offlineCodes.contains(code)
+            guard webView.url == nil else {
+                if offline { session.show(String(localized: "No connection.")) }
+                return
             }
+
+            // Nothing on screen, and the network is there. That is the one
+            // failure where a second address is worth trying: the app opens on
+            // a path Instagram chose and Instagram can retire, and a retired
+            // path would otherwise leave every launch on a **Try again** button
+            // asking for the same dead address for ever.
+            //
+            // Not when offline. A phone with no network fails at the second
+            // address exactly as it failed at the first, and all the attempt
+            // buys is a slower way to say the true thing.
+            //
+            // The address that failed comes out of the error rather than off
+            // the view, which by now is holding nothing.
+            let failed = failure.userInfo[NSURLErrorFailingURLErrorKey] as? URL
+            if !offline, let next = ContentRules.opening(after: failed) {
+                surface.open(next)
+                return
+            }
+
+            surface.note(stumble: offline ? .offline : .unreachable)
         }
+
+        /// The codes that mean "there is no network", as against the ones that
+        /// mean "the network is there and something else went wrong". Only the
+        /// difference between those two ever reaches a person, because no
+        /// further detail turns into a sentence that helps anybody.
+        private static let offlineCodes: Set<Int> = [
+            NSURLErrorNotConnectedToInternet,
+            NSURLErrorNetworkConnectionLost,
+            NSURLErrorDataNotAllowed,
+            NSURLErrorInternationalRoamingOff,
+            NSURLErrorCallIsActive,
+        ]
 
         func webView(
             _ webView: WKWebView,
@@ -801,6 +1086,30 @@ struct InstagramWebView: UIViewRepresentable {
                 if let colour = Chrome.colour(in: body) {
                     surface.note(chrome: colour)
                 }
+
+            case "bare":
+                // Whether Instagram has drawn anything yet. The cover over the
+                // top of it stays up until this says there is something to see.
+                surface.note(bare: body["on"] as? Bool ?? false)
+
+            case "health":
+                // What the trim pass found, and did not find. The one message
+                // here that is about the app rather than about the page.
+                if let reading = Health(message: body) {
+                    surface.note(health: reading)
+                }
+
+            case "typing":
+                // Somebody is halfway through a message. The session decides
+                // what that is worth, and caps it.
+                let typing = body["on"] as? Bool ?? false
+                surface.note(typing: typing)
+                session.setTyping(typing)
+
+            case "sheet":
+                // Something modal is covering the foot of the glass. The row
+                // steps aside until it goes; see `quietBar` in BrowserScreen.
+                surface.note(sheet: body["up"] as? Bool ?? false)
 
             case "me":
                 // Read out of Instagram's navigation before it was taken out.

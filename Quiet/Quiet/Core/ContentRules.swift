@@ -72,6 +72,11 @@ enum ContentRules {
     static let blockedRoots: [String: BlockedSurface] = [
         "reels": .reels,
         "reel": .reels,
+        // IGTV's old address. Instagram folded that product into Reels and
+        // kept the path alive as a redirect, so a link written years ago is
+        // still a way into the video player — and a redirect that is followed
+        // has already loaded the page it redirects to.
+        "tv": .reels,
         "explore": .explore,
         "directory": .explore,
     ]
@@ -125,7 +130,6 @@ enum ContentRules {
         internalDomains.contains { host == $0 || host.hasSuffix("." + $0) }
     }
 
-    /// Where the app opens, and where the home button goes.
     /// Where Quiet opens.
     ///
     /// Not `instagram.com`, which serves a signed-out visitor a page whose
@@ -138,6 +142,39 @@ enum ContentRules {
     /// The feed. Where the home entry in Quiet's row goes — which is not the
     /// same address the app opens on, since that one is the login form.
     static let feed = URL(string: "https://www.instagram.com/")!
+
+    /// The addresses Quiet will try, in order, to get its first page on screen.
+    ///
+    /// `home` is a path Instagram chose and Instagram can retire. If it ever
+    /// does, every launch of this app lands on nothing — and the only thing on
+    /// screen is a **Try again** button that asks for the same dead address
+    /// again, for ever. That is the shape of the failure: not a crash, not a
+    /// wrong page, an app that is simply over, on a phone whose network is
+    /// fine.
+    ///
+    /// So there is a second address, and it is the site's own front door. A
+    /// signed-in reader lands on their feed; a signed-out one gets Instagram's
+    /// signed-out page, which is the page `home` exists to avoid — its largest
+    /// element is a button into Instagram's own app. That is a worse first
+    /// screen and it is the right trade: the button goes nowhere here, because
+    /// the `instagram:` scheme is refused whatever page offers it, and a worse
+    /// first screen beats no first screen.
+    ///
+    /// Two, and no more. A list of guesses at addresses Instagram has never
+    /// served would be a slower way to arrive at the same failure.
+    static let openings: [URL] = [home, feed]
+
+    /// The next address to try after this one did not arrive, or `nil` when
+    /// there is nothing left to try and the failure belongs on screen.
+    ///
+    /// An address that is not one of the openings has no next: a page somebody
+    /// navigated to is theirs, and quietly sending them somewhere else because
+    /// it failed would be the app deciding where they meant to go.
+    static func opening(after url: URL?) -> URL? {
+        guard let url, let index = openings.firstIndex(of: url) else { return nil }
+        let next = openings.index(after: index)
+        return next < openings.endIndex ? openings[next] : nil
+    }
 
     /// Where the messages live.
     static let messages = URL(string: "https://www.instagram.com/direct/inbox/")!
@@ -163,6 +200,53 @@ enum ContentRules {
         return path.hasPrefix("/stories/")
             || path.hasPrefix("/direct/t/")
             || path.hasPrefix("/direct/new/")
+    }
+
+    /// Whether this address is part of signing in.
+    ///
+    /// Quiet hands anything that is not Instagram's to Safari, which is the
+    /// rule that keeps it one app rather than a browser with a bookmark. That
+    /// rule has one bad moment, and it is the worst moment the app has: a
+    /// sign-in can pass through two-factor, a security checkpoint, a "save
+    /// your login info" page or Facebook, and if any of those arrives on a
+    /// domain this file does not know, the login is handed to Safari and dies
+    /// halfway with nothing anywhere saying why.
+    ///
+    /// The allowlist cannot be made complete by guessing — that is the point
+    /// of an allowlist. What can be made complete is the *explanation*: when a
+    /// page is handed outside while somebody is in the middle of signing in,
+    /// the app says so, and names the address, so the failure is a sentence
+    /// rather than a mystery.
+    static func isSignInFlow(_ url: URL?) -> Bool {
+        guard let url, let host = url.host?.lowercased(),
+              isInternal(host: host) else { return false }
+
+        // Everything that is not Instagram's own name. Quiet never links to
+        // Facebook or to Meta for anything except signing in, so arriving on
+        // one of them is the flow by definition.
+        //
+        // Asked as "is this Instagram" rather than as a suffix on the string,
+        // because `cdninstagram.com` ends with those thirteen characters
+        // without being a subdomain of anything.
+        let isInstagram = host == "instagram.com" || host.hasSuffix(".instagram.com")
+        guard isInstagram else { return true }
+
+        // Identity has a subdomain of its own, and what it serves there is a
+        // sign-in whatever the path happens to be called.
+        if host.hasPrefix("accountscenter.") { return true }
+
+        // Ending in a slash, always, for the same reason `isImmersive` does:
+        // `URL.path` drops a trailing one, so a whole-path match would miss
+        // the page whose path *is* the prefix.
+        let path = url.path.lowercased() + "/"
+        return path.hasPrefix("/accounts/login")
+            || path.hasPrefix("/accounts/signup")
+            || path.hasPrefix("/accounts/password")
+            || path.hasPrefix("/accounts/two_factor")
+            || path.hasPrefix("/accounts/onetap")
+            || path.hasPrefix("/challenge")
+            || path.hasPrefix("/auth_platform/")
+            || path.hasPrefix("/oauth/")
     }
 
     /// The profile page for a handle typed into "Find someone". Returns `nil`

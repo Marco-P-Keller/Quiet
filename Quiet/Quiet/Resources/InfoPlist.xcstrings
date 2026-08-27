@@ -1,0 +1,70 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "NSCameraUsageDescription": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram fragt nach der Kamera, wenn du ein Foto oder eine Story hinzufügst. Quiet benutzt sie nie von sich aus."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram asks for the camera when you add a photo or a story. Quiet never uses it on its own."
+          }
+        }
+      }
+    },
+    "NSMicrophoneUsageDescription": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram fragt nach dem Mikrofon, wenn du ein Video oder eine Sprachnachricht aufnimmst. Quiet benutzt es nie von sich aus."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram asks for the microphone when you record a video or a voice message. Quiet never uses it on its own."
+          }
+        }
+      }
+    },
+    "NSPhotoLibraryAddUsageDescription": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Bild von Instagram zu sichern legt es in deiner Fotomediathek ab. Quiet fügt nichts anderes hinzu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving a picture from Instagram puts it in your photo library. Quiet adds nothing else."
+          }
+        }
+      }
+    },
+    "NSPhotoLibraryUsageDescription": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram fragt nach deinen Fotos, wenn du eines auswählst, um es zu posten oder zu senden. Quiet sieht sie sich nie selbst an."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram asks for your photos when you choose one to post or to send. Quiet never looks at them itself."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

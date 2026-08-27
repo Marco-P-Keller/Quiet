@@ -28,8 +28,23 @@ final class ContentRulesTests: XCTestCase {
             "https://www.instagram.com/reels/audio/123/",
             "https://www.instagram.com/reel/CxYz123/",
             "https://www.instagram.com/someone/reels/",
+            // IGTV's old address. Instagram kept it alive as a redirect into
+            // the video player, so a link written years ago is still a door.
+            "https://www.instagram.com/tv/CxYz123/",
+            "https://www.instagram.com/tv/",
         ] {
             XCTAssertEqual(routing(address), .refuse(.reels), address)
+        }
+    }
+
+    /// The same guard as for `reels`: whole components, never a prefix, or
+    /// every account whose name starts with those two letters disappears.
+    func testAccountsThatMerelyBeginWithTVAreFine() {
+        for address in [
+            "https://www.instagram.com/tvtotal/",
+            "https://www.instagram.com/tv_show/",
+        ] {
+            XCTAssertEqual(routing(address), .allow, address)
         }
     }
 
@@ -170,5 +185,92 @@ final class ContentRulesTests: XCTestCase {
     /// Nothing loaded yet is not a story.
     func testNoAddressIsAnOrdinaryPage() {
         XCTAssertFalse(ContentRules.isImmersive(nil))
+    }
+
+    // MARK: - Signing in
+
+    /// Not a rule about what opens. A rule about what gets explained: the one
+    /// failure that makes the app useless on first run is a login handed to
+    /// Safari halfway through, and it used to happen in silence.
+    func testTheSignInFlowIsRecognised() {
+        for address in [
+            "https://www.instagram.com/accounts/login/",
+            "https://www.instagram.com/accounts/login/two_factor?next=%2F",
+            "https://www.instagram.com/accounts/signup/email/",
+            "https://www.instagram.com/accounts/password/reset/",
+            "https://www.instagram.com/accounts/onetap/",
+            "https://www.instagram.com/challenge/AbC/123/",
+            "https://www.facebook.com/login.php",
+            "https://m.facebook.com/v1/dialog/oauth",
+            "https://accountscenter.instagram.com/password_and_security/",
+        ] {
+            XCTAssertTrue(
+                ContentRules.isSignInFlow(URL(string: address)!),
+                address
+            )
+        }
+    }
+
+    /// Reading a feed is not signing in, and a notice about Safari arriving
+    /// while somebody scrolls would be the app talking for no reason.
+    func testOrdinaryInstagramPagesAreNotTheSignInFlow() {
+        for address in [
+            "https://www.instagram.com/",
+            "https://www.instagram.com/someone/",
+            "https://www.instagram.com/direct/inbox/",
+            "https://www.instagram.com/accounts/edit/",
+            "https://example.com/anything",
+        ] {
+            XCTAssertFalse(
+                ContentRules.isSignInFlow(URL(string: address)!),
+                address
+            )
+        }
+        XCTAssertFalse(ContentRules.isSignInFlow(nil))
+    }
+
+    // MARK: - Where it opens, and where it goes when that fails
+
+    /// The first address is the login form, deliberately, and the second is the
+    /// site's own front door. Both belong to Instagram: a fallback that left
+    /// the domain would be handed to Safari by the app's own rule.
+    func testTheOpeningsAreInstagramsOwnAndInThatOrder() {
+        XCTAssertEqual(ContentRules.openings, [ContentRules.home, ContentRules.feed])
+        for url in ContentRules.openings {
+            XCTAssertEqual(ContentRules.routing(for: url), .allow, url.absoluteString)
+            XCTAssertTrue(ContentRules.isInternal(host: url.host!), url.absoluteString)
+        }
+    }
+
+    /// The failure this exists for: Instagram retires the login path, and every
+    /// launch lands on nothing with a button that asks for it again.
+    func testAFailedOpeningHasSomewhereElseToGo() {
+        XCTAssertEqual(ContentRules.opening(after: ContentRules.home), ContentRules.feed)
+    }
+
+    /// And the walk ends. A list that never ran out would be an app that
+    /// retried for ever instead of saying what happened.
+    func testTheLastOpeningHasNothingAfterIt() {
+        XCTAssertNil(ContentRules.opening(after: ContentRules.feed))
+        XCTAssertNil(ContentRules.opening(after: ContentRules.openings.last))
+    }
+
+    /// A page somebody navigated to is theirs. Sending them to the feed because
+    /// their profile did not load would be the app deciding where they meant to
+    /// go, which is a different app.
+    func testAPageNobodyOpenedOnHasNoNextAddress() {
+        XCTAssertNil(ContentRules.opening(after: nil))
+        for address in [
+            "https://www.instagram.com/someone/",
+            "https://www.instagram.com/direct/inbox/",
+            "https://example.com/anything",
+            // The feed with a trailing difference is not the feed. Equality is
+            // the whole guard here: anything looser and a page that merely
+            // resembles an opening inherits the fallback.
+            "https://www.instagram.com",
+            "https://instagram.com/",
+        ] {
+            XCTAssertNil(ContentRules.opening(after: URL(string: address)!), address)
+        }
     }
 }

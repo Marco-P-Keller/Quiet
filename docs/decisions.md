@@ -1990,3 +1990,357 @@ hundred and twenty-three. It is held by the top again, and the question is now
 whether the mark is on the screen above the foot at all — which is the same
 answer at every scale, because re-anchoring sends it three hundred down from the
 top of a sheet two hundred and sixty tall, which is off the bottom of the screen.
+
+---
+
+## Instagram's own answer is the clock
+
+For a long time the trade-offs said a date moved *forward* could not be caught
+without a server, and Quiet has no server. That was true about a server and
+false about the answer.
+
+Every page the app loads comes back carrying a `Date` header, put there by the
+machine that served it. Nothing is asked of anybody, no request is made, and
+nothing leaves the phone — it is one line of a response the app was already
+reading. Paired with the device's uptime, which counts real elapsed time from
+the last restart and which no settings screen can reach, it says what time it is
+regardless of what the phone claims.
+
+Ten minutes of tolerance, which is far more room than either a `Date` header or
+a phone on automatic time needs, and three orders of magnitude short of the
+thing being defended against.
+
+It fixed the other direction too, which nothing else could. A clock pushed
+forward and then pulled back used to poison the high-water mark for as long as
+the jump was wide: the app froze, correctly by its own rule and uselessly for
+the person holding it. An instant somebody else vouched for, sitting behind the
+mark, is evidence the mark was made of a lie — and it is the one thing in the
+app allowed to bring the mark down.
+
+## The wait can be chosen, and choosing it obeys itself
+
+A week is the rule this app was built around and it is also somebody's guess.
+Refusing to let a reader be *stricter* would be the app standing between
+somebody and a smaller number, which is the one thing it promises never to do.
+
+So the wait is seven days, a fortnight or a month — under the same asymmetry as
+everything else, which is the only way it can move at all. Longer takes effect
+at once. Shorter is subject to the wait it is trying to shorten, and spends it.
+Without that second half, shortening the wait would be the free move that
+shortening the limit is, and the weekly rule would have a door in it: the
+cooldown would be the single dial you could turn down at the exact moment it
+started to bite.
+
+Not offered during setup. First run asks two questions, and the reason it asks
+only two is written above; a third would be a decision nobody has enough
+information to make yet.
+
+## There is a way out, and it opens slowly
+
+The limit lives in the keychain because it has to outlive the app being deleted.
+That is the promise. The consequence nobody had written down is that there was
+no way out at all — the only exit was for somebody to know that a keychain
+exists and to go and find it, which is not an exit, it is a trap with
+documentation.
+
+So there is a door, the same shape as every other door here. "Make Quiet forget
+everything" takes effect after the wait currently in force, and can be called
+off at any moment before then for nothing, because changing your mind about
+being released is asking to be held to the rule.
+
+The Instagram session is not part of it. Signing out has its own button and
+always did; bundling the two would mean somebody asking to be released from a
+rule was also, a week later and without being asked again, logged out.
+
+## Time on Instagram includes reading messages
+
+Never argued about in writing, which is why it is here.
+
+Quiet counts every second the site is on screen, and a conversation is the site
+being on screen. Two arguments were weighed. Messages are the part of Instagram
+that is unambiguously *for* something, and charging for them makes the app
+slightly worse at the thing nobody objects to. But an exemption for messages is
+an exemption anybody can stand in: the inbox is one tap from the feed, and a
+budget with a room in it that does not count is a budget with a room people
+learn to sit in.
+
+The panel is free and the search is free because neither of them is Instagram —
+they are the app's own furniture, and time spent deciding how much time you want
+is not time spent. A conversation is not furniture.
+
+## The notices can be turned off; the limit cannot
+
+The two warnings on the way down are a setting. It is worth being careful about
+why that is not a hole.
+
+A warning changes nothing about how much time there is. The limit is the limit
+whether or not anybody is counted down to it, the curtain falls at the same
+second either way, and turning them off buys not one minute — a test insists on
+exactly that. The single argument this app refuses to have is about *how much*,
+and this is not that argument.
+
+What it buys, for a certain kind of reader, is not being told that five minutes
+remain, since that sentence is precisely the thing that starts a last five
+minutes.
+
+## A time for Instagram, since there can be no message from it
+
+The gap that was written down as unfixable: with no notifications, "has anything
+happened?" is a question that can only be answered by opening the app. So it
+gets opened, briefly, several times a day — which is the habit the limit was
+bought to break, arriving through the one door the limit does not watch.
+
+The obvious answer is not available, and it is worth being exact about why,
+because three plausible technologies were considered and all three land in the
+same place. A notification saying a message arrived can only come from something
+that *knows* a message arrived. That is Instagram, and Instagram pushes to its
+own app; there is no webhook and no API for a personal account. CloudKit and
+Firebase are delivery, not knowledge — they carry a message somebody else wrote.
+For either to have anything to write, something outside your phone would have to
+be logged in as you and looking. That is the single thing this app is built
+never to be: today the password passes through no code in this repository at
+all, and it would stop being true the moment a server held a session. It would
+also stop working — a login from a data centre is what an account takeover looks
+like to Instagram, and the result is a checkpoint, not a notification.
+
+So the feature is not built, and something else is built in the space it leaves.
+
+**An appointment.** One reminder a day, at an hour you choose, saying only that
+the window is open. It cannot tell you whether anything happened. What it does
+is take away the reason to keep finding out: the checking has an hour, so the
+rest of the day does not need one.
+
+**And it is silent on a day you have already been.** This is the half that makes
+it worth building rather than a reminder like any other. A reminder that the
+window is open is useful; the same reminder after you have been through it is an
+invitation to a second visit, which is exactly the behaviour being replaced. The
+ledger already knows — it is the app's answer to how much of today has been
+spent — so the rule reads off the record that exists rather than keeping a
+second one.
+
+Mechanically that rules out the obvious implementation. A repeating trigger
+fires every day at six whatever else is true, and cannot be told the second half
+of the rule. So a week of individual reminders is put on the phone at a time,
+each one dated, and the whole week is recomputed from scratch on every launch
+and every time the app goes to the background. iOS holds them itself, which is
+why this needs no server and no background execution — and a week is also the
+right amount for an app you have stopped opening to say before it stops talking.
+
+Two things it costs, both named where they were claimed.
+
+The app said it had no permission prompts at all, and now it has one. It is
+asked at the moment somebody switches the reminder on — never at launch, which
+is a toll gate in front of an app nobody has decided to use yet — and if the
+phone says no, the switch goes back and says why. A switch that slides across
+while nothing was granted promises a reminder that will never arrive, which is
+worse than not offering one.
+
+And it makes Quiet speak first, which nothing in it did before. That is why it
+is off until asked for, why it is one line with no badge and no count, and why
+the one thing it will never say is what you missed.
+
+## A second device is not a second allowance
+
+The rule the app exists to hold is a number of minutes a day. Two phones with a
+thirty-minute limit are an hour, and an iPad is the way around the whole thing
+that needs no cleverness at all. It had been written down as needing a server,
+and it does not.
+
+**Where it lives.** iCloud's key-value store, not CloudKit's database, and the
+difference is operational rather than technical. A `CKRecord` needs a container
+and a schema, and a schema has to be pushed from development to production by
+hand, in a console, in a desktop browser, before a TestFlight build can write a
+single field. Until somebody does that the feature is silently dead on every
+phone that has it, and there is no way to tell from the phone. The key-value
+store needs an entitlement and nothing else — no container to choose, no record
+type, no deployment step, and no way to be half set up. What it costs is size:
+a megabyte in total, against the few hundred bytes this writes.
+
+**What crosses.** The limit, any queued increase, the day the last increase was
+asked for, the wait in force, and how much each device has spent today. Not the
+day setup happened, not the request to be forgotten, not a single thing about
+what was looked at.
+
+**The merge is the feature.** Sync is the one thing in this app that can hand
+somebody more time than they agreed to, and do it silently, so what happens when
+two copies disagree is a written rule with tests rather than "the newest wins".
+It carries the same asymmetry as the rest of the app — *less time never waits,
+more time does*:
+
+* **What is spent** is kept per device and summed, never totalled and merged.
+  Two phones that each spend ten minutes have spent twenty, so a single total
+  could only be reconciled by adding — and addition is not idempotent, so the
+  second sync would spend it twice. Each device writes only its own figure, the
+  merge takes the larger of each, and the day is the sum. Merge it as often as
+  you like; the answer does not move.
+* **The limit** follows whichever copy was written last, counted by a version
+  rather than by a clock — the app already refuses to trust this phone's clock
+  about anything that matters. Where neither is later, because both wrote
+  without seeing the other, the smaller number wins.
+* **A queued increase** takes the smaller of two, and a cancellation wins
+  outright. Cancelling is asking for less.
+* **The day of the last increase** takes the later of the two. This is the one
+  that closes the obvious door: without it a stale copy resets the weekly clock
+  and a second increase can be had in the same week by opening the other phone.
+* **The wait** takes the longer of the two, for exactly the reason the app gives
+  when it is changed by hand.
+
+The door that stays open, named rather than hidden: two devices, both offline,
+both queuing an increase in the same week. They collapse to the smaller of the
+two, so it buys nothing over asking once — but it is a real gap, and closing it
+properly needs something that can refuse, which is a server.
+
+**It is off until asked for**, like the reminder, and for the same reason: a
+thing that leaves the phone should be a thing somebody switched on. Switching it
+off takes the copy down again, and being forgotten takes it down too — a record
+left in iCloud would be seeded straight back by the next device to open, which
+would turn a promise into a delay.
+
+**Nothing waits for it.** No account, no signal, iCloud having a bad afternoon:
+all of them come back as "nothing up there", and the app behaves exactly as it
+did before this existed. A limit that stops working when the network does is not
+a limit.
+
+One consequence worth stating for the listing. Apple's guidance is that data in
+a reader's own private iCloud, which the developer cannot read and never
+receives, is not data the developer collects — the same category as a document
+in their iCloud Drive. "Data Not Collected" still holds, and the About screen
+says in as many words what goes up and what does not.
+
+## Three courtesies
+
+None of these changes what the app promises. All three change what it is like to
+hold, which is the part nobody writes down.
+
+**Coming back to where you were.** The app opened at the top of the feed every
+time, and not because anybody chose that: iOS discards a web view under memory
+pressure and what comes back is a fresh page, so you scroll the same eight posts
+again. `interactionState` is WebKit's own answer — page, history and scroll
+position in one value, restored without a load, so it is there before the first
+frame instead of a spinner.
+
+The judgement is the twenty minutes, not the mechanism. Coming back to where you
+were is a courtesy while you are still in the middle of something; coming back
+to this morning's feed at seven in the evening is an app that has not noticed
+the day moved on. Nothing is more irritating than a restore that restores the
+wrong thing, so the window is short and the value is thrown away rather than
+kept. Two refusals go with it: a place from the future is a clock that moved,
+not a place; and an address the app would no longer open is not restored, because
+a restored state never passes the navigation delegate and would otherwise walk
+back in through the side door.
+
+**Not cutting somebody off mid-sentence.** The day ending while a message is half
+typed takes the message with it. That is not strict, it is rude, and the app can
+be one without being the other. So the curtain waits — once a day, for twenty
+seconds, and only while a field actually has the keyboard.
+
+The shape matters more than the number. The seconds are *counted*: the ledger
+goes over, the day ends a little over rather than a little later, and nothing is
+given away. Stopping typing ends it immediately, because the point of it was the
+sentence. And it cannot be had twice, or the day could be extended twenty
+seconds at a time by anybody willing to keep tapping into a message box.
+
+**The last five minutes, without a countdown.** The app refuses to show a
+ticking clock, and the refusal is right: a clock you can watch is a clock you do
+watch, and a number counting down turns the last ten minutes into the loudest
+ten of the day. But there is a middle. The glyph in the middle of the row
+changes once, at five minutes, from a clock to an hourglass with the sand
+through it. No number, no ticking, nothing that rewards looking twice — one
+state, and you already know. The five is read off `QuietSession.warnings` rather
+than written down again, so the glyph and the sentence the app says out loud can
+never be a minute apart.
+
+A fourth was on the list and turned out to be already built: tapping the entry
+you are already standing on scrolls the page back to the top, the way Instagram's
+own app does.
+
+---
+
+## A sheet is what is in front of the page
+
+The row already steps aside for a sheet, and the account switcher still came
+back photographed with the pill drawn through "Log in to an Existing Account".
+Three questions were being asked, all of them at the foot of the glass: does
+Instagram say this is a dialog, is there something the shape of a sheet down
+there, and has the page stopped scrolling. The switcher can slip all three. It
+says nothing about being modal. Where its panel sits in Instagram's tree, and
+what `position` they gave it, are theirs to change on any Tuesday. And whether
+the page behind it is pinned is a line in somebody else's stylesheet.
+
+The fourth question is asked in the middle of the glass instead, and it is the
+one that says what a sheet *is* before it says what one looks like: **is the
+page still the thing on the screen?** Every sheet on the mobile web puts a
+dimmed sheet of nothing between you and the page, because that is what a tap
+outside has to land on. It spans the glass, it is drawn on top rather than laid
+out, and it is not part of the page.
+
+`main` tells those two apart, the same way it already does for the shape test.
+The page is what Instagram puts inside `main`; an overlay is drawn in front of
+it; the shell that holds both *contains* it. So the walk out from the point ends
+three ways — inside the page, is the page's shell, or is Quiet's own — and only
+what is left can be a sheet. The last of those three refusals is the one that
+matters most, and it has a check of its own: a wrapper the size of the glass
+that is merely laid out is not a sheet, because that is what a page whose
+content lives outside `main` looks like, and it is the one shape this could have
+taken the row away from for good.
+
+Nothing of Instagram's is marked, moved, padded, lifted or hidden — which is
+still the whole of it. A wrong answer costs a row that fades for a moment, and
+the first flick of a thumb puts it back.
+
+Five checks, which is ninety-one.
+
+## One dark, and it is the one already on the screen
+
+Quiet's paper is warm off-white by day and was warm near-black by night, and the
+argument for the second was the first: paper is warm, and there is no reason for
+it to stop being warm after dark. That argument holds for a screen that is on
+its own and loses for one standing next to somebody else's page — which is the
+same way the hairline under the clock lost, two hundred lines above this.
+
+Three darks were meeting down one screen. Instagram's is a cool near-black. The
+system's — which is what the ground under the web view, the blank held over it
+before the first page and the bar along the bottom were all painted in — is pure
+black. Quiet's own was brown. Two seams, both visible, neither of them anything
+anybody chose.
+
+So there is one dark now: a shade off black, cool rather than warm, sitting
+where the tone Instagram draws its own chrome in already sits. It is not sampled
+from the page — this colour has to be right for screens that are up before any
+page has loaded and after the day is over — but it is chosen to stand beside
+that tone without a line where the two meet. The band behind the clock goes on
+being sampled, as it has been all along; what changed is only what it falls back
+to and what surrounds it.
+
+Nothing changes by day. Instagram's page is white and the system's is white, so
+the ground stays the system's own and Quiet's paper stays the cream it was. The
+warmth was never what made the app's own screens feel unlike the site — the
+serif and the emptiness are — and in the dark it was only ever a brown seam.
+
+## The hole in the launch
+
+A photograph of the second between Quiet's opening screen and Instagram's first
+paint: the band behind the clock in the app's own near-black, and everything
+below it pure black.
+
+Two lines had been setting the web view's background colour to that same
+near-black for several builds, and they did nothing at all. **An opaque
+`WKWebView` never shows its own background colour.** WebKit fills the view with
+the page's colour, a page that has not painted yet has none, and the base it
+falls back to under a dark appearance is pure black. So every surface in the app
+was one colour and the largest one on screen was another, for about a second, on
+every cold launch.
+
+`isOpaque = false` is the whole fix, and it is worth naming what it costs:
+a composite, which WebKit was doing anyway the moment anything on the page was
+translucent. What it buys is a launch that is one colour from the opening screen
+through to Instagram — and the step at the end, from Quiet's near-black to
+Instagram's black, is the one the ground colour was chosen for in the first
+place.
+
+`underPageBackgroundColor` goes with it, for the strip WebKit paints itself when
+the page is pulled past its own ends.
+
+The lesson is the one this project keeps meeting: a line that looks like it
+configures something is not evidence that anything is configured. The colour was
+set, written down, and invisible.

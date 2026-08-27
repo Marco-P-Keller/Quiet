@@ -70,5 +70,9 @@ struct UsageLedger: Codable, Equatable, Sendable {
     /// The longest single stretch Quiet will credit in one go. Foreground time
     /// is sampled every few seconds, so anything near an hour is a bad reading,
     /// not a fact.
-    static let plausibleTick: TimeInterval = 3600
+    ///
+    /// The number itself lives in `Elapsed`, because the same rule is applied
+    /// by the counter that decides whether the app may ask what you think of
+    /// it, and two copies of a number are two numbers.
+    static let plausibleTick: TimeInterval = Elapsed.plausible
 }

@@ -3,8 +3,10 @@
 Instagram, minus the parts that were built to keep you there — and a daily limit
 that cannot be lifted in the moment it starts to bite.
 
-An iPhone app. SwiftUI, iOS 17, no third-party dependencies, no servers, no
-account, no analytics, and not a single permission prompt.
+An iPhone app. SwiftUI, iOS 17, no third-party dependencies, no server of its
+own, no
+account, no analytics, and one permission prompt, which never appears unless
+you go and ask for it.
 
 ---
 
@@ -182,7 +184,10 @@ The parts that are easy to skip and obvious once missing:
   because a bar that does not answer the finger reads as a picture of a bar; and
   one soft tap at the moment the day ends, so the curtain reads as the app
   meaning it rather than as a fault.
-* **No permission prompts at all**, and no networking of Quiet's own.
+* **One permission prompt, and only if you ask for it.** Nothing is requested
+  at launch. The daily reminder is off until somebody switches it on, and the
+  phone is asked at that moment — attached to a switch that was just pressed,
+  which is the only time the question can be answered meaningfully.
 
 ## What is verified
 

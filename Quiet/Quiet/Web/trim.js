@@ -30,8 +30,18 @@
   window.__quietTrimInstalled = true;
 
   /** Path roots Quiet does not open. Mirrors ContentRules.blockedRoots. */
-  var BLOCKED = /^\/(reels?|explore|directory)(\/|$)/;
+  var BLOCKED = /^\/(reels?|tv|explore|directory)(\/|$)/;
   var SUGGESTED_ACCOUNTS = /^\/accounts\/suggested(\/|$)/;
+
+  /** Which surface each of those roots belongs to. Mirrors the same table. */
+  var ROOT_SURFACE = {
+    reel: "reels",
+    reels: "reels",
+    /* IGTV's old address, kept alive as a redirect into the video player. */
+    tv: "reels",
+    explore: "explore",
+    directory: "explore",
+  };
 
   /**
    * Headings that mark a block Instagram inserted rather than one your friends
@@ -39,6 +49,7 @@
    * mentions the words is left alone.
    */
   var SUGGESTION_LABELS = [
+    /* English */
     "suggested for you",
     "suggested posts",
     "suggested accounts",
@@ -46,24 +57,110 @@
     "suggested threads",
     "reels",
     "discover people",
+    /* German */
     "vorgeschlagene beiträge",
     "vorschläge für dich",
     "vorgeschlagen für dich",
+    /* Spanish */
     "sugerencias para ti",
     "publicaciones sugeridas",
+    /* French */
     "suggestions pour vous",
     "publications suggérées",
+    /* Italian */
     "suggerimenti per te",
     "post suggeriti",
+    /* Portuguese */
     "sugestões para você",
     "publicações sugeridas",
+    /* Dutch */
     "voorgesteld voor jou",
+    /* Swedish */
     "förslag för dig",
+    /* Danish */
+    "foreslået til dig",
+    /* Norwegian */
+    "foreslått for deg",
+    /* Finnish */
+    "ehdotuksia sinulle",
+    /* Polish */
+    "propozycje dla ciebie",
+    "sugerowane posty",
+    /* Czech */
+    "návrhy pro vás",
+    /* Romanian */
+    "sugestii pentru tine",
+    /* Hungarian */
+    "javaslatok neked",
+    /* Greek */
+    "προτεινόμενα για εσένα",
+    /* Turkish. The reason this file normalises before it compares: a capital
+     * dotted I lower-cases to an i with a combining dot above, which is not
+     * the letter anybody would write in a list like this one. */
+    "senin için önerilenler",
+    "sizin için önerilenler",
+    "önerilen gönderiler",
+    /* Russian */
+    "рекомендации для вас",
+    "рекомендуемые публикации",
+    /* Ukrainian */
+    "рекомендації для вас",
+    /* Indonesian */
+    "disarankan untuk anda",
+    "postingan yang disarankan",
+    /* Vietnamese */
+    "gợi ý cho bạn",
+    /* Arabic */
+    "مقترح لك",
+    "منشورات مقترحة",
+    /* Hindi */
+    "आपके लिए सुझाव",
+    /* Thai */
+    "แนะนำสำหรับคุณ",
+    /* Japanese */
+    "あなたへのおすすめ",
+    "おすすめの投稿",
+    /* Korean */
+    "회원님을 위한 추천",
+    /* Chinese, simplified and traditional */
+    "为你推荐",
+    "為你推薦",
   ];
+
+  /**
+   * One spelling of a phrase, so that two spellings of it match.
+   *
+   * The comparison used to be `trim().toLowerCase()`, which is right for
+   * English and wrong in three different ways for everybody else:
+   *
+   *   * A Turkish capital dotted I lower-cases to an `i` followed by a
+   *     combining dot above. Written the way a person writes it, no Turkish
+   *     phrase in the list above could ever have matched a heading Instagram
+   *     actually draws.
+   *   * Instagram emits non-breaking spaces between words. `trim` removes them
+   *     at the ends and nothing touches the ones in the middle, so a heading
+   *     with one in it was a heading that got through.
+   *   * An accent can be written more than one way in Unicode, and which one
+   *     arrives is not something a page promises.
+   *
+   * Decomposing, dropping the combining marks and collapsing the whitespace
+   * settles all three. It also makes the match accent-blind, which is a
+   * slightly wider net than before — and the two guards that decide whether a
+   * match may hide anything, that it is not inside a link and no longer than a
+   * heading, are unchanged. The net is wider only where widening it is safe.
+   */
+  function normalise(text) {
+    return (text || "")
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+  }
 
   var labelSet = Object.create(null);
   for (var i = 0; i < SUGGESTION_LABELS.length; i++) {
-    labelSet[SUGGESTION_LABELS[i]] = true;
+    labelSet[normalise(SUGGESTION_LABELS[i])] = true;
   }
 
   /** The Reels tab on a profile: /someone/reels/. */
@@ -71,7 +168,11 @@
 
   function surfaceFor(path) {
     var match = BLOCKED.exec(path);
-    if (match) return match[1].indexOf("reel") === 0 ? "reels" : "explore";
+    /* Looked up rather than worked out from the spelling. The old version
+     * asked whether the root began with "reel" and called everything else
+     * Explore, which was true for exactly as long as the table held four
+     * entries — "tv" arrived and started announcing itself as Explore. */
+    if (match) return ROOT_SURFACE[match[1]] || "explore";
     if (SUGGESTED_ACCOUNTS.test(path)) return "explore";
     if (PROFILE_REELS.test(path)) return "reels";
     return null;
@@ -257,6 +358,7 @@
   function replaceNav() {
     var row = navRow();
     if (!row) return;
+    found("nav");
     if (!window.__quietMe) learnMe(row);
     // Before the row goes: what is drawn behind it still has a size, and a
     // hidden element has none.
@@ -617,6 +719,41 @@
     return node.getAttribute && node.getAttribute("contenteditable") === "true";
   }
 
+  /* ── Somebody mid-sentence ────────────────────────────────────────────── */
+
+  /**
+   * Say when a message is being typed, and when it stops.
+   *
+   * For one thing only: the end of the day arriving while somebody is halfway
+   * through a sentence takes the sentence with it. That is not strict, it is
+   * rude — and the app can be strict without being rude. What the app does
+   * with this is in `QuietSession`, and it is capped there.
+   *
+   * The page is the only place that knows. A keyboard is not a fact the app can
+   * see, and the field being typed in belongs to Instagram.
+   */
+  var typing = false;
+
+  function sayTyping(on) {
+    if (on === typing) return;
+    typing = on;
+    post({ kind: "typing", on: on });
+  }
+
+  function watchForTyping() {
+    document.addEventListener("focusin", function (event) {
+      if (beingTypedIn(event.target)) sayTyping(true);
+    }, true);
+    document.addEventListener("focusout", function () {
+      /* On the next turn, because moving between two fields blurs one before it
+       * focuses the other, and a gap of one frame is not somebody stopping. */
+      setTimeout(function () {
+        var here = document.activeElement;
+        sayTyping(!!here && beingTypedIn(here));
+      }, 0);
+    }, true);
+  }
+
   /** The name the app used before there were three of them. */
   window.__quietOpenProfile = function () {
     return window.__quietGo("profile");
@@ -716,6 +853,10 @@
   function sayWhere() {
     if (location.pathname === lastPath) return;
     lastPath = location.pathname;
+    // A new page: nothing has been found on it yet, and one more has gone by
+    // for the tally to be read against.
+    tally.pages += 1;
+    here = { nav: false, header: false };
     post({ kind: "where", path: lastPath });
   }
 
@@ -827,6 +968,78 @@
       channels.push(Math.min(255, Math.max(0, channel)));
     }
     return channels;
+  }
+
+  /* ── Whether there is anything on the page at all ─────────────────────── */
+
+  /**
+   * Whether Instagram has drawn anything yet, sent up so the app can keep its
+   * own cover over a page that has nothing on it.
+   *
+   * The app used to lift the cover the moment the navigation settled, and a
+   * navigation settling is not the same event as a page appearing. Instagram
+   * is a shell: the request finishes, the app says loaded, and what is on the
+   * glass for the next second or two is Instagram's own black rectangle with
+   * nothing in it. A photograph of that is the reason this exists — a black
+   * void under a grey band, which reads as a broken app rather than a loading
+   * one.
+   *
+   * **Said once, and only on the way up.** Instagram empties its own main
+   * element on every client-side move between pages, and a cover that answered
+   * that would flash over the screen every time somebody opened a profile. So
+   * this reports while the page has never shown anything, and goes quiet for
+   * good the first time it has. The cover is a cold-start thing; after that the
+   * page is the page, empty or not.
+   */
+
+  /** Things that put ink on a screen. One of them, drawn, is a page. */
+  var INK = "img, svg, video, canvas, input, textarea, button, h1, h2, p";
+
+  /** Past which there is plainly something there, without measuring it. */
+  var PLENTY = 24;
+
+  var everPainted = false;
+  var lastBare = null;
+
+  function sayBare() {
+    if (everPainted) return;
+
+    var bare = pageIsBare();
+    if (!bare) everPainted = true;
+    if (bare === lastBare) return;
+    lastBare = bare;
+
+    post({ kind: "bare", on: bare });
+  }
+
+  /**
+   * Nothing drawn anywhere in the document.
+   *
+   * Two things are asked of each candidate, and both are about the same
+   * mistake. What Quiet takes off the page is hidden rather than removed, so
+   * Instagram's own navigation row is still in the document with its five
+   * glyphs in it on a page that has painted nothing else — and a count would
+   * call that a page. So anything Quiet has marked is skipped by name, and
+   * everything else is measured: an element with no box is an element nobody
+   * can see, whoever hid it and however.
+   */
+  function pageIsBare() {
+    var body = document.body;
+    if (!body) return true;
+
+    var candidates = body.querySelectorAll(INK);
+    // A page with this much in it has something in it. The walk below is for
+    // the handful of elements a shell holds while it waits for its first
+    // screen, not for a feed.
+    if (candidates.length > PLENTY) return false;
+
+    for (var i = 0; i < candidates.length; i++) {
+      var element = candidates[i];
+      if (element.closest("[data-quiet-hidden]")) continue;
+      var box = element.getBoundingClientRect();
+      if (box.width > 0 && box.height > 0) return false;
+    }
+    return true;
   }
 
   /* ── Instagram's header, in the arrangement its own app uses ──────────── */
@@ -987,6 +1200,7 @@
   function shapeHeader() {
     var bar = headerBar();
     if (!bar) return;
+    found("header");
 
     var heart = bar.querySelector(ACTIVITY);
     var mark = bar.querySelector('a[href="/"]');
@@ -1049,6 +1263,14 @@
       lastY = y;
 
       showOrHideHeader(isFeed() && y > CLEAR_OF_THE_TOP && delta > 0);
+      // And the row, which is the safety valve on the whole sheet question. A
+      // page that is scrolling is a page that is not locked, so if the app is
+      // holding its row down for a modal that has since gone — because the
+      // closing never showed up as a mutation, or because Instagram forgot to
+      // unlock — the first flick of a thumb puts it back. The row is the only
+      // way to Quiet's own settings, and it must never be possible to be
+      // stranded without it.
+      saySheet();
     }, { passive: true });
   }
 
@@ -1512,6 +1734,336 @@
     node.setAttribute("data-quiet-pinned", "");
   }
 
+  /* ── Something modal, and nothing done about it ───────────────────────── */
+
+  /**
+   * Whether Instagram has a sheet up, said once and acted on by nobody here.
+   *
+   * Instagram puts one up for switching accounts, for sharing, and for the menu
+   * behind the three dots. It covers the foot of the glass, which is where
+   * Quiet's own row floats, and the row is drawn straight across the last
+   * button on it.
+   *
+   * Eleven mechanisms went into fixing that and every one of them *moved
+   * something of Instagram's* — pad the panel, transform it, give it a margin,
+   * take the glass away underneath it. Each had to recognise the sheet before
+   * it could touch it, and recognition failed in both directions: it missed the
+   * account switcher for eight rounds, because Instagram never says a sheet is
+   * one; then it caught the inbox and moved a list of conversations up over its
+   * own header.
+   *
+   * This does none of that. Nothing here is marked, moved, padded, lifted or
+   * hidden. The page answers one question and the app decides what to do about
+   * its own furniture — which is what makes recognition affordable again. A
+   * wrong answer now costs a row that fades for a moment. It used to cost a
+   * page that came back broken.
+   */
+  var MODAL = '[role="dialog"], [aria-modal="true"], dialog[open]';
+
+  /* Tall enough to be a sheet rather than a bar, and short enough to be a sheet
+   * rather than the dimmed backdrop around one. */
+  var SHEET_SHORTEST = 120;
+  /* How far above the bottom edge a sheet may stop and still be one. */
+  var SHEET_FOOT = 48;
+
+  /* False rather than nothing, so a screen with no sheet on it says nothing at
+   * all. The app starts from the same answer, and a message that only ever
+   * confirms the obvious is a message worth not sending. */
+  var lastSheet = false;
+
+  function saySheet() {
+    var up = !!theSheet();
+    if (up === lastSheet) return;
+    lastSheet = up;
+    post({ kind: "sheet", up: up });
+  }
+
+  function theSheet() {
+    return theSheetItSaysItIs() ||
+      theSheetByItsShape() ||
+      theLockedPage() ||
+      theSheetOverThePage();
+  }
+
+  /**
+   * The page itself, stopped — which is the most reliable of the four and the
+   * only one that needs nothing of Instagram's markup to be true.
+   *
+   * A photograph of the real account switcher, on a build that had the two
+   * tests above, came back with the pill still drawn through "Log in to an
+   * Existing Account". So the shape test did not find it, and the honest
+   * reading is that it never will reliably: it turns on where the panel sits in
+   * somebody else's tree and what `position` they gave it, and both are theirs
+   * to change on any Tuesday.
+   *
+   * What is not theirs to change is what a modal *is*. Every one of them stops
+   * the page behind it from scrolling, because a background that scrolls under
+   * a sheet is the oldest bug on the mobile web — so they set `overflow:
+   * hidden`, or the iOS trick of pinning the body. That is a fact about the
+   * document, in the document's own stylesheet, and it is exactly as true for a
+   * sheet Instagram ships next month.
+   *
+   * It cannot catch the inbox, which is what the shape test caught: a list of
+   * conversations scrolls, and a page that scrolls is not locked. Nothing in
+   * trim.css sets `overflow` on either element, so the only hand that can have
+   * written it is Instagram's.
+   */
+  function theLockedPage() {
+    return scrollIsLocked() ? document.body : null;
+  }
+
+  function scrollIsLocked() {
+    if (!document.body) return false;
+    var body = window.getComputedStyle(document.body);
+    /* Pinning the body is how the mobile web stops iOS scrolling a background,
+     * and it is never done for any other reason. */
+    if (body.position === "fixed") return true;
+    if (body.overflow === "hidden" || body.overflowY === "hidden") return true;
+    var root = window.getComputedStyle(document.documentElement);
+    return root.overflow === "hidden" || root.overflowY === "hidden";
+  }
+
+  /**
+   * Something drawn over the page, which is what a sheet is before it is
+   * anything else.
+   *
+   * The three above all look at the foot of the glass, because that is where
+   * the row is and where the harm is. This one looks at the middle of it, and
+   * asks a different question: is the page still the thing on the screen?
+   *
+   * It exists because the account switcher can slip all three. It says nothing
+   * about being modal, its panel sits somewhere in Instagram's tree that the
+   * shape test cannot count on, and whether the page behind it is pinned is
+   * Instagram's business and could be true one week and not the next. What is
+   * left is the one thing every sheet on the mobile web does and none of them
+   * can skip: it puts a dimmed sheet of nothing between you and the page, so
+   * that a tap outside closes it. That thing spans the glass, it is drawn on
+   * top, and it is not part of the page.
+   *
+   * Which is the whole test. Ask what is drawn two fifths of the way down —
+   * clear of Instagram's own header, and above the top edge of any sheet that
+   * leaves that much of the page showing — and walk out from it. If the page
+   * is what is there, there is no sheet. If something that covers the glass is
+   * there instead, and the page is behind it rather than around it, there is.
+   *
+   * `main` does the work of telling those two apart, the same way it does for
+   * the shape test: the page is what Instagram puts inside `main`, an overlay
+   * is drawn in front of it, and the shell that holds both *contains* it. So
+   * three answers end the walk — inside the page, is the page's shell, or is
+   * Quiet's own — and only what is left can be a sheet.
+   */
+  var OVER_THE_PAGE = 0.4;
+
+  function theSheetOverThePage() {
+    if (!document.elementFromPoint) return null;
+    /* No `main` is no way to tell an overlay from the page it covers, and the
+     * honest answer to a question that cannot be answered is nothing at all. */
+    var main = document.querySelector("main");
+    if (!main) return null;
+
+    var width = window.innerWidth || 390;
+    var height = window.innerHeight || 844;
+    var node = document.elementFromPoint(
+      Math.round(width / 2),
+      Math.round(height * OVER_THE_PAGE)
+    );
+
+    while (node && node !== document.body && node !== document.documentElement) {
+      /* Quiet's own furniture, and the page itself showing through. */
+      if (ours(node)) return null;
+      if (main.contains(node)) return null;
+      /* Out of the overlay and into the shell Instagram draws everything in,
+       * the page included. Nothing from here up is in front of anything. */
+      if (node.contains(main)) return null;
+      if (drawnOverTheGlass(node, width, height)) return node;
+      node = node.parentElement;
+    }
+    return null;
+  }
+
+  /**
+   * As wide and as tall as the glass, and drawn rather than laid out.
+   *
+   * The second half matters as much as the first. A page's own wrapper can be
+   * exactly the size of the glass and is still the page; what is put in front
+   * of one is positioned, because that is the only way to be in front.
+   */
+  function drawnOverTheGlass(node, width, height) {
+    var box = node.getBoundingClientRect();
+    if (!box || box.width < width * 0.9) return false;
+    if (box.height < height * 0.9) return false;
+    var position = window.getComputedStyle(node).position;
+    return position === "fixed" || position === "absolute";
+  }
+
+  /** The easy half, and the one Instagram is under no obligation to give. */
+  function theSheetItSaysItIs() {
+    var modals = document.querySelectorAll(MODAL);
+    for (var i = 0; i < modals.length; i += 1) {
+      if (isSheet(modals[i], true)) return modals[i];
+    }
+    return null;
+  }
+
+  /**
+   * The hard half: ask the screen what is drawn over the foot of the glass.
+   *
+   * Three columns rather than one, because a sheet is full width and something
+   * of Instagram's own may be over the middle of it. Shallowest first, so what
+   * is found is the panel rather than a button inside it that happens to end in
+   * the same place.
+   */
+  function theSheetByItsShape() {
+    if (!document.elementsFromPoint) return null;
+    var width = window.innerWidth || 390;
+    var height = window.innerHeight || 844;
+    var columns = [
+      Math.round(width * 0.2),
+      Math.round(width / 2),
+      Math.round(width * 0.8)
+    ];
+    for (var c = 0; c < columns.length; c += 1) {
+      var stack = document.elementsFromPoint(columns[c], height - 8) || [];
+      for (var i = stack.length - 1; i >= 0; i -= 1) {
+        if (isSheet(stack[i], false)) return stack[i];
+      }
+    }
+    return null;
+  }
+
+  /**
+   * What makes something a sheet rather than a part of the page.
+   *
+   * `declared` relaxes the shape but never the two refusals below it: something
+   * that says it is modal is believed about being modal, not about being
+   * somewhere it is not.
+   */
+  function isSheet(node, declared) {
+    if (!node || !node.getAttribute) return false;
+    if (node === document.body || node === document.documentElement) return false;
+    if (ours(node)) return false;
+    /* Page content is never a sheet, however much it looks like one. A sheet is
+     * put in *front* of the page, and the page is what is inside `main` — which
+     * is exactly where the inbox keeps its list of conversations, the thing an
+     * earlier version of this took for a sheet and moved. */
+    if (insideThePage(node)) return false;
+
+    var box = node.getBoundingClientRect();
+    if (!box || box.width <= 0 || box.height <= 0) return false;
+
+    var width = window.innerWidth || 390;
+    var height = window.innerHeight || 844;
+    /* A sheet spans the glass. A card, a toast and a menu tucked into a corner
+     * do not. */
+    if (box.width < width * 0.9) return false;
+    if (box.bottom < height - SHEET_FOOT) return false;
+    if (declared) return true;
+
+    if (box.height < SHEET_SHORTEST) return false;
+    /* As tall as the glass is the backdrop, not the sheet. */
+    if (box.height > height - SHEET_FOOT) return false;
+    var style = window.getComputedStyle(node);
+    if (style.position !== "fixed" &&
+        style.position !== "absolute" &&
+        style.position !== "sticky") return false;
+    /* Something to press. A sheet is a question; a spacer is not. */
+    return !!node.querySelector('a, button, [role="button"], input');
+  }
+
+  /** Anything Quiet has drawn or already dealt with. */
+  function ours(node) {
+    if (node.id && node.id.indexOf("quiet-") === 0) return true;
+    if (node.getAttribute("data-quiet-hidden") !== null) return true;
+    if (node.getAttribute("data-quiet-floor") !== null) return true;
+    return false;
+  }
+
+  function insideThePage(node) {
+    var main = document.querySelector("main");
+    return !!main && main.contains(node);
+  }
+
+  /**
+   * Ask again for a moment, because a sheet arrives by sliding and a slide is
+   * not a mutation.
+   *
+   * The observer hears the panel go into the document, and at that moment the
+   * panel is still below the bottom edge with a transform on it; nothing in the
+   * document changes while it travels. So the pass above runs exactly once, at
+   * the one instant the honest answer is that there is no sheet. That was the
+   * whole of the eighth photograph, and it explains the seven before it: every
+   * one of them changed what the app *did* about a sheet, and none of them
+   * changed whether the app ever heard about one.
+   */
+  var SETTLE = [16, 50, 120, 240, 420, 650];
+
+  var settling = false;
+
+  function settle() {
+    if (settling) return;
+    settling = true;
+    var step = 0;
+    (function again() {
+      if (step >= SETTLE.length) {
+        settling = false;
+        return;
+      }
+      var wait = SETTLE[step] - (step > 0 ? SETTLE[step - 1] : 0);
+      step += 1;
+      setTimeout(function () {
+        saySheet();
+        again();
+      }, wait);
+    })();
+  }
+
+  /* ── Whether any of this is still working ─────────────────────────────── */
+
+  /**
+   * A tally, so that the app can notice its own failure.
+   *
+   * This is the one hole the whole approach has. `ContentRules` matches on
+   * addresses and will keep working; everything else here recognises Instagram
+   * by its shape, and the day Instagram changes that shape the recognising
+   * simply stops finding anything. Nothing throws. Nothing logs. The row along
+   * the bottom falls back to Quiet's own symbols, the suggestion blocks come
+   * back, and the app goes on looking exactly like an app that is working.
+   *
+   * So the script counts what it found. Not to fix anything — it cannot — but
+   * so that "Instagram changed something and Quiet has not caught up" is a
+   * sentence the app can say rather than a thing somebody has to notice while
+   * scrolling a real feed.
+   *
+   * Counted per page rather than per frame. The trim pass runs on every
+   * mutation, and a count of frames would say a great deal about how busy
+   * Instagram's client is and nothing about whether anything was found.
+   */
+  var tally = { pages: 0, nav: 0, headers: 0, hidden: 0 };
+
+  /** What has already been found on the page currently open. */
+  var here = { nav: false, header: false };
+
+  var lastTally = "";
+
+  function found(what) {
+    if (here[what]) return;
+    here[what] = true;
+    tally[what === "nav" ? "nav" : "headers"] += 1;
+  }
+
+  function sayHealth() {
+    var line = [tally.pages, tally.nav, tally.headers, tally.hidden].join(":");
+    if (line === lastTally) return;
+    lastTally = line;
+    post({
+      kind: "health",
+      pages: tally.pages,
+      nav: tally.nav,
+      headers: tally.headers,
+      hidden: tally.hidden,
+    });
+  }
+
   /* ── 1. Taps ──────────────────────────────────────────────────────────── */
 
   document.addEventListener(
@@ -1561,7 +2113,7 @@
     for (var i = 0; i < candidates.length; i++) {
       var element = candidates[i];
 
-      var text = (element.textContent || "").trim().toLowerCase();
+      var text = normalise(element.textContent);
       if (lastSeenText.get(element) === text) continue;
       lastSeenText.set(element, text);
 
@@ -1577,6 +2129,9 @@
         block = element.parentElement;
       }
       if (block && block !== root && root.contains(block)) {
+        if (block.getAttribute("data-quiet-hidden") !== "suggestion") {
+          tally.hidden += 1;
+        }
         block.setAttribute("data-quiet-hidden", "suggestion");
       }
     }
@@ -1607,6 +2162,17 @@
       dressHeader();
       liftHeader();
       shapeHeader();
+      sayHealth();
+      // Last, because Instagram's own bottom navigation and its door back into
+      // the app are both full-width things at the foot of the glass — which is
+      // to say, both indistinguishable from a sheet right up until the calls
+      // above mark them.
+      saySheet();
+      // And last of all, whether any of that found anything: the answer has to
+      // be read after the calls above have hidden what they hide, or
+      // Instagram's own navigation row counts as a page.
+      sayBare();
+      settle();
     });
   }
 
@@ -1653,6 +2219,8 @@
       scheme.addListener(schedule);
     }
   }
+
+  watchForTyping();
 
   new MutationObserver(schedule).observe(document.documentElement, {
     childList: true,

@@ -1,9 +1,8 @@
 import XCTest
 @testable import Quiet
 
-/// The one preference in the app, and the two things that can go wrong with a
-/// preference: it does not come back, or it comes back as something nobody
-/// chose.
+/// The preferences, and the two things that can go wrong with a preference: it
+/// does not come back, or it comes back as something nobody chose.
 @MainActor
 final class PreferencesTests: XCTestCase {
     private var suite: String!
@@ -75,6 +74,29 @@ final class PreferencesTests: XCTestCase {
         for shape in RowShape.allCases {
             XCTAssertFalse(shape.name.isEmpty, "\(shape) must have a name")
         }
+    }
+
+    // MARK: - What the app says on the way down
+
+    /// On unless it has been turned off, which is not what `bool(forKey:)`
+    /// answers for a key nobody has written. Asking it that way would have
+    /// shipped an app that says nothing until somebody finds the switch and
+    /// turns it on — silently, and looking exactly like a working app.
+    func testTheAppSpeaksUntilItIsToldNotTo() {
+        XCTAssertTrue(Preferences(defaults: defaults, hardware: .iPhone15).saysWhatIsLeft)
+    }
+
+    func testSilenceIsRememberedAndSoIsChangingYourMind() {
+        let first = Preferences(defaults: defaults, hardware: .iPhone15)
+        first.saysWhatIsLeft = false
+        XCTAssertFalse(
+            Preferences(defaults: defaults, hardware: .iPhone15).saysWhatIsLeft
+        )
+
+        first.saysWhatIsLeft = true
+        XCTAssertTrue(
+            Preferences(defaults: defaults, hardware: .iPhone15).saysWhatIsLeft
+        )
     }
 }
 

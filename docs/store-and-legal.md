@@ -66,7 +66,9 @@ The practical risk is not a lawsuit. It is:
 Two things reduce the exposure, and both are already true of this code:
 
 * Quiet has **no server and no scraping**. It runs in a web view, on the user's
-  own logged-in session. Nothing is collected, stored, or sent anywhere.
+  own logged-in session. Nothing is collected, and nothing is sent anywhere the
+  developer can reach: the one optional sync writes a limit and a running total
+  into the reader's *own* iCloud, which the developer has no access to.
 * Quiet **does not touch authentication**. The login page is Instagram's, the
   injected script never reads a form field, and no credential passes through any
   code in this repository.

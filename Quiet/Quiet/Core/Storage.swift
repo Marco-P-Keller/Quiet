@@ -1,8 +1,15 @@
 import Foundation
 
-/// The four things Quiet remembers. There is no fifth.
+/// The six things Quiet remembers, and there is no seventh.
+///
+/// Four of them are the app's memory of the promise. The fifth is a memory of
+/// having been asked to let go of it, which has to live here for the same
+/// reason the rest does: a request to be forgotten that could be cancelled by
+/// deleting the app would be a request that means nothing. The sixth is what
+/// the reader's *other* phones have said, which belongs here for a third
+/// reason: forgetting it would forget time they have already spent.
 enum StoreKey: String, CaseIterable, Sendable {
-    /// The daily limit, plus any queued change.
+    /// The daily limit, plus any queued change and the wait in force.
     case limit
     /// Today's total.
     case usage
@@ -11,6 +18,11 @@ enum StoreKey: String, CaseIterable, Sendable {
     /// The day setup finished. Its absence is what marks a fresh install, and
     /// its value is what lets the app know how new it still is to you.
     case setupDay
+    /// The day, if any, on which everything above is to be thrown away.
+    case forgetOn
+    /// The last agreement reconciled with the reader's other phones, including
+    /// what each of them has spent today. See `Carried`.
+    case carried
 }
 
 /// Somewhere to keep a handful of small values.
@@ -19,12 +31,17 @@ protocol StateStore: AnyObject {
     func save<T: Codable>(_ value: T, for key: StoreKey)
     func remove(_ key: StoreKey)
 
-    /// False once a write has failed.
+    /// False while any value the app has tried to write is not written down.
     ///
     /// Quiet's entire promise is that the limit outlives the app. A store that
     /// refuses writes and says nothing turns that into the opposite promise —
     /// every launch a clean slate — and it would look exactly like a working
     /// app. So the failure is carried out of here and said on screen.
+    ///
+    /// It comes back. The refusal that actually happens is a device still
+    /// locked after a restart, which declines everything and then accepts
+    /// everything a passcode later; a store that could only ever go from good
+    /// to bad would leave the banner standing over a healthy keychain.
     var isWritable: Bool { get }
 }
 
