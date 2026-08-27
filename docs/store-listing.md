@@ -207,7 +207,7 @@ What the composer does beyond the caption, and why:
   as they were written and visibly a set of unrelated posters. A headline that
   needs a second line is a headline that needs shortening, which is the same
   thing the usual App Store advice means by three to five words. German gets
-  its own size, being a third longer: 90 px against 103.
+  its own size, being a third longer: 94 px against 104.
 * **The screens are photographed dark,** which is the appearance they were
   designed around and the one most people's phones are in at the hour this app
   is about.

@@ -98,7 +98,7 @@ FRAMES = [
         "shot": "limit",
         "en": ("Raise it once a week.",
                "Lower it whenever you like — that takes effect at once."),
-        "de": ("Mehr: einmal pro Woche.",
+        "de": ("Mehr nur einmal pro Woche.",
                "Weniger geht jederzeit — und sofort."),
     },
     {
