@@ -179,7 +179,7 @@ final class WebSurface {
     ///
     /// The pane in front, and only that one. **Try again** is somebody looking
     /// at a page that did not arrive, and the inbox two taps away is not the
-    /// page they are looking at. See `Coordinator.startAgain`.
+    /// page they are looking at. See `WebPane.startAgain`.
     func reload() {
         stack?.reloadWhatIsInFront()
     }
@@ -352,7 +352,7 @@ final class WebSurface {
     /// glass finished loading minutes ago, and wiping those two would drop
     /// Quiet's own cover over a page that is sitting there ready — which is the
     /// exact flicker the panes exist to remove. What each pane knows about
-    /// itself is pushed in straight afterwards. See `Coordinator.takeTheGlass`.
+    /// itself is pushed in straight afterwards. See `WebPane.takeTheGlass`.
     fileprivate func adopt(_ webView: WKWebView, missing: [String]) {
         self.webView = webView
         missingResources = missing
@@ -675,8 +675,21 @@ struct InstagramWebView: UIViewRepresentable {
         var isSheetUp = false
     }
 
+    /// One pane: a web view, the delegates behind it, and what it knows about
+    /// the page it is holding.
+    ///
+    /// Not called `Coordinator`, and the name is load-bearing. A type nested in
+    /// a `UIViewRepresentable` and named `Coordinator` is taken as the witness
+    /// for the protocol's `Coordinator` associated type — ahead of anything
+    /// inferred from `makeCoordinator`. So while this was still called that,
+    /// `makeCoordinator() -> PaneStack` did not satisfy the requirement and the
+    /// whole conformance failed, with an error that names the protocol and says
+    /// nothing about the reason.
+    ///
+    /// The coordinator is `PaneStack` now, because what SwiftUI coordinates
+    /// with is the three of them rather than any one.
     @MainActor
-    final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
+    final class WebPane: NSObject, WKNavigationDelegate, WKUIDelegate {
         /// Which of the three this is, and the web view it owns.
         ///
         /// Strongly: the pane *is* the web view's lifetime. `PaneStack` holds
@@ -890,7 +903,7 @@ struct InstagramWebView: UIViewRepresentable {
             self.stack = stack
             self.pane = pane
             self.top = top
-            let built = Coordinator.build(top: top, inset: inset, surface: surface)
+            let built = WebPane.build(top: top, inset: inset, surface: surface)
             self.webView = built.view
             self.missing = built.missing
             super.init()
@@ -1370,13 +1383,13 @@ struct InstagramWebView: UIViewRepresentable {
     }
 }
 
-/// Holds the coordinator weakly, because `WKUserContentController` holds its
-/// message handlers strongly and the coordinator owns the web view's lifetime.
+/// Holds the pane weakly, because `WKUserContentController` holds its message
+/// handlers strongly and the pane owns the web view's lifetime.
 private final class ScriptRelay: NSObject, WKScriptMessageHandler {
-    private weak var coordinator: InstagramWebView.Coordinator?
+    private weak var pane: InstagramWebView.WebPane?
 
-    init(_ coordinator: InstagramWebView.Coordinator) {
-        self.coordinator = coordinator
+    init(_ pane: InstagramWebView.WebPane) {
+        self.pane = pane
     }
 
     func userContentController(
@@ -1384,7 +1397,7 @@ private final class ScriptRelay: NSObject, WKScriptMessageHandler {
         didReceive message: WKScriptMessage
     ) {
         MainActor.assumeIsolated {
-            coordinator?.receive(message)
+            pane?.receive(message)
         }
     }
 }

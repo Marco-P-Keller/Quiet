@@ -81,7 +81,7 @@ final class PaneStack {
     }
 
     private(set) var current: Pane = .home
-    private var panes: [Pane: InstagramWebView.Coordinator] = [:]
+    private var panes: [Pane: InstagramWebView.WebPane] = [:]
 
     /// How tall the status bar is, once anybody knows, and what the page is
     /// asked to keep clear of. Both are the browsing screen's arithmetic and
@@ -138,7 +138,7 @@ final class PaneStack {
         }
 
         current = pane
-        let arriving = coordinator(for: pane)
+        let arriving = webPane(for: pane)
         arriving.webView.isHidden = false
         container.bringSubviewToFront(arriving.webView)
         // The surface says what the page on the glass is doing, so it has to be
@@ -153,9 +153,9 @@ final class PaneStack {
     ///
     /// Lazily, because an app that opened three copies of Instagram at launch
     /// would spend a cold start fetching two pages nobody has asked to see.
-    private func coordinator(for pane: Pane) -> InstagramWebView.Coordinator {
+    private func webPane(for pane: Pane) -> InstagramWebView.WebPane {
         if let existing = panes[pane] { return existing }
-        let made = InstagramWebView.Coordinator(
+        let made = InstagramWebView.WebPane(
             session: session,
             surface: surface,
             stack: self,
@@ -187,12 +187,12 @@ final class PaneStack {
         let movedTop = self.top != top
         self.top = top
         self.inset = inset
-        for coordinator in panes.values {
-            coordinator.apply(inset: inset)
+        for webPane in panes.values {
+            webPane.apply(inset: inset)
             guard movedTop else { continue }
-            coordinator.top = top
-            coordinator.tellEveryPage(coordinator.webView, top: top)
-            coordinator.tellThisPage(coordinator.webView)
+            webPane.top = top
+            webPane.tellEveryPage(webPane.webView, top: top)
+            webPane.tellThisPage(webPane.webView)
         }
     }
 
@@ -219,9 +219,9 @@ final class PaneStack {
     /// content process — the second is the same situation arriving a moment
     /// later and without the warning.
     func trim() {
-        for (pane, coordinator) in panes where pane != current {
-            coordinator.keepThePlace()
-            drop(pane, coordinator)
+        for (pane, webPane) in panes where pane != current {
+            webPane.keepThePlace()
+            drop(pane, webPane)
         }
     }
 
@@ -233,23 +233,23 @@ final class PaneStack {
     /// back where it was, and rebuilding now would be fetching a page for
     /// somebody who is reading a different one.
     func died(_ pane: Pane) {
-        guard let coordinator = panes[pane] else { return }
+        guard let webPane = panes[pane] else { return }
         guard pane != current else {
-            coordinator.startAgain()
+            webPane.startAgain()
             return
         }
         // On the next turn, not this one. This arrives from a delegate call on
-        // the coordinator being dropped, and dropping it is releasing the last
+        // the pane being dropped, and dropping it is releasing the last
         // strong reference to the object whose method is running.
         Task { @MainActor [weak self] in
-            guard let self, let coordinator = self.panes[pane], pane != self.current else { return }
-            self.drop(pane, coordinator)
+            guard let self, let webPane = self.panes[pane], pane != self.current else { return }
+            self.drop(pane, webPane)
         }
     }
 
-    private func drop(_ pane: Pane, _ coordinator: InstagramWebView.Coordinator) {
-        coordinator.dismantle()
-        coordinator.webView.removeFromSuperview()
+    private func drop(_ pane: Pane, _ webPane: InstagramWebView.WebPane) {
+        webPane.dismantle()
+        webPane.webView.removeFromSuperview()
         panes[pane] = nil
     }
 
@@ -261,13 +261,13 @@ final class PaneStack {
     /// without anything ever asking whether it was still theirs.
     func forgetTheProfile() {
         ThePlace.forget(.profile)
-        guard let coordinator = panes[.profile] else { return }
+        guard let webPane = panes[.profile] else { return }
         if current == .profile {
             // On the glass, so it cannot simply vanish. It is sent to the page
             // the new name owns instead.
-            coordinator.openTheFirstPage()
+            webPane.openTheFirstPage()
         } else {
-            drop(.profile, coordinator)
+            drop(.profile, webPane)
         }
     }
 
@@ -277,8 +277,8 @@ final class PaneStack {
     /// screen. Every one of them goes, the home pane is built again from
     /// nothing, and what comes back is the login form.
     func startOver() {
-        for (pane, coordinator) in panes {
-            drop(pane, coordinator)
+        for (pane, webPane) in panes {
+            drop(pane, webPane)
         }
         current = .home
         // Through `show` rather than by building one, so the surface is pointed
@@ -294,8 +294,8 @@ final class PaneStack {
     /// released, so that coming back is coming back rather than starting over.
     func dismantle() {
         keepThePlace()
-        for (pane, coordinator) in panes {
-            drop(pane, coordinator)
+        for (pane, webPane) in panes {
+            drop(pane, webPane)
         }
         // Here rather than in a `deinit`: this object belongs to the main actor
         // and a deinitialiser does not, which makes reaching a stored property
