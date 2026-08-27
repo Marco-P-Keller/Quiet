@@ -69,37 +69,43 @@ except ImportError:  # pragma: no cover - the message is the point
 #
 # Order is the whole argument. The first two or three carry most of the
 # decision, so they are: what the app is for, the one rule nothing else has,
-# and the proof that the rule bites. Trust and how little there is to set up
-# come afterwards, for somebody who is already reading.
+# and the proof that the rule bites. Trust comes last, for somebody who is
+# already reading.
+#
+# Four, not five. The screen the app opens with was in this set until the
+# frames were looked at: it is one centred line on an otherwise empty page,
+# which is right for a second and a half in a hand and is a blank rectangle at
+# the size a listing is actually read. A frame whose card says nothing is worse
+# than no frame, and four is inside the three-to-five that works.
 
 FRAMES = [
     {
         "shot": "feed",
         "optional": True,
         "en": ("Your feed. Nothing else.",
-               "Reels, Explore and the suggested accounts are simply not there."),
+               "Reels, Explore and the suggested accounts are not there."),
         "de": ("Dein Feed. Sonst nichts.",
-               "Reels, Explore und die vorgeschlagenen Konten gibt es hier nicht."),
+               "Reels, Explore und vorgeschlagene Konten: nicht da."),
     },
     {
-        "shot": "opening",
+        "shot": "setup",
         "en": ("No Reels. No Explore.",
-               "Your feed, your messages, your profile. Nothing built to keep you."),
+               "Your feed, your messages, your profile. Nothing else."),
         "de": ("Keine Reels. Kein Explore.",
-               "Dein Feed, deine Nachrichten, dein Profil. Nichts, was dich halten soll."),
+               "Dein Feed, deine Nachrichten, dein Profil. Sonst nichts."),
     },
     {
         "shot": "limit",
         "en": ("Raise it once a week.",
                "Lower it whenever you like — that takes effect at once."),
-        "de": ("Mehr nur einmal pro Woche.",
+        "de": ("Mehr: einmal pro Woche.",
                "Weniger geht jederzeit — und sofort."),
     },
     {
         "shot": "curtain",
         "en": ("The day closes itself.",
                "When the minutes are gone, so is the app."),
-        "de": ("Der Tag schließt sich selbst.",
+        "de": ("Der Tag schließt sich.",
                "Sind die Minuten weg, ist die App weg."),
     },
     {
@@ -108,13 +114,6 @@ FRAMES = [
                "Nothing collected, nothing to check, nothing to sign into."),
         "de": ("Kein Konto. Keine Server.",
                "Nichts gesammelt, nichts zu prüfen, nichts einzuloggen."),
-    },
-    {
-        "shot": "setup",
-        "en": ("One question, then quiet.",
-               "Choose your minutes. Everything else is already decided."),
-        "de": ("Eine Frage, dann Ruhe.",
-               "Wähl deine Minuten. Alles andere ist schon entschieden."),
     },
 ]
 
@@ -148,14 +147,19 @@ CAP_TOP = 0.0586         # 168 px
 HEAD_LEADING = 1.12
 SUB_LEADING = 1.36
 GAP_HEAD_SUB = 0.0105    # 30 px
-GAP_CAP_CARD = 0.0307    # 88 px
-BOTTOM = 0.0223          # 64 px, and only as a floor
+GAP_CAP_CARD = 0.0202    # 58 px, and only as a floor
 RADIUS = 0.0439          # 58 px
-HEAD_LINES = 2
+# One line each, and therefore the same number of lines each. The first set
+# composed had four English headlines on one line and the fifth on two, and
+# four German ones on two and the fifth on one — inside the rules as written
+# and visibly a set of unrelated posters. A headline that needs a second line
+# is a headline that needs shortening, which is the same thing App Store
+# advice means by three to five words.
+HEAD_LINES = 1
 SUB_LINES = 2
 HEAD_MAX = 0.0363        # 104 px, and it only ever comes down from here
 HEAD_MIN = 0.0209        # 60 px
-SUB_MAX = 0.0164         # 47 px
+SUB_MAX = 0.0188         # 54 px
 SUB_MIN = 0.0115         # 33 px
 
 
@@ -267,7 +271,13 @@ def one_size_for_all(draw, texts, face, limit, allowed_lines, biggest, smallest)
     for size in range(biggest, smallest - 1, -1):
         if fits_everywhere(draw, texts, face, size, limit, allowed_lines):
             return size
-    return smallest
+    # Returning the smallest anyway would draw a caption straight through the
+    # sentence underneath it and say nothing.
+    sys.exit(
+        f"No size between {smallest} and {biggest} px fits every caption in "
+        f"{allowed_lines} line(s). Shorten the longest: "
+        + max(texts, key=len)
+    )
 
 
 def status_bar_pixels(height):
@@ -311,7 +321,6 @@ def compose(source, headline, subtitle, head_face, sub_face, head_size, sub_size
     # words fill it, so the cards line up across the set.
     cap_top = round(height * CAP_TOP)
     cap_height = HEAD_LINES * head_line + gap + SUB_LINES * sub_line
-    card_top = cap_top + cap_height + round(height * GAP_CAP_CARD)
 
     y = cap_top
     for line in wrap(draw, headline, head_face.at(head_size), limit) or [headline]:
@@ -328,16 +337,22 @@ def compose(source, headline, subtitle, head_face, sub_face, head_size, sub_size
     shot = Image.open(source).convert("RGB")
     shot = shot.crop((0, status_bar_pixels(shot.height), shot.width, shot.height))
 
-    # The card is as wide as the caption, so that the two share a left edge and
-    # the frame has one margin rather than two that nearly agree. Height only
-    # gets a say when that would run the card off the bottom of the canvas,
-    # which is a taller screenshot than any iPhone takes.
+    # One margin for the whole frame: the card is as wide as the caption and
+    # stands the same distance off the bottom as it does off the sides, so
+    # there is a single number in the composition rather than three that nearly
+    # agree. What is left over goes above the card, under the caption, which is
+    # the one gap that can absorb it without looking like an accident.
     scale = limit / shot.width
-    if card_top + shot.height * scale > height - round(height * BOTTOM):
-        scale = (height - card_top - round(height * BOTTOM)) / shot.height
-    card = shot.resize(
-        (round(shot.width * scale), round(shot.height * scale)), Image.LANCZOS
-    )
+    card_height = round(shot.height * scale)
+    card_top = height - margin - card_height
+    floor = cap_top + cap_height + round(height * GAP_CAP_CARD)
+    if card_top < floor:
+        # A taller screenshot than any iPhone takes. Give the caption its room
+        # and let the card be smaller than the caption is wide.
+        card_top = floor
+        scale = (height - margin - card_top) / shot.height
+        card_height = round(shot.height * scale)
+    card = shot.resize((round(shot.width * scale), card_height), Image.LANCZOS)
 
     radius = round(width * RADIUS)
     card, mask = rounded(card, radius)

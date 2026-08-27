@@ -156,7 +156,7 @@ say.
 
 ## Screenshots
 
-Five, in this order, all from the app's own screens rather than from
+Four, in this order, all from the app's own screens rather than from
 Instagram's pages. A listing whose screenshots are all somebody else's product
 invites the question the review notes are there to answer, and what is being
 sold here is the limiter rather than the site it limits. The absence of Reels is
@@ -171,16 +171,20 @@ Inside it, `store-frames/en` and `store-frames/de` are what gets uploaded and
 
 Order is the argument. The first two or three carry most of the decision, so
 they are: what the app is for, the one rule nothing else has, and the proof
-that the rule bites. Trust and how little there is to set up come after, for
-somebody who is already reading.
+that the rule bites. Trust comes last, for somebody who is already reading.
 
 | # | From | Headline | Underneath |
 | --- | --- | --- | --- |
-| 1 | `opening` | No Reels. No Explore. | Your feed, your messages, your profile. Nothing built to keep you. |
+| 1 | `setup` | No Reels. No Explore. | Your feed, your messages, your profile. Nothing else. |
 | 2 | `limit` | Raise it once a week. | Lower it whenever you like — that takes effect at once. |
 | 3 | `curtain` | The day closes itself. | When the minutes are gone, so is the app. |
 | 4 | `panel` | No account. No servers. | Nothing collected, nothing to check, nothing to sign into. |
-| 5 | `setup` | One question, then quiet. | Choose your minutes. Everything else is already decided. |
+
+Four rather than five, and the screen the app opens with is the one that went.
+It is a single centred line on an otherwise empty page, which is exactly right
+for the second and a half it is on screen in a hand, and a blank rectangle at
+the size a listing is actually read at. A frame whose card says nothing is
+worse than one frame fewer, and four is inside the three to five that works.
 
 Both languages are composed, because the first frames are the ones worth
 localising and the German is already written. Upload `en` under English and `de`
@@ -196,10 +200,14 @@ What the composer does beyond the caption, and why:
 * **The ground is `Paper.night`,** the same colour the app itself stands in, so
   the card has no seam against the frame around it — only the hairline the app
   draws every other border with.
-* **One headline size across the set,** chosen as the largest that fits every
-  caption in that language. Five headlines each as large as they happen to fit
-  read as five posters rather than one set, and the eye notices that before it
-  reads a word. German gets its own size, being a third longer.
+* **One headline size across the set, and one line each,** chosen as the
+  largest at which every caption in that language still fits on a single line.
+  The first set composed had four English headlines on one line and the fifth
+  on two, and four German ones on two and the fifth on one — inside the rules
+  as they were written and visibly a set of unrelated posters. A headline that
+  needs a second line is a headline that needs shortening, which is the same
+  thing the usual App Store advice means by three to five words. German gets
+  its own size, being a third longer: 90 px against 103.
 * **The screens are photographed dark,** which is the appearance they were
   designed around and the one most people's phones are in at the hour this app
   is about.

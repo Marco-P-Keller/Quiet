@@ -173,7 +173,7 @@ jobs:
 
           # scene:name — the scenes are states of the app, the names are what
           # the listing calls them.
-          scenes="opening:opening limit:limit spent:curtain panel:panel fresh:setup"
+          scenes="fresh:setup limit:limit spent:curtain panel:panel"
           for pair in $scenes; do store en "${pair#*:}" "${pair%:*}"; done
           german="-AppleLanguages (de) -AppleLocale de_DE"
           for pair in $scenes; do store de "${pair#*:}" "${pair%:*}" $german; done
