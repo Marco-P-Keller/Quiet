@@ -2344,3 +2344,44 @@ the page is pulled past its own ends.
 The lesson is the one this project keeps meeting: a line that looks like it
 configures something is not evidence that anything is configured. The colour was
 set, written down, and invisible.
+
+## Two speeds, and the fast path given back
+
+Two things were making the feed heavier than it needed to be, and one of them was
+put there this morning.
+
+**The whole pass ran on every frame of every flick.** Instagram's feed is a
+virtualised list: it rewrites the document continuously while a thumb is moving,
+and every rewrite scheduled the pass — eighteen calls, inside an animation frame,
+several of them reading computed styles and boxes, which forces layout. That is
+a stutter with a cause rather than a mystery.
+
+So the pass has two speeds, and the line between them is a rule rather than a
+guess: **anything whose job is that something never appears stays immediate**,
+and everything else waits for the hand to come off the glass. A reel that shows
+for two frames has shown. A header being dressed a tenth of a second later is a
+header nobody saw undressed — and none of the slow work can change while the
+page is under a thumb anyway. The page counts as still a hundred and forty
+milliseconds after the last scroll event, which is longer than the gap between
+two events in one flick and shorter than anybody notices.
+
+The sheet question went with it, and gained a second saving: the safety valve on
+every scroll now asks only when the row is actually down. Doing the work to
+confirm what is already believed, sixty times a second, is the shape of a
+stutter.
+
+**And the web view is opaque again.** It is created transparent so the app's own
+ground shows through the second before Instagram paints — that was this
+morning's fix for the black hole in the launch — but a view that is not opaque
+cannot use the fast path for its tiles, so every frame of every flick is
+composited over what is behind it. Paid for one second that is a good trade;
+paid for ever it is a tax on the one thing the app does all day. It is given
+back at the first paint and never taken again.
+
+Three checks pin the line: a suggestion block arriving mid-flick is still taken
+out, the sheet question is *not* asked mid-flick, and it is asked once the hand
+stops — deferred rather than lost.
+
+What is not claimed: none of this was measured on a phone. It is work removed
+from the frame path by mechanism, which is a smaller claim than "it is faster"
+and the honest one.

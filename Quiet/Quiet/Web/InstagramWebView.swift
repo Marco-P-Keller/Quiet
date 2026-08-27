@@ -1230,9 +1230,29 @@ struct InstagramWebView: UIViewRepresentable {
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             state.address = webView.url
             state.hasLoaded = true
+            standOnItsOwn(webView)
             tellThisPage(webView)
             endPull()
             keepPullAlive(webView.scrollView)
+        }
+
+        /// Give the fast path back, now that the page is painting its own
+        /// background.
+        ///
+        /// The view is created transparent so that the app's own ground shows
+        /// through the second before Instagram has painted anything — otherwise
+        /// WebKit fills it with black and the launch has a hole in it. That
+        /// transparency is not free: a view that is not opaque cannot use the
+        /// fast path for its tiles, and every frame of every flick is composited
+        /// over whatever is behind it. Paid for one second, that is a good
+        /// trade; paid for ever, it is a stutter in the one thing this app does
+        /// all day.
+        ///
+        /// So it is given back at the first paint and never taken again. A
+        /// later navigation has a painted page underneath it already.
+        private func standOnItsOwn(_ webView: WKWebView) {
+            guard !webView.isOpaque else { return }
+            webView.isOpaque = true
         }
 
         /// The page did not arrive.

@@ -1257,6 +1257,11 @@
 
   function watchTheHeader() {
     window.addEventListener("scroll", function () {
+      // First, and before any early return: this is the only place that knows
+      // a thumb is on the glass, and what runs during a flick depends on it.
+      // See `moving`.
+      noteScroll();
+
       var y = window.scrollY || document.documentElement.scrollTop || 0;
       var delta = y - lastY;
       if (Math.abs(delta) < DELIBERATE) return;
@@ -1267,10 +1272,14 @@
       // page that is scrolling is a page that is not locked, so if the app is
       // holding its row down for a modal that has since gone — because the
       // closing never showed up as a mutation, or because Instagram forgot to
-      // unlock — the first flick of a thumb puts it back. The row is the only
-      // way to Quiet's own settings, and it must never be possible to be
-      // stranded without it.
-      saySheet();
+      // unlock — the first flick of a thumb puts it back.
+      //
+      // Asked only when the answer could change. `saySheet` reads boxes and
+      // computed styles, and this runs on every deliberate scroll of every
+      // flick; doing that work to confirm what is already believed is the
+      // shape of a stutter. The row is down or it is not, and only the first
+      // case has a question in it.
+      if (lastSheet) saySheet();
     }, { passive: true });
   }
 
@@ -2141,39 +2150,103 @@
 
   var pending = false;
 
+  /**
+   * How long after the last scroll the page counts as still.
+   *
+   * A tenth of a second and a bit: longer than the gap between two scroll
+   * events in one flick, shorter than anybody notices a header being dressed.
+   */
+  var STILL = 140;
+
+  var lastScrolled = 0;
+  var afterTheFlick = null;
+
+  /** Whether a thumb is on the glass right now. */
+  function moving() {
+    return Date.now() - lastScrolled < STILL;
+  }
+
+  /**
+   * Remember that the page moved, and make sure the full pass happens once it
+   * stops — even if nothing in the document changed to ask for one.
+   */
+  function noteScroll() {
+    lastScrolled = Date.now();
+    if (afterTheFlick) return;
+    afterTheFlick = setTimeout(function again() {
+      if (moving()) {
+        afterTheFlick = setTimeout(again, STILL);
+        return;
+      }
+      afterTheFlick = null;
+      pass();
+    }, STILL);
+  }
+
+  /**
+   * The pass, at two speeds.
+   *
+   * Instagram's feed is a virtualised list: it rewrites the document
+   * continuously while a thumb is moving, and every one of those rewrites used
+   * to run all eighteen calls below — inside an animation frame, which is to
+   * say inside the sixteen milliseconds the phone has to draw the next one.
+   * Several of them read computed styles and boxes, which forces layout. That
+   * is a stutter with a cause rather than a mystery.
+   *
+   * So while the page is moving, only what *must* be immediate runs: the things
+   * that hide what this app exists to hide. A reel that appears for two frames
+   * has appeared. Everything else — a colour, a name, a header being dressed,
+   * a wordmark, the sheet question — is either already done or can wait a
+   * tenth of a second for the hand to stop, and none of it can change while
+   * the page is under a thumb anyway.
+   */
   function schedule() {
     if (pending) return;
     pending = true;
     requestAnimationFrame(function () {
       pending = false;
-      var main = document.querySelector("main");
-      if (main) trimSuggestions(main);
-      coverTheGlass();
-      makeRoom();
-      takeUpTheFloor(document.body);
-      guardLocation();
-      sayWhere();
-      sayChrome();
-      whoAmI();
-      replaceNav();
-      headerComesBack();
-      refuseTheDoor();
-      learnWordmark();
-      dressHeader();
-      liftHeader();
-      shapeHeader();
-      sayHealth();
-      // Last, because Instagram's own bottom navigation and its door back into
-      // the app are both full-width things at the foot of the glass — which is
-      // to say, both indistinguishable from a sheet right up until the calls
-      // above mark them.
-      saySheet();
-      // And last of all, whether any of that found anything: the answer has to
-      // be read after the calls above have hidden what they hide, or
-      // Instagram's own navigation row counts as a page.
-      sayBare();
-      settle();
+      if (moving()) {
+        keepItClean();
+        return;
+      }
+      pass();
     });
+  }
+
+  /** What cannot wait: anything whose job is that something never appears. */
+  function keepItClean() {
+    var main = document.querySelector("main");
+    if (main) trimSuggestions(main);
+    replaceNav();
+    refuseTheDoor();
+    guardLocation();
+    takeUpTheFloor(document.body);
+  }
+
+  /** Everything, once the hand is off the glass. */
+  function pass() {
+    keepItClean();
+    coverTheGlass();
+    makeRoom();
+    sayWhere();
+    sayChrome();
+    whoAmI();
+    headerComesBack();
+    learnWordmark();
+    dressHeader();
+    liftHeader();
+    shapeHeader();
+    sayHealth();
+    // Last, because Instagram's own bottom navigation and its door back into
+    // the app are both full-width things at the foot of the glass — which is
+    // to say, both indistinguishable from a sheet right up until the calls
+    // above mark them.
+    saySheet();
+    // And last of all, whether any of that found anything: the answer has to
+    // be read after the calls above have hidden what they hide, or
+    // Instagram's own navigation row counts as a page.
+    sayBare();
+    settle();
   }
 
   var lastRescue = 0;

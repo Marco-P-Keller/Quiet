@@ -914,6 +914,54 @@ const GROUPED = `
   );
   check("and neither is a page that simply fills the glass", sheetOf(outside), undefined);
 
+  /* ── Two speeds ──────────────────────────────────────────────────────── */
+
+  /* Instagram's feed is a virtualised list: it rewrites the document
+   * continuously while a thumb is moving, and every one of those rewrites used
+   * to run the whole pass inside an animation frame — several calls of which
+   * read computed styles and boxes, which forces layout. That is a stutter with
+   * a cause.
+   *
+   * So the pass has two speeds, and the line between them is what these check:
+   * anything whose job is that something never appears stays immediate, and
+   * everything else waits for the hand to come off the glass. */
+  const rest = (ms) => new Promise((done) => setTimeout(done, ms));
+
+  const flick = await page(`<main></main>`, FEED);
+  flick.dispatchEvent(new flick.Event("scroll"));
+
+  /* A suggestion block arriving mid-flick. Two frames of a reel is two frames
+   * of a reel, so this one cannot wait. */
+  const suggested = flick.document.createElement("div");
+  suggested.setAttribute("data-name", "block");
+  suggested.innerHTML = "<h2>Suggested for you</h2><a href=\"/someone/\">someone</a>";
+  flick.document.querySelector("main").appendChild(suggested);
+  /* A turn of the loop first: jsdom hands mutation records to the observer as a
+   * microtask, so the pass has not been asked for yet on the line above. */
+  await rest(0);
+  flick.drain();
+  check(
+    "what must never appear is still taken out mid-flick",
+    flick.document.querySelector('[data-name="block"]').getAttribute("data-quiet-hidden"),
+    "suggestion"
+  );
+
+  /* And the rest waits rather than being lost. */
+  const waiting = await page(`<main></main>`, FEED);
+  waiting.dispatchEvent(new waiting.Event("scroll"));
+  const late = waiting.document.createElement("div");
+  late.setAttribute("data-at-bottom", "");
+  late.setAttribute("style", "position: fixed");
+  late.setAttribute("data-box", "0,300,390,520");
+  late.innerHTML = "<h2>Switch accounts</h2><button>marco</button>";
+  waiting.document.body.appendChild(late);
+  await rest(0);
+  waiting.drain();
+  check("the sheet question is not asked mid-flick", sheetOf(waiting), undefined);
+
+  await rest(260);
+  check("and is asked once the hand comes off the glass", sheetOf(waiting)?.up, true);
+
   /* ── Somebody mid-sentence ───────────────────────────────────────────── */
 
   /* The app is meant to be strict and not rude. Taking half a message away when
