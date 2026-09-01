@@ -377,7 +377,30 @@ struct BrowserScreen: View {
     @ViewBuilder
     private var quietPages: some View {
         if isShowingQuietPage {
-            ZStack {
+            // `.top`, and it is the whole of the bug the photograph showed.
+            //
+            // Measured, as a pair, which is what finally settled it. The page
+            // with no keyboard up starts at 62 — the strip the clock stands in
+            // — and the field 54 below that. With a keyboard the page starts at
+            // **minus 79.5** and the field 116 below *that*: the column moved
+            // up a hundred and forty-one points, and inside it the navigation
+            // bar put back the sixty-two it now believed it owed the status
+            // bar, having found itself at the top of the window.
+            //
+            // A hundred and forty-one is half of two hundred and eighty-three,
+            // and two hundred and eighty-three is what a keyboard is on this
+            // phone. That is the shape of an overflow being *centred*: the
+            // column asks for the glass plus a keyboard, gets the glass, and a
+            // stack with no alignment puts the difference out of both ends —
+            // half of it above the top of the screen, taking the clock's strip
+            // and the page's own title row onto the time.
+            //
+            // The stack this one stands in has said `.top` since it was
+            // written, for a related reason. This one never did, and the
+            // default is centre. Told which end to lose, the overflow goes
+            // downward instead, behind the keyboard, where there is nothing to
+            // read.
+            ZStack(alignment: .top) {
                 Paper.page
                 VStack(spacing: 0) {
                     // The clock's own strip, which the app already draws.
