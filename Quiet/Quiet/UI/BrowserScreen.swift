@@ -255,7 +255,31 @@ struct BrowserScreen: View {
             glass = SafeArea.glass
         }
         .task { await letTheClockArrive() }
+#if DEBUG
+        .task { await sayWhatTheGlassIs() }
+#endif
     }
+
+#if DEBUG
+    /// The numbers this screen is actually laid out against, said aloud once,
+    /// in the one staged scene that puts a keyboard up.
+    ///
+    /// `SafeArea.top` being right is not the same as `topInset` being right.
+    /// The second is a copy taken at `onAppear`, and if the window had not been
+    /// laid out by then it is the fallback rather than the notch — which would
+    /// collapse the strip the clock stands in, and would also leave `glass` at
+    /// zero, which takes the fixed height off the stack that holds everything
+    /// else up. Two hypotheses, one line, and no more guessing at arithmetic.
+    private func sayWhatTheGlassIs() async {
+        guard Rehearsal.opensKeyboard else { return }
+        try? await Task.sleep(for: .seconds(2))
+        NSLog(
+            "Quiet: top %.1f held, %.1f now; bottom %.1f; glass %.0f x %.0f",
+            Double(topInset), Double(SafeArea.top), Double(bottomInset),
+            Double(glass.width), Double(glass.height)
+        )
+    }
+#endif
 
     // MARK: - The clock arriving
 

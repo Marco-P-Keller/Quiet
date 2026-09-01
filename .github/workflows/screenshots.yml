@@ -148,14 +148,18 @@ jobs:
 
           file shots/*.png | sed 's|.*/||'
 
-          # What the app read while the keyboard was up. Two numbers: the one
-          # it uses, and the one `isKeyWindow` would have given it. They are
-          # allowed to differ — that difference is the defect this scene
-          # exists to keep an eye on — but the first one must not be zero.
+          # What the app read while the keyboard was up, and where the page
+          # ended up. The readings are allowed to differ from each other; what
+          # the whole line is for is the geometry beside them, because a page
+          # whose strip has collapsed and a page that has been slid upward look
+          # identical in a photograph and only one of them is about the safe
+          # area. Matched to the end of the line rather than to a phrase in the
+          # middle of it: the first version of this grep cut the geometry off
+          # and cost a round.
           echo "--- the safe area, with a keyboard up ---"
           xcrun simctl spawn booted log show --last 300s --style compact \
             --predicate 'process == "Quiet"' 2>/dev/null \
-            | grep -o "top .* from isKeyWindow" | tail -3 \
+            | grep -o "Quiet: top .*" | tail -4 \
             || echo "(the app said nothing)"
 
       # The listing's own screenshots, which are a different job from the
