@@ -46,46 +46,30 @@ struct RootView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        content
-            // The same failure as the one described below, arriving a second
-            // way, and it took five wrong answers to see that it was the same
-            // one. A keyboard shrinks the region this view is laid out in by
-            // its own height; the browsing screen is a fixed nine hundred and
-            // fifty-six points because it is given the glass outright; and a
-            // fixed height in a shorter region is *centred*. Two hundred and
-            // eighty-three points of keyboard put half of itself — a hundred
-            // and forty-one and a half — above the top of the screen, taking
-            // the strip the clock stands in and the page's own title row onto
-            // the time.
-            //
-            // Every one of the five answers was a change inside that screen,
-            // and none of them could have worked: the screen was not laying
-            // itself out wrongly, it was being moved whole.
-            //
-            // The region is the window here, so nothing can overflow it. That
-            // is what makes this the right place for the request and every
-            // place inside the wrong one: asked of a child, the same modifier
-            // *expands* it into the keyboard's room and makes it too tall for
-            // its own slot.
+        // An overlay on a piece of nothing that has already refused the
+        // keyboard — which is the same answer this file gives one line further
+        // down, to the same failure arriving a different way.
+        //
+        // Measured, because seven attempts before this were not. The browsing
+        // screen sits at 14 points with no keyboard and at **minus 141.5** with
+        // one: it does not lay itself out wrongly, it is moved whole. A view
+        // given a fixed height and put in a region shorter than that height is
+        // centred, and half of what a keyboard takes is what it moves by.
+        //
+        // Five of those attempts were changes inside the screen and could
+        // never have worked. Two were requests to ignore the keyboard, made
+        // here — and a request is not a size. Whatever is doing the moving sits
+        // further out than a modifier written in this file can reach.
+        //
+        // So nothing is asked of it. `Color.clear` refuses the keyboard, is
+        // therefore the height of the window whatever is in front of it, and
+        // the screen is laid *over* that and pinned to its top. An overlay is
+        // sized to the thing it covers, so the screen is proposed the window
+        // and placed at the top of it, and there is no shorter region anywhere
+        // for anything to be centred in.
+        Color.clear
             .ignoresSafeArea(.keyboard, edges: .bottom)
-            // And the same sentence said the only way that does not depend on
-            // understanding why the room shrank: fill whatever room there is,
-            // and put the screen at the *top* of it.
-            //
-            // Measured. With no keyboard the browsing screen sits at 14 points;
-            // with one it sits at minus 141.5. The screen itself moves, whole,
-            // which is why five changes inside it did nothing — and asking the
-            // keyboard to be ignored did not stop it either, because the
-            // shrinking happens further out than any modifier written here can
-            // reach. A fixed height positioned in a shorter region is centred,
-            // and half of nine hundred and fifty-six against six hundred and
-            // forty-five is exactly the hundred and fifty-five it moves by.
-            //
-            // This does not argue with the shrinking. It says which end to
-            // lose: downward, behind the keyboard, where there is nothing to
-            // read. The screens that are not a fixed height are unaffected —
-            // they already fill what they are given.
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .overlay(alignment: .top) { content }
             .animation(reduceMotion ? nil : .easeInOut(duration: 0.3), value: session.screen)
             // An overlay rather than a stack, and the difference is not a
             // matter of taste.
