@@ -14,6 +14,13 @@ import UIKit
 /// in the same place, on every page — including the ones where Instagram draws
 /// no bar at all.
 ///
+/// Four of them, for the first ten seconds. The clock is the only thing in the
+/// row that is Quiet's, and an app that puts itself in the middle of somebody
+/// else's navigation on the first frame is an app announcing itself before the
+/// page it stands in front of has drawn a post. So it arrives late, in its own
+/// slot, with a small plop; a double tap sends it away again and a tap on the
+/// empty slot brings it back. See `isClockOnTheRow` and `clockButton`.
+///
 /// The bar is the shape Instagram's own is: the full width of the glass, flush
 /// against the bottom edge, opaque, with a hairline above it and the system's
 /// strip beneath. It was a floating pill for a while, and a pill is the one
@@ -82,6 +89,30 @@ struct BrowserScreen: View {
     /// bottom — the home indicator, to the point. Ignoring the safe area is a
     /// request. A size is not.
     @State private var glass: CGSize = SafeArea.glass
+
+    /// Whether the clock is on the row at all.
+    ///
+    /// It is not there when the app opens. The four entries beside it are
+    /// Instagram's and they are what somebody came here to use; the clock is
+    /// Quiet's, and Quiet arriving first — in the middle of the row, on the
+    /// first frame — is the app introducing itself before the thing it stands
+    /// in front of has drawn a single post. So the row opens as four, and the
+    /// fifth arrives ten seconds later, once the page is there and being read.
+    ///
+    /// The slot is held either way. Only the glyph comes and goes, so the four
+    /// never move and a thumb aimed at messages finds messages whether the
+    /// clock is out or not.
+    @State private var isClockOnTheRow = false
+
+    /// Whether the person has had a hand in that, which ends the ten seconds'
+    /// say in it.
+    ///
+    /// Without this, a clock dismissed at the eighth second would come back at
+    /// the tenth — the app overruling somebody about the one thing on the row
+    /// they are allowed to overrule. Once a tap has said where the clock should
+    /// be, the timer has no more opinions for the rest of the session.
+    @State private var clockDecidedByHand = false
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -223,6 +254,48 @@ struct BrowserScreen: View {
             bottomInset = SafeArea.bottom
             glass = SafeArea.glass
         }
+        .task { await letTheClockArrive() }
+    }
+
+    // MARK: - The clock arriving
+
+    /// Ten seconds, and then the clock is on the row.
+    ///
+    /// Cancelled with the screen, and silent if a tap has already settled the
+    /// question — either way round: somebody who asked for the clock at the
+    /// third second is not shown it arriving again at the tenth, and somebody
+    /// who sent it away is not handed it back.
+    private func letTheClockArrive() async {
+        guard !clockDecidedByHand, !isClockOnTheRow else { return }
+        try? await Task.sleep(for: .seconds(Self.clockArrivesAfter))
+        guard !Task.isCancelled, !clockDecidedByHand else { return }
+        withAnimation(plop) { isClockOnTheRow = true }
+    }
+
+    /// How long the row stands as four.
+    ///
+    /// Long enough that the clock is not part of the app opening — which is the
+    /// whole point of the wait — and short enough that it is there before
+    /// anybody has finished the first screenful and gone looking for it.
+    private static let clockArrivesAfter: TimeInterval = 10
+
+    /// The plop.
+    ///
+    /// A spring rather than a fade, because the clock is arriving rather than
+    /// being switched on, and a thing that arrives has a little weight to it:
+    /// it comes up from just under full size, overshoots by a hair, and
+    /// settles. About a quarter of a second, all of it inside a twenty-five
+    /// point box — small enough that it registers out of the corner of an eye
+    /// and never asks to be watched, which is the whole brief for anything this
+    /// app draws.
+    ///
+    /// Reduce Motion gets the fade instead. Something appearing in the
+    /// furniture still has to be noticed; it is the springing about that the
+    /// setting is asking not to see.
+    private var plop: Animation {
+        reduceMotion
+            ? .easeInOut(duration: 0.2)
+            : .spring(response: 0.28, dampingFraction: 0.58)
     }
 
     /// Whether Quiet's own blank is over the top of the web view.
@@ -522,12 +595,16 @@ struct BrowserScreen: View {
     /// The five entries, in Instagram's own order: home, search, the middle
     /// one, messages, you. The middle is where Instagram puts the thing its app
     /// does rather than the thing the site does, and Quiet's is the clock.
+    ///
+    /// Five slots, always. The clock's is empty until the clock is out, and an
+    /// empty slot is still a slot: it holds its width, so the other four are
+    /// where they were, and it still takes a tap, which is how the clock is
+    /// asked back.
     private var row: some View {
         HStack(spacing: 0) {
             barButton(.home, "house", "house.fill", Text("Home"))
             barButton(.search, "magnifyingglass", "magnifyingglass", Text("Find someone"))
-            barButton(.clock, theClock(filled: false), theClock(filled: true), Text("Quiet settings"))
-                .accessibilityValue(Text(timeLeftAloud))
+            clockButton
             barButton(.messages, "paperplane", "paperplane.fill", Text("Messages"))
             // Only once the page has said who is signed in. A button that leads
             // nowhere is worse than one that arrives a second late.
@@ -535,6 +612,93 @@ struct BrowserScreen: View {
                 myProfileButton
             }
         }
+    }
+
+    /// The middle entry, which is the one thing in the row that answers a tap
+    /// with something other than a page.
+    ///
+    /// Three things a finger can do here, and they are three because the clock
+    /// is the only entry a person is allowed to have an opinion about being
+    /// there at all:
+    ///
+    /// **Tap it when it is out** and the panel opens, which is what every other
+    /// entry in the row does and what this one has always done.
+    ///
+    /// **Tap the empty slot** and it arrives — the same plop as the ten
+    /// seconds, because it is the same arrival, asked for rather than waited
+    /// out. The slot is live the whole time it is empty, so this is never a
+    /// hunt: the clock is where the clock has always been.
+    ///
+    /// **Tap it twice and it goes away.** Sending it away is the point of the
+    /// gesture and it is deliberately not a thing you can do by accident with
+    /// one finger, which is why it is two taps rather than a press: a press is
+    /// what a thumb resting on the row does by itself.
+    ///
+    /// The double tap is declared before the single one, which is how SwiftUI
+    /// is told which of the two to try first; the single tap then waits out the
+    /// double's window before it fires. That wait is the cost of the gesture
+    /// and it is paid by the panel opening a moment after the tap rather than
+    /// on it — worth it here, on one entry of five, and worth it nowhere else
+    /// in the row, which is why the other four are plain buttons that answer
+    /// instantly.
+    private var clockButton: some View {
+        let here = current == .clock
+        return glyph(.clock, here, theClock(filled: false), theClock(filled: true))
+            .foregroundStyle(Color(uiColor: .label))
+            // The glyph, and only the glyph. The frame around it is the slot,
+            // which stays whether or not there is anything drawn in it.
+            .scaleEffect(scaleOfTheClock)
+            .opacity(isClockOnTheRow ? 1 : 0)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .contentShape(Rectangle())
+            .onTapGesture(count: 2) { clockTappedTwice() }
+            .onTapGesture { clockTapped() }
+            .accessibilityElement(children: .ignore)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAddTraits(here ? .isSelected : [])
+            // A slot with nothing in it is not "Quiet settings" — it is the way
+            // to get the clock back, and it says so. The number goes with the
+            // clock: there is nothing there to be told the time by.
+            .accessibilityLabel(isClockOnTheRow ? Text("Quiet settings") : Text("Show the clock"))
+            .accessibilityValue(Text(isClockOnTheRow ? timeLeftAloud : ""))
+            .accessibilityAction { clockTapped() }
+            // Two taps in the same place is a sighted gesture. Sending the
+            // clock away is not, so it is also a named action.
+            .accessibilityAction(named: Text("Hide the clock")) { hideTheClock() }
+    }
+
+    /// Where the plop starts from.
+    ///
+    /// Not zero. A glyph that grows out of nothing is a thing being drawn; one
+    /// that comes up from just under its own size is a thing arriving, and the
+    /// difference at this scale is the whole character of it.
+    private var scaleOfTheClock: CGFloat {
+        if isClockOnTheRow { return 1 }
+        return reduceMotion ? 1 : 0.45
+    }
+
+    private func clockTapped() {
+        guard isClockOnTheRow else { return showTheClock() }
+        go(to: .clock)
+    }
+
+    /// Two taps on an empty slot mean the same as one: whoever is tapping there
+    /// wants the clock, and counting their taps back at them is not an answer.
+    private func clockTappedTwice() {
+        guard isClockOnTheRow else { return showTheClock() }
+        hideTheClock()
+    }
+
+    private func showTheClock() {
+        Touch.tick()
+        clockDecidedByHand = true
+        withAnimation(plop) { isClockOnTheRow = true }
+    }
+
+    private func hideTheClock() {
+        Touch.tick()
+        clockDecidedByHand = true
+        withAnimation(plop) { isClockOnTheRow = false }
     }
 
     /// What the clock says to somebody who cannot see it.

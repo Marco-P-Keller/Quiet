@@ -361,6 +361,16 @@
         }
       }
     },
+    "Hide the clock": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uhr ausblenden"
+          }
+        }
+      }
+    },
     "Home": {
       "localizations": {
         "de": {
@@ -807,6 +817,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Einstellungen"
+          }
+        }
+      }
+    },
+    "Show the clock": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uhr einblenden"
           }
         }
       }
