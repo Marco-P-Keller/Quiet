@@ -801,11 +801,29 @@ struct InstagramWebView: UIViewRepresentable {
             // Not on a story or inside a conversation. See `ContentRules`.
             guard !ContentRules.isImmersive(state.address) else {
                 if scrollView.refreshControl != nil { scrollView.refreshControl = nil }
+                // And give the bounce back before leaving. A conversation is a
+                // list, its bottom is where it starts, and springing there is
+                // what every messaging app on this phone does — but the rule
+                // below may have switched it off a screen down somebody's feed
+                // a moment ago, and a value left behind by another page is not
+                // a decision about this one.
+                if !scrollView.bounces { scrollView.bounces = true }
                 return
             }
             if scrollView.refreshControl !== pull { scrollView.refreshControl = pull }
-            if !scrollView.bounces { scrollView.bounces = true }
-            if !scrollView.alwaysBounceVertical { scrollView.alwaysBounceVertical = true }
+
+            // Both edges or neither — see `Overscroll`, which decides which of
+            // the two is the one within reach. Near the top that is the top,
+            // and the pull needs the bounce; a screen further down it is the
+            // bottom, and under the bottom there is nothing.
+            let bounce = Overscroll.bounces(
+                travelled: scrollView.contentOffset.y + scrollView.adjustedContentInset.top,
+                screen: scrollView.bounds.height
+            )
+            if scrollView.bounces != bounce { scrollView.bounces = bounce }
+            if scrollView.alwaysBounceVertical != bounce {
+                scrollView.alwaysBounceVertical = bounce
+            }
         }
 
         @objc private func pulled() {

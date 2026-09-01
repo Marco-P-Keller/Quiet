@@ -49,6 +49,11 @@ struct PanelView: View {
                 .padding(.top, 8)
                 .padding(.bottom, 40)
             }
+            // Nowhere in Quiet can you drag a short page off its own bottom
+            // into the paper behind it. On a phone with large text this list is
+            // longer than the glass and scrolls; on a small one at the default
+            // size it is not, and without this it springs about anyway.
+            .scrollBounceBehavior(.basedOnSize)
             .quietPage()
             .scrollDismissesKeyboard(.interactively)
             .navigationTitle("Quiet")

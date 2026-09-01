@@ -2385,3 +2385,41 @@ stops — deferred rather than lost.
 What is not claimed: none of this was measured on a phone. It is work removed
 from the frame path by mechanism, which is a smaller claim than "it is faster"
 and the honest one.
+
+## Nowhere to scroll to
+
+You could drag the feed off its own bottom, and the rectangle behind it was
+Quiet's ground. Nothing is down there. Every other surface in the app has spent
+this release learning to say what it is; a scroll view springing into empty
+space is one of them suggesting there might be something.
+
+Taking it away is not as simple as switching the bounce off, because `bounces`
+is one property for both edges and the top one is the pull — the gesture every
+list on this phone has had for fifteen years, which the app already goes to some
+trouble to keep alive against a web view that removes it on every load. Losing
+that is the failure that looks like nothing at all: no message, nothing to
+press, a gesture that used to work and now does not.
+
+So the question is answered by *where the page is* rather than by which edge is
+being dragged. A whole screen of page above you means the top is out of reach —
+nobody arrives at it without scrolling back through that screen first, and the
+bounce returns on the way, long before the top does. The switch therefore always
+happens in the middle of a page, where no edge is reachable and nothing can be
+felt.
+
+Two things it deliberately does not do. A page shorter than about a screen and a
+half keeps its bottom bounce: on a profile with four posts there is no screen of
+page to be below, so any rule that removed the bottom spring there would remove
+the pull with it, and the empty space under four posts is an inch rather than a
+page. And a conversation gets the bounce back on the way in, because its bottom
+is where it starts and springing there is what every messaging app does — a
+value left behind by somebody's feed is not a decision about this page.
+
+The app's own screens got the same treatment from the other end. The setup and
+limit screens already refused to bounce when their content fitted; the panel and
+the search list did not, and a list of three names that springs is a list
+claiming to have more.
+
+What is not claimed: the pull was not re-tested by hand here. The rule that
+protects it is a pure function with tests, but only a thumb can say whether the
+gesture still feels like the system's.

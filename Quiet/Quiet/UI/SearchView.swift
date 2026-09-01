@@ -142,6 +142,9 @@ struct SearchView: View {
             }
             .padding(.top, 14)
         }
+        // Three names do not fill the glass, and a list of three that bounces
+        // is a list claiming to have more.
+        .scrollBounceBehavior(.basedOnSize)
     }
 
     /// The three or four people you came here for.
