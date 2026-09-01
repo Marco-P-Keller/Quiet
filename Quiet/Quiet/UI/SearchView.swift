@@ -67,7 +67,29 @@ struct SearchView: View {
             .toolbarBackground(.visible, for: .navigationBar)
         }
         .presentationBackground(Paper.page)
+        .onAppear(perform: rehearse)
         .onDisappear { asking?.cancel() }
+    }
+
+    /// A staged photograph with the keyboard up, and what the app read while
+    /// it was.
+    ///
+    /// Nothing here runs in a build anybody can install — `Rehearsal` is `#if
+    /// DEBUG` in its entirety. It exists because the defect it was written for
+    /// cannot be seen without a keyboard: a keyboard puts a second full-screen
+    /// window in front of the app's, and the app used to take the height of the
+    /// notch from whichever window had the keys.
+    private func rehearse() {
+#if DEBUG
+        guard Rehearsal.opensKeyboard else { return }
+        isFocused = true
+        Task {
+            // After the keyboard, not before it. The window that breaks the
+            // reading does not exist until it is on screen.
+            try? await Task.sleep(for: .seconds(2))
+            NSLog("Quiet: %@", SafeArea.reading)
+        }
+#endif
     }
 
     private var field: some View {

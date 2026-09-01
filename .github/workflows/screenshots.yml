@@ -92,7 +92,14 @@ jobs:
             # The browsing screen holds Quiet's own paper over the web view
             # until the first page settles, so this waits for the page rather
             # than for the app.
-            if [ "$scene" = "browsing" ]; then sleep 14; else sleep 6; fi
+            case "$scene" in
+              browsing) sleep 14 ;;
+              # The keyboard has to be up and the app's own reading logged
+              # before the shutter, and the reading waits two seconds for the
+              # keyboard's window to exist.
+              typing)   sleep 10 ;;
+              *)        sleep 6 ;;
+            esac
             xcrun simctl io booted screenshot --type=png "shots/$name.png"
           }
 
@@ -101,6 +108,10 @@ jobs:
           shoot panel   panel
           shoot limit   limit
           shoot search  search
+          # The same screen with a keyboard up, which is the only state in
+          # which the app is asked what the safe area is while a second
+          # full-screen window is in front of its own.
+          shoot typing  typing
           shoot curtain spent
           shoot feed    browsing
 
@@ -136,6 +147,16 @@ jobs:
           shoot curtain-german spent $german
 
           file shots/*.png | sed 's|.*/||'
+
+          # What the app read while the keyboard was up. Two numbers: the one
+          # it uses, and the one `isKeyWindow` would have given it. They are
+          # allowed to differ — that difference is the defect this scene
+          # exists to keep an eye on — but the first one must not be zero.
+          echo "--- the safe area, with a keyboard up ---"
+          xcrun simctl spawn booted log show --last 300s --style compact \
+            --predicate 'process == "Quiet"' 2>/dev/null \
+            | grep -o "top .* from isKeyWindow" | tail -3 \
+            || echo "(the app said nothing)"
 
       # The listing's own screenshots, which are a different job from the
       # diagnostic ones above. Those exist to show whether a layout survived;
@@ -279,7 +300,7 @@ jobs:
           set -euo pipefail
           cd shots
           for f in feed feed-home-button setup setup-home-button \
-                   panel limit search curtain \
+                   panel limit search typing curtain \
                    setup-largest panel-largest limit-largest curtain-largest \
                    setup-dark panel-dark curtain-dark \
                    setup-german panel-german limit-german curtain-german; do
@@ -291,7 +312,7 @@ jobs:
               # The feed and the accessibility sizes are the two worth looking
               # at closely: one carries Quiet's own furniture over somebody
               # else's page, the other is where a layout gives way.
-              feed|feed-home-button|*-largest) width=760 ;;
+              feed|feed-home-button|typing|*-largest) width=760 ;;
               *)              width=420 ;;
             esac
             sips -Z "$width" -s format jpeg -s formatOptions 60 "$f.png" --out "$f.jpg" >/dev/null

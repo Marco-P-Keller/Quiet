@@ -34,6 +34,12 @@ enum Rehearsal {
         case limit
         /// Browsing, with the search screen open.
         case search
+        /// The search screen with the field already answered to, so a keyboard
+        /// is up. Its own scene rather than a flag on `search`, because the
+        /// keyboard is the whole point: it brings a second full-screen window
+        /// in front of the app's, and what the app reads off "the key window"
+        /// while that is there is a different number.
+        case typing
         /// The second and a half the app opens with, held still so that it can
         /// be photographed. It is the one screen in Quiet that is gone before
         /// anybody could take a picture of it.
@@ -138,11 +144,14 @@ enum Rehearsal {
     static func open(_ session: QuietSession) {
         switch scene {
         case .panel, .limit: session.isPanelShowing = true
-        case .search: session.isSearchShowing = true
+        case .search, .typing: session.isSearchShowing = true
         default: break
         }
     }
 
     static var opensLimit: Bool { scene == .limit }
+
+    /// Whether the search field should take the keyboard on its own.
+    static var opensKeyboard: Bool { scene == .typing }
 }
 #endif

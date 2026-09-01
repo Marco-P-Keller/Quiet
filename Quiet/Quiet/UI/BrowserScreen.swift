@@ -1085,10 +1085,48 @@ enum SafeArea {
 
     private static var insets: UIEdgeInsets? { window?.safeAreaInsets }
 
+    /// Quiet's own window, which is not always the key one.
+    ///
+    /// `isKeyWindow` is the obvious spelling, and it is wrong at exactly the
+    /// moment this matters. While a keyboard is up, the window receiving keys
+    /// is the keyboard's own: a full-screen window above the app's, with
+    /// nothing above *it*, and therefore a top inset of zero. Read from there,
+    /// the phone has no notch — the strip Quiet reserves for the clock
+    /// collapses, and every page in the app moves up by the height of the
+    /// status bar and sits under the time.
+    ///
+    /// Quiet has one window and it is at the ordinary level. Everything the
+    /// system puts over that — the keyboard, the window an alert arrives in —
+    /// sits above it by definition, which is what makes the level the honest
+    /// question to ask rather than which window has the keys.
     private static var window: UIWindow? {
-        UIApplication.shared.connectedScenes
+        let scenes = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+        let scene = scenes.first { $0.activationState == .foregroundActive } ?? scenes.first
+        guard let windows = scene?.windows else { return nil }
+        return windows.first { $0.windowLevel == .normal && !$0.isHidden }
+            // Both fallbacks are for a state that should not happen. The old
+            // answer is kept as the first of them because a wrong inset beats
+            // no inset: twenty points of guess is a worse screen, and nil is a
+            // blank one.
+            ?? windows.first { $0.isKeyWindow }
+            ?? windows.first
+    }
+
+#if DEBUG
+    /// Both answers, side by side, for the rehearsal that puts a keyboard up.
+    ///
+    /// The bug this file just fixed is invisible in a screenshot taken without
+    /// one and invisible in a unit test, because it is a question about which
+    /// of the system's windows is in front. So the app says what it read, and
+    /// a run that puts a keyboard up says whether the two spellings still
+    /// disagree.
+    static var reading: String {
+        let keyed = UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
             .flatMap(\.windows)
             .first { $0.isKeyWindow }
+        return "top \(top) from ours, \(keyed.map { "\($0.safeAreaInsets.top)" } ?? "no window") from isKeyWindow"
     }
+#endif
 }
