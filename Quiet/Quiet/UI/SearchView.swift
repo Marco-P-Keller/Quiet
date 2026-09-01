@@ -29,6 +29,7 @@ struct SearchView: View {
     @FocusState private var isFocused: Bool
 #if DEBUG
     @State private var whereIAm: CGFloat = -1
+    @State private var whereTheFieldIs: CGFloat = -1
 #endif
 
     private enum Outcome: Equatable {
@@ -104,13 +105,17 @@ struct SearchView: View {
     /// notch from whichever window had the keys.
     private func rehearse() {
 #if DEBUG
-        guard Rehearsal.opensKeyboard else { return }
-        isFocused = true
+        guard Rehearsal.measuresTheSearchPage else { return }
+        if Rehearsal.opensKeyboard { isFocused = true }
         Task {
-            // After the keyboard, not before it. The window that breaks the
-            // reading does not exist until it is on screen.
+            // After the keyboard, not before it. The window that would change
+            // any of this does not exist until it is on screen.
             try? await Task.sleep(for: .seconds(2))
-            NSLog("Quiet: %@, page at %.1f", SafeArea.reading, Double(whereIAm))
+            NSLog(
+                "Quiet: top %.1f, page at %.1f, field at %.1f, keyboard %@",
+                Double(SafeArea.top), Double(whereIAm), Double(whereTheFieldIs),
+                Rehearsal.opensKeyboard ? "up" : "down"
+            )
         }
 #endif
     }
@@ -150,6 +155,15 @@ struct SearchView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .padding(.horizontal, 28)
         .padding(.top, 12)
+#if DEBUG
+        .background(
+            GeometryReader { proxy in
+                Color.clear
+                    .onAppear { whereTheFieldIs = proxy.frame(in: .global).minY }
+                    .onChange(of: proxy.frame(in: .global).minY) { whereTheFieldIs = $1 }
+            }
+        )
+#endif
     }
 
     private var results: some View {

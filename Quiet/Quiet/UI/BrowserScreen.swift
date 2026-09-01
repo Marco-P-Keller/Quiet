@@ -409,33 +409,13 @@ struct BrowserScreen: View {
                     Color.clear.frame(height: furniture)
                 }
             }
-            // The glass, said outright, and top-aligned — the same sentence
-            // as the stack this one stands in, learned again for the same
-            // reason and at the same price.
-            //
-            // The app read its own numbers to find this. Everything it holds
-            // is right: `topInset` 62, the glass 440 x 956, the safe area 62
-            // whichever window is asked. And the page was at **minus 79.5** —
-            // not a strip that had collapsed but a page slid a hundred and
-            // forty points off the top of the screen.
-            //
-            // A stack with no size takes the one its content asks for, and its
-            // content asks for too much the moment a keyboard is up: SwiftUI
-            // gives the page inside a region the keyboard's height taller than
-            // the room there is, the column overflows, and an overflowing
-            // column is *centred* — half of it above the top of the screen,
-            // taking the clock's strip and the page's own title row with it,
-            // onto the time.
-            //
-            // A size cannot overflow, and `.top` decides which end goes if
-            // anything ever does: downward, behind the keyboard, where there is
-            // nothing to read anyway.
-            .frame(
-                width: glass.width > 0 ? glass.width : nil,
-                height: glass.height > 0 ? glass.height : nil,
-                alignment: .top
-            )
-            .clipped()
+            // Deliberately no size here, for now. One was added when the
+            // page was found at minus seventy-nine with a keyboard up, on the
+            // reasoning that a stack with no size takes the one its content
+            // asks for and an overflowing column is centred. The next run read
+            // minus seventy-nine again, to the tenth of a point, so whatever
+            // moves this page it is not that — and a change that fixed nothing
+            // is taken back rather than left in to be inherited as a fact.
             .ignoresSafeArea()
             .transition(.opacity)
         }

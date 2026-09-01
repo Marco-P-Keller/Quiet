@@ -153,5 +153,13 @@ enum Rehearsal {
 
     /// Whether the search field should take the keyboard on its own.
     static var opensKeyboard: Bool { scene == .typing }
+
+    /// Whether this scene is one of the pair that measures the search page.
+    ///
+    /// A pair, because a single measurement of a page that is in the wrong
+    /// place says nothing: minus seventy-nine is a number, and whether it is a
+    /// *fault* depends entirely on what the same page reads with no keyboard
+    /// up. Three rounds went by without that control being taken.
+    static var measuresTheSearchPage: Bool { scene == .search || scene == .typing }
 }
 #endif
