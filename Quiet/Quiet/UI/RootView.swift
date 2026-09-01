@@ -68,6 +68,24 @@ struct RootView: View {
             // *expands* it into the keyboard's room and makes it too tall for
             // its own slot.
             .ignoresSafeArea(.keyboard, edges: .bottom)
+            // And the same sentence said the only way that does not depend on
+            // understanding why the room shrank: fill whatever room there is,
+            // and put the screen at the *top* of it.
+            //
+            // Measured. With no keyboard the browsing screen sits at 14 points;
+            // with one it sits at minus 141.5. The screen itself moves, whole,
+            // which is why five changes inside it did nothing — and asking the
+            // keyboard to be ignored did not stop it either, because the
+            // shrinking happens further out than any modifier written here can
+            // reach. A fixed height positioned in a shorter region is centred,
+            // and half of nine hundred and fifty-six against six hundred and
+            // forty-five is exactly the hundred and fifty-five it moves by.
+            //
+            // This does not argue with the shrinking. It says which end to
+            // lose: downward, behind the keyboard, where there is nothing to
+            // read. The screens that are not a fixed height are unaffected —
+            // they already fill what they are given.
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .animation(reduceMotion ? nil : .easeInOut(duration: 0.3), value: session.screen)
             // An overlay rather than a stack, and the difference is not a
             // matter of taste.
