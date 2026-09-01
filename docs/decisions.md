@@ -2485,3 +2485,52 @@ is moved by exactly what it lost.
 What is not claimed: none of this was measured on a phone. It is work removed
 from the frame path by mechanism and one page movement removed by arithmetic,
 which is a smaller claim than "the feed is smooth now" and the honest one.
+
+## Eight attempts at one screen moving
+
+The photograph was Quiet's own title row drawn across the clock, with a keyboard
+up. It took eight tries, and seven of them were wrong in the same way.
+
+What the app finally said about itself, once it was asked:
+
+    page at   62.0, field at 116.0, keyboard down
+    page at  -79.5, field at  36.7, keyboard up
+    glass 440 x 956 at   14.0, keyboard down
+    glass 440 x 956 at -141.5, keyboard up
+
+The browsing screen does not lay itself out wrongly. **It is moved whole.** A
+view given a fixed height and put in a region shorter than that height is
+centred, and half of what a keyboard takes out of the region is exactly what it
+moves by. Everything else in those numbers follows: the page goes with the
+screen, and inside it the navigation bar puts back the sixty-two points it now
+believes it owes a status bar, having found itself at the top of the window.
+
+The seven wrong answers sort into two piles, and both piles are one mistake.
+
+**Five were changes inside the screen** — the safe area read from the wrong
+window, a view told to ignore the keyboard, a stack given a size, a stack told
+which end to lose, the same for the stack inside it. None of them could ever
+have worked, because the screen was never the thing laying itself out.
+
+**Two were requests made in `RootView`** — ignore the keyboard; fill the room
+and pin to the top. A request is not a size, and whatever moves this screen sits
+further out than a modifier written in that file can reach.
+
+The eighth asks nothing of it. `Color.clear` refuses the keyboard, is therefore
+the height of the window whatever is in front of it, and the screen is laid over
+that and pinned to its top. An overlay is sized to the thing it covers, so there
+is no shorter region left anywhere for anything to be centred in — which is the
+answer this file already gives one line further down, to the same failure
+arriving through a `ZStack` instead of a keyboard.
+
+What actually cost the seven rounds is smaller than any of that, and it is worth
+writing down on its own: **every one of them was inferred from a single
+measurement with nothing beside it.** Minus seventy-nine is a number. Whether it
+is a fault depends on what the same page reads with no keyboard up, and that was
+not asked until the fourth round. Whether the fault is *in* that page depends on
+where the screen around it is, and that was not asked until the seventh.
+
+The instrumentation stays. It is `DEBUG` only, it runs in one staged scene, and
+the workflow prints the four numbers on every run — so a screen that starts
+moving again says so in a line rather than in a photograph somebody has to
+notice.
