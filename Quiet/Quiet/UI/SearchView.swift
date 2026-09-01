@@ -69,11 +69,13 @@ struct SearchView: View {
             .toolbarBackground(Paper.page, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
         }
-        // A full-screen page does not move for a keyboard. The field is at the
-        // top of it and the list below scrolls — and scrolling dismisses the
-        // keyboard — so there is nothing down there that needs revealing, and
-        // a page that slides upward puts its own title row on the clock.
-        .ignoresSafeArea(.keyboard, edges: .bottom)
+        // Deliberately not `.ignoresSafeArea(.keyboard)`. That reads like the
+        // way to say "do not move for a keyboard" and it is the opposite: it
+        // *expands* the view to cover the region it ignores, so this page
+        // asked its container for its own height plus the keyboard's — and the
+        // stack it stands in answered by overflowing, which is where the
+        // seventy-six points came from. The page not moving is settled where
+        // it belongs, by the stack having a size. See `quietPages`.
         .presentationBackground(Paper.page)
 #if DEBUG
         // Where this page actually is on the glass, which is the question the

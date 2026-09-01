@@ -409,14 +409,34 @@ struct BrowserScreen: View {
                     Color.clear.frame(height: furniture)
                 }
             }
+            // The glass, said outright, and top-aligned — the same sentence
+            // as the stack this one stands in, learned again for the same
+            // reason and at the same price.
+            //
+            // The app read its own numbers to find this. Everything it holds
+            // is right: `topInset` 62, the glass 440 x 956, the safe area 62
+            // whichever window is asked. And the page was at **minus 79.5** —
+            // not a strip that had collapsed but a page slid a hundred and
+            // forty points off the top of the screen.
+            //
+            // A stack with no size takes the one its content asks for, and its
+            // content asks for too much the moment a keyboard is up: SwiftUI
+            // gives the page inside a region the keyboard's height taller than
+            // the room there is, the column overflows, and an overflowing
+            // column is *centred* — half of it above the top of the screen,
+            // taking the clock's strip and the page's own title row with it,
+            // onto the time.
+            //
+            // A size cannot overflow, and `.top` decides which end goes if
+            // anything ever does: downward, behind the keyboard, where there is
+            // nothing to read anyway.
+            .frame(
+                width: glass.width > 0 ? glass.width : nil,
+                height: glass.height > 0 ? glass.height : nil,
+                alignment: .top
+            )
+            .clipped()
             .ignoresSafeArea()
-            // And not for a keyboard either. This stack is the glass: it holds
-            // the strip the clock stands in, the page, and the room the row
-            // needs, and every one of those is measured from an edge of the
-            // screen rather than from whatever is in front of it. A keyboard
-            // that moved it would take the clock's strip off the top and put
-            // the page's own title row on the time.
-            .ignoresSafeArea(.keyboard, edges: .bottom)
             .transition(.opacity)
         }
     }
