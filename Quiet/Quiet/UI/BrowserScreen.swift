@@ -89,6 +89,9 @@ struct BrowserScreen: View {
     /// bottom — the home indicator, to the point. Ignoring the safe area is a
     /// request. A size is not.
     @State private var glass: CGSize = SafeArea.glass
+#if DEBUG
+    @State private var whereTheGlassIs: CGFloat = -1
+#endif
 
     /// Whether the clock is on the row at all.
     ///
@@ -236,6 +239,19 @@ struct BrowserScreen: View {
             alignment: .top
         )
         .ignoresSafeArea()
+#if DEBUG
+        // Where the whole browsing screen is, which is the question five
+        // rounds of changes *inside* it never asked. A screen that is being
+        // moved whole cannot be fixed from within, and telling those two apart
+        // is one number.
+        .background(
+            GeometryReader { proxy in
+                Color.clear
+                    .onAppear { whereTheGlassIs = proxy.frame(in: .global).minY }
+                    .onChange(of: proxy.frame(in: .global).minY) { whereTheGlassIs = $1 }
+            }
+        )
+#endif
         .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: surface.hasLoaded)
         .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: surface.isBare)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: surface.stumble)
@@ -271,12 +287,12 @@ struct BrowserScreen: View {
     /// zero, which takes the fixed height off the stack that holds everything
     /// else up. Two hypotheses, one line, and no more guessing at arithmetic.
     private func sayWhatTheGlassIs() async {
-        guard Rehearsal.opensKeyboard else { return }
+        guard Rehearsal.measuresTheSearchPage else { return }
         try? await Task.sleep(for: .seconds(2))
         NSLog(
-            "Quiet: top %.1f held, %.1f now; bottom %.1f; glass %.0f x %.0f",
-            Double(topInset), Double(SafeArea.top), Double(bottomInset),
-            Double(glass.width), Double(glass.height)
+            "Quiet: top %.1f held; glass %.0f x %.0f at %.1f, keyboard %@",
+            Double(topInset), Double(glass.width), Double(glass.height),
+            Double(whereTheGlassIs), Rehearsal.opensKeyboard ? "up" : "down"
         )
     }
 #endif

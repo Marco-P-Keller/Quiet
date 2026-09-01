@@ -47,6 +47,27 @@ struct RootView: View {
 
     var body: some View {
         content
+            // The same failure as the one described below, arriving a second
+            // way, and it took five wrong answers to see that it was the same
+            // one. A keyboard shrinks the region this view is laid out in by
+            // its own height; the browsing screen is a fixed nine hundred and
+            // fifty-six points because it is given the glass outright; and a
+            // fixed height in a shorter region is *centred*. Two hundred and
+            // eighty-three points of keyboard put half of itself — a hundred
+            // and forty-one and a half — above the top of the screen, taking
+            // the strip the clock stands in and the page's own title row onto
+            // the time.
+            //
+            // Every one of the five answers was a change inside that screen,
+            // and none of them could have worked: the screen was not laying
+            // itself out wrongly, it was being moved whole.
+            //
+            // The region is the window here, so nothing can overflow it. That
+            // is what makes this the right place for the request and every
+            // place inside the wrong one: asked of a child, the same modifier
+            // *expands* it into the keyboard's room and makes it too tall for
+            // its own slot.
+            .ignoresSafeArea(.keyboard, edges: .bottom)
             .animation(reduceMotion ? nil : .easeInOut(duration: 0.3), value: session.screen)
             // An overlay rather than a stack, and the difference is not a
             // matter of taste.
