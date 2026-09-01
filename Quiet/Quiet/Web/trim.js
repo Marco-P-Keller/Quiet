@@ -1391,7 +1391,7 @@
     var doors = document.querySelectorAll(THE_DOOR);
     for (var i = 0; i < doors.length; i++) {
       var banner = bannerAround(doors[i]) || doors[i];
-      note(banner, "data-quiet-hidden", "upsell");
+      hide(banner, "upsell");
     }
     takeDownTheStrip();
   }
@@ -1441,7 +1441,7 @@
         if (!stack) continue;
         for (var i = 0; i < stack.length; i++) {
           if (isTheStrip(stack[i])) {
-            note(stack[i], "data-quiet-hidden", "upsell");
+            hide(stack[i], "upsell");
           }
         }
       }
@@ -2175,6 +2175,44 @@
     return !!element.closest("a");
   }
 
+  /**
+   * Take something out of the page without moving the page.
+   *
+   * `display: none` does not just hide a thing, it takes its height out of the
+   * flow — and WebKit anchors a scroll to nothing, so everything below slides
+   * up by exactly that height. If any of it was above the top of the glass,
+   * what somebody is reading moves under their thumb. Do that to an
+   * advertisement that Instagram's own list keeps unmounting and mounting
+   * again, and the feed goes up and down.
+   *
+   * So: how much of it is above the glass is exactly how far the page will
+   * slide. Under a thumb, anything with a part up there waits — nothing above
+   * the glass can be seen, so waiting costs nothing. Once the hand is off, it
+   * goes and the scroll is moved back by what the page lost, in the same
+   * frame, so nothing moves on screen at all.
+   *
+   * Something drawn *over* the page rather than laid out in it — a fixed bar,
+   * an absolutely placed banner — takes nothing with it when it goes, and is
+   * hidden straight away.
+   */
+  function hide(node, why) {
+    if (!node || !node.getAttribute) return false;
+    if (node.getAttribute("data-quiet-hidden") === why) return false;
+
+    var box = node.getBoundingClientRect();
+    var style = window.getComputedStyle(node);
+    var inTheFlow = style.position !== "fixed" && style.position !== "absolute";
+    var above = inTheFlow
+      ? Math.min(Math.max(-box.top, 0), box.height)
+      : 0;
+
+    if (above > 0.5 && moving()) return false;
+
+    node.setAttribute("data-quiet-hidden", why);
+    if (above > 0.5 && window.scrollBy) window.scrollBy(0, -above);
+    return true;
+  }
+
   var HEADINGS = 'span, h1, h2, h3, h4, div[role="heading"]';
 
   /**
@@ -2217,25 +2255,35 @@
       return;
     }
 
-    /* Where it is, because taking a block out is not free. WebKit anchors a
-     * scroll to nothing: remove something above the top of the glass and
-     * everything below slides up by exactly its height, under the thumb, in
-     * the middle of a flick. That is the feed jumping.
+    /* How big it is, before anything is done to it.
      *
-     * Nothing above the glass can be seen, so it waits — deliberately without
-     * being remembered, so the next pass looks at it again. Once the hand is
-     * off, the same removal is paid for in the same frame by moving the scroll
-     * by what the page just lost, and nothing moves on screen at all. */
+     * A suggestion block is one card in a feed. `closest` climbs as far as the
+     * document, and a `<section>` wrapping half of somebody's afternoon is
+     * exactly as easy to reach as the post the heading belongs to — one span
+     * reading "Reels" inside such a section takes the rest of the feed with
+     * it, and what is left is a black hole you scroll through. Being inside
+     * `main` was the only guard, and `main` is not the only thing bigger than
+     * a card.
+     *
+     * Two questions, both about the drawn thing: it must not be taller than
+     * the glass and a half, and it must not have a post inside it. */
     var box = block.getBoundingClientRect();
-    var aboveTheGlass = box.bottom <= 0 && box.height > 0;
-    if (aboveTheGlass && moving()) return;
-
-    lastSeenText.set(element, text);
-    if (block.getAttribute("data-quiet-hidden") !== "suggestion") {
-      tally.hidden += 1;
+    var glass = window.innerHeight || 844;
+    if (box.height > glass * 1.5 || block.querySelector("article")) {
+      lastSeenText.set(element, text);
+      return;
     }
-    block.setAttribute("data-quiet-hidden", "suggestion");
-    if (aboveTheGlass && window.scrollBy) window.scrollBy(0, -box.height);
+
+    if (!hide(block, "suggestion")) {
+      /* Already gone, or waiting for the hand to come off the glass. Only the
+       * first of those may be remembered, or the wait becomes forever. */
+      if (block.getAttribute("data-quiet-hidden") === "suggestion") {
+        lastSeenText.set(element, text);
+      }
+      return;
+    }
+    lastSeenText.set(element, text);
+    tally.hidden += 1;
   }
 
   /* ── 4. Keep up with the page ─────────────────────────────────────────── */
@@ -2361,13 +2409,24 @@
       arrivals.length = 0;
     }
     replaceNav();
-    refuseTheDoor();
     guardLocation();
   }
 
   /** Everything, once the hand is off the glass. */
   function pass() {
     keepItClean(true);
+    // Out of the immediate half, and it is the largest single thing left in
+    // there. `takeDownTheStrip` asks the browser what is drawn at twelve
+    // points on the glass, and every one of those is a hit test that forces a
+    // layout — twelve of them, sixty times a second, for as long as anybody is
+    // scrolling.
+    //
+    // Nothing is lost by waiting a tenth of a second. There are two nets under
+    // this one and both hold from the first paint: trim.css hides every one of
+    // these addresses by selector, and `ContentRules` refuses to open them at
+    // all. What this adds is taking down the *strip* around a door, and a
+    // strip that is there for a tenth of a second longer is not a reel.
+    refuseTheDoor();
     // Out of the immediate half on purpose. It walks eleven ancestors asking
     // the browser for a computed style, which forces layout, and the thing it
     // is fixing is a band of nothing under the last post — the one place in

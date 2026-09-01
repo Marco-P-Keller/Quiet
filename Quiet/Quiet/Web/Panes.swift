@@ -213,11 +213,41 @@ final class PaneStack {
         panes.values.forEach { $0.keepThePlace() }
     }
 
+    /// Give the other two back before iOS takes one without asking.
+    ///
+    /// Three copies of Instagram in one app's memory is what the panes cost,
+    /// and that was written down when they were built. What was not written
+    /// down is that the bill arrives late. A feed grows as it is read; a dozen
+    /// screens in, the app is holding several times what it held at launch,
+    /// and iOS answers by jettisoning a web content process. Sometimes with a
+    /// warning, which is handled above. Often without — and a pane whose
+    /// process has gone is a black rectangle where somebody was reading.
+    ///
+    /// So the app chooses first, at the moment the reading itself says the
+    /// pressure is real, rather than waiting to be chosen for. It costs a
+    /// reload of a page nobody is looking at, and both of them wrote down
+    /// where they were on the way out.
+    ///
+    /// Once a minute at most: a feed that is long is long for the rest of the
+    /// afternoon, and doing this on every screenful would be reloading two
+    /// pages a minute for somebody who never leaves the first one.
+    func theFeedIsGettingLong() {
+        guard panes.count > 1 else { return }
+        let now = ProcessInfo.processInfo.systemUptime
+        guard now - lastGaveBack > Self.notAgainFor else { return }
+        lastGaveBack = now
+        trim()
+    }
+
+    private var lastGaveBack: TimeInterval = 0
+    private static let notAgainFor: TimeInterval = 60
+
     /// Everything but the one being read.
     ///
-    /// Called on a memory warning, and by the pane that just lost its own web
-    /// content process — the second is the same situation arriving a moment
-    /// later and without the warning.
+    /// Called on a memory warning, by the pane that just lost its own web
+    /// content process — the same situation arriving a moment later and
+    /// without the warning — and by a feed that has grown long enough to be
+    /// the reason one of them is about to.
     func trim() {
         for (pane, webPane) in panes where pane != current {
             webPane.keepThePlace()

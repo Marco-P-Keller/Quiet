@@ -1013,6 +1013,108 @@ const GROUPED = `
   );
   check("and the page is moved by exactly what it lost", above.scrolledBy, [-200]);
 
+  /* And the case the phone actually reported: an advertisement, half of it
+   * above the top of the glass. Instagram's list unmounts and mounts these
+   * while a thumb is moving, so this happens over and over — and every time it
+   * did, the page slid by the part that was above the fold. */
+  const half = await page(`<main></main>`, FEED);
+  half.dispatchEvent(new half.Event("scroll"));
+  const straddling = half.document.createElement("div");
+  straddling.setAttribute("data-name", "straddling");
+  straddling.setAttribute("data-box", "0,-80,390,300");
+  straddling.innerHTML = "<h2>Suggested for you</h2>";
+  half.document.querySelector("main").appendChild(straddling);
+  await rest(0);
+  half.drain();
+  check(
+    "one straddling the top of the glass waits too",
+    half.document.querySelector('[data-name="straddling"]').getAttribute("data-quiet-hidden"),
+    null
+  );
+  await rest(260);
+  check(
+    "and then goes",
+    half.document.querySelector('[data-name="straddling"]').getAttribute("data-quiet-hidden"),
+    "suggestion"
+  );
+  check("paid for by the part that was above the fold, and no more",
+        half.scrolledBy, [-80]);
+
+  /* ── Never a hole where the feed was ─────────────────────────────────── */
+
+  /* `closest` climbs as far as the document, so a `<section>` wrapping half of
+   * somebody's afternoon is exactly as easy to reach as the post the heading
+   * belongs to. One span reading "Reels" inside one of those took the rest of
+   * the feed with it — which is the black nothing that comes back when you
+   * scroll far enough down. */
+  const huge = await page(
+    `<main><section data-name="lots" data-box="0,100,390,1400">
+       <h2>Suggested for you</h2>
+     </section></main>`,
+    FEED
+  );
+  check(
+    "a block taller than the glass and a half is not a suggestion block",
+    huge.document.querySelector('[data-name="lots"]').getAttribute("data-quiet-hidden"),
+    null
+  );
+
+  const withPosts = await page(
+    `<main><section data-name="around" data-box="0,100,390,600">
+       <h2>Suggested for you</h2>
+       <article>somebody's photograph</article>
+     </section></main>`,
+    FEED
+  );
+  check(
+    "and neither is one with a post inside it",
+    withPosts.document.querySelector('[data-name="around"]').getAttribute("data-quiet-hidden"),
+    null
+  );
+
+  /* The card itself still goes, which is the whole point of the pass. */
+  const card = await page(
+    `<main><div data-name="card" data-box="0,100,390,420">
+       <h2>Suggested for you</h2>
+     </div></main>`,
+    FEED
+  );
+  check(
+    "a block the size of a card still does",
+    card.document.querySelector('[data-name="card"]').getAttribute("data-quiet-hidden"),
+    "suggestion"
+  );
+
+  /* ── The door, out of the frame path ─────────────────────────────────── */
+
+  /* `takeDownTheStrip` asks the browser what is drawn at twelve points on the
+   * glass, and each of those is a hit test that forces a layout. Twelve, sixty
+   * times a second, for as long as anybody is scrolling. Two nets hold under
+   * it from the first paint — the stylesheet and the URL rules — so it can
+   * wait for the hand to come off. */
+  const door = await page(`<main></main>`, FEED);
+  door.dispatchEvent(new door.Event("scroll"));
+  const bar = door.document.createElement("div");
+  bar.setAttribute("data-name", "bar");
+  bar.setAttribute("data-at-bottom", "");
+  bar.setAttribute("style", "position: fixed");
+  bar.setAttribute("data-box", "0,760,390,60");
+  bar.innerHTML = "<button>Open</button>";
+  door.document.body.appendChild(bar);
+  await rest(0);
+  door.drain();
+  check(
+    "the strip is not hunted for mid-flick",
+    door.document.querySelector('[data-name="bar"]').getAttribute("data-quiet-hidden"),
+    null
+  );
+  await rest(260);
+  check(
+    "and is taken down once the hand comes off the glass",
+    door.document.querySelector('[data-name="bar"]').getAttribute("data-quiet-hidden"),
+    "upsell"
+  );
+
   /* A block in front of somebody is taken out at once and paid for by nobody:
    * removing it moves what is *below* it, which is not what they are reading. */
   const ahead = await page(`<main></main>`, FEED);

@@ -915,7 +915,19 @@ struct InstagramWebView: UIViewRepresentable {
             let atTop = offset <= -scrollView.contentInset.top + 4
             collapse(atTop ? false : delta > 0)
             comeBackWhenItStops()
+
+            // And how long the page being read has become, which is the only
+            // signal the app has that its three panes are about to cost more
+            // than iOS will let them. See `PaneStack.theFeedIsGettingLong`.
+            if scrollView.bounds.height > 0,
+               scrollView.contentSize.height > scrollView.bounds.height * Self.aLotOfPage {
+                stack?.theFeedIsGettingLong()
+            }
         }
+
+        /// A dozen screens. Long enough that nobody reaches it by accident and
+        /// short enough to be well before the page a phone gives up on.
+        private static let aLotOfPage: CGFloat = 12
 
         /// Said only when it changes.
         ///
