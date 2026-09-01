@@ -341,8 +341,57 @@ final class WebSurface {
         return try? JSONDecoder().decode([Person].self, from: data)
     }
 
+    /// Watching the cookie that says which account this is. Started with the
+    /// first stack and never again — the browsing screen is built and taken
+    /// apart with the curtain, and the question outlives both.
+    @ObservationIgnored private var whoIsSignedIn: WhoIsSignedIn?
+
     func attach(_ stack: PaneStack) {
         self.stack = stack
+        guard whoIsSignedIn == nil else { return }
+        whoIsSignedIn = WhoIsSignedIn { [weak self] in
+            self?.startAgainAsSomebodyElse()
+        }
+    }
+
+    /// Somebody else is signed in, and every screen in the app is still the
+    /// last person's.
+    ///
+    /// Instagram's own account switcher changes who this browser is without
+    /// loading anything, so the two panes off the glass keep the feed and the
+    /// inbox they had — one tap from being brought forward — and the row keeps
+    /// the face. Reloading the page in front is not enough and never was: the
+    /// problem is precisely the pages that are *not* in front.
+    ///
+    /// The order is the whole of it.
+    ///
+    /// The caches go first, and they go before anything is asked for again.
+    /// Instagram's own service worker and fetch cache are keyed by address, and
+    /// two accounts ask the same addresses — a timeline, an inbox, a profile
+    /// picture — so a pane rebuilt over a warm cache can be handed the last
+    /// person's answers by the app's own storage. Not `allWebsiteDataTypes`,
+    /// which is what signing out uses: cookies and local storage are what being
+    /// signed in is made of, and this reader has just signed *in*.
+    ///
+    /// Then the app forgets who it thought it was — the name, the face, and
+    /// every pane's saved place, because a place is a page from before the
+    /// switch and restoring one puts the old account back on the glass without
+    /// a single request ever asking whether it was still theirs.
+    ///
+    /// And only then are the panes torn down and the feed built again from
+    /// nothing.
+    private func startAgainAsSomebodyElse() {
+        NSLog("Quiet: the account changed; starting every pane again")
+        clearCaches { [weak self] in
+            Task { @MainActor in
+                guard let self else { return }
+                self.me = nil
+                self.myFace = nil
+                Remembered.forgetMe()
+                ThePlace.forgetEverything()
+                self.stack?.startOver()
+            }
+        }
     }
 
     /// Point at a pane.

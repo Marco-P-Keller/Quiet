@@ -115,6 +115,18 @@ enum Remembered {
         defaults.removeObject(forKey: visited)
     }
 
+    /// Who this phone is signed in as, and their face.
+    ///
+    /// Not the glyphs, which are Instagram's own icons and the same for
+    /// everybody, and not the people this phone opens, which belong to the
+    /// phone rather than to an account. Only the two things that are somebody:
+    /// left behind, they are the last person's name and the last person's
+    /// photograph, drawn into the row on the next launch before any page has
+    /// said otherwise.
+    static func forgetMe(defaults: UserDefaults = .standard) {
+        [name, face].forEach(defaults.removeObject(forKey:))
+    }
+
     /// For a rehearsal, so that a scene photographs the same app every time.
     static func forget(defaults: UserDefaults = .standard) {
         [glyphs, name, face, visited].forEach(defaults.removeObject(forKey:))
