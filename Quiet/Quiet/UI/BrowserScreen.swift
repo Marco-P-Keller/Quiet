@@ -386,6 +386,13 @@ struct BrowserScreen: View {
                 }
             }
             .ignoresSafeArea()
+            // And not for a keyboard either. This stack is the glass: it holds
+            // the strip the clock stands in, the page, and the room the row
+            // needs, and every one of those is measured from an edge of the
+            // screen rather than from whatever is in front of it. A keyboard
+            // that moved it would take the clock's strip off the top and put
+            // the page's own title row on the time.
+            .ignoresSafeArea(.keyboard, edges: .bottom)
             .transition(.opacity)
         }
     }
