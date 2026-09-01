@@ -962,6 +962,75 @@ const GROUPED = `
   await rest(260);
   check("and is asked once the hand comes off the glass", sheetOf(waiting)?.up, true);
 
+  /* Only what the page just added, rather than the whole feed. The observer is
+   * handed the exact list of what changed; sweeping every span in the feed
+   * sixty times a second to find it again was the largest cost in the frame.
+   * A block nested inside an arrival still has to be found. */
+  const nested = await page(`<main></main>`, FEED);
+  nested.dispatchEvent(new nested.Event("scroll"));
+  const buried = nested.document.createElement("div");
+  buried.innerHTML =
+    '<div><div data-name="deep"><h2>Suggested for you</h2></div></div>';
+  nested.document.querySelector("main").appendChild(buried);
+  await rest(0);
+  nested.drain();
+  check(
+    "a block buried inside what arrived is found too",
+    nested.document.querySelector('[data-name="deep"]').getAttribute("data-quiet-hidden"),
+    "suggestion"
+  );
+
+  /* ── Nothing moves under a thumb ─────────────────────────────────────── */
+
+  /* WebKit anchors a scroll to nothing. Take a block out above the top of the
+   * glass and everything below slides up by exactly its height — under the
+   * thumb, in the middle of a flick, which is the feed jumping.
+   *
+   * Nothing up there can be seen, so it waits; and when the hand comes off it
+   * is taken out and the scroll is moved by what the page lost, in the same
+   * frame, so that nothing moves on screen at all. */
+  const above = await page(`<main></main>`, FEED);
+  above.dispatchEvent(new above.Event("scroll"));
+  const passed = above.document.createElement("div");
+  passed.setAttribute("data-name", "passed");
+  passed.setAttribute("data-box", "0,-300,390,200");
+  passed.innerHTML = "<h2>Suggested for you</h2>";
+  above.document.querySelector("main").appendChild(passed);
+  await rest(0);
+  above.drain();
+  check(
+    "a block above the glass is left alone while the page is moving",
+    above.document.querySelector('[data-name="passed"]').getAttribute("data-quiet-hidden"),
+    null
+  );
+  check("and nothing has been scrolled", above.scrolledBy, []);
+
+  await rest(260);
+  check(
+    "once the hand is off the glass it goes",
+    above.document.querySelector('[data-name="passed"]').getAttribute("data-quiet-hidden"),
+    "suggestion"
+  );
+  check("and the page is moved by exactly what it lost", above.scrolledBy, [-200]);
+
+  /* A block in front of somebody is taken out at once and paid for by nobody:
+   * removing it moves what is *below* it, which is not what they are reading. */
+  const ahead = await page(`<main></main>`, FEED);
+  ahead.dispatchEvent(new ahead.Event("scroll"));
+  const coming = ahead.document.createElement("div");
+  coming.setAttribute("data-name", "coming");
+  coming.setAttribute("data-box", "0,600,390,200");
+  coming.innerHTML = "<h2>Suggested for you</h2>";
+  ahead.document.querySelector("main").appendChild(coming);
+  await rest(0);
+  ahead.drain();
+  check(
+    "one still on its way up is taken out mid-flick",
+    ahead.document.querySelector('[data-name="coming"]').getAttribute("data-quiet-hidden"),
+    "suggestion"
+  );
+  check("and the scroll is left alone", ahead.scrolledBy, []);
+
   /* ── Somebody mid-sentence ───────────────────────────────────────────── */
 
   /* The app is meant to be strict and not rude. Taking half a message away when
@@ -1133,10 +1202,12 @@ const GROUPED = `
   /* jsdom lays nothing out and scrolls nothing, so the page is scrolled by
    * saying where it is and telling it so — which is exactly what a browser
    * does, and is all the listener reads. */
+  const awayOf = (win) => win.document.documentElement.hasAttribute("data-quiet-away");
+
   const scrollTo = (win, y) => {
     Object.defineProperty(win, "scrollY", { value: y, configurable: true });
     win.dispatchEvent(new win.Event("scroll"));
-    return win.document.documentElement.hasAttribute("data-quiet-away");
+    return awayOf(win);
   };
 
   const feed = await page(GROUPED, FEED);
@@ -1150,6 +1221,30 @@ const GROUPED = `
   check("a movement too small to mean anything changes nothing", [
     scrollTo(feed, 400), scrollTo(feed, 403),
   ], [true, true]);
+
+  /* And nor is eight points, which is what it used to take. The header slid
+   * out over a fifth of a second on the first eight points of any downward
+   * movement, slid back on the next eight up, and did it again while somebody
+   * was reading. Going away now asks for forty points in one direction; the
+   * nudges add up, and a change of direction starts the tally again. */
+  const calm = await page(GROUPED, FEED);
+  scrollTo(calm, 300);
+  scrollTo(calm, 280);
+  check("a nudge back up brings it straight back", awayOf(calm), false);
+  check("three small nudges down are not a decision", [
+    scrollTo(calm, 292), scrollTo(calm, 304), scrollTo(calm, 316),
+  ], [false, false, false]);
+  check("the fourth is", scrollTo(calm, 328), true);
+
+  /* Which only holds because the tally is a direction rather than a total: a
+   * page wobbling under a thumb never accumulates forty of anything. */
+  const wobble = await page(GROUPED, FEED);
+  scrollTo(wobble, 300);
+  scrollTo(wobble, 280);
+  check("a page wobbling under a thumb sends nothing away", [
+    scrollTo(wobble, 300), scrollTo(wobble, 280),
+    scrollTo(wobble, 300), scrollTo(wobble, 280),
+  ], [false, false, false, false]);
 
   /* Every other page's top bar is that page's own: the name on a profile, the
    * search in the inbox, the back arrow in a conversation. A back arrow that

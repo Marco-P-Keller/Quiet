@@ -87,6 +87,11 @@ async function page(html, url, head) {
   win.document.elementFromPoint = function () {
     return win.document.querySelector("[data-at-top]");
   };
+  // jsdom scrolls nothing, so what the script asks the page to scroll by is
+  // recorded instead. Taking a block out above the top of the glass has to be
+  // paid for in the same frame, and this is where the payment shows up.
+  win.scrolledBy = [];
+  win.scrollBy = (x, y) => win.scrolledBy.push(y);
   // What the script sends up to the app, kept so a test can read it.
   win.sent = [];
   win.webkit = { messageHandlers: { quiet: { postMessage: (m) => win.sent.push(m) } } };

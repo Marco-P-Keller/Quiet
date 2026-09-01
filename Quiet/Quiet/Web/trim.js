@@ -610,10 +610,22 @@
     }
   }
 
+  /**
+   * Elements this has already measured, whatever the answer was.
+   *
+   * The attribute alone was the memo, which meant every element that did *not*
+   * have a floor was measured again on every call — eleven `getComputedStyle`
+   * reads a frame, each one a forced style resolution, for as long as anybody
+   * was scrolling. A question with a stable answer is worth asking once.
+   */
+  var floorAsked = new WeakSet();
+
   /** Enough bottom padding to be a reservation rather than a choice. */
   function markFloor(node) {
     if (!node || node.nodeType !== 1) return;
     if (node.getAttribute("data-quiet-floor") !== null) return;
+    if (floorAsked.has(node)) return;
+    floorAsked.add(node);
 
     var style = window.getComputedStyle(node);
     var padding = parseFloat(style.paddingBottom);
@@ -1249,11 +1261,35 @@
   var lastY = 0;
   var headerAway = false;
 
+  /**
+   * How far the page has gone in the direction it is currently going.
+   *
+   * Reset by a change of direction rather than carried, which is the whole of
+   * the hysteresis below.
+   */
+  var travel = 0;
+
   /** Far enough down that there is something worth reading. */
   var CLEAR_OF_THE_TOP = 64;
 
-  /** Enough movement to be a decision rather than a fingertip resting. */
+  /** Enough movement upward to want the header back. */
   var DELIBERATE = 8;
+
+  /**
+   * And enough downward to send it away, which is five times as much.
+   *
+   * The two used to be the same eight points, measured from wherever the page
+   * last was, and the header went away on the first eight points of any
+   * downward movement past the top. Eight points is a thumb settling. The
+   * header slid out over a fifth of a second, slid back on the next eight
+   * points up, and did it again — the furniture twitching while somebody read.
+   *
+   * The asymmetry is the point and it is the way every list on this phone
+   * behaves: hiding a bar is a decision the page makes about somebody, so it
+   * asks for a deliberate movement; showing it again is a decision somebody
+   * has made, and it happens at once.
+   */
+  var ENOUGH_TO_GO = 40;
 
   function watchTheHeader() {
     window.addEventListener("scroll", function () {
@@ -1262,12 +1298,6 @@
       // See `moving`.
       noteScroll();
 
-      var y = window.scrollY || document.documentElement.scrollTop || 0;
-      var delta = y - lastY;
-      if (Math.abs(delta) < DELIBERATE) return;
-      lastY = y;
-
-      showOrHideHeader(isFeed() && y > CLEAR_OF_THE_TOP && delta > 0);
       // And the row, which is the safety valve on the whole sheet question. A
       // page that is scrolling is a page that is not locked, so if the app is
       // holding its row down for a modal that has since gone — because the
@@ -1275,11 +1305,38 @@
       // unlock — the first flick of a thumb puts it back.
       //
       // Asked only when the answer could change. `saySheet` reads boxes and
-      // computed styles, and this runs on every deliberate scroll of every
-      // flick; doing that work to confirm what is already believed is the
-      // shape of a stutter. The row is down or it is not, and only the first
-      // case has a question in it.
+      // computed styles, and this runs on every scroll event of every flick;
+      // doing that work to confirm what is already believed is the shape of a
+      // stutter. The row is down or it is not, and only the first case has a
+      // question in it. Before the thresholds rather than after them, because
+      // a row stuck down is not less stuck for a page that moved four points.
       if (lastSheet) saySheet();
+
+      var y = window.scrollY || document.documentElement.scrollTop || 0;
+      var delta = y - lastY;
+      lastY = y;
+      if (!delta) return;
+
+      // At the top, and in the rubber band above it, the header is simply
+      // there. A band alternates its deltas, and none of them are a decision.
+      if (y <= CLEAR_OF_THE_TOP) {
+        travel = 0;
+        showOrHideHeader(false);
+        return;
+      }
+
+      if ((delta > 0) !== (travel > 0)) travel = 0;
+      travel += delta;
+
+      if (travel >= ENOUGH_TO_GO) {
+        travel = 0;
+        // Every other page's top bar is that page's own — the name on a
+        // profile, the search in the inbox, the back arrow in a conversation.
+        showOrHideHeader(isFeed());
+      } else if (travel <= -DELIBERATE) {
+        travel = 0;
+        showOrHideHeader(false);
+      }
     }, { passive: true });
   }
 
@@ -1297,6 +1354,9 @@
   function headerComesBack() {
     if (isFeed()) return;
     lastY = 0;
+    // With it, or the first scroll of the next page inherits a direction from
+    // the last one and answers before anybody has moved.
+    travel = 0;
     showOrHideHeader(false);
   }
 
@@ -2115,35 +2175,67 @@
     return !!element.closest("a");
   }
 
-  function trimSuggestions(root) {
-    var candidates = root.querySelectorAll(
-      'span, h1, h2, h3, h4, div[role="heading"]'
-    );
-    for (var i = 0; i < candidates.length; i++) {
-      var element = candidates[i];
+  var HEADINGS = 'span, h1, h2, h3, h4, div[role="heading"]';
 
-      var text = normalise(element.textContent);
-      if (lastSeenText.get(element) === text) continue;
+  /**
+   * Everything in a subtree that might be a suggestion block, and the block
+   * itself if it is one.
+   *
+   * `root` is what to look through and `feed` is what a block must be inside,
+   * and they are two arguments rather than one because of what runs during a
+   * flick. Sweeping `main` reads the text of every span in the feed — hundreds
+   * of them, sixty times a second, each one a walk of a subtree — and the
+   * memo below only saves the comparison, never the reading. So while a thumb
+   * is on the glass only what the page has just added is looked through, and
+   * the whole feed is swept when the hand comes off.
+   */
+  function trimSuggestions(root, feed) {
+    if (root.matches && root.matches(HEADINGS)) consider(root, feed);
+    var candidates = root.querySelectorAll(HEADINGS);
+    for (var i = 0; i < candidates.length; i++) consider(candidates[i], feed);
+  }
+
+  function consider(element, feed) {
+    var text = normalise(element.textContent);
+    if (lastSeenText.get(element) === text) return;
+
+    if (!text || text.length > 40 || !labelSet[text] || isCaption(element)) {
       lastSeenText.set(element, text);
-
-      if (!text || text.length > 40 || !labelSet[text]) continue;
-      if (isCaption(element)) continue;
-
-      /* Only ever a block inside the feed. `closest` climbs as far as the
-       * document, so without this it could reach a <section> wrapping the
-       * whole page and hide everything — a blank app, from one matching
-       * word. */
-      var block = element.closest("article, section");
-      if (!block || block === root || !root.contains(block)) {
-        block = element.parentElement;
-      }
-      if (block && block !== root && root.contains(block)) {
-        if (block.getAttribute("data-quiet-hidden") !== "suggestion") {
-          tally.hidden += 1;
-        }
-        block.setAttribute("data-quiet-hidden", "suggestion");
-      }
+      return;
     }
+
+    /* Only ever a block inside the feed. `closest` climbs as far as the
+     * document, so without this it could reach a <section> wrapping the
+     * whole page and hide everything — a blank app, from one matching
+     * word. */
+    var block = element.closest("article, section");
+    if (!block || block === feed || !feed.contains(block)) {
+      block = element.parentElement;
+    }
+    if (!block || block === feed || !feed.contains(block)) {
+      lastSeenText.set(element, text);
+      return;
+    }
+
+    /* Where it is, because taking a block out is not free. WebKit anchors a
+     * scroll to nothing: remove something above the top of the glass and
+     * everything below slides up by exactly its height, under the thumb, in
+     * the middle of a flick. That is the feed jumping.
+     *
+     * Nothing above the glass can be seen, so it waits — deliberately without
+     * being remembered, so the next pass looks at it again. Once the hand is
+     * off, the same removal is paid for in the same frame by moving the scroll
+     * by what the page just lost, and nothing moves on screen at all. */
+    var box = block.getBoundingClientRect();
+    var aboveTheGlass = box.bottom <= 0 && box.height > 0;
+    if (aboveTheGlass && moving()) return;
+
+    lastSeenText.set(element, text);
+    if (block.getAttribute("data-quiet-hidden") !== "suggestion") {
+      tally.hidden += 1;
+    }
+    block.setAttribute("data-quiet-hidden", "suggestion");
+    if (aboveTheGlass && window.scrollBy) window.scrollBy(0, -box.height);
   }
 
   /* ── 4. Keep up with the page ─────────────────────────────────────────── */
@@ -2160,6 +2252,35 @@
 
   var lastScrolled = 0;
   var afterTheFlick = null;
+
+  /**
+   * The subtrees the page has added since anything last looked.
+   *
+   * Kept from the observer's own records rather than found again by asking the
+   * document. The observer has just been handed the exact list of what changed;
+   * throwing it away and re-reading the whole feed was the largest single cost
+   * in the frame.
+   */
+  var arrivals = [];
+
+  /** More than any one rewrite has, and a full sweep is cheaper than the list. */
+  var ARRIVALS_MOST = 500;
+
+  /** Set when the list was dropped, so nothing is lost by dropping it. */
+  var sweepNext = false;
+
+  function noteArrivals(records) {
+    for (var i = 0; i < records.length; i++) {
+      var added = records[i].addedNodes;
+      for (var j = 0; j < added.length; j++) {
+        if (added[j].nodeType === 1) arrivals.push(added[j]);
+      }
+    }
+    if (arrivals.length > ARRIVALS_MOST) {
+      arrivals.length = 0;
+      sweepNext = true;
+    }
+  }
 
   /** Whether a thumb is on the glass right now. */
   function moving() {
@@ -2206,26 +2327,52 @@
     requestAnimationFrame(function () {
       pending = false;
       if (moving()) {
-        keepItClean();
+        keepItClean(false);
         return;
       }
       pass();
     });
   }
 
-  /** What cannot wait: anything whose job is that something never appears. */
-  function keepItClean() {
-    var main = document.querySelector("main");
-    if (main) trimSuggestions(main);
+  /**
+   * What cannot wait: anything whose job is that something never appears.
+   *
+   * `everything` is the difference between the two speeds. Off, only the
+   * subtrees the page has just added are looked through — which is the same
+   * work the browser has just done and no more. On, the whole feed is swept,
+   * which is what catches a block whose wording changed in place rather than
+   * arriving, and is affordable exactly once the hand is off the glass.
+   */
+  function keepItClean(everything) {
+    var feed = document.querySelector("main");
+    if (!feed) {
+      arrivals.length = 0;
+    } else if (everything || sweepNext) {
+      arrivals.length = 0;
+      sweepNext = false;
+      trimSuggestions(feed, feed);
+    } else {
+      for (var i = 0; i < arrivals.length; i++) {
+        var node = arrivals[i];
+        if (node.nodeType === 1 && feed.contains(node)) {
+          trimSuggestions(node, feed);
+        }
+      }
+      arrivals.length = 0;
+    }
     replaceNav();
     refuseTheDoor();
     guardLocation();
-    takeUpTheFloor(document.body);
   }
 
   /** Everything, once the hand is off the glass. */
   function pass() {
-    keepItClean();
+    keepItClean(true);
+    // Out of the immediate half on purpose. It walks eleven ancestors asking
+    // the browser for a computed style, which forces layout, and the thing it
+    // is fixing is a band of nothing under the last post — the one place in
+    // the page nobody is looking at while they are flicking through it.
+    takeUpTheFloor(document.body);
     coverTheGlass();
     makeRoom();
     sayWhere();
@@ -2295,7 +2442,10 @@
 
   watchForTyping();
 
-  new MutationObserver(schedule).observe(document.documentElement, {
+  new MutationObserver(function (records) {
+    noteArrivals(records);
+    schedule();
+  }).observe(document.documentElement, {
     childList: true,
     subtree: true,
   });

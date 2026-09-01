@@ -2423,3 +2423,65 @@ claiming to have more.
 What is not claimed: the pull was not re-tested by hand here. The rule that
 protects it is a pure function with tests, but only a thumb can say whether the
 gesture still feels like the system's.
+
+## The frame path, and four things in it
+
+The feed was asked to be perfect and was read end to end for it: the pass in
+`trim.js`, the header, the row, and the scroll view underneath all three. Four
+things in that path cost frames or moved the page, and none of them was
+visible from any single screenshot.
+
+**The largest was a sweep.** While a thumb was on the glass, every rewrite of
+Instagram's virtualised list ran `trimSuggestions` over the whole feed — every
+span, every heading, reading the text of each — sixty times a second. The memo
+in front of it only saved the *comparison*; the reading happened anyway, and
+reading `textContent` walks a subtree. Meanwhile the observer that triggered
+all this was handed the exact list of what had changed and threw it away. So
+the records are kept now: during a flick only what the page has just added is
+looked through, and the whole feed is swept when the hand comes off, which is
+what still catches a block whose wording changed in place rather than arriving.
+
+**The second was a question with a stable answer, asked every frame.** The
+floor under Instagram's hidden navigation row is found by walking eleven
+ancestors and asking each for its computed style. The memo was the attribute
+the walk *sets*, so every element that turned out not to have a floor was
+measured again on the next frame, and the next — eleven forced style
+resolutions a frame, for as long as anybody scrolled. Asked once per element
+now, whatever the answer, and the walk itself moved out of the immediate half
+of the pass entirely: what it fixes is a band of nothing under the last post,
+which is the one part of the page nobody is looking at while they flick
+through it.
+
+**The third moved the page.** WebKit anchors a scroll to nothing, so taking a
+block out above the top of the glass slides everything below it up by exactly
+its height — under the thumb, mid-flick. That is the feed jumping, and it is
+the app's own doing. Nothing above the glass can be seen, so it waits; and
+when the hand comes off, the block goes and the scroll is moved by what the
+page just lost, in the same frame, so nothing moves on screen at all. A block
+*below* the glass is still taken out at once and costs nothing: removing it
+moves what is under it, which is not what anybody is reading.
+
+**The fourth was the furniture twitching.** The header went away on the first
+eight points of downward movement past the top and came back on the next eight
+up — and eight points is a thumb settling, not a decision. It slid out over a
+fifth of a second, slid back, and did it again while somebody read. Going away
+now asks for forty points in one direction, with the tally reset by a change of
+direction; coming back still asks for eight. The asymmetry is the point and it
+is what every list on this phone does: hiding a bar is a decision the page
+makes about somebody, so it asks to be sure; showing it is a decision somebody
+has already made.
+
+And one thing that was simply missing. The row is documented to draw itself in
+while the page moves under a thumb and to come back out the moment it stops. It
+did the first half: nothing watched for the stopping, because the observer only
+fires while the page is moving, so a flick downward left the pill small and
+faded until somebody scrolled back up. What the file said and what the app did
+had disagreed since the row was written.
+
+Eleven new checks hold the four, including the two that are the whole point:
+a block above the glass is left alone under a thumb, and when it goes the page
+is moved by exactly what it lost.
+
+What is not claimed: none of this was measured on a phone. It is work removed
+from the frame path by mechanism and one page movement removed by arithmetic,
+which is a smaller claim than "the feed is smooth now" and the honest one.
