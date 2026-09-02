@@ -371,11 +371,14 @@ struct BrowserScreen: View {
     private var cover: some View {
         ZStack {
             clockBand
-            Text(verbatim: "Quiet: No More Doomscrolling")
-                .font(.quietSmall)
-                .foregroundStyle(Paper.inkSoft)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
+            VStack(spacing: 12) {
+                Hourglass(height: 22)
+                Text(verbatim: "Quiet: No More Doomscrolling")
+                    .font(.quietSmall)
+                    .foregroundStyle(Paper.inkSoft)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.horizontal, 32)
         }
         .ignoresSafeArea()
         .transition(.opacity)

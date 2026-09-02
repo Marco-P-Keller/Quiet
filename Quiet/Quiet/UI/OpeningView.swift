@@ -29,9 +29,16 @@ struct OpeningView: View {
 
             VStack {
                 Spacer(minLength: 0)
+                // The app signing its name, which is not the same as a logo
+                // screen: it is at the foot, it is the size of the word next
+                // to it, and nobody has to look at it. What it buys is that
+                // the thing on the home screen and the thing that opens are
+                // recognisably the same app.
+                Hourglass(height: 16)
                 Text(verbatim: "Quiet")
                     .font(.quietFine)
                     .foregroundStyle(Paper.inkSoft)
+                    .padding(.top, 7)
                     .padding(.bottom, 28)
             }
         }

@@ -12,10 +12,13 @@ This draws that sheet. It is deliberately a separate script from
 
     python3 Tools/look-at-icon.py        # writes icon-in-place.png
 
-The verdict the first sheet produced: the mark holds at every size, on both
-wallpapers, and reads as a full stop rather than as dust on the display. It is
-the smallest size, in the App Library, where it comes closest to reading as a
-camera lens — which is the size to check again if the diameter ever changes.
+The verdict the first sheet produced, when the mark was a full stop: it held at
+every size and read as a full stop rather than as dust on the display. That
+verdict was about legibility and it was the wrong question. A full stop is
+legible and says nothing; it needed somebody to have been told what it meant
+first, which is the one thing an icon on a stranger's home screen cannot count
+on. The mark is an hourglass now, and the question this sheet asks is the same
+one it always asked: at thirty points, in a folder, is it still that object?
 """
 
 import struct
@@ -26,8 +29,12 @@ from pathlib import Path
 # exists to disagree with them, so importing them would defeat the point.
 BACKGROUND = (0x19, 0x18, 0x16)
 MARK = (0xF2, 0xEE, 0xE7)
-DIAMETER = 0.175
-OPTICAL_LIFT = 0.013
+WIDTH_OF_GLASS = 0.430
+HEIGHT_OF_GLASS = 0.545
+CAP = 0.047
+WAIST = 0.024
+SAND = 0.46
+OPTICAL_LIFT = 0.012
 
 # iOS masks every icon with a continuous rounded square. An exponent near 4.6
 # is close enough to judge a layout by.
@@ -51,14 +58,45 @@ def _mask(x: int, y: int, side: int) -> float:
     return _coverage(inside)
 
 
-def _dot(x: int, y: int, side: int) -> float:
-    radius = DIAMETER * side / 2
+def _glass(x: int, y: int, side: int) -> float:
+    """How much of this pixel the mark covers, and how solidly.
 
-    def inside(dx, dy):
-        ox = x + 0.5 + dx - side / 2
-        oy = y + 0.5 + dy - (side / 2 - OPTICAL_LIFT * side)
-        return (ox * ox + oy * oy) ** 0.5 <= radius
-    return _coverage(inside)
+    Written out again rather than imported, which is the whole point of this
+    file: two implementations of one shape disagree loudly, and one
+    implementation checked against itself agrees about anything.
+    """
+    centre_x = side / 2
+    centre_y = side / 2 - OPTICAL_LIFT * side
+    top = centre_y - HEIGHT_OF_GLASS * side / 2
+    bottom = centre_y + HEIGHT_OF_GLASS * side / 2
+    half = WIDTH_OF_GLASS * side / 2
+    neck = WAIST * side / 2
+    lid = CAP * side / 2
+
+    def in_glass(px, py, upper):
+        first, last = top + 2 * lid, bottom - 2 * lid
+        if upper:
+            if not first <= py <= centre_y:
+                return False
+            fallen = (py - first) / (centre_y - first)
+        else:
+            if not centre_y <= py <= last:
+                return False
+            fallen = (last - py) / (last - centre_y)
+        return abs(px - centre_x) <= half + (neck - half) * fallen
+
+    def in_lid(px, py):
+        for at in (top + lid, bottom - lid):
+            along = min(max(px, centre_x - half + lid), centre_x + half - lid)
+            dx, dy = px - along, py - at
+            if dx * dx + dy * dy <= lid * lid:
+                return True
+        return False
+
+    ink = _coverage(lambda dx, dy: in_lid(x + 0.5 + dx, y + 0.5 + dy)
+                    or in_glass(x + 0.5 + dx, y + 0.5 + dy, False))
+    sand = _coverage(lambda dx, dy: in_glass(x + 0.5 + dx, y + 0.5 + dy, True))
+    return max(ink, sand * SAND)
 
 
 def icon(side: int):
@@ -69,7 +107,7 @@ def icon(side: int):
             outside = _mask(x, y, side)
             if outside <= 0:
                 continue
-            covered = _dot(x, y, side)
+            covered = _glass(x, y, side)
             colours[y][x] = tuple(
                 round(b + (m - b) * covered) for b, m in zip(BACKGROUND, MARK)
             )
