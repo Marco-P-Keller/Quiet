@@ -1143,11 +1143,10 @@ const GROUPED = `
      </div></main>`,
     FEED
   );
-  check(
-    "half a screen below the last post with nothing in it is the end",
-    hiddenIn(endedFeed, "tail"),
-    "ended"
-  );
+  check("half a screen below the last post with nothing in it is the end",
+        theEndMark(endedFeed) !== null, true);
+  check("and that half screen is left exactly where it is",
+        hiddenIn(endedFeed, "tail"), null);
   check("and Quiet says so, in the app's words",
         theEndMark(endedFeed)?.firstChild.textContent,
         "That's everyone you follow.");
@@ -1163,6 +1162,9 @@ const GROUPED = `
        <div data-name="theirs" data-box="0,600,390,0">
          <h2>Suggested for you</h2>
        </div>
+       <div data-name="andTheirs" data-box="0,600,390,0">
+         <h2>Suggested posts</h2>
+       </div>
      </div></main>`,
     FEED
   );
@@ -1172,29 +1174,25 @@ const GROUPED = `
         theEndMark(stopped)?.firstChild.textContent,
         "That's everyone you follow.");
 
-  /* One is the sentence and nothing else. Whatever sits at the very bottom of
-   * an infinite list is how the list knows to fetch more of itself, and one
-   * thing Quiet took out below the last post is *also* what a suggestion
-   * between two posts looks like while more are still on their way. */
-  const sentinel = await page(
+  /* One is not enough to say it. A suggestion between two posts looks exactly
+   * the same while more are still on their way, and a line reading "that is
+   * everyone you follow" over somebody's photographs is the app lying about
+   * the one thing it exists to be right about. */
+  const justOne = await page(
     `<main><div>
        <article data-box="0,0,390,600"><img data-box="0,0,390,400"></article>
        <div data-name="theirs" data-box="0,600,390,0">
          <h2>Suggested for you</h2>
        </div>
-       <div data-name="more" data-box="0,600,390,4"></div>
      </div></main>`,
     FEED
   );
-  check("one of theirs buys the sentence", theEndMark(sentinel) !== null, true);
-  check("and leaves what tells the list to fetch more alone",
-        hiddenIn(sentinel, "more"), null);
+  check("one of theirs is not the end", theEndMark(justOne), null);
 
-  /* Two in a row, with nothing of anybody's between them, is the end — and
-   * then the whole tail goes, the thing asking for more with it. An app whose
-   * argument is that the endless part should end does not go on fetching it in
-   * the background, and the way back is the pull at the top. */
-  const theirsAndTheirs = await page(
+  /* Two in a row, with nothing of anybody's between them, is the section
+   * Instagram fills the rest of the day with. That is when it is said — and
+   * *only* said. */
+  const twoOfTheirs = await page(
     `<main><div><div data-name="list" style="padding-bottom: 40px" data-box="0,0,390,900">
        <article data-box="0,0,390,600"><img data-box="0,0,390,400"></article>
        <div data-name="one" data-box="0,600,390,0"><h2>Suggested for you</h2></div>
@@ -1204,14 +1202,19 @@ const GROUPED = `
      </div></div></main>`,
     FEED
   );
-  check("two of theirs in a row is the end", theEndMark(theirsAndTheirs) !== null, true);
-  check("and then the air below goes", hiddenIn(theirsAndTheirs, "air"), "ended");
-  check("and so does what was asking for more of them",
-        hiddenIn(theirsAndTheirs, "asks"), "ended");
-  check("and the list stops holding the floor open",
-        theirsAndTheirs.document
+  check("two of theirs in a row is", theEndMark(twoOfTheirs) !== null, true);
+
+  /* And nothing below it is touched. A version of this took the tail away as
+   * well, and the photograph that came back had a spinner still turning under
+   * the sentence and a page that could no longer be scrolled: Instagram was
+   * not finished, and the app had shut the door on it. */
+  check("and what asks for more is left where it is",
+        hiddenIn(twoOfTheirs, "asks"), null);
+  check("and so is the air below", hiddenIn(twoOfTheirs, "air"), null);
+  check("and the list keeps its own floor",
+        twoOfTheirs.document
           .querySelector('[data-name="list"]').hasAttribute("data-quiet-floor"),
-        true);
+        false);
 
   /* And the line follows the last post rather than being said and left behind.
    * A feed that has run out can be answered a minute later, and a line reading
@@ -1222,6 +1225,9 @@ const GROUPED = `
        <article data-box="0,0,390,600"><img data-box="0,0,390,400"></article>
        <div data-name="theirs" data-box="0,600,390,0">
          <h2>Suggested for you</h2>
+       </div>
+       <div data-name="andTheirs" data-box="0,600,390,0">
+         <h2>Suggested posts</h2>
        </div>
      </div></main>`,
     FEED

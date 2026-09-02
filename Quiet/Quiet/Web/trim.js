@@ -1085,7 +1085,13 @@
   /** Enough laid out with nothing in it to be the end rather than a gap. */
   var ENDED_TAIL = 0.5;
 
-  /** Enough of somebody else's posts in a row to be the end rather than one. */
+  /**
+   * Enough of somebody else's posts in a row to be the end rather than one.
+   *
+   * One is ambiguous: a suggestion between two posts looks exactly the same
+   * while more are still on their way. Two, with nothing of anybody's between
+   * them, is the section Instagram fills the rest of the day with.
+   */
   var ENOUGH_OF_THEM = 2;
 
   function endOfTheFeed() {
@@ -1146,29 +1152,27 @@
     // Once it has ended it stays ended, so what arrives next goes without
     // having to make the case again.
     var theVoid = height >= (window.innerHeight || 844) * ENDED_TAIL;
-    if (!ended && !takenOut && !theVoid) return;
 
-    // The sentence is cheap and the removal is not, so they are told apart by
-    // how much evidence there is.
+    // Said, and nothing else done.
     //
-    // One thing taken out below the last post is *also* what a suggestion
-    // between two posts looks like while more are still on their way, so it
-    // buys the sentence and nothing else — and the sentence follows the last
-    // post if more do arrive, so being early costs nobody anything.
+    // A version of this took the tail away as well — the placeholders, the
+    // thing at the bottom that asks for more, and the floor the list was
+    // holding open under them — on the reasoning that an app whose argument is
+    // that the endless part should end ought not to go on fetching it. The
+    // photograph that came back had a spinner still turning under the sentence
+    // and a page that could no longer be scrolled: Instagram was not finished,
+    // and the app had shut the door on it.
     //
-    // Two in a row, with nothing of anybody's between them, is the end. That
-    // is what Instagram does down there: one suggested post after another,
-    // for ever, every one of them emptied on arrival. At that point the thing
-    // at the very bottom that asks for more is asking for more of exactly
-    // that, and it goes with the rest — an app whose whole argument is that
-    // the endless part should end does not keep fetching it in the background.
-    // The way back is the pull at the top, and the sentence says so.
-    var isTheEnd = ended || takenOut >= ENOUGH_OF_THEM || theVoid;
-    if (isTheEnd) {
-      for (var i = 0; i < tail.length; i++) hide(tail[i], "ended");
-      // And whatever the list itself was holding open underneath them.
-      markFloor(list);
-    }
+    // It was also answering a question nobody asked. "I can still scroll on,
+    // which is fine, but then no feed comes" — the scrolling was never the
+    // complaint. Not knowing why was.
+    //
+    // So this says where the feed ran out and touches nothing. The page keeps
+    // its height, the list keeps asking, and anything that does arrive from
+    // somebody you follow moves the sentence down below it. Being wrong now
+    // costs a line in the wrong place for a second, which is the cheapest way
+    // to be wrong that this file has.
+    if (!ended && takenOut < ENOUGH_OF_THEM && !theVoid) return;
     sayItEnds(list, last);
   }
 
