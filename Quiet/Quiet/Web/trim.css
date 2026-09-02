@@ -9,15 +9,36 @@
  * Every selector below matches on an address or an ARIA role — never on a class
  * name. Instagram's class names are generated and change without notice; hrefs
  * are part of how the site works and change rarely.
+ *
+ * And every one of them stops at the edge of a post.
+ *
+ * `:not(article a)` is on all of them, and it is the answer to "the feed jumps
+ * up and down where there are advertisements". An advertisement is the one
+ * post that carries these addresses inside it: its media is a reel, and its
+ * button goes to the App Store. Hiding a link inside a post does not remove an
+ * *entrance*, it removes a piece of the post — the height goes with it, the
+ * page below slides up, and Instagram's own list mounts and unmounts that post
+ * while a thumb is moving, so it happens again and again. A stylesheet cannot
+ * defer and cannot pay a scroll back; only the script can, so only the script
+ * may change a layout somebody is looking at.
+ *
+ * Nothing is lost by stopping at that edge. What these rules buy is that no
+ * tap is invited that would then be refused, and the refusing is done by
+ * `ContentRules`, which does not care what was drawn. A reel tapped from a
+ * friend's post is answered with a sentence, which is the same answer it would
+ * have got from anywhere else.
+ *
+ * This file already relies on `:has()`, so a selector from the same generation
+ * is not a new dependency.
  */
 
 /* ── Reels ──────────────────────────────────────────────────────────────── */
 
-a[href^="/reels"],
-a[href^="/reel/"],
-a[href$="/reels/"],
-a[href*="instagram.com/reels"],
-a[href*="instagram.com/reel/"] {
+a[href^="/reels"]:not(article a),
+a[href^="/reel/"]:not(article a),
+a[href$="/reels/"]:not(article a),
+a[href*="instagram.com/reels"]:not(article a),
+a[href*="instagram.com/reel/"]:not(article a) {
   display: none !important;
 }
 
@@ -29,19 +50,19 @@ a[href*="instagram.com/reel/"] {
  * sentence.
  */
 
-a[href^="/explore"]:not([href^="/explore/tags/"]),
-a[href*="instagram.com/explore"]:not([href*="/explore/tags/"]),
-a[href^="/directory/"],
-a[href^="/accounts/suggested"] {
+a[href^="/explore"]:not([href^="/explore/tags/"]):not(article a),
+a[href*="instagram.com/explore"]:not([href*="/explore/tags/"]):not(article a),
+a[href^="/directory/"]:not(article a),
+a[href^="/accounts/suggested"]:not(article a) {
   display: none !important;
 }
 
 /* ── The same entrances when the label lives on the icon ────────────────── */
 
-a:has(> svg[aria-label="Reels"]),
-a:has(> svg[aria-label="Explore"]),
-a:has(> svg[aria-label="Search"]),
-div[role="button"]:has(> svg[aria-label="Reels"]) {
+a:has(> svg[aria-label="Reels"]):not(article a),
+a:has(> svg[aria-label="Explore"]):not(article a),
+a:has(> svg[aria-label="Search"]):not(article a),
+div[role="button"]:has(> svg[aria-label="Reels"]):not(article div) {
   display: none !important;
 }
 
@@ -278,13 +299,13 @@ body {
  * in the room.
  */
 
-a[href^="instagram://"],
-a[href^="instagram-stories://"],
-a[href^="itms-apps:"],
-a[href^="itms-appss:"],
-a[href*="apps.apple.com"],
-a[href*="itunes.apple.com"],
-a[href*="mobile_app_upsell"] {
+a[href^="instagram://"]:not(article a),
+a[href^="instagram-stories://"]:not(article a),
+a[href^="itms-apps:"]:not(article a),
+a[href^="itms-appss:"]:not(article a),
+a[href*="apps.apple.com"]:not(article a),
+a[href*="itunes.apple.com"]:not(article a),
+a[href*="mobile_app_upsell"]:not(article a) {
   display: none !important;
 }
 

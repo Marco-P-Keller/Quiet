@@ -24,9 +24,50 @@
 
 "use strict";
 
+const fs = require("fs");
+const path = require("path");
 const { page, scoreboard, TRIM } = require("./page");
 
 const { check, done } = scoreboard("The trim");
+
+/* ── The stylesheet stops at the edge of a post ─────────────────────────── */
+
+/* The feed jumped up and down where there were advertisements, and none of the
+ * work in the script could have stopped it: it was the stylesheet.
+ *
+ * An advertisement is the one post that carries these addresses inside it —
+ * its media is a reel, its button goes to the App Store. Hiding a link inside a
+ * post does not remove an entrance, it removes a piece of the post; the height
+ * goes with it and the page below slides up. A stylesheet cannot wait for the
+ * hand to come off the glass and cannot pay a scroll back, so it must not
+ * change a layout somebody is looking at at all.
+ *
+ * Read as text rather than through a DOM on purpose. jsdom's support for
+ * Level 4 selectors is not the question — what the file says is. */
+const CSS = fs
+  .readFileSync(path.join(__dirname, "..", "Quiet", "Web", "trim.css"), "utf8")
+  .replace(/\/\*[\s\S]*?\*\//g, "");
+
+/* Only the ones that match by address. The two that do not are deliberate and
+ * neither can move a page: `[data-quiet-hidden]` is set by the script, which
+ * decides for itself when a thing may go and pays the scroll back when it
+ * does, and a scrollbar is not a box in the flow. */
+const byAddress = CSS
+  .split("}")
+  .filter((block) => /display:\s*none/.test(block))
+  .flatMap((block) => block.split("{")[0].split(","))
+  .map((one) => one.trim())
+  .filter((one) => one.includes("[href") || one.includes(":has("));
+
+check(
+  "every rule that hides part of a page by its address stops at a post",
+  byAddress.filter((one) => !/:not\(article /.test(one)),
+  []
+);
+
+/* And there is more than a handful of them, or the check above passes on an
+ * empty list and says nothing at all. */
+check("and there are rules to say it about", byAddress.length > 10, true);
 
 const FEED = "https://www.instagram.com/";
 

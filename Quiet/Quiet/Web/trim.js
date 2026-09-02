@@ -1562,6 +1562,13 @@
   function refuseTheDoor() {
     var doors = document.querySelectorAll(THE_DOOR);
     for (var i = 0; i < doors.length; i++) {
+      // Not inside somebody's post, for the same reason the stylesheet stops
+      // there. An advertisement is a post whose button goes to the App Store;
+      // taking that button out takes a piece of the post out, the page below
+      // slides up, and Instagram mounts and unmounts that post while a thumb
+      // is moving. The tap is still refused — that is `ContentRules`, and it
+      // does not care what was drawn.
+      if (doors[i].closest("article")) continue;
       var banner = bannerAround(doors[i]) || doors[i];
       hide(banner, "upsell");
     }

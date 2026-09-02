@@ -1098,6 +1098,35 @@ const GROUPED = `
     "suggestion"
   );
 
+  /* ── The door stops at a post too ────────────────────────────────────── */
+
+  /* An advertisement is a post whose button goes to the App Store. Taking that
+   * button out takes a piece of the post out — and Instagram mounts and
+   * unmounts that post while a thumb is moving, which is a feed going up and
+   * down. The tap is still refused; that is `ContentRules`, and it does not
+   * care what was drawn. */
+  const insideAPost = await page(
+    `<main><article data-box="0,0,390,600">
+       <img data-box="0,0,390,400">
+       <a data-name="cta" href="https://apps.apple.com/app/id1" data-box="0,420,390,44">
+         Install
+       </a>
+     </article></main>`,
+    FEED
+  );
+  check("a door inside somebody's post is left where it is",
+        hiddenIn(insideAPost, "cta"), null);
+
+  /* And outside one it goes, exactly as before. */
+  const loose = await page(
+    `<main></main>
+     <a data-name="cta" href="https://apps.apple.com/app/id1"
+        data-box="0,700,390,44">Get the app</a>`,
+    FEED
+  );
+  check("and one that is not in a post still goes",
+        hiddenIn(loose, "cta"), "upsell");
+
   /* ── Where the feed ends ─────────────────────────────────────────────── */
 
   /* Instagram's feed does not end: after the people you follow it goes on with
