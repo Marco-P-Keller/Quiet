@@ -411,12 +411,12 @@
         }
       }
     },
-    "Instagram would go on with people you don't. Quiet stops here.": {
+    "Instagram would go on with people you don't. Pull down at the top for new posts.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Instagram würde mit Leuten weitermachen, denen du nicht folgst. Quiet hört hier auf."
+            "value": "Instagram würde mit Leuten weitermachen, denen du nicht folgst. Zieh oben nach unten für Neues."
           }
         }
       }

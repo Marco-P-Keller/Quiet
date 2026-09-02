@@ -1107,11 +1107,19 @@
     var ended = !!document.getElementById(END);
     var tail = [];
     var height = 0;
+    var takenOut = false;
 
     for (var node = last.nextElementSibling; node; node = node.nextElementSibling) {
       if (node.id === END) continue;
       // Anything at all down there and this is a feed, not the end of one.
       if (hasInk(node)) return;
+      // Something Instagram served and Quiet took out. That is the whole of
+      // the evidence: the site is still answering, and everything it answers
+      // with from here on is a person nobody chose.
+      if (node.getAttribute && node.getAttribute("data-quiet-hidden") !== null) {
+        takenOut = true;
+        continue;
+      }
       var box = node.getBoundingClientRect();
       if (box.height > 0) {
         tail.push(node);
@@ -1119,9 +1127,23 @@
       }
     }
 
-    // Once it has ended it stays ended, and whatever arrives next goes
-    // without having to add up to half a screen again.
-    if (!ended && height < (window.innerHeight || 844) * ENDED_TAIL) return;
+    // Two ways to be at the end, and the first is the one that was missed.
+    //
+    // A page that has been taken out has no height — `display: none` removes
+    // it from the flow entirely — so the feed simply *stops*, with nothing
+    // under it and nothing black about it. That is what a person sees and it
+    // is what the first version of this could not detect, because it was
+    // looking for a void to measure and there is not one. The evidence is not
+    // a height, it is that Instagram answered and Quiet emptied the answer.
+    //
+    // The second is the void: placeholders waiting for content that will be
+    // removed the moment it arrives. Those do have height, and half a screen
+    // of nothing is the end as surely as the other.
+    //
+    // Once it has ended it stays ended, so what arrives next goes without
+    // having to make the case again.
+    var enough = takenOut || height >= (window.innerHeight || 844) * ENDED_TAIL;
+    if (!ended && !enough) return;
 
     for (var i = 0; i < tail.length; i++) hide(tail[i], "ended");
     sayItEnds(list, last);
@@ -1145,26 +1167,40 @@
     return false;
   }
 
-  /** Said once, in the app's words, under the last post there is. */
+  /**
+   * Said once, in the app's words, under the last post there is.
+   *
+   * And it *follows* that post rather than being said and left behind. A feed
+   * that has run out can still be answered a minute later — somebody posts, a
+   * pull at the top fetches it — and a line reading "that is everyone you
+   * follow" with two of their photographs underneath it would be the app
+   * lying about the one thing it is here to be right about.
+   *
+   * Moved only when it is in the wrong place, because moving a node is a
+   * change to the document, and a change to the document asks for another
+   * pass.
+   */
   function sayItEnds(list, last) {
-    if (document.getElementById(END)) return;
     if (!window.__quietEnd) return;
+    var mark = document.getElementById(END);
 
-    var mark = document.createElement("div");
-    mark.id = END;
+    if (!mark) {
+      mark = document.createElement("div");
+      mark.id = END;
 
-    var line = document.createElement("p");
-    line.textContent = window.__quietEnd;
-    mark.appendChild(line);
+      var line = document.createElement("p");
+      line.textContent = window.__quietEnd;
+      mark.appendChild(line);
 
-    if (window.__quietEndNote) {
-      var note = document.createElement("p");
-      note.className = "quiet-end-note";
-      note.textContent = window.__quietEndNote;
-      mark.appendChild(note);
+      if (window.__quietEndNote) {
+        var note = document.createElement("p");
+        note.className = "quiet-end-note";
+        note.textContent = window.__quietEndNote;
+        mark.appendChild(note);
+      }
     }
 
-    list.insertBefore(mark, last.nextSibling);
+    if (last.nextSibling !== mark) list.insertBefore(mark, last.nextSibling);
   }
 
   /* ── Instagram's header, in the arrangement its own app uses ──────────── */

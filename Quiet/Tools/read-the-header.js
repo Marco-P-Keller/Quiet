@@ -1123,6 +1123,52 @@ const GROUPED = `
         theEndMark(endedFeed)?.firstChild.textContent,
         "That's everyone you follow.");
 
+  /* The shape a person actually reported, and the one the first version of
+   * this could not see: nothing black, the feed simply stops. What is under
+   * the last post has been taken out, and something taken out has no height at
+   * all — so there is no void to measure. The evidence is not a height. It is
+   * that Instagram answered and Quiet emptied the answer. */
+  const stopped = await page(
+    `<main><div>
+       <article data-box="0,0,390,600"><img data-box="0,0,390,400"></article>
+       <div data-name="theirs" data-box="0,600,390,0">
+         <h2>Suggested for you</h2>
+       </div>
+     </div></main>`,
+    FEED
+  );
+  check("a suggestion taken out is the whole of the evidence",
+        hiddenIn(stopped, "theirs"), "suggestion");
+  check("so the feed that simply stops is an end too",
+        theEndMark(stopped)?.firstChild.textContent,
+        "That's everyone you follow.");
+
+  /* And the line follows the last post rather than being said and left behind.
+   * A feed that has run out can be answered a minute later, and a line reading
+   * "that is everyone you follow" with two of their photographs under it would
+   * be the app lying about the one thing it is here to be right about. */
+  const answered = await page(
+    `<main><div data-name="list">
+       <article data-box="0,0,390,600"><img data-box="0,0,390,400"></article>
+       <div data-name="theirs" data-box="0,600,390,0">
+         <h2>Suggested for you</h2>
+       </div>
+     </div></main>`,
+    FEED
+  );
+  const fresh = answered.document.createElement("article");
+  fresh.setAttribute("data-name", "fresh");
+  fresh.setAttribute("data-box", "0,700,390,600");
+  fresh.innerHTML = '<img data-box="0,700,390,400">';
+  answered.document.querySelector('[data-name="list"]').appendChild(fresh);
+  await rest(0);
+  answered.drain();
+  await until(() =>
+    theEndMark(answered)?.previousElementSibling?.getAttribute("data-name") === "fresh");
+  check("a post arriving after the end moves the end below it",
+        theEndMark(answered)?.previousElementSibling?.getAttribute("data-name"),
+        "fresh");
+
   /* A feed that is still arriving has a spinner in it, and a spinner is
    * something. This is the check that keeps the end of the feed from being
    * declared in the middle of it. */

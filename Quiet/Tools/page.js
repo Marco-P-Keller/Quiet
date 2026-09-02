@@ -106,7 +106,7 @@ async function page(html, url, head) {
   // The two sentences the app hands the page, so the end of a feed can be said
   // in whichever language the phone is in. The catalogue owns the real ones.
   win.__quietEnd = "That's everyone you follow.";
-  win.__quietEndNote = "Instagram would go on with people you don't. Quiet stops here.";
+  win.__quietEndNote = "Instagram would go on with people you don't. Pull down at the top for new posts.";
   win.eval(TRIM);
   win.drain();
   return win;

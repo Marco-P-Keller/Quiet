@@ -63,7 +63,7 @@ enum WebScripts {
         window.__quietTop = \(Int(top.rounded()));
         window.__quietEnd = \(quoted(String(localized: "That's everyone you follow.")));
         window.__quietEndNote = \(quoted(String(
-            localized: "Instagram would go on with people you don't. Quiet stops here."
+            localized: "Instagram would go on with people you don't. Pull down at the top for new posts."
         )));
         """))
 
