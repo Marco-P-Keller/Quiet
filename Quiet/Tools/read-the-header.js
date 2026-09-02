@@ -927,6 +927,27 @@ const GROUPED = `
    * everything else waits for the hand to come off the glass. */
   const rest = (ms) => new Promise((done) => setTimeout(done, ms));
 
+  /* Wait for the pass to have happened rather than for a number of
+   * milliseconds to have gone by.
+   *
+   * The checks below used a flat 260 against a settle of 140, which is nearly
+   * twice the room needed and was still red one run in five: several of these
+   * fixtures are alive at once, each with its own chain of timers, and a
+   * `setTimeout` under that is a request rather than a promise. A check that
+   * goes red at random teaches everybody to ignore red, which is worse than
+   * not having it.
+   *
+   * The assertion is unchanged — this only stops it being an assertion about
+   * *when*. */
+  const until = async (holds, ms = 2000) => {
+    const deadline = Date.now() + ms;
+    while (Date.now() < deadline && !holds()) await rest(20);
+    return holds();
+  };
+
+  const hiddenIn = (win, name) =>
+    win.document.querySelector(`[data-name="${name}"]`).getAttribute("data-quiet-hidden");
+
   const flick = await page(`<main></main>`, FEED);
   flick.dispatchEvent(new flick.Event("scroll"));
 
@@ -959,7 +980,7 @@ const GROUPED = `
   waiting.drain();
   check("the sheet question is not asked mid-flick", sheetOf(waiting), undefined);
 
-  await rest(260);
+  await until(() => sheetOf(waiting)?.up === true);
   check("and is asked once the hand comes off the glass", sheetOf(waiting)?.up, true);
 
   /* Only what the page just added, rather than the whole feed. The observer is
@@ -1005,12 +1026,8 @@ const GROUPED = `
   );
   check("and nothing has been scrolled", above.scrolledBy, []);
 
-  await rest(260);
-  check(
-    "once the hand is off the glass it goes",
-    above.document.querySelector('[data-name="passed"]').getAttribute("data-quiet-hidden"),
-    "suggestion"
-  );
+  await until(() => hiddenIn(above, "passed") === "suggestion");
+  check("once the hand is off the glass it goes", hiddenIn(above, "passed"), "suggestion");
   check("and the page is moved by exactly what it lost", above.scrolledBy, [-200]);
 
   /* And the case the phone actually reported: an advertisement, half of it
@@ -1031,12 +1048,8 @@ const GROUPED = `
     half.document.querySelector('[data-name="straddling"]').getAttribute("data-quiet-hidden"),
     null
   );
-  await rest(260);
-  check(
-    "and then goes",
-    half.document.querySelector('[data-name="straddling"]').getAttribute("data-quiet-hidden"),
-    "suggestion"
-  );
+  await until(() => hiddenIn(half, "straddling") === "suggestion");
+  check("and then goes", hiddenIn(half, "straddling"), "suggestion");
   check("paid for by the part that was above the fold, and no more",
         half.scrolledBy, [-80]);
 
@@ -1085,6 +1098,68 @@ const GROUPED = `
     "suggestion"
   );
 
+  /* ── Where the feed ends ─────────────────────────────────────────────── */
+
+  /* Instagram's feed does not end: after the people you follow it goes on with
+   * people you did not choose, and Quiet takes every one of those out. What was
+   * left was a black nothing you could scroll through for ever — "no feed any
+   * more, just black", which is the app working exactly as designed with no
+   * place to stop. */
+  const theEndMark = (win) => win.document.getElementById("quiet-end");
+
+  const endedFeed = await page(
+    `<main><div>
+       <article data-box="0,0,390,600"><img data-box="0,0,390,400"></article>
+       <div data-name="tail" data-box="0,600,390,500"></div>
+     </div></main>`,
+    FEED
+  );
+  check(
+    "half a screen below the last post with nothing in it is the end",
+    hiddenIn(endedFeed, "tail"),
+    "ended"
+  );
+  check("and Quiet says so, in the app's words",
+        theEndMark(endedFeed)?.firstChild.textContent,
+        "That's everyone you follow.");
+
+  /* A feed that is still arriving has a spinner in it, and a spinner is
+   * something. This is the check that keeps the end of the feed from being
+   * declared in the middle of it. */
+  const stillLoading = await page(
+    `<main><div>
+       <article data-box="0,0,390,600"><img data-box="0,0,390,400"></article>
+       <div data-name="tail" data-box="0,600,390,500">
+         <svg data-box="170,780,40,40"></svg>
+       </div>
+     </div></main>`,
+    FEED
+  );
+  check("a spinner below the last post is not the end",
+        hiddenIn(stillLoading, "tail"), null);
+  check("and nothing is said", theEndMark(stillLoading), null);
+
+  /* Said once. The pass runs on every rewrite of the document, and a sentence
+   * that arrived on each of them would be a wall of them. */
+  const saidOnce = await page(
+    `<main><div>
+       <article data-box="0,0,390,600"><img data-box="0,0,390,400"></article>
+       <div data-name="tail" data-box="0,600,390,500"></div>
+     </div></main>`,
+    FEED
+  );
+  saidOnce.document.querySelector("main").appendChild(saidOnce.document.createElement("p"));
+  await rest(0);
+  saidOnce.drain();
+  await until(() => saidOnce.document.querySelectorAll("#quiet-end").length > 0);
+  check("and said once, however many times the page is rewritten",
+        saidOnce.document.querySelectorAll("#quiet-end").length, 1);
+
+  /* And never on a page with no posts on it, which is every page that is not
+   * the feed and the feed itself while it is still empty. */
+  const noPostsYet = await page(`<main><div data-box="0,0,390,900"></div></main>`, FEED);
+  check("a page with no posts on it has no end to announce", theEndMark(noPostsYet), null);
+
   /* ── The door, out of the frame path ─────────────────────────────────── */
 
   /* `takeDownTheStrip` asks the browser what is drawn at twelve points on the
@@ -1108,12 +1183,8 @@ const GROUPED = `
     door.document.querySelector('[data-name="bar"]').getAttribute("data-quiet-hidden"),
     null
   );
-  await rest(260);
-  check(
-    "and is taken down once the hand comes off the glass",
-    door.document.querySelector('[data-name="bar"]').getAttribute("data-quiet-hidden"),
-    "upsell"
-  );
+  await until(() => hiddenIn(door, "bar") === "upsell");
+  check("and is taken down once the hand comes off the glass", hiddenIn(door, "bar"), "upsell");
 
   /* A block in front of somebody is taken out at once and paid for by nobody:
    * removing it moves what is *below* it, which is not what they are reading. */

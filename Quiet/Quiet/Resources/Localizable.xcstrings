@@ -411,6 +411,16 @@
         }
       }
     },
+    "Instagram would go on with people you don't. Quiet stops here.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram würde mit Leuten weitermachen, denen du nicht folgst. Quiet hört hier auf."
+          }
+        }
+      }
+    },
     "Instagram,\nminus the parts\nthat keep you there.": {
       "localizations": {
         "de": {
@@ -897,6 +907,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Das war's\nfür heute."
+          }
+        }
+      }
+    },
+    "That's everyone you follow.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das war's von deinen Freunden."
           }
         }
       }

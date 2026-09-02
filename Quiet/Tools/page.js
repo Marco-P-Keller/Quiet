@@ -103,6 +103,10 @@ async function page(html, url, head) {
   // The script asks Instagram who is signed in. There is nobody here to ask.
   win.fetch = () => new win.Promise(() => {});
   win.__quietTop = 59;
+  // The two sentences the app hands the page, so the end of a feed can be said
+  // in whichever language the phone is in. The catalogue owns the real ones.
+  win.__quietEnd = "That's everyone you follow.";
+  win.__quietEndNote = "Instagram would go on with people you don't. Quiet stops here.";
   win.eval(TRIM);
   win.drain();
   return win;

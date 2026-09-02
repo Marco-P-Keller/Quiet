@@ -308,3 +308,38 @@ html[data-quiet-away] [data-quiet-pinned] {
   transform: translateY(-100%) !important;
 }
 
+
+/* ── Where Quiet's feed ends ────────────────────────────────────────────── */
+/*
+ * The one element Quiet adds to the page rather than takes out of it.
+ *
+ * Instagram's feed does not end; after the people you follow it goes on with
+ * people you did not choose, and Quiet takes every one of those out. What was
+ * left was a black nothing you could scroll through for ever. This is the
+ * sentence that goes there instead, and the words come from the app so that the
+ * catalogue owns them in both languages.
+ *
+ * It inherits its colour from the page, which is how it is the right one in the
+ * light and in the dark without this file knowing which is on. Nothing here
+ * sets a background: the end of a feed is a quiet line on the page, not a card.
+ */
+
+#quiet-end {
+  padding: 56px 32px 80px;
+  text-align: center;
+  color: inherit;
+}
+
+#quiet-end p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.45;
+  opacity: 0.85;
+}
+
+#quiet-end .quiet-end-note {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  opacity: 0.45;
+}

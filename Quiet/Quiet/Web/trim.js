@@ -1054,6 +1054,119 @@
     return true;
   }
 
+  /* ── The end of the feed ──────────────────────────────────────────────── */
+
+  /**
+   * Instagram's feed does not end. Quiet's does.
+   *
+   * This is the last endless surface in the app and the one nobody had
+   * noticed, because it does not look like Reels or Explore — it looks like
+   * the feed. You read everything the people you follow have posted, and
+   * Instagram goes on: suggested posts, for ever, from people you did not
+   * choose. Quiet takes every one of those out, which is right, and what is
+   * left is a black nothing you can scroll through until the phone gives up.
+   * The photograph a person sends back says "no feed any more, just black",
+   * and they are describing the app working exactly as designed with no place
+   * to stop.
+   *
+   * So it stops. What is below the last post is looked at rather than
+   * guessed: if there is half a screen of it and *none of it is anything* —
+   * no photograph, no video, no sentence, nothing with a box — then it is not
+   * a feed still arriving, it is the treadmill. A feed that is still loading
+   * has a spinner in it, and a spinner is something.
+   *
+   * Then the tail goes, and Quiet says where the end is, in the app's own
+   * words, handed in by the app so the catalogue owns them. The words go in
+   * the page rather than in the app's furniture because the end of a feed is a
+   * place in a document — furniture does not scroll.
+   */
+  var END = "quiet-end";
+
+  /** Enough laid out with nothing in it to be the end rather than a gap. */
+  var ENDED_TAIL = 0.5;
+
+  function endOfTheFeed() {
+    if (!isFeed()) return;
+    var main = document.querySelector("main");
+    if (!main) return;
+
+    // The last post *there is to read*, walked back from the end rather than
+    // taken off it. Instagram writes its suggestions as posts like any other,
+    // and Quiet has already hidden them by the time this runs — so the last
+    // element called `article` is very often the last thing somebody was never
+    // going to see, and everything worth stopping after is above it.
+    var posts = main.querySelectorAll("article");
+    var last = null;
+    for (var p = posts.length - 1; p >= 0; p--) {
+      if (hasInk(posts[p])) { last = posts[p]; break; }
+    }
+    if (!last) return;
+    var list = last.parentElement;
+    if (!list) return;
+
+    var ended = !!document.getElementById(END);
+    var tail = [];
+    var height = 0;
+
+    for (var node = last.nextElementSibling; node; node = node.nextElementSibling) {
+      if (node.id === END) continue;
+      // Anything at all down there and this is a feed, not the end of one.
+      if (hasInk(node)) return;
+      var box = node.getBoundingClientRect();
+      if (box.height > 0) {
+        tail.push(node);
+        height += box.height;
+      }
+    }
+
+    // Once it has ended it stays ended, and whatever arrives next goes
+    // without having to add up to half a screen again.
+    if (!ended && height < (window.innerHeight || 844) * ENDED_TAIL) return;
+
+    for (var i = 0; i < tail.length; i++) hide(tail[i], "ended");
+    sayItEnds(list, last);
+  }
+
+  /** Whether anything in here is drawn, skipping what Quiet has taken out. */
+  function hasInk(node) {
+    if (!node.getAttribute || node.getAttribute("data-quiet-hidden") !== null) {
+      return false;
+    }
+    if (node.matches && node.matches(INK)) {
+      var own = node.getBoundingClientRect();
+      if (own.width > 0 && own.height > 0) return true;
+    }
+    var found = node.querySelectorAll ? node.querySelectorAll(INK) : [];
+    for (var i = 0; i < found.length; i++) {
+      if (found[i].closest("[data-quiet-hidden]")) continue;
+      var box = found[i].getBoundingClientRect();
+      if (box.width > 0 && box.height > 0) return true;
+    }
+    return false;
+  }
+
+  /** Said once, in the app's words, under the last post there is. */
+  function sayItEnds(list, last) {
+    if (document.getElementById(END)) return;
+    if (!window.__quietEnd) return;
+
+    var mark = document.createElement("div");
+    mark.id = END;
+
+    var line = document.createElement("p");
+    line.textContent = window.__quietEnd;
+    mark.appendChild(line);
+
+    if (window.__quietEndNote) {
+      var note = document.createElement("p");
+      note.className = "quiet-end-note";
+      note.textContent = window.__quietEndNote;
+      mark.appendChild(note);
+    }
+
+    list.insertBefore(mark, last.nextSibling);
+  }
+
   /* ── Instagram's header, in the arrangement its own app uses ──────────── */
 
   /**
@@ -2442,6 +2555,9 @@
     dressHeader();
     liftHeader();
     shapeHeader();
+    // After everything else has hidden what it hides: the tail below the last
+    // post is only *nothing* once the suggestions in it are out.
+    endOfTheFeed();
     sayHealth();
     // Last, because Instagram's own bottom navigation and its door back into
     // the app are both full-width things at the foot of the glass — which is
