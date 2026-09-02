@@ -1143,11 +1143,10 @@ const GROUPED = `
         theEndMark(stopped)?.firstChild.textContent,
         "That's everyone you follow.");
 
-  /* And nothing is removed on that evidence. Whatever sits at the very bottom
-   * of an infinite list is how the list knows to fetch more of itself, and one
+  /* One is the sentence and nothing else. Whatever sits at the very bottom of
+   * an infinite list is how the list knows to fetch more of itself, and one
    * thing Quiet took out below the last post is *also* what a suggestion
-   * between two posts looks like while more are still on their way. Say the
-   * sentence; take nothing away. */
+   * between two posts looks like while more are still on their way. */
   const sentinel = await page(
     `<main><div>
        <article data-box="0,0,390,600"><img data-box="0,0,390,400"></article>
@@ -1158,9 +1157,32 @@ const GROUPED = `
      </div></main>`,
     FEED
   );
-  check("the end is announced", theEndMark(sentinel) !== null, true);
-  check("and what tells the list to fetch more is left alone",
+  check("one of theirs buys the sentence", theEndMark(sentinel) !== null, true);
+  check("and leaves what tells the list to fetch more alone",
         hiddenIn(sentinel, "more"), null);
+
+  /* Two in a row, with nothing of anybody's between them, is the end — and
+   * then the whole tail goes, the thing asking for more with it. An app whose
+   * argument is that the endless part should end does not go on fetching it in
+   * the background, and the way back is the pull at the top. */
+  const theirsAndTheirs = await page(
+    `<main><div><div data-name="list" style="padding-bottom: 40px" data-box="0,0,390,900">
+       <article data-box="0,0,390,600"><img data-box="0,0,390,400"></article>
+       <div data-name="one" data-box="0,600,390,0"><h2>Suggested for you</h2></div>
+       <div data-name="two" data-box="0,600,390,0"><h2>Suggested posts</h2></div>
+       <div data-name="asks" data-box="0,600,390,4"></div>
+       <div data-name="air" data-box="0,604,390,240"></div>
+     </div></div></main>`,
+    FEED
+  );
+  check("two of theirs in a row is the end", theEndMark(theirsAndTheirs) !== null, true);
+  check("and then the air below goes", hiddenIn(theirsAndTheirs, "air"), "ended");
+  check("and so does what was asking for more of them",
+        hiddenIn(theirsAndTheirs, "asks"), "ended");
+  check("and the list stops holding the floor open",
+        theirsAndTheirs.document
+          .querySelector('[data-name="list"]').hasAttribute("data-quiet-floor"),
+        true);
 
   /* And the line follows the last post rather than being said and left behind.
    * A feed that has run out can be answered a minute later, and a line reading

@@ -1085,6 +1085,9 @@
   /** Enough laid out with nothing in it to be the end rather than a gap. */
   var ENDED_TAIL = 0.5;
 
+  /** Enough of somebody else's posts in a row to be the end rather than one. */
+  var ENOUGH_OF_THEM = 2;
+
   function endOfTheFeed() {
     if (!isFeed()) return;
     var main = document.querySelector("main");
@@ -1107,7 +1110,7 @@
     var ended = !!document.getElementById(END);
     var tail = [];
     var height = 0;
-    var takenOut = false;
+    var takenOut = 0;
 
     for (var node = last.nextElementSibling; node; node = node.nextElementSibling) {
       if (node.id === END) continue;
@@ -1117,7 +1120,7 @@
       // the evidence: the site is still answering, and everything it answers
       // with from here on is a person nobody chose.
       if (node.getAttribute && node.getAttribute("data-quiet-hidden") !== null) {
-        takenOut = true;
+        takenOut += 1;
         continue;
       }
       var box = node.getBoundingClientRect();
@@ -1145,18 +1148,26 @@
     var theVoid = height >= (window.innerHeight || 844) * ENDED_TAIL;
     if (!ended && !takenOut && !theVoid) return;
 
-    // Only the void is taken down, and only when it is one.
+    // The sentence is cheap and the removal is not, so they are told apart by
+    // how much evidence there is.
     //
-    // Whatever is at the very bottom of an infinite list is how the list knows
-    // to fetch more of itself — a few points of nothing that the page watches
-    // for. Hiding it stops the feed for good, and "one thing Quiet took out
-    // sits below the last post" is *also* true for a suggestion that arrives
-    // between two posts while more are still on their way. So the sentence is
-    // said on that evidence and nothing is removed on it; there is nothing
-    // with a height to remove anyway. Half a screen of nothing is a different
-    // claim, and it earns the removal.
-    if (theVoid) {
+    // One thing taken out below the last post is *also* what a suggestion
+    // between two posts looks like while more are still on their way, so it
+    // buys the sentence and nothing else — and the sentence follows the last
+    // post if more do arrive, so being early costs nobody anything.
+    //
+    // Two in a row, with nothing of anybody's between them, is the end. That
+    // is what Instagram does down there: one suggested post after another,
+    // for ever, every one of them emptied on arrival. At that point the thing
+    // at the very bottom that asks for more is asking for more of exactly
+    // that, and it goes with the rest — an app whose whole argument is that
+    // the endless part should end does not keep fetching it in the background.
+    // The way back is the pull at the top, and the sentence says so.
+    var isTheEnd = ended || takenOut >= ENOUGH_OF_THEM || theVoid;
+    if (isTheEnd) {
       for (var i = 0; i < tail.length; i++) hide(tail[i], "ended");
+      // And whatever the list itself was holding open underneath them.
+      markFloor(list);
     }
     sayItEnds(list, last);
   }

@@ -325,7 +325,7 @@ html[data-quiet-away] [data-quiet-pinned] {
  */
 
 #quiet-end {
-  padding: 56px 32px 80px;
+  padding: 44px 32px 40px;
   text-align: center;
   color: inherit;
 }
