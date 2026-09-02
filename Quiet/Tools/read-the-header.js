@@ -1143,6 +1143,25 @@ const GROUPED = `
         theEndMark(stopped)?.firstChild.textContent,
         "That's everyone you follow.");
 
+  /* And nothing is removed on that evidence. Whatever sits at the very bottom
+   * of an infinite list is how the list knows to fetch more of itself, and one
+   * thing Quiet took out below the last post is *also* what a suggestion
+   * between two posts looks like while more are still on their way. Say the
+   * sentence; take nothing away. */
+  const sentinel = await page(
+    `<main><div>
+       <article data-box="0,0,390,600"><img data-box="0,0,390,400"></article>
+       <div data-name="theirs" data-box="0,600,390,0">
+         <h2>Suggested for you</h2>
+       </div>
+       <div data-name="more" data-box="0,600,390,4"></div>
+     </div></main>`,
+    FEED
+  );
+  check("the end is announced", theEndMark(sentinel) !== null, true);
+  check("and what tells the list to fetch more is left alone",
+        hiddenIn(sentinel, "more"), null);
+
   /* And the line follows the last post rather than being said and left behind.
    * A feed that has run out can be answered a minute later, and a line reading
    * "that is everyone you follow" with two of their photographs under it would

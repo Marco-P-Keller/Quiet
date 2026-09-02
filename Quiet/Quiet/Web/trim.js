@@ -1142,10 +1142,22 @@
     //
     // Once it has ended it stays ended, so what arrives next goes without
     // having to make the case again.
-    var enough = takenOut || height >= (window.innerHeight || 844) * ENDED_TAIL;
-    if (!ended && !enough) return;
+    var theVoid = height >= (window.innerHeight || 844) * ENDED_TAIL;
+    if (!ended && !takenOut && !theVoid) return;
 
-    for (var i = 0; i < tail.length; i++) hide(tail[i], "ended");
+    // Only the void is taken down, and only when it is one.
+    //
+    // Whatever is at the very bottom of an infinite list is how the list knows
+    // to fetch more of itself — a few points of nothing that the page watches
+    // for. Hiding it stops the feed for good, and "one thing Quiet took out
+    // sits below the last post" is *also* true for a suggestion that arrives
+    // between two posts while more are still on their way. So the sentence is
+    // said on that evidence and nothing is removed on it; there is nothing
+    // with a height to remove anyway. Half a screen of nothing is a different
+    // claim, and it earns the removal.
+    if (theVoid) {
+      for (var i = 0; i < tail.length; i++) hide(tail[i], "ended");
+    }
     sayItEnds(list, last);
   }
 
