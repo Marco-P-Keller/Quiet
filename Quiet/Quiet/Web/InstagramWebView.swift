@@ -570,6 +570,52 @@ final class WebSurface {
         stack?.show(.profile)
     }
 
+    /// Hand the app to the other account.
+    ///
+    /// Two taps on the profile entry, and what arrives is Instagram's own
+    /// account switcher — the sheet their site already has, opened by pressing
+    /// the button their profile page already carries. Quiet writes down no
+    /// second account, holds no second session and asks for no password: the
+    /// sheet is theirs, the cookies are theirs, and the app's part is a press.
+    /// See `__quietSwitchAccounts` in trim.js.
+    ///
+    /// Nothing else here has to know about it. The cookie changes a moment
+    /// later, `WhoIsSignedIn` hears it, and all three panes start again as
+    /// somebody else — the same path a switch made in Instagram's own app has
+    /// taken since that watcher was written.
+    ///
+    /// The profile has to be on the glass first, because that is where the
+    /// button is. Which is also why this asks more than once.
+    func switchAccount() {
+        goToMyProfile()
+        askForTheSwitcher()
+    }
+
+    /// How long to wait before each ask, in seconds — two seconds' worth.
+    ///
+    /// The profile pane may have been built by the line above — a first tap
+    /// ever, a pane iOS discarded, a page still arriving — and a page that has
+    /// not drawn its header yet has no button to press. So the ask is repeated
+    /// across the couple of seconds that takes, and the gaps widen: a page
+    /// that is already up answers the first one, on the tap.
+    ///
+    /// It stops on the first yes rather than pressing five times, because
+    /// pressing the switcher twice closes the sheet it opened.
+    private static let asking: [TimeInterval] = [0, 0.25, 0.35, 0.5, 0.9]
+
+    private func askForTheSwitcher() {
+        Task { @MainActor [weak self] in
+            for wait in Self.asking {
+                if wait > 0 { try? await Task.sleep(for: .seconds(wait)) }
+                guard let self, let webView = self.webView else { return }
+                let answer = try? await webView.evaluateJavaScript(
+                    "window.__quietSwitchAccounts ? window.__quietSwitchAccounts() : false"
+                )
+                if (answer as? Bool) == true { return }
+            }
+        }
+    }
+
     /// Open an address the reader chose, in the pane it belongs to.
     ///
     /// Finding somebody is a thing you do to look at them, and looking at

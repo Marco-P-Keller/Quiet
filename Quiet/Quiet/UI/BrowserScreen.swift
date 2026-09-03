@@ -711,9 +711,11 @@ struct BrowserScreen: View {
     /// is told which of the two to try first; the single tap then waits out the
     /// double's window before it fires. That wait is the cost of the gesture
     /// and it is paid by the panel opening a moment after the tap rather than
-    /// on it — worth it here, on one entry of five, and worth it nowhere else
-    /// in the row, which is why the other four are plain buttons that answer
-    /// instantly.
+    /// on it — worth it here, and worth it on the entry at the other end of the
+    /// row, where two taps swap which account you are signed in to. The three
+    /// in between are plain buttons that answer instantly, and the test is the
+    /// same one every time: a second thing to do here has to be *about* this
+    /// entry, or it is a gesture nobody will find.
     private var clockButton: some View {
         let here = current == .clock
         return glyph(.clock, here, theClock(filled: false), theClock(filled: true))
@@ -890,34 +892,68 @@ struct BrowserScreen: View {
 
     /// The last entry, with your own face in it, the way Instagram's row ends.
     /// An outline of a person stands in until the page has handed one over.
+    ///
+    /// The second entry in the row a finger can say two things to, and for the
+    /// same reason the clock is the first: what the second thing does is
+    /// **about whose entry this is**. One tap opens your profile. Two open
+    /// Instagram's own account switcher, which is the sheet a person with two
+    /// Instagrams has always used and the one thing Quiet's row could not
+    /// reach — the way there was to leave the app, switch in Instagram's, and
+    /// come back. See `WebSurface.switchAccount`.
+    ///
+    /// Two taps rather than a long press, exactly as on the clock: a press is
+    /// what a thumb resting on the row does by itself, and swapping which
+    /// account somebody is signed in to is not a thing to do by accident. It
+    /// costs the single tap its immediacy — the profile opens after the
+    /// double's window rather than on the touch — and that cost is why the
+    /// other three entries are still plain buttons that answer instantly.
     private var myProfileButton: some View {
         let here = current == .profile
-        return Button { go(to: .profile) } label: {
-            Group {
-                if let face = surface.myFace {
-                    Image(uiImage: face)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 25, height: 25)
-                        .clipShape(Circle())
-                        .overlay(
-                            Circle().strokeBorder(
-                                Color(uiColor: .label).opacity(here ? 0.95 : 0.2),
-                                lineWidth: here ? 1.5 : 0.5
-                            )
+        return Group {
+            if let face = surface.myFace {
+                Image(uiImage: face)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 25, height: 25)
+                    .clipShape(Circle())
+                    .overlay(
+                        Circle().strokeBorder(
+                            Color(uiColor: .label).opacity(here ? 0.95 : 0.2),
+                            lineWidth: here ? 1.5 : 0.5
                         )
-                } else {
-                    Image(systemName: here ? "person.crop.circle.fill" : "person.crop.circle")
-                        .font(.system(size: 24, weight: .regular))
-                        .foregroundStyle(Color(uiColor: .label))
-                }
+                    )
+            } else {
+                Image(systemName: here ? "person.crop.circle.fill" : "person.crop.circle")
+                    .font(.system(size: 24, weight: .regular))
+                    .foregroundStyle(Color(uiColor: .label))
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .contentShape(Rectangle())
+        // Declared before the single one, which is how SwiftUI is told which
+        // of the two to try first. See `clockButton`, where the same pair is
+        // written out at length.
+        .onTapGesture(count: 2) { swapTheAccount() }
+        .onTapGesture { go(to: .profile) }
+        .accessibilityElement(children: .ignore)
+        .accessibilityAddTraits(.isButton)
         .accessibilityLabel(Text("Your profile"))
         .accessibilityAddTraits(here ? .isSelected : [])
+        .accessibilityAction { go(to: .profile) }
+        // Two taps in the same place is a sighted gesture, so the thing they
+        // do is also a named action — the same courtesy the clock is owed for
+        // being sent away.
+        .accessibilityAction(named: Text("Switch account")) { swapTheAccount() }
+    }
+
+    /// Ask for Instagram's account switcher, and answer the finger first.
+    ///
+    /// The tick before the sheet, because the sheet is somebody else's page
+    /// arriving in its own time and the row has to answer on the touch. Every
+    /// other entry here does the same.
+    private func swapTheAccount() {
+        Touch.tick()
+        surface.switchAccount()
     }
 
     /// What a tap on the row does.

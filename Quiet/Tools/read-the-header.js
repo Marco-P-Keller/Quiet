@@ -498,6 +498,76 @@ const GROUPED = `
     [false, false, false]
   );
 
+  /* ── The other account ───────────────────────────────────────────────── */
+
+  /* Two taps on the profile entry open Instagram's own account switcher, and
+   * the whole of the app's part in that is pressing a button on their page.
+   * Which button is asked of the page by name rather than by place: the one
+   * control on your own profile that says who you are. */
+  const MINE = (header) => `
+    <div data-name="nav">
+      <a href="/">home</a>
+      <a href="/direct/inbox/">messages</a>
+      <a href="/marco/"><img src="face.jpg"></a>
+    </div>
+    <main><header>${header}</header></main>`;
+
+  const MY_PROFILE = "https://www.instagram.com/marco/";
+
+  /** The page, and how many times the switcher was pressed. */
+  const askToSwitch = async (html, url) => {
+    const win = await page(MINE(html), url || MY_PROFILE);
+    let presses = 0;
+    const control = win.document.querySelector('[data-name="switcher"]');
+    if (control) control.addEventListener("click", () => { presses += 1; });
+    const answer = win.__quietSwitchAccounts();
+    return { answer, presses };
+  };
+
+  check(
+    "your own name, on your own profile, is the way to the other account",
+    await askToSwitch(
+      `<div role="button" data-name="switcher" data-box="16,60,120,24">marco</div>`
+    ),
+    { answer: true, presses: 1 }
+  );
+
+  /* Your name is a link in half a dozen places on a profile and every one of
+   * them is a navigation. The switcher is a button, because it opens a sheet
+   * rather than going anywhere. */
+  check(
+    "a name inside a link is a navigation, not the switcher",
+    await askToSwitch(
+      `<a href="/marco/"><span role="button" data-name="switcher"
+          data-box="16,60,120,24">marco</span></a>`
+    ),
+    { answer: false, presses: 0 }
+  );
+
+  /* Somebody else's page carries their name rather than yours, so the address
+   * can only fail closed — and it does the failing rather than the button
+   * hunt, because the app would rather press nothing at all than press
+   * something it cannot name on a page it did not mean to be on. */
+  check(
+    "and nothing is pressed on a page that is not your own profile",
+    await askToSwitch(
+      `<div role="button" data-name="switcher" data-box="16,60,120,24">marco</div>`,
+      "https://www.instagram.com/someone/"
+    ),
+    { answer: false, presses: 0 }
+  );
+
+  /* A header Instagram has rewritten, with nothing in it the app can name.
+   * Declining is the answer: the app asks again for a moment, and a press it
+   * cannot make is a sheet that does not open rather than a wrong one. */
+  check(
+    "a header with no such button declines rather than guessing",
+    await askToSwitch(
+      `<div role="button" data-name="other" data-box="16,60,120,24">Follow</div>`
+    ),
+    { answer: false, presses: 0 }
+  );
+
   /* ── The other wordmark ──────────────────────────────────────────────── */
 
   /* Instagram has two, and both are theirs: the script one in the app, the

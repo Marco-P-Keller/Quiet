@@ -771,6 +771,94 @@
     return window.__quietGo("profile");
   };
 
+  /* ── The other account ────────────────────────────────────────────────── */
+
+  /**
+   * Open Instagram's own account switcher.
+   *
+   * Two accounts is one person with a second Instagram, and moving between
+   * them is a thing the site does in a sheet: the username at the top of your
+   * own profile is a button, and pressing it asks who you would like to be.
+   * Quiet hides the row that would take you there, and it never hid the way to
+   * this — there simply was no way to ask for it, so the answer was to leave
+   * the app, open Instagram's, switch, and come back.
+   *
+   * It is Instagram's sheet rather than a list of Quiet's own, and that is the
+   * whole design of it. Signing in to a second account, its cookies, the
+   * confirmation when a session has expired — all of that is Instagram's,
+   * already written, and already the thing a person recognises. The app knows
+   * nothing here it did not know before: it presses a button on a page.
+   *
+   * `WhoIsSignedIn` takes it from there. The cookie changes, the app hears it,
+   * and all three panes start again as somebody else — which has been true of
+   * a switch made in Instagram's own app since the day that watcher was
+   * written, and is what makes this two lines rather than a feature.
+   *
+   * It answers yes or no rather than doing nothing quietly, because the page
+   * may not be the profile yet: the app asks again for a moment. See
+   * `WebSurface.switchAccount`.
+   */
+  window.__quietSwitchAccounts = function () {
+    var control = theSwitcher();
+    if (!control) return false;
+    control.click();
+    letGo(control);
+    return true;
+  };
+
+  /**
+   * The one control on your own profile that is your own name.
+   *
+   * Found by what it says rather than by where it sits, because where it sits
+   * is Instagram's to move: the header is theirs, the class names are theirs,
+   * and both have changed under this app before. What does not change is that
+   * the button carries the name of whoever is signed in — the app already
+   * knows that name, asked of Instagram's own settings endpoint — and that
+   * nothing else on the page is a button saying exactly that.
+   *
+   * A link is never it. Your name is a link in half a dozen places on a
+   * profile, and every one of them is a navigation; the switcher is a button
+   * because it opens a sheet rather than going anywhere.
+   *
+   * And only on your own profile, matched against the address. A stranger's
+   * page carries their name, not yours, so the test can only fail closed —
+   * but the app would rather press nothing at all than press something it
+   * cannot name on a page it did not mean to be on.
+   */
+  function theSwitcher() {
+    var me = window.__quietMe;
+    if (!me || !onMyOwnProfile(me)) return null;
+
+    var name = normalise(me);
+    var buttons = document.querySelectorAll('button, [role="button"]');
+    var best = null;
+
+    for (var i = 0; i < buttons.length; i++) {
+      var node = buttons[i];
+      if (ours(node)) continue;
+      if (node.closest && node.closest("a[href]")) continue;
+      if (normalise(node.textContent || "") !== name) continue;
+
+      var box = node.getBoundingClientRect();
+      if (box.width < 1 || box.height < 1) continue;
+
+      if (!best) { best = node; continue; }
+      /* The same control found twice, once from the inside. The outer one is
+       * the one a finger presses. */
+      if (node.contains(best)) { best = node; continue; }
+      if (best.contains(node)) continue;
+      /* Two of them, genuinely. The switcher is in the header, so the higher
+       * one is it. */
+      if (box.top < best.getBoundingClientRect().top) best = node;
+    }
+    return best;
+  }
+
+  function onMyOwnProfile(me) {
+    var here = location.pathname.replace(/\/+$/, "").toLowerCase();
+    return here === "/" + me.toLowerCase();
+  }
+
   /**
    * Start the page below the clock, for the case where the app has handed it
    * a screen that begins at the top of the glass.
