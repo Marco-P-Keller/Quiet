@@ -69,6 +69,17 @@ jobs:
       - name: What it costs
         run: node Tools/read-the-cost.js
 
+      # When it says the feed has ended, which is the only thing in the pass
+      # that can be wrong out loud.
+      #
+      # The rule used to be half a screen of nothing below the last post, and a
+      # feed still being fetched is half a screen of nothing below the last
+      # post. Somebody was told they had read everything their friends posted,
+      # after one post, while the rest of it was on its way — and because an
+      # end stays ended, the sentence then followed them down the whole feed.
+      - name: When it says the feed has ended
+        run: node Tools/read-the-end.js
+
       # Every sentence in the app, in both languages.
       #
       # The failure this catches is not a crash and does not look like one: a

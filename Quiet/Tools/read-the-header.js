@@ -1206,14 +1206,40 @@ const GROUPED = `
    * place to stop. */
   const theEndMark = (win) => win.document.getElementById("quiet-end");
 
-  const endedFeed = await page(
+  /* Half a screen of nothing below the last post used to be enough on its own,
+   * and it cannot be. A feed still being fetched looks exactly like this: the
+   * list reserves the boxes and fills them when the answer comes back, so for
+   * the second in between there is a post, a void, and nothing to tell the two
+   * apart. It went on the phone — one post, the sentence under it, and the
+   * rest of the feed arriving below a line saying there was no more of it.
+   * `Tools/read-the-end.js` measures that sequence. */
+  const stillComing = await page(
     `<main><div>
        <article data-box="0,0,390,600"><img data-box="0,0,390,400"></article>
        <div data-name="tail" data-box="0,600,390,500"></div>
      </div></main>`,
     FEED
   );
-  check("half a screen below the last post with nothing in it is the end",
+  check("a void under the last post is not the end on its own",
+        theEndMark(stillComing), null);
+
+  /* What that rule was reaching for, and the shape it has to be reached by.
+   * Instagram reserves the box and renders its suggestion into it, so the box
+   * keeps its height and what Quiet took out is a child of it. Counted from
+   * the outside only, two of these read as nought. */
+  const endedFeed = await page(
+    `<main><div>
+       <article data-box="0,0,390,600"><img data-box="0,0,390,400"></article>
+       <div data-name="tail" data-box="0,600,390,250">
+         <div data-box="0,600,390,250"><h2>Suggested for you</h2></div>
+       </div>
+       <div data-name="more" data-box="0,850,390,250">
+         <div data-box="0,850,390,250"><h2>Suggested posts</h2></div>
+       </div>
+     </div></main>`,
+    FEED
+  );
+  check("two of theirs inside the boxes reserved for them is the end",
         theEndMark(endedFeed) !== null, true);
   check("and that half screen is left exactly where it is",
         hiddenIn(endedFeed, "tail"), null);
@@ -1336,7 +1362,8 @@ const GROUPED = `
   const saidOnce = await page(
     `<main><div>
        <article data-box="0,0,390,600"><img data-box="0,0,390,400"></article>
-       <div data-name="tail" data-box="0,600,390,500"></div>
+       <div data-name="one" data-box="0,600,390,0"><h2>Suggested for you</h2></div>
+       <div data-name="two" data-box="0,600,390,0"><h2>Suggested posts</h2></div>
      </div></main>`,
     FEED
   );

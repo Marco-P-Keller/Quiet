@@ -1219,20 +1219,19 @@
    * to stop.
    *
    * So it stops. What is below the last post is looked at rather than
-   * guessed: if there is half a screen of it and *none of it is anything* —
-   * no photograph, no video, no sentence, nothing with a box — then it is not
-   * a feed still arriving, it is the treadmill. A feed that is still loading
-   * has a spinner in it, and a spinner is something.
+   * guessed, and what is looked for is not emptiness but *Instagram's own
+   * answer with the inside taken out*: two of its suggested posts in a row,
+   * with nothing of anybody's between them. Emptiness cannot be the test. A
+   * feed still being fetched is empty under the last post too, in exactly the
+   * same way, and telling somebody the feed has ended while it is on its way
+   * is the one mistake this must not make.
    *
-   * Then the tail goes, and Quiet says where the end is, in the app's own
-   * words, handed in by the app so the catalogue owns them. The words go in
-   * the page rather than in the app's furniture because the end of a feed is a
-   * place in a document — furniture does not scroll.
+   * Then Quiet says where the end is, in the app's own words, handed in by
+   * the app so the catalogue owns them. The words go in the page rather than
+   * in the app's furniture because the end of a feed is a place in a
+   * document — furniture does not scroll.
    */
   var END = "quiet-end";
-
-  /** Enough laid out with nothing in it to be the end rather than a gap. */
-  var ENDED_TAIL = 0.5;
 
   /**
    * Enough of somebody else's posts in a row to be the end rather than one.
@@ -1242,6 +1241,9 @@
    * them, is the section Instagram fills the rest of the day with.
    */
   var ENOUGH_OF_THEM = 2;
+
+  /** One of theirs, taken out. The mark `hide` leaves and nothing else. */
+  var THEIRS = '[data-quiet-hidden="suggestion"]';
 
   function endOfTheFeed() {
     if (!isFeed()) return;
@@ -1263,8 +1265,6 @@
     if (!list) return;
 
     var ended = !!document.getElementById(END);
-    var tail = [];
-    var height = 0;
     var takenOut = 0;
 
     for (var node = last.nextElementSibling; node; node = node.nextElementSibling) {
@@ -1274,33 +1274,33 @@
       // Something Instagram served and Quiet took out. That is the whole of
       // the evidence: the site is still answering, and everything it answers
       // with from here on is a person nobody chose.
-      if (node.getAttribute && node.getAttribute("data-quiet-hidden") !== null) {
-        takenOut += 1;
-        continue;
-      }
-      var box = node.getBoundingClientRect();
-      if (box.height > 0) {
-        tail.push(node);
-        height += box.height;
-      }
+      if (oneOfTheirs(node)) takenOut += 1;
     }
 
-    // Two ways to be at the end, and the first is the one that was missed.
+    // The evidence is what Instagram answered with. It is never a height.
     //
-    // A page that has been taken out has no height — `display: none` removes
-    // it from the flow entirely — so the feed simply *stops*, with nothing
-    // under it and nothing black about it. That is what a person sees and it
-    // is what the first version of this could not detect, because it was
-    // looking for a void to measure and there is not one. The evidence is not
-    // a height, it is that Instagram answered and Quiet emptied the answer.
+    // A version of this had a second rule that said the end on half a screen
+    // of empty boxes below the last post, on the reasoning that placeholders
+    // whose content is removed the moment it arrives are the treadmill with
+    // its contents taken out. They are. So is the next page of the feed, for
+    // the second before it lands — a virtualised list reserves the boxes
+    // first and fills them when the answer comes back, and at that moment the
+    // two are the same document.
     //
-    // The second is the void: placeholders waiting for content that will be
-    // removed the moment it arrives. Those do have height, and half a screen
-    // of nothing is the end as surely as the other.
+    // `Tools/read-the-end.js` measures it: one post drawn, a gap under it,
+    // and the sentence went on the page. Then three posts arrived in the gap.
+    // Somebody was told they had read everything their friends posted while
+    // the feed was still being fetched — and because a feed that has ended
+    // stays ended, the sentence then followed them down the whole of it. That
+    // is the app lying about the one thing it exists to be right about, and no
+    // height could have told it apart from the thing it was looking for.
+    //
+    // So there is one rule, and it is the one the paragraph above always
+    // said: the site answered, and Quiet emptied the answer. Twice, with
+    // nothing of anybody's in between.
     //
     // Once it has ended it stays ended, so what arrives next goes without
     // having to make the case again.
-    var theVoid = height >= (window.innerHeight || 844) * ENDED_TAIL;
 
     // Said, and nothing else done.
     //
@@ -1321,8 +1321,28 @@
     // somebody you follow moves the sentence down below it. Being wrong now
     // costs a line in the wrong place for a second, which is the cheapest way
     // to be wrong that this file has.
-    if (!ended && takenOut < ENOUGH_OF_THEM && !theVoid) return;
+    if (!ended && takenOut < ENOUGH_OF_THEM) return;
     sayItEnds(list, last);
+  }
+
+  /**
+   * Whether this is one of Instagram's suggestions with the inside taken out.
+   *
+   * Two shapes, because Instagram writes it both ways. Most often the
+   * suggested post is the sibling itself and carries the mark. Sometimes it is
+   * inside a box the list reserved, and the box stays — which is the case the
+   * height rule above was reaching for and could not reach without also
+   * catching every gap in a feed that was still arriving.
+   *
+   * Only suggestions count. `data-quiet-hidden` is also how the navigation row
+   * and the wordmark are taken down, and neither is a post Instagram served in
+   * answer to a request for more feed. Counting one would be finding evidence
+   * in the app's own furniture.
+   */
+  function oneOfTheirs(node) {
+    if (!node.getAttribute) return false;
+    if (node.getAttribute("data-quiet-hidden") === "suggestion") return true;
+    return !!(node.querySelector && node.querySelector(THEIRS));
   }
 
   /** Whether anything in here is drawn, skipping what Quiet has taken out. */
