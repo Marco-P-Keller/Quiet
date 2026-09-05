@@ -426,7 +426,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Instagram füllt den Feed mit Beiträgen von Leuten, denen du nicht folgst, sobald die von deinen Freunden ausgehen. Aus siehst du sie alle. An hört der Feed dort auf, wo deine Freunde aufhören."
+            "value": "Instagram füllt den Feed mit Beiträgen von Leuten, denen du nicht folgst, sobald die von deinen Freunden ausgehen. Aus: Du siehst sie alle. An: Der Feed hört dort auf, wo deine Freunde aufhören."
           }
         }
       }
@@ -1041,12 +1041,12 @@
         }
       }
     },
-    "The posts Instagram suggests between your friends are still there. There is a switch in the panel if you would rather they were not.": {
+    "The posts Instagram suggests between your friends are still there. A switch in Quiet's settings takes them out.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die Beiträge, die Instagram zwischen deine Freunde schiebt, sind da. Im Panel gibt es einen Schalter, falls dir das lieber nicht wäre."
+            "value": "Die Beiträge, die Instagram zwischen deine Freunde schiebt, sind da. Ein Schalter in den Quiet-Einstellungen nimmt sie weg."
           }
         }
       }

@@ -73,7 +73,7 @@ struct SetupView: View {
                 // does. The suggested posts are shown; taking them out is a
                 // switch, and a switch nobody knows about is a switch nobody
                 // has.
-                Line("The posts Instagram suggests between your friends are still there. There is a switch in the panel if you would rather they were not.")
+                Line("The posts Instagram suggests between your friends are still there. A switch in Quiet's settings takes them out.")
                 Line("Your feed, your stories, your messages, your profile. Everything else works the way it always did.")
                 Line("You sign in on Instagram's own page. Your password never touches Quiet.")
                 Line("Quiet runs on Instagram's mobile site, so pages load a beat slower and a few things are missing.")
