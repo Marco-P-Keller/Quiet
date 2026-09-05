@@ -37,6 +37,8 @@ struct PanelView: View {
                     Divider().overlay(Paper.rule).padding(.vertical, 24)
                     warnings
                     Divider().overlay(Paper.rule).padding(.vertical, 24)
+                    suggestions
+                    Divider().overlay(Paper.rule).padding(.vertical, 24)
                     appointment
                     Divider().overlay(Paper.rule).padding(.vertical, 24)
                     otherDevices
@@ -281,6 +283,38 @@ struct PanelView: View {
             .tint(Paper.ink)
 
             Note("Two quiet notices, at five minutes and at one. Turning them off does not add any time — the day ends at the same moment either way.")
+        }
+    }
+
+    // MARK: - What is in the feed
+
+    /// The one setting that changes what Instagram is allowed to show you.
+    ///
+    /// After the people you follow, Instagram's feed goes on with suggested
+    /// posts from people you did not choose. The app used to take every one of
+    /// them out, always, and that was not a choice anybody had made — it was
+    /// this app deciding what somebody's feed should contain, which is the
+    /// thing it objects to when the site does it.
+    ///
+    /// So they are shown, and there is a switch. Off, the feed is exactly what
+    /// Instagram sends; on, it stops at the last post by somebody you chose,
+    /// and Quiet says so where it stops.
+    ///
+    /// It is not the Reels rule and cannot be made into one. A block of Reels
+    /// in the feed goes either way — that is refused by address in three other
+    /// places and a setting about suggestions does not get to undo it.
+    private var suggestions: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Toggle(isOn: Binding(
+                get: { !preferences.showsSuggestions },
+                set: { preferences.showsSuggestions = !$0 }
+            )) {
+                Text("Hide suggested posts")
+                    .font(.quietBody)
+            }
+            .tint(Paper.ink)
+
+            Note("Instagram fills the feed with posts from people you do not follow once it runs out of the ones you do. Off, you see them all. On, the feed stops where the people you chose stop.")
         }
     }
 

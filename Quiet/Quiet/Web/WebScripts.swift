@@ -34,9 +34,23 @@ enum WebScripts {
     ///   rather than taken out of the web view as an inset. An inset shortens
     ///   what the page is given; this does not.
     ///
+    /// - Parameter showsSuggestions: whether Instagram's suggested posts are
+    ///   left where they are, which is what the app does unless somebody has
+    ///   said otherwise. See `Preferences.showsSuggestions`.
+    ///
+    ///   Handed over at document start with the rest, because trim.js reads it
+    ///   on its first pass — a value that arrived afterwards would be a value
+    ///   that pass never saw, and the first pass is the one before anything has
+    ///   been drawn. The three pages already open are told separately; see
+    ///   `WebPane.tellThisPageAboutSuggestions`.
+    ///
+    ///   No default. Both callers are a pane being built or rebuilt, both know
+    ///   the answer, and a default here would be a third caller silently
+    ///   getting one behaviour because nobody thought about it.
     static func load(
         from bundle: Bundle = .main,
-        top: CGFloat
+        top: CGFloat,
+        showsSuggestions: Bool
     ) -> Payload {
         var scripts: [WKUserScript] = []
         let files = sources(in: bundle)
@@ -46,8 +60,10 @@ enum WebScripts {
             scripts.append(userScript(source: style))
         }
 
-        // The two numbers the page needs from the app, injected before the trim
-        // runs so that both are there before its first paint.
+        // What the page needs from the app, injected before the trim runs so
+        // that all of it is there before its first paint: two numbers, the two
+        // sentences that say where a feed ended, and the one setting a person
+        // can change.
         //
         // Three more used to be here. One named Quiet's own settings, for a
         // mark the script drew beside Instagram's on your own profile; that
@@ -60,6 +76,7 @@ enum WebScripts {
         scripts.append(userScript(source: """
         window.__quietAppID = \(quoted(WebScripts.appID));
         window.__quietTop = \(Int(top.rounded()));
+        window.__quietShowsSuggestions = \(showsSuggestions);
         window.__quietEnd = \(quoted(String(localized: "That's everyone you follow.")));
         window.__quietEndNote = \(quoted(String(
             localized: "Instagram would go on with people you don't. Pull down at the top for new posts."

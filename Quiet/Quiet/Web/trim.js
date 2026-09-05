@@ -53,9 +53,7 @@
     "suggested for you",
     "suggested posts",
     "suggested accounts",
-    "suggested reels",
     "suggested threads",
-    "reels",
     "discover people",
     /* German */
     "vorgeschlagene beiträge",
@@ -158,9 +156,48 @@
       .toLowerCase();
   }
 
+  /**
+   * The blocks that are Reels wearing a heading, which are not suggestions.
+   *
+   * They used to sit in the list above and be hidden with everything else, and
+   * they cannot now, because everything else is shown unless somebody asks
+   * otherwise. Reels are refused by address in three other places in this app;
+   * a carousel of them coming back into the feed under a setting about
+   * *suggestions* would be one promise quietly undone by a switch about
+   * another. So they are their own list and they go either way.
+   */
+  var REELS_LABELS = [
+    "reels",
+    "suggested reels",
+  ];
+
+  /**
+   * Every heading that marks a block, and which kind of block it marks.
+   *
+   * The value is the reason it is taken out, which is the same word `hide`
+   * writes on the node — so what the page carries says which of the two rules
+   * took it, and the end of the feed can count suggestions without counting
+   * Reels.
+   */
   var labelSet = Object.create(null);
   for (var i = 0; i < SUGGESTION_LABELS.length; i++) {
-    labelSet[normalise(SUGGESTION_LABELS[i])] = true;
+    labelSet[normalise(SUGGESTION_LABELS[i])] = "suggestion";
+  }
+  for (var r = 0; r < REELS_LABELS.length; r++) {
+    labelSet[normalise(REELS_LABELS[r])] = "reels";
+  }
+
+  /**
+   * Whether Instagram's suggested posts are shown, which they are.
+   *
+   * The app injects this at document start and it is the one thing in this
+   * file a person can change. Undefined means hide, deliberately: a build
+   * where the injection failed keeps the older, narrower behaviour instead of
+   * quietly showing everything, and there is no arrangement of a missing
+   * global that turns the app into one that does not trim.
+   */
+  function showsSuggestions() {
+    return window.__quietShowsSuggestions === true;
   }
 
   /** The Reels tab on a profile: /someone/reels/. */
@@ -2616,10 +2653,18 @@
     var text = normalise(element.textContent);
     if (lastSeenText.get(element) === text) return;
 
-    if (!text || text.length > 40 || !labelSet[text] || isCaption(element)) {
+    var why = labelSet[text];
+    if (!text || text.length > 40 || !why || isCaption(element)) {
       lastSeenText.set(element, text);
       return;
     }
+
+    /* Shown, because somebody either asked for them or never asked for
+     * anything. Not remembered as seen: the setting can be turned back on
+     * while this very page is open, and a heading written down as read here
+     * would never be looked at again. `__quietSuggestionsChanged` clears the memo for
+     * the same reason from the other side. */
+    if (why === "suggestion" && showsSuggestions()) return;
 
     /* Only ever a block inside the feed. `closest` climbs as far as the
      * document, so without this it could reach a <section> wrapping the
@@ -2653,10 +2698,10 @@
       return;
     }
 
-    if (!hide(block, "suggestion")) {
+    if (!hide(block, why)) {
       /* Already gone, or waiting for the hand to come off the glass. Only the
        * first of those may be remembered, or the wait becomes forever. */
-      if (block.getAttribute("data-quiet-hidden") === "suggestion") {
+      if (block.getAttribute("data-quiet-hidden") === why) {
         lastSeenText.set(element, text);
       }
       return;
@@ -2664,6 +2709,71 @@
     lastSeenText.set(element, text);
     tally.hidden += 1;
   }
+
+  /**
+   * The setting changed while somebody was looking at the page.
+   *
+   * The app hands the flag in at document start, which covers every page
+   * loaded afterwards and none of the three already open. This is the other
+   * half: called from Swift on the pane in front and on the two behind it, so
+   * that a switch flicked in the panel is true of the feed you go back to and
+   * of the inbox you have not looked at since this morning.
+   *
+   * Coming back is not the same shape as going away. `hide` writes an
+   * attribute, so showing them again is removing it — but the memo has to go
+   * with it. `lastSeenText` exists so that a heading read once is not read
+   * again on every frame, and a heading remembered as read while the setting
+   * said "show" would never be looked at again when it said "hide". A new map
+   * is cheaper and more obviously correct than walking the old one.
+   *
+   * The sentence at the end of the feed goes too. It is a claim that there is
+   * nothing below but people you did not choose, and with those people on the
+   * page it is no longer a claim about anything — the feed does not end any
+   * more, which is the whole of what this setting means.
+   *
+   * Nothing here pays a scroll back, and `hide` is careful to — so this is a
+   * known asymmetry rather than an oversight, and it is written down because
+   * the next person will notice it and wonder.
+   *
+   * Going away, a block is taken out of the flow while somebody's thumb is on
+   * the glass, and the page slides up under their finger. That is unbearable
+   * and `hide` measures it and pays it back in the same frame. Coming back,
+   * the height returns and the page below it moves down — so somebody who
+   * flicks this switch deep in a feed will be further up it than they were,
+   * by however much of it was hidden above the top of the glass.
+   *
+   * That is accepted, on three grounds and not on the grounds that it does not
+   * happen. It happens behind the panel, which covers the page, so nothing
+   * moves in front of anybody. It happens once, deliberately, at the moment a
+   * person is changing what the feed *is* — which is not the moment they are
+   * holding a place in it. And Instagram's list is virtualised, so what is
+   * hidden above the glass is a window rather than an afternoon.
+   *
+   * What would change the answer is a report of losing a place, and the fix is
+   * the one every scroll anchor is: measure an element at the top of the glass
+   * before and after, and scroll by the difference. It is not here because
+   * nothing in these tools can lay a page out, so it could be written but not
+   * checked, and an unchecked correction to a scroll position is how the feed
+   * came to bounce in the first place.
+   */
+  window.__quietSuggestionsChanged = function (show) {
+    var was = showsSuggestions();
+    window.__quietShowsSuggestions = show === true;
+    if (was === showsSuggestions()) return;
+
+    lastSeenText = new WeakMap();
+
+    if (showsSuggestions()) {
+      var theirs = document.querySelectorAll(THEIRS);
+      for (var i = 0; i < theirs.length; i++) {
+        theirs[i].removeAttribute("data-quiet-hidden");
+      }
+      var mark = document.getElementById(END);
+      if (mark && mark.parentNode) mark.parentNode.removeChild(mark);
+    }
+
+    schedule();
+  };
 
   /* ── 4. Keep up with the page ─────────────────────────────────────────── */
 

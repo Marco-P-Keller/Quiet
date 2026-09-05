@@ -104,6 +104,13 @@ final class PaneStack {
     private(set) var top: CGFloat = 0
     private(set) var inset: UIEdgeInsets = .zero
 
+    /// Whether Instagram's suggested posts are left where they are.
+    ///
+    /// Kept here as well as on each pane, because a pane built three taps from
+    /// now has to be built with the answer that is true then rather than the
+    /// one that was true when the stack was made. Same reasoning as `top`.
+    private(set) var showsSuggestions = true
+
     private var watchingMemory: NSObjectProtocol?
 
     init(session: QuietSession, surface: WebSurface) {
@@ -176,7 +183,8 @@ final class PaneStack {
             stack: self,
             pane: pane,
             top: top,
-            inset: inset
+            inset: inset,
+            showsSuggestions: showsSuggestions
         )
         panes[pane] = made
         container.addSubview(made.webView)
@@ -198,16 +206,32 @@ final class PaneStack {
 
     // MARK: - What the browsing screen hands down
 
-    func hand(top: CGFloat, inset: UIEdgeInsets) {
+    func hand(top: CGFloat, inset: UIEdgeInsets, showsSuggestions: Bool) {
         let movedTop = self.top != top
+        let settingChanged = self.showsSuggestions != showsSuggestions
         self.top = top
         self.inset = inset
+        self.showsSuggestions = showsSuggestions
         for webPane in panes.values {
             webPane.apply(inset: inset)
-            guard movedTop else { continue }
+            if settingChanged {
+                // All three, and the two behind the glass especially: they are
+                // one tap from being brought forward, and coming forward is an
+                // `isHidden` rather than a load. A pane told only when it next
+                // loads is a pane still showing the answer to a question
+                // somebody has already changed their mind about.
+                webPane.showsSuggestions = showsSuggestions
+                webPane.tellThisPageAboutSuggestions(webPane.webView)
+            }
+            guard movedTop || settingChanged else { continue }
             webPane.top = top
+            // The scripts, so the *next* document this pane loads is built with
+            // it too. Only when something actually moved: this runs on every
+            // pass SwiftUI makes over the view, and rebuilding a hundred and
+            // ten kilobytes of JavaScript on every frame of every animation is
+            // a page that stutters.
             webPane.tellEveryPage(webPane.webView, top: top)
-            webPane.tellThisPage(webPane.webView)
+            if movedTop { webPane.tellThisPage(webPane.webView) }
         }
     }
 

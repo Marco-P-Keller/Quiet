@@ -61,13 +61,19 @@ struct SetupView: View {
                 .padding(.bottom, 28)
 
             VStack(alignment: .leading, spacing: 14) {
-                Line("No Reels. No Explore. No accounts suggested between your friends.")
+                Line("No Reels. No Explore.")
                 // The one-star review this app was always going to get, headed
                 // off in one sentence: somebody who opens it expecting all of
                 // Instagram and finds Reels missing has not found a broken app,
                 // and there is no way for them to know that unless it is said
                 // here. Nobody reads a store listing.
                 Line("Those are gone on purpose, not missing. Tapping a Reel a friend sends you will say so rather than open it.")
+                // Said here because this list is the app's own description of
+                // itself, and it used to promise something the app no longer
+                // does. The suggested posts are shown; taking them out is a
+                // switch, and a switch nobody knows about is a switch nobody
+                // has.
+                Line("The posts Instagram suggests between your friends are still there. There is a switch in the panel if you would rather they were not.")
                 Line("Your feed, your stories, your messages, your profile. Everything else works the way it always did.")
                 Line("You sign in on Instagram's own page. Your password never touches Quiet.")
                 Line("Quiet runs on Instagram's mobile site, so pages load a beat slower and a few things are missing.")

@@ -83,9 +83,9 @@ FRAMES = [
         "shot": "feed",
         "optional": True,
         "en": ("Your feed. Nothing else.",
-               "Reels, Explore and the suggested accounts are not there."),
+               "Reels and Explore are not there. Suggestions are a switch."),
         "de": ("Dein Feed. Sonst nichts.",
-               "Reels, Explore und vorgeschlagene Konten: nicht da."),
+               "Reels und Explore: nicht da. Vorschläge: ein Schalter."),
     },
     {
         "shot": "setup",

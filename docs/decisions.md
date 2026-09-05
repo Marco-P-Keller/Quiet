@@ -2698,3 +2698,94 @@ only where somebody was waiting — so there is now a check that asks what it
 costs, and it fails at ten calls a frame rather than at sixty-eight, because the
 exact number moves whenever a fixture does and a return to sixty is the
 regression.
+
+## The end of a feed is what the site answered with, never a height
+
+The feed's end had two rules for saying so, and the second could not work.
+
+Half a screen of empty boxes below the last post was read as the treadmill with
+its contents taken out. It is also, exactly and indistinguishably, a virtualised
+list that has reserved the boxes for the next page and is waiting for the answer
+to come back. A spinner was supposed to tell the two apart, and a spinner is
+only in the tail for the part of the wait when Instagram happens to be drawing
+one.
+
+What that shipped was the worst thing this app can do. One post, and under it
+"That's everyone you follow." Then the rest of the feed arrived below the
+sentence, and because a feed that has ended stays ended, the sentence followed
+it down the whole afternoon. The app lying about the one thing it exists to be
+right about.
+
+So the height is gone and there is one rule, which is the one the code's own
+paragraph always named: the site answered, and Quiet emptied the answer, twice,
+with nothing of anybody's in between. The counting looks inside the boxes as
+well as at them, because Instagram writes a suggestion both ways — as the
+sibling, and inside a box the list reserved, where the mark is on a child and
+two of them used to count as nought. That nested shape is the whole of what the
+height rule was reaching for.
+
+## A feed with none of your people in it is an end too
+
+The other account, and the other half of the same function. "The feed loads
+extremely slowly, over fifteen seconds before I see it."
+
+Nothing was loading. The photograph showed Instagram's own "You've completely
+caught up" card with no post above it at all: the feed response had come back
+and there was none of it for them. Instagram began the treadmill, Quiet took
+every suggestion out — correctly — and said nothing. Page after page of answers
+deleted in silence under a turning spinner.
+
+The end could not be said there because it was only ever said *under a post*,
+and that is the one shape with no post to be under. So the walk starts at the
+top of the list when there is none, and the sentence goes above the lot.
+
+The lesson is about the shape of the report rather than the code. Two accounts
+gave two opposite complaints — one said the feed ended when it had not, one said
+the feed would not load when it already had — and they were one function, broken
+in both directions. A report that contradicts another report is a reason to look
+for the thing underneath both.
+
+## Instagram's suggestions are shown, and taking them out is a switch
+
+The app used to take every one of Instagram's suggested posts out of the feed,
+always, and nobody had ever chosen that.
+
+Which is the objection this app makes to the site, made by the app. Instagram
+decides what belongs in somebody's feed and puts it there; Quiet decided what
+belonged in somebody's feed and took it out. Both are an opinion about a
+person's afternoon held by software they did not ask. The difference between
+them is not the direction — it is whether anybody was asked.
+
+So they are shown, and there is a switch in the panel. Off, which is where it
+starts, the feed is what Instagram sends. On, the feed stops at the last post by
+somebody you chose, and Quiet says so where it stops.
+
+**Which way round the default goes is the whole decision.** A switch that starts
+in the narrower position is not a choice offered, it is a choice made with a
+switch beside it — and almost nobody moves a default. The wider position is the
+honest one for a setting about what another service is allowed to show you.
+
+Three things had to hold for this not to be a hole in something else.
+
+**Reels are not a suggestion.** They shared the heading list, because a block
+headed "Reels" in the feed is inserted exactly like one. They have their own
+list now and they go either way. Reels are refused by address in three other
+places in this app, and a promise made there is not something a setting about
+suggested posts gets to undo — a carousel of them arriving back under this
+switch would be one promise quietly cancelled by another.
+
+**The setting has to reach three pages, in both directions.** The flag is handed
+in at document start, which covers every page loaded afterwards and none of the
+three already open. Coming back is also not the mirror of going away: `hide`
+writes an attribute, so showing them again removes it — but the memo has to go
+too. `lastSeenText` exists so a heading read once is not read on every frame,
+and a heading remembered as read while the setting said "show" would never be
+looked at again when it said "hide". The switch would have worked once and then
+been stuck, which is the failure a check for one direction would have missed.
+
+**The app had to stop promising the old behaviour.** The setup screen said "No
+Reels. No Explore. No accounts suggested between your friends" to every new
+reader, and a third of that sentence had just stopped being true. So did the
+store listing and the published page. A default changed in the code and left
+standing in the prose is not a smaller version of the same change; it is the app
+saying something about itself that is false.

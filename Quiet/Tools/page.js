@@ -55,7 +55,14 @@ function installBoxes(win) {
   };
 }
 
-async function page(html, url, head) {
+/**
+ * @param world extra globals, set where the app sets them: after everything a
+ *   fixture always gets and *before* trim.js runs. Anything the app injects at
+ *   document start has to arrive here or it arrives too late — the script reads
+ *   several of them on its first pass, and a value written afterwards is a
+ *   value the first pass never saw.
+ */
+async function page(html, url, head, world) {
   const dom = new JSDOM(
     `<!doctype html><html><head>${head || ""}</head><body>${html}</body></html>`,
     { runScripts: "outside-only", url, virtualConsole: speaker() }
@@ -65,6 +72,7 @@ async function page(html, url, head) {
   }
   const win = dom.window;
   dress(win);
+  if (world) Object.keys(world).forEach((key) => { win[key] = world[key]; });
   win.eval(TRIM);
   win.drain();
   return win;
@@ -136,6 +144,17 @@ function dress(win) {
   // in whichever language the phone is in. The catalogue owns the real ones.
   win.__quietEnd = "That's everyone you follow.";
   win.__quietEndNote = "Instagram would go on with people you don't. Pull down at the top for new posts.";
+  // Instagram's suggestions, and the one thing here that is deliberately *not*
+  // the app's own default.
+  //
+  // The app shows them unless somebody asks otherwise, and that default is
+  // pinned in Swift, where it lives — `PreferencesTests`. What these tools ask
+  // about is the trimming: whether a block Instagram inserted is found, and
+  // whether an ordinary post survives. Both questions are only askable of a
+  // script that has been asked to trim, so a fixture is one that has, and the
+  // handful of checks about the setting itself say so in as many words by
+  // passing `{ __quietShowsSuggestions: true }`.
+  win.__quietShowsSuggestions = false;
   return win;
 }
 

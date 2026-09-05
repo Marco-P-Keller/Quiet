@@ -361,6 +361,16 @@
         }
       }
     },
+    "Hide suggested posts": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorgeschlagene Beiträge ausblenden"
+          }
+        }
+      }
+    },
     "Hide the clock": {
       "localizations": {
         "de": {
@@ -407,6 +417,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Instagram hat nicht geantwortet."
+          }
+        }
+      }
+    },
+    "Instagram fills the feed with posts from people you do not follow once it runs out of the ones you do. Off, you see them all. On, the feed stops where the people you chose stop.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram füllt den Feed mit Beiträgen von Leuten, denen du nicht folgst, sobald die von deinen Freunden ausgehen. Aus siehst du sie alle. An hört der Feed dort auf, wo deine Freunde aufhören."
           }
         }
       }
@@ -531,12 +551,12 @@
         }
       }
     },
-    "No Reels. No Explore. No accounts suggested between your friends.": {
+    "No Reels. No Explore.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Keine Reels. Kein Explore. Keine vorgeschlagenen Konten zwischen deinen Freunden."
+            "value": "Keine Reels. Kein Explore."
           }
         }
       }
@@ -1017,6 +1037,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Die Seite ist nicht angekommen. Das ist meistens ein Moment und kein Problem."
+          }
+        }
+      }
+    },
+    "The posts Instagram suggests between your friends are still there. There is a switch in the panel if you would rather they were not.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Beiträge, die Instagram zwischen deine Freunde schiebt, sind da. Im Panel gibt es einen Schalter, falls dir das lieber nicht wäre."
           }
         }
       }

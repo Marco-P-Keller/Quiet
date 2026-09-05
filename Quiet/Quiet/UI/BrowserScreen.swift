@@ -140,7 +140,11 @@ struct BrowserScreen: View {
                     left: 0,
                     bottom: furniture - pageGivesUp,
                     right: 0
-                )
+                ),
+                // Read here rather than inside the representable, so that
+                // SwiftUI knows this view depends on it and runs the update
+                // when somebody flicks the switch in the panel.
+                showsSuggestions: preferences.showsSuggestions
             )
             // Six mechanisms went into keeping Instagram's own bars off the
             // status bar: a content inset, a padding on the document, a lift on

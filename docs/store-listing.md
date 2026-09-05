@@ -37,8 +37,9 @@ whenever you like. Raise it once a week, starting the next day.
 Quiet shows Instagram's mobile site with the endless surfaces taken out.
 
 Your feed, your stories, your messages and your profile load the way you know
-them. Reels, Explore and the accounts suggested between your friends are not
-there. You sign in on Instagram's own page, so your password never touches
+them. Reels and Explore are not there. The posts Instagram suggests between your
+friends are — and one switch takes them out, which also gives the feed an end to
+reach. You sign in on Instagram's own page, so your password never touches
 Quiet.
 
 Then there is a limit.

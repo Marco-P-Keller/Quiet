@@ -733,6 +733,15 @@ struct InstagramWebView: UIViewRepresentable {
     /// mechanism deleted and written again from memory.
     var inset: UIEdgeInsets
 
+    /// Whether Instagram's suggested posts are left where they are.
+    ///
+    /// Read from `Preferences` at the call site rather than here, so that
+    /// SwiftUI sees the dependency and runs `updateUIView` when it changes.
+    /// A view that reached into an observable object from inside a
+    /// `UIViewRepresentable` would be a view nothing ever told about the
+    /// change.
+    var showsSuggestions: Bool
+
     func makeCoordinator() -> PaneStack {
         PaneStack(session: session, surface: surface)
     }
@@ -748,7 +757,7 @@ struct InstagramWebView: UIViewRepresentable {
     /// the whole point of having three of them. See `PaneStack`.
     func makeUIView(context: Context) -> UIView {
         let stack = context.coordinator
-        stack.hand(top: inset.top, inset: inset)
+        stack.hand(top: inset.top, inset: inset, showsSuggestions: showsSuggestions)
         stack.show(.home)
         return stack.container
     }
@@ -768,7 +777,11 @@ struct InstagramWebView: UIViewRepresentable {
         // moved, because this runs on every pass SwiftUI makes over the view
         // and a page asked to run a script on every frame of every animation is
         // a page that stutters.
-        context.coordinator.hand(top: inset.top, inset: inset)
+        context.coordinator.hand(
+            top: inset.top,
+            inset: inset,
+            showsSuggestions: showsSuggestions
+        )
     }
 
     @MainActor
@@ -1069,6 +1082,14 @@ struct InstagramWebView: UIViewRepresentable {
         /// this number exists.
         var top: CGFloat = 0
 
+        /// Whether Instagram's suggested posts are left where they are.
+        ///
+        /// Held per pane and not read from `Preferences` here, for the same
+        /// reason `top` is: this object is built once and outlives every pass
+        /// SwiftUI makes, and what it was built with has to be kept up to date
+        /// from outside rather than fetched from inside. See `PaneStack.hand`.
+        var showsSuggestions = true
+
         /// Rebuild the injected scripts around the real number, so that every
         /// page from here on is told it before its first paint.
         ///
@@ -1089,7 +1110,8 @@ struct InstagramWebView: UIViewRepresentable {
         func tellEveryPage(_ webView: WKWebView, top: CGFloat) {
             let controller = webView.configuration.userContentController
             controller.removeAllUserScripts()
-            WebScripts.load(top: top).scripts.forEach(controller.addUserScript)
+            WebScripts.load(top: top, showsSuggestions: showsSuggestions)
+                .scripts.forEach(controller.addUserScript)
         }
 
         /// And the document already on screen, whose scripts have run.
@@ -1112,20 +1134,45 @@ struct InstagramWebView: UIViewRepresentable {
             webView.evaluateJavaScript(lines.joined(separator: "\n"))
         }
 
+        /// The setting changed, and three pages are open.
+        ///
+        /// Separate from `tellThisPage` because it is not a number to be
+        /// written down: showing suggestions again means taking an attribute
+        /// off everything that has one and forgetting what was read, which the
+        /// page has to do for itself. `tellEveryPage` covers the next document
+        /// this pane loads; this covers the one it is holding.
+        ///
+        /// Sent to panes that are not on the glass on purpose. Those are the
+        /// ones this exists for — the inbox nobody has looked at since this
+        /// morning is one tap from being brought forward, and bringing it
+        /// forward is not a load.
+        func tellThisPageAboutSuggestions(_ webView: WKWebView) {
+            webView.evaluateJavaScript(
+                "window.__quietSuggestionsChanged && window.__quietSuggestionsChanged(\(showsSuggestions))"
+            )
+        }
+
         init(
             session: QuietSession,
             surface: WebSurface,
             stack: PaneStack,
             pane: Pane,
             top: CGFloat,
-            inset: UIEdgeInsets
+            inset: UIEdgeInsets,
+            showsSuggestions: Bool
         ) {
             self.session = session
             self.surface = surface
             self.stack = stack
             self.pane = pane
             self.top = top
-            let built = WebPane.build(top: top, inset: inset, surface: surface)
+            self.showsSuggestions = showsSuggestions
+            let built = WebPane.build(
+                top: top,
+                inset: inset,
+                surface: surface,
+                showsSuggestions: showsSuggestions
+            )
             self.webView = built.view
             self.missing = built.missing
             super.init()
@@ -1149,9 +1196,10 @@ struct InstagramWebView: UIViewRepresentable {
         private static func build(
             top: CGFloat,
             inset: UIEdgeInsets,
-            surface: WebSurface
+            surface: WebSurface,
+            showsSuggestions: Bool
         ) -> (view: QuietWebView, missing: [String]) {
-            let payload = WebScripts.load(top: top)
+            let payload = WebScripts.load(top: top, showsSuggestions: showsSuggestions)
 
             let controller = WKUserContentController()
             payload.scripts.forEach(controller.addUserScript)

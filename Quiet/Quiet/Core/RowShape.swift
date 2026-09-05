@@ -54,6 +54,7 @@ enum RowShape: String, CaseIterable, Sendable {
 private enum Key {
     static let row = "quiet.row.shape"
     static let saysWhatIsLeft = "quiet.says.what.is.left"
+    static let showsSuggestions = "quiet.shows.suggestions"
     static let appointmentIsOn = "quiet.appointment.on"
     static let appointmentAt = "quiet.appointment.at"
     static let carriesBetweenDevices = "quiet.carries.between.devices"
@@ -89,6 +90,29 @@ final class Preferences {
         didSet {
             guard saysWhatIsLeft != oldValue else { return }
             defaults.set(saysWhatIsLeft, forKey: Key.saysWhatIsLeft)
+        }
+    }
+
+    /// Whether Instagram's suggested posts are shown, which they are.
+    ///
+    /// The app used to take every one of them out and that was not a setting.
+    /// It is one now, and it is on: the feed you are shown is the feed the site
+    /// would show you, and somebody who would rather read only the people they
+    /// chose can say so here.
+    ///
+    /// Which way round the default goes is the whole of the decision, and it
+    /// goes this way because the other way is the app quietly editing what a
+    /// person's friends and the site sent them without ever having been asked
+    /// to. A switch is an answer to that. A default is not.
+    ///
+    /// It is about suggestions and nothing else. Reels are refused by address
+    /// in three places and a block of them in the feed goes either way — a
+    /// promise the app makes elsewhere is not something a setting about
+    /// suggested posts gets to undo. See `REELS_LABELS` in trim.js.
+    var showsSuggestions: Bool {
+        didSet {
+            guard showsSuggestions != oldValue else { return }
+            defaults.set(showsSuggestions, forKey: Key.showsSuggestions)
         }
     }
 
@@ -139,6 +163,10 @@ final class Preferences {
         // off. Asked as an object first, so that "never chosen" and "chosen
         // false" are two different answers.
         self.saysWhatIsLeft = defaults.object(forKey: Key.saysWhatIsLeft) as? Bool ?? true
+        // The same question, and the same reason for asking it as an object:
+        // shown unless somebody has said otherwise, and `bool(forKey:)` cannot
+        // tell "never asked" from "asked and answered no".
+        self.showsSuggestions = defaults.object(forKey: Key.showsSuggestions) as? Bool ?? true
         self.carriesBetweenDevices = defaults.bool(forKey: Key.carriesBetweenDevices)
         self.appointment = Appointment(
             isOn: defaults.bool(forKey: Key.appointmentIsOn),
