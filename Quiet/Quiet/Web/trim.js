@@ -1260,17 +1260,37 @@
     for (var p = posts.length - 1; p >= 0; p--) {
       if (hasInk(posts[p])) { last = posts[p]; break; }
     }
-    if (!last) return;
-    var list = last.parentElement;
+
+    // No post of anybody's on the whole page is not nothing to say. It is the
+    // feed of somebody who has already read everything the people they follow
+    // posted — Instagram draws its own "you're all caught up" card and then
+    // begins the treadmill — and it is the shape a person waited fifteen
+    // seconds in front of. Page after page of suggestions arrived, Quiet took
+    // every one of them out, correctly, and the app said nothing at all. What
+    // they reported was a feed that would not load. Nothing was loading: it
+    // had already arrived and there was none of it for them.
+    //
+    // So the walk starts at the top of the list instead of under a post, and
+    // the sentence goes above the lot.
+    if (!posts.length) return;
+    var list = (last || posts[0]).parentElement;
     if (!list) return;
 
     var ended = !!document.getElementById(END);
     var takenOut = 0;
 
-    for (var node = last.nextElementSibling; node; node = node.nextElementSibling) {
+    for (var node = last ? last.nextElementSibling : list.firstElementChild;
+         node;
+         node = node.nextElementSibling) {
       if (node.id === END) continue;
       // Anything at all down there and this is a feed, not the end of one.
-      if (hasInk(node)) return;
+      //
+      // Only below a post. With no post on the page there is nothing for this
+      // to protect — anything with ink above the suggestions is Instagram's
+      // own card saying the same thing this is about to, and a card agreeing
+      // is not a feed still arriving. Nor can it hide a post: a post with ink
+      // is what `last` is, and there is not one.
+      if (last && hasInk(node)) return;
       // Something Instagram served and Quiet took out. That is the whole of
       // the evidence: the site is still answering, and everything it answers
       // with from here on is a person nobody chose.
@@ -1364,7 +1384,8 @@
   }
 
   /**
-   * Said once, in the app's words, under the last post there is.
+   * Said once, in the app's words, under the last post there is — or above
+   * everything, when there is no post on the page to be under.
    *
    * And it *follows* that post rather than being said and left behind. A feed
    * that has run out can still be answered a minute later — somebody posts, a
@@ -1396,7 +1417,11 @@
       }
     }
 
-    if (last.nextSibling !== mark) list.insertBefore(mark, last.nextSibling);
+    // Under the last post, or above everything when there is no post to be
+    // under. `insertBefore` with a null second argument appends, which is not
+    // what an empty feed wants, so the two are chosen rather than fallen into.
+    var after = last ? last.nextSibling : list.firstChild;
+    if (after !== mark) list.insertBefore(mark, after);
   }
 
   /* ── Instagram's header, in the arrangement its own app uses ──────────── */

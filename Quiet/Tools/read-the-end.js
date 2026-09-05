@@ -216,6 +216,80 @@ async function main() {
   await quiet(thenMore);
   check("and moved below a post that arrives after it", endsAfter(thenMore), "late");
 
+  /* ── A feed with none of your people in it at all ────────────────────── */
+
+  /* The other half of the same defect, and the one that reads as a slow app.
+   *
+   * Somebody who has already seen everything the people they follow posted
+   * gets Instagram's own "you're all caught up" card and then the treadmill,
+   * with no post of anybody's above it. Quiet takes every suggestion out,
+   * correctly, and used to say nothing — so the screen was a card, a spinner,
+   * and page after page of answers being deleted in silence. Fifteen seconds
+   * of that is reported as a feed that will not load, and nothing was
+   * loading: it had arrived, and there was none of it for them. */
+  const caughtUp = await page(
+    feed(
+      `<div data-box="0,0,390,120"><p data-box="0,0,390,40">You've completely caught up</p></div>` +
+        suggestion() +
+        suggestion()
+    ),
+    FEED
+  );
+  await quiet(caughtUp);
+  check(
+    "a feed with none of your people in it is an end too",
+    saidTheEnd(caughtUp),
+    true
+  );
+  check(
+    "and Instagram's own card agreeing does not stop it being said",
+    caughtUp.document.getElementById("quiet-end")?.firstChild.textContent,
+    "That's everyone you follow."
+  );
+
+  /* One of theirs is not enough here either. The bar is the same bar. */
+  const onlyOne = await page(
+    feed(`<div data-box="0,0,390,120"><p data-box="0,0,390,40">Caught up</p></div>` + suggestion()),
+    FEED
+  );
+  await quiet(onlyOne);
+  check("one of theirs, and no posts, is still not the end", saidTheEnd(onlyOne), false);
+
+  /* And a feed that is simply still empty says nothing at all, which is every
+   * feed for the first second of its life. */
+  const stillEmpty = await page(feed(placeholder(700)), FEED);
+  await quiet(stillEmpty);
+  check("a feed that has not arrived yet says nothing", saidTheEnd(stillEmpty), false);
+
+  /* When one of your people does turn up, the sentence goes below them rather
+   * than staying at the top claiming there are none. */
+  const thenSomebody = await page(
+    feed(
+      `<div data-box="0,0,390,120"><p data-box="0,0,390,40">Caught up</p></div>` +
+        suggestion() +
+        suggestion()
+    ),
+    FEED
+  );
+  await quiet(thenSomebody);
+  /* Above everything, and *there* rather than merely absent: `endsAfter` says
+   * null for a sentence at the top of the list and for no sentence at all, so
+   * it is asked where the mark is rather than what is above it. */
+  check(
+    "said above everything while there is nobody",
+    thenSomebody.document.getElementById("list").firstElementChild?.id,
+    "quiet-end"
+  );
+  thenSomebody.document
+    .getElementById("list")
+    .insertAdjacentHTML("beforeend", post("somebody"));
+  await quiet(thenSomebody);
+  check(
+    "and moved below them the moment there is",
+    endsAfter(thenSomebody),
+    "somebody"
+  );
+
   done();
 }
 
