@@ -12,11 +12,43 @@ final class PanesTests: XCTestCase {
     // MARK: - Where a pane starts
 
     func testEachPaneKnowsItsOwnOpening() {
-        XCTAssertEqual(Pane.home.opening(me: "marco"), ContentRules.home)
+        XCTAssertEqual(Pane.home.opening(me: "marco", signedIn: false), ContentRules.home)
         XCTAssertEqual(Pane.messages.opening(me: "marco"), ContentRules.messages)
         XCTAssertEqual(
             Pane.profile.opening(me: "marco"),
             ContentRules.profile(forHandle: "marco")
+        )
+    }
+
+    /// The door a launch knocks on.
+    ///
+    /// `ContentRules.home` is the login form, and for somebody who is already
+    /// signed in it is not a page at all — Instagram answers it with a redirect
+    /// to the feed. That is a whole round trip, at the front of a cold start,
+    /// on the one screen where somebody is watching a blank, and nothing of it
+    /// is ever seen. So the door is chosen from what the last look at the
+    /// cookies found.
+    ///
+    /// Both directions, because the wrong one costs something either way: the
+    /// signed-out reader who lands on the feed gets Instagram's own page for a
+    /// stranger, whose largest element is a button into Instagram's app.
+    func testTheHomePaneOpensOnTheFeedForSomebodyWhoIsSignedIn() {
+        XCTAssertEqual(Pane.home.opening(me: "marco", signedIn: true), ContentRules.feed)
+        XCTAssertEqual(Pane.home.opening(me: nil, signedIn: true), ContentRules.feed)
+        XCTAssertEqual(Pane.home.opening(me: nil, signedIn: false), ContentRules.home)
+    }
+
+    /// And the other two are the same address whoever is signed in. The inbox
+    /// and a profile are addresses of their own; neither is a door to be
+    /// chosen.
+    func testTheOtherTwoPanesDoNotCareWhoIsSignedIn() {
+        XCTAssertEqual(
+            Pane.messages.opening(me: "marco", signedIn: true),
+            Pane.messages.opening(me: "marco", signedIn: false)
+        )
+        XCTAssertEqual(
+            Pane.profile.opening(me: "marco", signedIn: true),
+            Pane.profile.opening(me: "marco", signedIn: false)
         )
     }
 
@@ -30,7 +62,8 @@ final class PanesTests: XCTestCase {
     /// of asking for it.
     func testTheProfileHasNoAddressUntilThereIsAName() {
         XCTAssertNil(Pane.profile.opening(me: nil))
-        XCTAssertNotNil(Pane.home.opening(me: nil), "the feed never needed a name")
+        XCTAssertNotNil(Pane.home.opening(me: nil, signedIn: false), "the feed never needed a name")
+        XCTAssertNotNil(Pane.home.opening(me: nil, signedIn: true))
         XCTAssertNotNil(Pane.messages.opening(me: nil))
     }
 

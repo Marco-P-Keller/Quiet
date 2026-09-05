@@ -53,4 +53,29 @@ final class WhoIsSignedInTests: XCTestCase {
         XCTAssertFalse(AccountChange.acts(on: .signedIn, hasLooked: true))
         XCTAssertTrue(AccountChange.acts(on: .of(was: "42", now: "43"), hasLooked: true))
     }
+
+    // MARK: - The one bit the next launch reads
+
+    /// Which door the app knocks on is decided before anything can be asked,
+    /// so it is decided from the last answer. Three states matter and the first
+    /// is the one that would be got wrong: nobody has ever looked.
+    func testWhatTheLastLookFoundOutlivesTheLaunch() {
+        let name = "quiet.tests.thelastlook"
+        let defaults = UserDefaults(suiteName: name)!
+        defaults.removePersistentDomain(forName: name)
+        defer { defaults.removePersistentDomain(forName: name) }
+
+        XCTAssertFalse(
+            TheLastLook.foundSomebody(in: defaults),
+            "a first launch has no session, and the login form is where it belongs"
+        )
+
+        TheLastLook.found(somebody: true, in: defaults)
+        XCTAssertTrue(TheLastLook.foundSomebody(in: defaults))
+
+        // Signing out has to reach this, or the next launch opens on the feed
+        // for somebody who has just left it.
+        TheLastLook.found(somebody: false, in: defaults)
+        XCTAssertFalse(TheLastLook.foundSomebody(in: defaults))
+    }
 }

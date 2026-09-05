@@ -2534,3 +2534,106 @@ The instrumentation stays. It is `DEBUG` only, it runs in one staged scene, and
 the workflow prints the four numbers on every run — so a screen that starts
 moving again says so in a line rather than in a photograph somebody has to
 notice.
+
+## A signed-in launch opens on the feed, not on the redirect
+
+`Quiet opens on the login form, not on instagram.com`, further up this file, is
+still right about the reason it gives: signed out, the site's own front door
+leads with a button into Instagram's app, and the login form is the page a
+person came to use.
+
+It was wrong about everybody else. For a reader who is already signed in,
+`/accounts/login/` is not a page at all — Instagram answers it with a redirect,
+and a cold launch is then a request across the world, an answer that is only an
+address, and *then* the feed. Nobody ever sees the first two. They are paid for
+on the one screen where somebody is sitting watching a blank.
+
+So the door is chosen. `TheLastLook` keeps one bit — whether the last reading of
+the cookies found anybody at all, never who — and the home pane opens on the
+feed when it says somebody, on the login form when it says nobody. It has to be
+a remembered bit rather than a question asked at launch, because reading the
+cookie store is asynchronous and the pane is built now.
+
+Getting it wrong is cheap and self-correcting: a session that expired between
+launches lands on Instagram's signed-out page, which is the trade
+`ContentRules.openings` already describes and accepts, and the next reading
+writes the bit back.
+
+## The cover comes off at the first paint, not at the end of the request
+
+`A cover over the web view, not a spinner` asked for two things before it would
+lift: the navigation finished, and the page saying it had drawn something. Both,
+and they are not two halves of one event — on Instagram they are seconds apart,
+in the wrong order.
+
+`hasLoaded` is a question about a *request*. Instagram's main frame is not
+finished when the feed is on the glass; it goes on fetching for as long as there
+are pictures in the first screenful. So the feed was there, readable, with
+Quiet's own paper held over the top of it until the last of them arrived.
+
+The two are read as either-or now. A page that says it has drawn something is
+uncovered whatever the request is still doing. A page whose script never ran —
+which can never say anything — is uncovered when the request settles, exactly as
+before. And a page that says it is bare stays covered under both rules, which is
+the case the second condition was added for.
+
+The same signal gives the fast path back. `Two speeds, and the fast path given
+back` takes the view's transparency away at the first paint, and the only signal
+there was for that was `didFinish` — which is to say every one of those seconds
+was composited rather than drawn straight.
+
+## The opening lets go early when there is a page behind it
+
+`The second and a half the app opens with` says nothing waits on it. That was
+true of the *web view*, which loads behind it, and not true of the reader: the
+paper came down when a timer said so and not before, and on a warm launch —
+where the place is put back without a load and the feed is on the glass in a
+tenth of a second — that was a second of an app being deliberately slower than
+it is.
+
+There is a floor, because the sentence is the whole reason the screen exists,
+and it is not zero. Past the floor the paper goes as soon as the page behind it
+has drawn something. The slow launch is unchanged: nothing here shortens a wait
+that is real, it only stops adding to one that is already over.
+
+## The two questions Quiet asks the page wait for the feed
+
+`trim.js` asks Instagram who is signed in, and asks the login page for the
+wordmark. Both are made from inside Instagram's own page with Instagram's own
+cookies, which is the arrangement that keeps the app from making requests of its
+own — and both were made at document start, in the same moment as the feed's own
+requests, over the same connections. One of them fetches an entire second HTML
+page to read a logo out of it.
+
+Neither is on the way to the feed. What they buy is a name and a face in Quiet's
+row and the right wordmark at the top of it; all three now arrive after the page
+has finished, or three seconds in, whichever comes first, and each has something
+sensible to show in the meantime.
+
+They are also asked once now rather than once per frame. The scripts run in
+every frame so that an embedded player never gets to appear first, and the app
+only ever listened to the main frame — so a page with three frames in it was
+asking the same two questions three times and throwing two of each answer away.
+
+## The rule list is looked up before it is built
+
+`WKContentRuleList` compiles the block list into WebKit's own machine and writes
+it to disk under an identifier. The app was asking for that compilation from
+scratch three times on every launch, once per pane, next to the first request of
+the feed — while the finished list from the last launch sat on the disk under
+the identifier it was filed by.
+
+It is asked for by name now, and only built when it is not there. The version in
+the identifier is what makes that safe, and it was already there for exactly
+this reason: the name changes whenever the rules do, so what is found is never
+last month's.
+
+The two files injected into every page get the same treatment for the same
+reason — a hundred and ten kilobytes of JavaScript off the disk, and a
+stylesheet through a JSON encoder, three times on the way up. They are read
+once now.
+
+**None of this has been measured on a phone.** Every one of the five is a thing
+the app was doing that it did not need to do, which is a different claim from a
+number, and the number is what point 38 in `verbesserungen.md` is still asking
+for.

@@ -39,12 +39,11 @@ enum WebScripts {
         top: CGFloat
     ) -> Payload {
         var scripts: [WKUserScript] = []
-        var missing: [String] = []
+        let files = sources(in: bundle)
+        let missing = files.missing
 
-        if let css = text(named: "trim", extension: "css", in: bundle) {
-            scripts.append(userScript(source: styleInjector(css: css)))
-        } else {
-            missing.append("trim.css")
+        if let style = files.style {
+            scripts.append(userScript(source: style))
         }
 
         // The two numbers the page needs from the app, injected before the trim
@@ -67,10 +66,8 @@ enum WebScripts {
         )));
         """))
 
-        if let js = text(named: "trim", extension: "js", in: bundle) {
-            scripts.append(userScript(source: js))
-        } else {
-            missing.append("trim.js")
+        if let trim = files.trim {
+            scripts.append(userScript(source: trim))
         }
 
         #if DEBUG
@@ -170,6 +167,48 @@ enum WebScripts {
     })();
     """
     #endif
+
+    /// The two files, as the strings that are actually injected.
+    private struct Sources {
+        var style: String?
+        var trim: String?
+        var missing: [String]
+    }
+
+    /// Read once, for the bundle every launch actually uses.
+    ///
+    /// A hundred and ten kilobytes of JavaScript and sixteen of CSS, off the
+    /// disk and — for the stylesheet — through a JSON encoder to become a
+    /// string literal. None of that changes between one call and the next, and
+    /// this was doing all of it three times on the way up, once per pane, and
+    /// again for all three whenever the status bar changed height. It is the
+    /// main thread, during a launch, next to the first request of the feed.
+    ///
+    /// A `static let` rather than a cache with a lock: it is built the first
+    /// time anybody asks, once, however many threads ask at once.
+    private static let readFromTheApp = read(from: .main)
+
+    private static func sources(in bundle: Bundle) -> Sources {
+        // Anything but the app's own bundle is a test or a preview, and is read
+        // afresh: keeping a second bundle's answers would be caching for the
+        // one caller that has no launch to speed up.
+        bundle === Bundle.main ? readFromTheApp : read(from: bundle)
+    }
+
+    private static func read(from bundle: Bundle) -> Sources {
+        var found = Sources(style: nil, trim: nil, missing: [])
+        if let css = text(named: "trim", extension: "css", in: bundle) {
+            found.style = styleInjector(css: css)
+        } else {
+            found.missing.append("trim.css")
+        }
+        if let js = text(named: "trim", extension: "js", in: bundle) {
+            found.trim = js
+        } else {
+            found.missing.append("trim.js")
+        }
+        return found
+    }
 
     private static func userScript(source: String) -> WKUserScript {
         WKUserScript(

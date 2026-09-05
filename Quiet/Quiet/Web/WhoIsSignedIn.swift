@@ -46,6 +46,39 @@ enum AccountChange: Equatable {
     }
 }
 
+/// Whether the last look at the cookies found anybody at all.
+///
+/// One bit, written down, and it exists for a single question that has to be
+/// answered *before* anything can be asked: which address the home pane opens
+/// on. Reading the cookie store is asynchronous, and a pane is built now —
+/// so the answer that decides the first request of a launch has to be the one
+/// from the last launch. See `Pane.opening`.
+///
+/// It never says **who**. `WhoIsSignedIn` is careful not to pass Instagram's
+/// identifier for a person on to anything, and a boolean is the whole of what
+/// this question needs: somebody, or nobody.
+///
+/// Wrong is cheap and self-correcting. A session that expired between launches
+/// lands on Instagram's signed-out page instead of the login form — the trade
+/// `ContentRules.openings` already describes — and the next look writes the
+/// bit back to false.
+enum TheLastLook {
+    static let key = "quiet.signedIn"
+
+    /// Whether somebody was signed in the last time anybody looked.
+    ///
+    /// False when nobody has ever looked, which is the right answer for a first
+    /// launch: there is no session, and the login form is where a first launch
+    /// belongs.
+    static func foundSomebody(in defaults: UserDefaults = .standard) -> Bool {
+        defaults.bool(forKey: key)
+    }
+
+    static func found(somebody: Bool, in defaults: UserDefaults = .standard) {
+        defaults.set(somebody, forKey: key)
+    }
+}
+
 /// Which Instagram account the web views are signed in to, watched.
 ///
 /// Instagram lets somebody change accounts without ever passing through
@@ -135,6 +168,10 @@ final class WhoIsSignedIn: NSObject, WKHTTPCookieStoreObserver {
         defer {
             known = now
             hasLooked = true
+            // Written down on every reading, including the first — which is
+            // the one that matters. The first reading is never an *event*, and
+            // it is still the freshest answer the next launch will ever have.
+            TheLastLook.found(somebody: now != nil)
         }
         guard hasLooked else { return }
         let change = AccountChange.of(was: known, now: now)

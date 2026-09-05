@@ -254,6 +254,7 @@ struct BrowserScreen: View {
 #endif
         .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: surface.hasLoaded)
         .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: surface.isBare)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: surface.hasPainted)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: surface.stumble)
         // The band changing colour: the first answer from a page, and every
         // change of scheme after it. A fade, because a flat area of the screen
@@ -346,8 +347,18 @@ struct BrowserScreen: View {
     /// a shell, and the second or two between the request finishing and the
     /// first screen appearing is its own black rectangle. Both are the app
     /// starting, and both should look like it. See `WebSurface.isBare`.
+    ///
+    /// **Either of the two ways of being ready, not both.** This asked for the
+    /// request to have finished *and* the page to have drawn something, and on
+    /// Instagram those are seconds apart in the wrong order: the feed is on the
+    /// glass, readable, while the main frame is still fetching the pictures
+    /// below it. Quiet held its own blank over all of it. So a page that says
+    /// it has drawn something is uncovered whatever the request is doing, and
+    /// a page whose script never ran — which can never say anything — is
+    /// uncovered when the request settles, exactly as before.
     private var isCovered: Bool {
-        !surface.hasLoaded || surface.isBare
+        if surface.isBare { return true }
+        return !surface.hasPainted && !surface.hasLoaded
     }
 
     /// What Quiet holds over the web view until there is a page under it.

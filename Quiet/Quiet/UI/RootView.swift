@@ -106,7 +106,13 @@ struct RootView: View {
             }
             .task {
                 guard !Opening.stays else { return }
-                try? await Task.sleep(for: OpeningView.held)
+                try? await Task.sleep(for: OpeningView.least)
+                // The rest of the wait is only owed while there is nothing
+                // behind the paper. A page that has already drawn something is
+                // a page somebody could have been reading for a second.
+                if !surface.hasPainted {
+                    try? await Task.sleep(for: OpeningView.rest)
+                }
                 isOpening = false
             }
             .task(id: scenePhase) { await countTowardsAsking() }

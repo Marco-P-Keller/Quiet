@@ -35,9 +35,24 @@ enum Pane: String, CaseIterable, Sendable {
     /// which is a fact the page has to be asked for. Until then there is no
     /// profile pane — see `WebSurface.goToMyProfile`, which falls back to the
     /// old behaviour rather than opening an empty one.
-    func opening(me: String?) -> URL? {
+    ///
+    /// **The home pane opens on the feed once anybody has been signed in.**
+    /// `ContentRules.home` is the login form, and it is the right first page
+    /// for somebody who has not signed in — the site's own front door offers a
+    /// button into Instagram's app before it offers anything else. For a reader
+    /// who is already signed in it is not a page at all: Instagram answers it
+    /// with a redirect, and the whole of a cold launch is then a request, an
+    /// answer that is only an address, and *then* the feed. That is a round
+    /// trip to the other side of the world, on the one screen where somebody is
+    /// watching a blank, in exchange for nothing they ever see.
+    ///
+    /// So the door is chosen from what the last look at the cookies found. Got
+    /// it wrong — a session that expired since — and the cost is Instagram's
+    /// signed-out page, which is the trade `ContentRules.openings` already
+    /// makes and writes down. See `TheLastLook`.
+    func opening(me: String?, signedIn: Bool = TheLastLook.foundSomebody()) -> URL? {
         switch self {
-        case .home: return ContentRules.home
+        case .home: return signedIn ? ContentRules.feed : ContentRules.home
         case .messages: return ContentRules.messages
         case .profile: return me.flatMap(ContentRules.profile(forHandle:))
         }

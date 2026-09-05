@@ -222,6 +222,65 @@
   var asked = false;
 
   /**
+   * Whether this document is the page itself rather than a frame inside it.
+   *
+   * The scripts are injected into every frame on purpose, so that an embedded
+   * player never gets to appear first. Almost nothing below cares which frame
+   * it is in — hiding a reel is hiding a reel — but the two questions that go
+   * out over the network do: there is one answer to each, the app only listens
+   * to the main frame anyway, and a page with three frames in it was asking
+   * three times.
+   */
+  var isThePage = (function () {
+    try {
+      return window.top === window;
+    } catch (error) {
+      // A frame from another origin cannot see the top of its own window,
+      // which is itself the answer: it is not the page.
+      return false;
+    }
+  })();
+
+  /** The longest anything below waits for the page to be done arriving. */
+  var LATEST = 3000;
+
+  var waiting = [];
+
+  /**
+   * Work that is worth doing, and is not worth doing *now*.
+   *
+   * Both of the requests below are made from inside Instagram's own page with
+   * Instagram's own cookies, at document start — which is to say, in the same
+   * few hundred milliseconds as the feed's own requests, over the same
+   * connections, competing with the thing somebody is waiting to see. One of
+   * them fetches an entire second HTML page to read a logo out of it.
+   *
+   * Neither is on the way to the feed. What they buy is a name and a face in
+   * Quiet's own row and the right wordmark at the top; all three arrive a
+   * second or two later than they used to, on the first launch only, and every
+   * one of them has something sensible to show in the meantime. What it buys
+   * back is the feed.
+   */
+  function afterTheFeed(work) {
+    if (document.readyState === "complete") {
+      work();
+      return;
+    }
+    if (!waiting.length) {
+      var go = function () {
+        var all = waiting;
+        waiting = [];
+        for (var i = 0; i < all.length; i++) all[i]();
+      };
+      window.addEventListener("load", go, { once: true });
+      // A ceiling, because a page that never finishes is a page whose row
+      // would never learn whose it is.
+      setTimeout(go, LATEST);
+    }
+    waiting.push(work);
+  }
+
+  /**
    * Who is signed in — asked, not deduced.
    *
    * Two versions of this read the name off a link in the page, and both got it
@@ -235,24 +294,26 @@
    * name and nothing else. There is nothing left to guess at.
    */
   function whoAmI() {
-    if (asked || window.__quietMe) return;
+    if (!isThePage || asked || window.__quietMe) return;
     asked = true;
-    fetch("/api/v1/web/accounts/edit/web_form_data/", {
-      credentials: "same-origin",
-      headers: { "X-IG-App-ID": window.__quietAppID || "" }
-    })
-      .then(function (response) { return response.ok ? response.json() : null; })
-      .then(function (data) {
-        var name = data && data.form_data && data.form_data.username;
-        if (!name) return;
-        window.__quietMe = name;
-        var form = data.form_data || {};
-        announce(name, form.profile_pic_url || form.profile_pic_url_hd || null);
+    afterTheFeed(function () {
+      fetch("/api/v1/web/accounts/edit/web_form_data/", {
+        credentials: "same-origin",
+        headers: { "X-IG-App-ID": window.__quietAppID || "" }
       })
-      .catch(function () {
-        // Signed out, or the endpoint moved. The row keeps its four entries.
-        asked = false;
-      });
+        .then(function (response) { return response.ok ? response.json() : null; })
+        .then(function (data) {
+          var name = data && data.form_data && data.form_data.username;
+          if (!name) return;
+          window.__quietMe = name;
+          var form = data.form_data || {};
+          announce(name, form.profile_pic_url || form.profile_pic_url_hd || null);
+        })
+        .catch(function () {
+          // Signed out, or the endpoint moved. The row keeps its four entries.
+          asked = false;
+        });
+    });
   }
 
   /**
@@ -1834,22 +1895,24 @@
    * arrangement as everything else here.
    */
   function learnWordmark() {
-    if (window.__quietWordmarkAsked || rememberedWordmark()) return;
+    if (!isThePage || window.__quietWordmarkAsked || rememberedWordmark()) return;
     window.__quietWordmarkAsked = true;
 
-    fetch("/accounts/login/", { credentials: "omit" })
-      .then(function (answer) { return answer.ok ? answer.text() : null; })
-      .then(function (html) {
-        if (!html) return;
-        var found = wordmarkIn(new DOMParser().parseFromString(html, "text/html"));
-        if (!found) return;
-        try { window.localStorage.setItem(WORDMARK, found); } catch (error) { return; }
-        dressHeader();
-      })
-      .catch(function () {
-        // Offline, or the page moved. Worth one more try on the next page.
-        window.__quietWordmarkAsked = false;
-      });
+    afterTheFeed(function () {
+      fetch("/accounts/login/", { credentials: "omit" })
+        .then(function (answer) { return answer.ok ? answer.text() : null; })
+        .then(function (html) {
+          if (!html) return;
+          var found = wordmarkIn(new DOMParser().parseFromString(html, "text/html"));
+          if (!found) return;
+          try { window.localStorage.setItem(WORDMARK, found); } catch (error) { return; }
+          dressHeader();
+        })
+        .catch(function () {
+          // Offline, or the page moved. Worth one more try on the next page.
+          window.__quietWordmarkAsked = false;
+        });
+    });
   }
 
   /**

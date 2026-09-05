@@ -165,6 +165,27 @@ final class WebSurface {
     /// see `stumble`.
     private(set) var isBare = false
 
+    /// Whether the page has ever had anything on it.
+    ///
+    /// The moment this turns true is the moment there is something to look at,
+    /// and it is the moment the cover should come off. It used to wait for
+    /// `hasLoaded` as well — and `hasLoaded` is a question about a *request*.
+    /// Instagram's main frame is not finished when the feed is on the screen:
+    /// it goes on fetching for as long as there are pictures in the first
+    /// screenful, and every one of those seconds was a second Quiet held its
+    /// own blank over a feed that was sitting there ready to be read.
+    ///
+    /// So the two are read as one or the other rather than both. A page that
+    /// says it has drawn something is uncovered whatever the request is doing;
+    /// a page whose script never ran is uncovered when the request settles,
+    /// which is the behaviour that was there before. See `isCovered` in
+    /// `BrowserScreen`.
+    ///
+    /// One way only, like `isBare`: the page says this once and never takes it
+    /// back, so a client-side move between pages cannot bring the cover down
+    /// over a page somebody is reading.
+    private(set) var hasPainted = false
+
     func open(_ url: URL) {
         webView?.load(URLRequest(url: url))
     }
@@ -212,6 +233,12 @@ final class WebSurface {
         // inbox left standing behind a fresh login screen would be somebody
         // else's.
         ThePlace.forgetEverything()
+        // And the bit that says which door to open on. The cookie watcher would
+        // reach the same answer a second and a bit later, having noticed the
+        // store empty itself — but an app killed inside that second and a bit
+        // would open the next launch on the feed, for somebody who has just
+        // signed out. See `TheLastLook`.
+        TheLastLook.found(somebody: false)
         let store = WKWebsiteDataStore.default()
         store.removeData(
             ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
@@ -423,6 +450,11 @@ final class WebSurface {
     fileprivate func note(bare: Bool) {
         guard isBare != bare else { return }
         isBare = bare
+    }
+
+    fileprivate func note(painted: Bool) {
+        guard hasPainted != painted else { return }
+        hasPainted = painted
     }
 
     fileprivate func note(address url: URL?) {
@@ -763,6 +795,9 @@ struct InstagramWebView: UIViewRepresentable {
         var address: URL?
         var hasLoaded = false
         var isBare = false
+        /// True from the first moment this page had anything on it, and never
+        /// false again. See `WebSurface.hasPainted`.
+        var hasPainted = false
         var chrome: Color?
         var stumble: StumbleView.Kind?
         var isBarCollapsed = false
@@ -1229,6 +1264,7 @@ struct InstagramWebView: UIViewRepresentable {
             surface.note(address: state.address)
             surface.note(loaded: state.hasLoaded)
             surface.note(bare: state.isBare)
+            surface.note(painted: state.hasPainted)
             if let colour = state.chrome { surface.note(chrome: colour) }
             surface.note(stumble: state.stumble)
             surface.setBar(collapsed: state.isBarCollapsed)
@@ -1556,7 +1592,18 @@ struct InstagramWebView: UIViewRepresentable {
             case "bare":
                 // Whether Instagram has drawn anything yet. The cover over the
                 // top of it stays up until this says there is something to see.
-                state.isBare = body["on"] as? Bool ?? false
+                let bare = body["on"] as? Bool ?? false
+                state.isBare = bare
+                if !bare {
+                    state.hasPainted = true
+                    // The first paint, which is the event the line below has
+                    // always been waiting for and never had. It used to be
+                    // taken at `didFinish`, because that was the only signal
+                    // there was — and on Instagram that is whole seconds after
+                    // the page is on the glass, every one of them composited
+                    // rather than drawn straight.
+                    standOnItsOwn(webView)
+                }
 
             case "health":
                 // What the trim pass found, and did not find. The one message
