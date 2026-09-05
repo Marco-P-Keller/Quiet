@@ -59,6 +59,16 @@ jobs:
       - name: What it makes of the header
         run: node Tools/read-the-header.js
 
+      # What the pass costs, rather than whether it is right.
+      #
+      # The two above would have stayed green through the defect this was
+      # written for: a full pass on every frame of a load, sixty-eight calls a
+      # frame that force the browser to lay the whole page out again, on the one
+      # thread Instagram is trying to draw the feed on. Nothing was wrong. It
+      # was only slow, and only where somebody was waiting.
+      - name: What it costs
+        run: node Tools/read-the-cost.js
+
       # Every sentence in the app, in both languages.
       #
       # The failure this catches is not a crash and does not look like one: a

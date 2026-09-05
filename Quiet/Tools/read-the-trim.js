@@ -98,7 +98,7 @@ function labels() {
  */
 async function settle(win) {
   await new Promise((go) => setTimeout(go, 0));
-  win.drain();
+  await win.settle();
 }
 
 /** Tap a link the way a thumb does, and say what the page made of it. */

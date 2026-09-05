@@ -136,7 +136,7 @@ const GROUPED = `
   box("chevron", "224,10,20,24");
   win.document.querySelector("main").appendChild(win.document.createElement("div"));
   await new Promise((go) => setTimeout(go, 0));
-  win.drain();
+  await win.settle();
 
   check("the three keep their places once the arrangement has moved them", slots(win), before);
 
@@ -186,7 +186,7 @@ const GROUPED = `
   wrapper.style.top = "59px"; // what the stylesheet has now done to it
   sticky.document.querySelector("main").appendChild(sticky.document.createElement("div"));
   await new Promise((go) => setTimeout(go, 0));
-  sticky.drain();
+  await sticky.settle();
   check("what has been lifted stays lifted", lifted(sticky), "pinnedwrapper");
 
   // The viewport has to admit there is a notch before env() answers anything.
@@ -588,7 +588,7 @@ const GROUPED = `
   const again = async (win) => {
     win.document.querySelector("main").appendChild(win.document.createElement("div"));
     await new Promise((go) => setTimeout(go, 0));
-    win.drain();
+    await win.settle();
   };
 
   const dressed = await page(WORDMARKED, FEED);
@@ -1308,7 +1308,7 @@ const GROUPED = `
   fresh.innerHTML = '<img data-box="0,700,390,400">';
   answered.document.querySelector('[data-name="list"]').appendChild(fresh);
   await rest(0);
-  answered.drain();
+  await answered.settle();
   await until(() =>
     theEndMark(answered)?.previousElementSibling?.getAttribute("data-name") === "fresh");
   check("a post arriving after the end moves the end below it",
@@ -1342,7 +1342,7 @@ const GROUPED = `
   );
   saidOnce.document.querySelector("main").appendChild(saidOnce.document.createElement("p"));
   await rest(0);
-  saidOnce.drain();
+  await saidOnce.settle();
   await until(() => saidOnce.document.querySelectorAll("#quiet-end").length > 0);
   check("and said once, however many times the page is rewritten",
         saidOnce.document.querySelectorAll("#quiet-end").length, 1);
@@ -1492,7 +1492,7 @@ const GROUPED = `
   twice.document.querySelector("main").appendChild(
     twice.document.createElement("div")
   );
-  twice.drain();
+  await twice.settle();
   check(
     "the same colour is not said twice",
     twice.sent.filter((m) => m.kind === "chrome").length,
@@ -1542,7 +1542,7 @@ const GROUPED = `
     FEED
   );
   emptiedAgain.document.querySelector("main").innerHTML = "";
-  emptiedAgain.drain();
+  await emptiedAgain.settle();
   check(
     "a page that empties itself after painting does not bring the cover back",
     emptiedAgain.sent.filter((m) => m.kind === "bare").map((m) => m.on),
@@ -1555,7 +1555,7 @@ const GROUPED = `
   stillEmpty.document.querySelector("main").appendChild(
     stillEmpty.document.createElement("div")
   );
-  stillEmpty.drain();
+  await stillEmpty.settle();
   check(
     "and the same answer is not said twice",
     stillEmpty.sent.filter((m) => m.kind === "bare").length,

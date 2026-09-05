@@ -2636,6 +2636,49 @@
   var afterTheFlick = null;
 
   /**
+   * The longest the whole pass may be held off, however busy the page stays.
+   *
+   * The two speeds below were about a thumb: while the page is under one, only
+   * what must be immediate runs, and everything else waits for the hand to come
+   * off. What nothing here was watching is the other time the document rewrites
+   * itself faster than anybody could read it — while it is arriving.
+   *
+   * A cold launch is Instagram's client mounting a feed, and every mutation of
+   * it bought a full pass. `Tools/read-the-cost.js` puts a number on it: on a
+   * fixture with eight posts in it, sixty-eight calls a frame that force the
+   * browser to lay the whole page out again, against nought point six under a
+   * thumb. A hundred times the work, sixty times a second, on the one thread
+   * Instagram is trying to render the feed on, for the whole of the wait
+   * somebody is watching a blank.
+   *
+   * And it feeds itself: each render mutates the document, each mutation buys a
+   * pass, each pass holds up the next render. Which is exactly the complaint
+   * this was written for — the stories arrive at once, the feed takes for ever.
+   * They are drawn by the same client on the same thread; the difference is
+   * what that thread was doing by the time the feed's turn came.
+   *
+   * So a page that is still arriving is treated as what it is: busy. The
+   * immediate half runs on the frame, and the full pass waits for the document
+   * to go quiet for `STILL` — the same wait, for the same reason, as the hand
+   * coming off the glass. Nothing in the full pass is worth a frame of a load:
+   * a colour band, a wordmark, a header being dressed, the end of the feed —
+   * none of them is being looked at before the first post is.
+   *
+   * The ceiling is the backstop, and it is why this is a debounce with a limit
+   * rather than a debounce. Something on an Instagram page always eventually
+   * moves — a story ring filling, a video's own controls — and a page that
+   * never went quiet would be a page whose header was never dressed. A second
+   * is far longer than a mount and far shorter than a wait.
+   */
+  var NO_LONGER_THAN = 1000;
+
+  /** When the whole pass last ran, which is what the ceiling is measured from. */
+  var lastPass = 0;
+
+  /** Armed by a frame that held the full pass back, so none is ever the last. */
+  var afterTheChurn = null;
+
+  /**
    * The subtrees the page has added since anything last looked.
    *
    * Kept from the observer's own records rather than found again by asking the
@@ -2708,12 +2751,41 @@
     pending = true;
     requestAnimationFrame(function () {
       pending = false;
+      // A thumb on the glass: `noteScroll` owns the pass that follows it, and
+      // arming a second timer for the same moment would only run it twice.
       if (moving()) {
         keepItClean(false);
         return;
       }
-      pass();
+      // Held off long enough. A page that never goes quiet still gets swept.
+      if (Date.now() - lastPass >= NO_LONGER_THAN) {
+        pass();
+        return;
+      }
+      keepItClean(false);
+      holdOn();
     });
+  }
+
+  /**
+   * Wait for the document to stop, and then run the whole pass.
+   *
+   * Re-armed rather than left standing, which is the difference between this
+   * and a timer: while the mutations keep coming the pass keeps being pushed
+   * out, and it runs on the first quiet moment after them rather than in the
+   * middle of the noise. `NO_LONGER_THAN` in `schedule` is what stops that
+   * being for ever.
+   */
+  function holdOn() {
+    if (afterTheChurn) clearTimeout(afterTheChurn);
+    afterTheChurn = setTimeout(function () {
+      afterTheChurn = null;
+      if (moving()) {
+        holdOn();
+        return;
+      }
+      pass();
+    }, STILL);
   }
 
   /**
@@ -2726,6 +2798,16 @@
    * arriving, and is affordable exactly once the hand is off the glass.
    */
   function keepItClean(everything) {
+    // First, because it is the question every line under it is about, and
+    // because it is what starts a new page's answer over: anything counted
+    // before the reset is counted against the page just left.
+    //
+    // Here rather than in the full pass, where it was, because it is the only
+    // thing the row along the bottom ever learns its own address from and it
+    // is a string compared to a string — no layout, nothing to ration. A tap
+    // on **profile** lights the right entry on the frame it happens, not a
+    // tenth of a second later.
+    sayWhere();
     var feed = document.querySelector("main");
     if (!feed) {
       arrivals.length = 0;
@@ -2746,9 +2828,24 @@
     guardLocation();
   }
 
-  /** Everything, once the hand is off the glass. */
+  /** Everything, once the hand is off the glass and the page has stopped. */
   function pass() {
+    // Kept here rather than at the two call sites, so that a third one added
+    // later cannot forget and quietly put the ration back to sixty a second.
+    lastPass = Date.now();
+    if (afterTheChurn) {
+      clearTimeout(afterTheChurn);
+      afterTheChurn = null;
+    }
     keepItClean(true);
+    // A frame is not a page. Everything below this line answers a question
+    // about the app's own chrome — the header, the row, the colour behind the
+    // clock, the end of the feed, who is signed in — and `receive` in
+    // InstagramWebView.swift already drops every one of those answers that
+    // arrives from a subframe. An advert in a feed is a frame, and it was
+    // being asked all of it, sixty times a second, so that the app could
+    // throw the answers away.
+    if (window.top !== window) return;
     // Out of the immediate half, and it is the largest single thing left in
     // there. `takeDownTheStrip` asks the browser what is drawn at twelve
     // points on the glass, and every one of those is a hit test that forces a
@@ -2768,7 +2865,6 @@
     takeUpTheFloor(document.body);
     coverTheGlass();
     makeRoom();
-    sayWhere();
     sayChrome();
     whoAmI();
     headerComesBack();

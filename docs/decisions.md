@@ -2637,3 +2637,64 @@ once now.
 the app was doing that it did not need to do, which is a different claim from a
 number, and the number is what point 38 in `verbesserungen.md` is still asking
 for.
+
+## The trim pass is rationed while the page is arriving
+
+The last five were reasoned about and not measured, and the section above says
+so. This one is measured, and the number is why it is here rather than in a
+commit message.
+
+The complaint was "the stories load straight away, only the feed takes for
+ever". Both are drawn by the same client on the same thread, so the difference
+is not the network — it is what else that thread was doing by the time the
+feed's turn came.
+
+`trim.js` already had two speeds, and they were about a thumb: while the page is
+under one, only what must be immediate runs, and everything else waits for the
+hand to come off. A page that is *loading* is exactly as busy and had no speed
+limit at all. Instagram's client mutates the document on every frame while it
+mounts a feed, and every one of those mutations bought the whole pass — twelve
+hit tests, a sweep of the feed, dozens of boxes and computed styles, each one
+forcing the browser to lay the whole page out before it can answer.
+
+`Tools/read-the-cost.js` counts those calls. On a fixture with eight posts in
+it, at a phone's frame rate:
+
+| | |
+|---|---|
+| a page arriving, before | 68.6 a frame |
+| a page arriving, after | 2.2 a frame |
+| under a thumb | 0.6 a frame |
+
+A hundred times the work of a flick, sixty times a second, for the whole of the
+wait somebody is watching a blank. And it feeds itself: each render mutates the
+document, each mutation buys a pass, each pass holds up the next render. The
+header and the stories arrive before there is much to chew on. The feed arrives
+after.
+
+So a page that is still arriving is now treated as what it is — busy. The
+immediate half runs on the frame; the full pass waits for the document to go
+quiet for the same tenth of a second the flick already waits, with a one-second
+ceiling so that a page which never goes quiet is still swept. Nothing in the
+full pass is worth a frame of a load: a colour band, a wordmark, a header being
+dressed, the end of the feed, none of them is being looked at before the first
+post is.
+
+Two things came out of writing the check rather than the fix. `sayWhere` was in
+the full pass, and it is the only thing Quiet's row ever learns its own address
+from — a string compared to a string, no layout in it, and no reason to make a
+tap on **profile** wait a tenth of a second to light the right entry. It is in
+the immediate half now, first, because it is also what starts a new page's tally
+over. And the full pass stops at the edge of a subframe: everything in it is a
+question about the app's own chrome, and `receive` in `InstagramWebView.swift`
+has always dropped every answer to those that arrives from one. An advertisement
+in a feed is a subframe, and it was being asked all of it, on every frame, so
+that the app could throw the answers away.
+
+The lesson is the one this file keeps learning in a new place. The two checks
+that already existed ask whether the pass is *right*, and both would have stayed
+green through all of this for ever. Nothing was wrong. It was only slow, and
+only where somebody was waiting — so there is now a check that asks what it
+costs, and it fails at ten calls a frame rather than at sixty-eight, because the
+exact number moves whenever a fixture does and a return to sixty is the
+regression.

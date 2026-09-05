@@ -64,6 +64,21 @@ async function page(html, url, head) {
     await new Promise((go) => dom.window.addEventListener("load", go));
   }
   const win = dom.window;
+  dress(win);
+  win.eval(TRIM);
+  win.drain();
+  return win;
+}
+
+/**
+ * Everything a fixture has to answer for, put on one window.
+ *
+ * Separate from `page` so that the same stubs can be put on the window of a
+ * real iframe, which is the only honest way to ask what the script does in a
+ * subframe: `window.top` is not a property jsdom lets anybody redefine, and a
+ * test that faked it would be testing the fake.
+ */
+function dress(win) {
   installBoxes(win);
   // A phone, not a desktop browser. jsdom's window is a thousand points wide,
   // and rules that ask whether something spans the glass answer no to every
@@ -100,6 +115,20 @@ async function page(html, url, head) {
   const frames = [];
   win.requestAnimationFrame = (fn) => frames.push(fn);
   win.drain = () => { while (frames.length) frames.shift()(); };
+  // The frames, and then the pass the script holds back.
+  //
+  // trim.js rations its full pass: a document that is still rewriting itself
+  // gets the immediate half on the frame and everything else once it stops,
+  // because doing all of it on every frame of a load is what made the feed
+  // arrive last. A browser pays that tenth of a second by itself. A fixture
+  // has to ask, and this is the asking — so a test that wants to know about
+  // anything the full pass does wants `settle`, and a test about what happens
+  // *while* a thumb is moving wants `drain`.
+  win.settle = async () => {
+    win.drain();
+    await new Promise((go) => setTimeout(go, 200));
+    win.drain();
+  };
   // The script asks Instagram who is signed in. There is nobody here to ask.
   win.fetch = () => new win.Promise(() => {});
   win.__quietTop = 59;
@@ -107,6 +136,18 @@ async function page(html, url, head) {
   // in whichever language the phone is in. The catalogue owns the real ones.
   win.__quietEnd = "That's everyone you follow.";
   win.__quietEndNote = "Instagram would go on with people you don't. Pull down at the top for new posts.";
+  return win;
+}
+
+/**
+ * The same script, in a frame inside a page — which is what an advertisement in
+ * a feed is.
+ */
+async function subframe(html, url) {
+  const outer = await page(`<iframe></iframe>`, url);
+  const win = outer.document.querySelector("iframe").contentWindow;
+  win.document.body.innerHTML = html;
+  dress(win);
   win.eval(TRIM);
   win.drain();
   return win;
@@ -145,4 +186,4 @@ function scoreboard(title) {
   return { check, done };
 }
 
-module.exports = { page, installBoxes, scoreboard, TRIM };
+module.exports = { page, subframe, dress, installBoxes, scoreboard, TRIM };
