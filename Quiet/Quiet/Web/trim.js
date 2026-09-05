@@ -1293,6 +1293,8 @@
     // element called `article` is very often the last thing somebody was never
     // going to see, and everything worth stopping after is above it.
     var posts = main.querySelectorAll("article");
+    if (!posts.length) return;
+
     var last = null;
     for (var p = posts.length - 1; p >= 0; p--) {
       if (hasInk(posts[p])) { last = posts[p]; break; }
@@ -1309,7 +1311,16 @@
     //
     // So the walk starts at the top of the list instead of under a post, and
     // the sentence goes above the lot.
-    if (!posts.length) return;
+    // The list, which is whatever the posts are siblings in.
+    //
+    // With no post there is none to take it from, so the first article stands
+    // in — and the first article is then one of Instagram's suggestions, which
+    // it writes as a post like any other. Where it has instead written one
+    // *inside* a box the list reserved, this reaches the box rather than the
+    // list, and the walk below sees the one suggestion in it rather than the
+    // run of them. Which is a failure to say the end, never a false one: the
+    // count cannot reach two, so nothing is said. That is the direction this
+    // whole rule is built to fail in.
     var list = (last || posts[0]).parentElement;
     if (!list) return;
 
