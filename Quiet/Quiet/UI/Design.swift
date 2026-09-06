@@ -197,12 +197,163 @@ enum Phrase {
     }
 }
 
-/// Quiet's mark: an hourglass, half run through.
+/// The arithmetic behind Quiet's mark, in fractions of the app icon's square.
 ///
-/// The same shape as the app icon, drawn rather than shipped as a picture. The
-/// icon is drawn by `Tools/make-icon.py` in pixels and this draws it in points,
-/// from the same four numbers, so the two agree because they are the same
-/// arithmetic rather than because somebody remembered to export both.
+/// Every number here is one of `Tools/make-icon.py`'s and every curve is one of
+/// its curves. The script renders the mark into a thousand pixels for a home
+/// screen and this renders it into eighteen points for the foot of a screen, so
+/// the two agree because they are the same drawing rather than because somebody
+/// remembered to redo both.
+private enum Sandglass {
+    static let width: CGFloat = 0.415        // the lids, which are the widest thing
+    static let height: CGFloat = 0.585       // lid to lid
+    static let cap: CGFloat = 0.044          // a lid
+    static let wall: CGFloat = 0.026         // the glass, measured across it
+    static let throat: CGFloat = 0.017       // half the opening between the chambers
+    static let throatHeight: CGFloat = 0.020 // how much of the neck is parallel
+    static let dish: CGFloat = 0.032         // the funnel in the sand still up there
+    static let fall: CGFloat = 0.024         // the falling sand, where it lands
+    static let pile: CGFloat = 1.35          // how steep the sides of a heap are
+
+    /// The two the script solves rather than chooses: where the sand still up
+    /// there comes to, and how tall the heap under it stands, so that the heap
+    /// holds exactly what the chamber above it has lost. Finding them again
+    /// here would be sixty bisections over a numeric integral to arrive at two
+    /// numbers the script already prints, so it prints them:
+    ///
+    ///     python3 Tools/make-icon.py
+    static let level: CGFloat = 0.1112
+    static let heap: CGFloat = 0.1500
+
+    /// How much of the ink the sand is, against the glass holding it. The ratio
+    /// the icon's own two tones stand in above its field, which is nearly all
+    /// of it: two materials, not two colours.
+    static let grain: Double = 0.87
+
+    static let half = width / 2
+    static let middle = height / 2
+    static let lidRadius = cap / 2
+    static let shoulder = lidRadius            // where the wall meets the lid at full width
+    static let footing = height - lidRadius
+    static let roof = cap                      // the underside of a lid, where sand may reach
+    static let base = height - cap
+    static let neckBelow = middle + throatHeight / 2
+    static let neckOutside = throat + wall
+    static let span = middle - throatHeight / 2 - shoulder
+    static let flare = half - neckOutside
+    static let apex = base - heap
+
+    /// How far along the taper this height is: nothing at the throat, all of it
+    /// at the lid.
+    private static func taper(_ y: CGFloat) -> CGFloat {
+        min(max((abs(y - middle) - throatHeight / 2) / span, 0), 1)
+    }
+
+    /// Half the width of the glass, outside the wall, at this height.
+    ///
+    /// A smoothstep, and what matters about it is at its two ends: it leaves
+    /// the lid vertically and it arrives at the throat vertically. So there is
+    /// a straight side under each lid and a parallel neck in the middle, and
+    /// the diagonal is only what is in between — which is an hourglass. A
+    /// straight taper is a bow tie, and one still moving at the neck is a
+    /// funnel.
+    static func outside(_ y: CGFloat) -> CGFloat {
+        let t = taper(y)
+        return neckOutside + flare * t * t * (3 - 2 * t)
+    }
+
+    /// Half the width of the cavity at this height.
+    ///
+    /// Not `outside(y) - wall`. Taking the wall off horizontally leaves it a
+    /// quarter thinner wherever the glass is at its most diagonal, which is
+    /// plainly visible and is the usual reason a drawn shape looks slightly
+    /// wrong without anybody being able to say where. Off along the normal
+    /// instead costs one square root and gives one weight the whole way round.
+    static func inside(_ y: CGFloat) -> CGFloat {
+        let t = taper(y)
+        let slope = flare * 6 * t * (1 - t) / span
+        return outside(y) - wall * (1 + slope * slope).squareRoot()
+    }
+
+    /// How far out from the middle the sand starts, inside the funnel it has
+    /// drained. Sand draining through a hole makes one; a flat top is a photo
+    /// of an hourglass nobody has turned over.
+    static func funnel(_ y: CGFloat) -> CGFloat {
+        let gone = (y - level) / dish
+        if gone <= 0 { return inside(y) }
+        if gone >= 1 { return 0 }
+        return min(inside(level) * (1 - gone).squareRoot(), inside(y))
+    }
+
+    /// Half the width of the falling sand, this far below the throat.
+    ///
+    /// It leaves at the throat's own width and thins, and how fast it thins is
+    /// not a taste: the same sand per second through a column going faster is
+    /// a column narrower by the fourth root. One constant, fitted so that it
+    /// arrives at the heap at `fall`, and the shape of the pour follows.
+    static func falling(_ y: CGFloat) -> CGFloat {
+        guard y >= neckBelow, y <= apex else { return 0 }
+        let ease = (apex - neckBelow) / (pow(throat / (fall / 2), 4) - 1)
+        return throat * pow(1 + (y - neckBelow) / ease, -0.25)
+    }
+
+    /// Half the width of the heap at this height. Straight-sided with the point
+    /// knocked off it, which is what sand landing on sand does.
+    ///
+    /// The clamp is not belt and braces. `pow` of a negative base with a
+    /// fractional exponent is not a small number, it is `nan`, and one `nan`
+    /// point is a path SwiftUI draws nothing at all from — so the arithmetic
+    /// that says the top of the heap is exactly at the top of the heap has to
+    /// be allowed to be a hair either side of it.
+    static func heaped(_ y: CGFloat) -> CGFloat {
+        guard y >= apex, y <= base else { return 0 }
+        return min(inside(base) * pow(max(1 - (base - y) / heap, 0), 1 / pile), inside(y))
+    }
+
+    /// Where a point this far right of the middle and this far down the square
+    /// falls inside a box the mark has been given.
+    static func point(_ x: CGFloat, _ y: CGFloat, in box: CGRect) -> CGPoint {
+        let scale = box.height / height
+        return CGPoint(x: box.midX + x * scale, y: box.minY + y * scale)
+    }
+
+    /// Points down one wall, at enough of them that a curve is a curve rather
+    /// than a decision about where its corners go.
+    static func wall(
+        from start: CGFloat,
+        to end: CGFloat,
+        _ side: CGFloat,
+        _ reach: (CGFloat) -> CGFloat,
+        in box: CGRect
+    ) -> [CGPoint] {
+        let steps = 48
+        return (0...steps).map { step in
+            let y = start + (end - start) * CGFloat(step) / CGFloat(steps)
+            return point(side * reach(y), y, in: box)
+        }
+    }
+
+    /// A quarter of a lid's rounded end.
+    static func corner(
+        _ x: CGFloat,
+        _ y: CGFloat,
+        from start: CGFloat,
+        to end: CGFloat,
+        in box: CGRect
+    ) -> [CGPoint] {
+        let steps = 10
+        return (0...steps).map { step in
+            let angle = start + (end - start) * CGFloat(step) / CGFloat(steps)
+            return point(x + lidRadius * cos(angle), y + lidRadius * sin(angle), in: box)
+        }
+    }
+}
+
+/// Quiet's mark: an hourglass, most of the way through.
+///
+/// The same drawing as the app icon rather than a likeness of it — see
+/// `Sandglass` above, and `Tools/make-icon.py`, which is where the numbers are
+/// argued with.
 ///
 /// It says the thing a clock cannot. A clock runs for ever; an hourglass runs
 /// *out*. It holds a fixed amount, it is spending it, and when it is empty the
@@ -211,54 +362,128 @@ enum Phrase {
 ///
 /// Never large. This is the app signing its name at the foot of a screen, not
 /// a logo somebody has to look at: the opening is deliberately not a logo
-/// screen and this does not turn it into one.
+/// screen and this does not turn it into one. At eighteen points the funnel and
+/// the falling sand are a pixel or two each and mostly wash out, which is the
+/// right way for them to go: what is left is a glass with an empty top and a
+/// heap in the bottom, which was the whole sentence anyway.
 struct Hourglass: View {
     /// How tall the glass is. Everything else follows from it.
     var height: CGFloat = 18
 
-    /// Taken from the icon, where they are fractions of the square: the glass
-    /// is 0.430 wide and 0.545 tall, its lids are 0.047, and the neck is 0.024.
-    /// Divided through, they are these — which is why changing one of them
-    /// there means changing one of them here and nowhere else.
-    private static let aspect: CGFloat = 0.430 / 0.545
-    private static let lid: CGFloat = 0.047 / 0.545
-    private static let neck: CGFloat = (0.024 / 2) / 0.430
-
-    /// How much of the mark the sand still up there is.
-    private static let sand: Double = 0.46
-
     var body: some View {
         ZStack {
-            Half(upper: true).fill(Paper.ink.opacity(Self.sand))
-            Half(upper: false).fill(Paper.ink)
-            VStack(spacing: 0) {
-                Capsule(style: .continuous).frame(height: height * Self.lid)
-                Spacer(minLength: 0)
-                Capsule(style: .continuous).frame(height: height * Self.lid)
+            // Stacked and then faded together rather than each faded on its
+            // own: the falling sand touches both the sand above it and the heap
+            // below, and three translucent fills over one another would draw
+            // two dark seams across the one place the mark is trying to say
+            // something.
+            ZStack {
+                Sand(part: .remaining)
+                Sand(part: .falling)
+                Sand(part: .fallen)
             }
-            .foregroundStyle(Paper.ink)
+            .opacity(Sandglass.grain)
+
+            // Even-odd, which is the whole of why the cavity is a second
+            // subpath rather than a second shape: the silhouette and the hollow
+            // inside it are wound the same way, and any other rule fills the
+            // glass in solid.
+            Glass().fill(style: FillStyle(eoFill: true))
         }
-        .frame(width: height * Self.aspect, height: height)
+        .foregroundStyle(Paper.ink)
+        .frame(width: height * Sandglass.width / Sandglass.height, height: height)
         .accessibilityHidden(true)
     }
 
-    /// The glass above the neck, or below it.
+    /// The glass itself: the outer silhouette with the cavity taken out of it,
+    /// which is the whole of why it is filled even-odd.
     ///
-    /// It runs *between* the lids rather than under them, so a lid is a bar
-    /// across the end and not a bar with two corners of glass poking past it.
-    private struct Half: Shape {
-        var upper: Bool
-
+    /// The wall starts at the lid's own centre line rather than under it, where
+    /// the two are both exactly `half` from the middle — so they meet with no
+    /// step and with no corner poking past the lid's rounded end. The mark this
+    /// replaced had four such corners, and at sixty points they were burrs.
+    private struct Glass: Shape {
         func path(in box: CGRect) -> Path {
-            let lid = box.height * Hourglass.lid
-            let neck = box.width * Hourglass.neck
-            let edge = upper ? box.minY + 2 * lid : box.maxY - 2 * lid
+            let half = Sandglass.half
+            let lid = Sandglass.lidRadius
+            let shoulder = Sandglass.shoulder
+            let footing = Sandglass.footing
+
+            var outline = [
+                Sandglass.point(-half + lid, 0, in: box),
+                Sandglass.point(half - lid, 0, in: box),
+            ]
+            outline += Sandglass.corner(
+                half - lid, shoulder, from: -.pi / 2, to: 0, in: box)
+            outline += Sandglass.wall(
+                from: shoulder, to: footing, 1, Sandglass.outside, in: box)
+            outline += Sandglass.corner(
+                half - lid, footing, from: 0, to: .pi / 2, in: box)
+            outline.append(Sandglass.point(-half + lid, Sandglass.height, in: box))
+            outline += Sandglass.corner(
+                -half + lid, footing, from: .pi / 2, to: .pi, in: box)
+            outline += Sandglass.wall(
+                from: footing, to: shoulder, -1, Sandglass.outside, in: box)
+            outline += Sandglass.corner(
+                -half + lid, shoulder, from: .pi, to: 1.5 * .pi, in: box)
+
+            var cavity = Sandglass.wall(
+                from: Sandglass.roof, to: Sandglass.base, 1, Sandglass.inside, in: box)
+            cavity += Sandglass.wall(
+                from: Sandglass.base, to: Sandglass.roof, -1, Sandglass.inside, in: box)
 
             var path = Path()
-            path.move(to: CGPoint(x: box.minX, y: edge))
-            path.addLine(to: CGPoint(x: box.maxX, y: edge))
-            path.addLine(to: CGPoint(x: box.midX + neck, y: box.midY))
-            path.addLine(to: CGPoint(x: box.midX - neck, y: box.midY))
+            path.addLines(outline)
+            path.closeSubpath()
+            path.addLines(cavity)
+            path.closeSubpath()
+            return path
+        }
+    }
+
+    /// The sand, in the three states it is in at once.
+    private struct Sand: Shape {
+        enum Part {
+            /// What is still up there, with the funnel it has drained in it.
+            case remaining
+            /// What is in the air between the throat and the heap.
+            case falling
+            /// What has landed.
+            case fallen
+        }
+
+        var part: Part
+
+        func path(in box: CGRect) -> Path {
+            var path = Path()
+            switch part {
+            case .remaining:
+                let level = Sandglass.level
+                let neck = Sandglass.neckBelow
+                var sand = Sandglass.wall(
+                    from: level, to: neck, -1, Sandglass.inside, in: box)
+                sand += Sandglass.wall(
+                    from: neck, to: level, 1, Sandglass.inside, in: box)
+                sand += Sandglass.wall(
+                    from: level, to: level + Sandglass.dish, 1, Sandglass.funnel, in: box)
+                sand += Sandglass.wall(
+                    from: level + Sandglass.dish, to: level, -1, Sandglass.funnel, in: box)
+                path.addLines(sand)
+            case .falling:
+                var stream = Sandglass.wall(
+                    from: Sandglass.neckBelow, to: Sandglass.apex, 1, Sandglass.falling,
+                    in: box)
+                stream += Sandglass.wall(
+                    from: Sandglass.apex, to: Sandglass.neckBelow, -1, Sandglass.falling,
+                    in: box)
+                path.addLines(stream)
+            case .fallen:
+                var heap = Sandglass.wall(
+                    from: Sandglass.apex, to: Sandglass.base, 1, Sandglass.heaped, in: box)
+                heap += Sandglass.wall(
+                    from: Sandglass.base, to: Sandglass.apex, -1, Sandglass.heaped, in: box)
+                path.addLines(heap)
+            }
             path.closeSubpath()
             return path
         }

@@ -12,29 +12,23 @@ This draws that sheet. It is deliberately a separate script from
 
     python3 Tools/look-at-icon.py        # writes icon-in-place.png
 
-The verdict the first sheet produced, when the mark was a full stop: it held at
-every size and read as a full stop rather than as dust on the display. That
-verdict was about legibility and it was the wrong question. A full stop is
-legible and says nothing; it needed somebody to have been told what it meant
-first, which is the one thing an icon on a stranger's home screen cannot count
-on. The mark is an hourglass now, and the question this sheet asks is the same
-one it always asked: at thirty points, in a folder, is it still that object?
+It used to argue with a copy. Four numbers were written out again here by hand
+and the geometry drawn a second time, so that the sheet could disagree with the
+icon rather than merely repeat it. That was a good arrangement for a circle and
+is a bad one now: the mark's sand level is solved rather than chosen, and a
+hand-copy of a solved number is not a second opinion, it is a chance to be shown
+an icon that is not the one that ships.
+
+So it reads the PNG instead and shrinks it, which is both the thing that cannot
+drift and the thing iOS itself does. Averaging every source pixel that lands in
+a destination pixel is what a good downsample is; it is also, usefully, the
+harshest honest test of a thin line, because a wall a pixel and a half wide
+comes out grey rather than gone and you can see exactly how much of it is left.
 """
 
 import struct
 import zlib
 from pathlib import Path
-
-# Kept in step with make-icon.py by hand. They are three numbers and this file
-# exists to disagree with them, so importing them would defeat the point.
-BACKGROUND = (0x19, 0x18, 0x16)
-MARK = (0xF2, 0xEE, 0xE7)
-WIDTH_OF_GLASS = 0.430
-HEIGHT_OF_GLASS = 0.545
-CAP = 0.047
-WAIST = 0.024
-SAND = 0.46
-OPTICAL_LIFT = 0.012
 
 # iOS masks every icon with a continuous rounded square. An exponent near 4.6
 # is close enough to judge a layout by.
@@ -43,6 +37,86 @@ SQUIRCLE = 4.6
 WIDTH, HEIGHT = 1100, 560
 SIZES = [180, 120, 87, 60]      # 60pt, 40pt, 29pt at 3x, and the App Library
 SAMPLES = (-0.33, 0.0, 0.33)    # 3x3 supersampling, enough for a smooth edge
+
+
+def read_png(path: Path):
+    """The pixels of an 8-bit RGB PNG, as rows of (r, g, b).
+
+    Only the one shape `make-icon.py` writes: no palette, no alpha, no
+    interlacing. Anything else is a PNG this was not asked to read, and saying
+    so is better than quietly producing a sheet of the wrong thing.
+    """
+    blob = path.read_bytes()
+    if blob[:8] != b"\x89PNG\r\n\x1a\n":
+        raise ValueError(f"{path} is not a PNG")
+
+    at, header, data = 8, None, bytearray()
+    while at < len(blob):
+        length = struct.unpack(">I", blob[at:at + 4])[0]
+        kind = blob[at + 4:at + 8]
+        payload = blob[at + 8:at + 8 + length]
+        if kind == b"IHDR":
+            header = struct.unpack(">2I5B", payload)
+        elif kind == b"IDAT":
+            data += payload
+        at += 12 + length
+
+    side, tall, depth, colour, _, _, interlace = header
+    if (depth, colour, interlace) != (8, 2, 0):
+        raise ValueError(f"{path} is not the 8-bit RGB the icon is written as")
+
+    raw = zlib.decompress(bytes(data))
+    stride = side * 3
+    pixels, previous = [], bytearray(stride)
+    at = 0
+    for _ in range(tall):
+        filter_type, line = raw[at], bytearray(raw[at + 1:at + 1 + stride])
+        at += 1 + stride
+        for i in range(stride):
+            left = line[i - 3] if i >= 3 else 0
+            up = previous[i]
+            corner = previous[i - 3] if i >= 3 else 0
+            if filter_type == 1:
+                line[i] = (line[i] + left) & 0xFF
+            elif filter_type == 2:
+                line[i] = (line[i] + up) & 0xFF
+            elif filter_type == 3:
+                line[i] = (line[i] + (left + up) // 2) & 0xFF
+            elif filter_type == 4:
+                estimate = left + up - corner
+                a, b, c = (abs(estimate - left), abs(estimate - up),
+                           abs(estimate - corner))
+                nearest = left if a <= b and a <= c else (up if b <= c else corner)
+                line[i] = (line[i] + nearest) & 0xFF
+            elif filter_type != 0:
+                raise ValueError(f"unknown PNG filter {filter_type}")
+        pixels.append([tuple(line[x * 3:x * 3 + 3]) for x in range(side)])
+        previous = line
+    return pixels
+
+
+def shrink(source, side: int):
+    """The artwork at `side` pixels, by averaging what falls in each one."""
+    tall = len(source)
+    scale = tall / side
+    out = []
+    for y in range(side):
+        top, bottom = int(y * scale), max(int((y + 1) * scale), int(y * scale) + 1)
+        row = []
+        for x in range(side):
+            left, right = int(x * scale), max(int((x + 1) * scale), int(x * scale) + 1)
+            r = g = b = 0
+            for sy in range(top, bottom):
+                line = source[sy]
+                for sx in range(left, right):
+                    pixel = line[sx]
+                    r += pixel[0]
+                    g += pixel[1]
+                    b += pixel[2]
+            count = (bottom - top) * (right - left)
+            row.append((r // count, g // count, b // count))
+        out.append(row)
+    return out
 
 
 def _coverage(inside) -> float:
@@ -58,60 +132,9 @@ def _mask(x: int, y: int, side: int) -> float:
     return _coverage(inside)
 
 
-def _glass(x: int, y: int, side: int) -> float:
-    """How much of this pixel the mark covers, and how solidly.
-
-    Written out again rather than imported, which is the whole point of this
-    file: two implementations of one shape disagree loudly, and one
-    implementation checked against itself agrees about anything.
-    """
-    centre_x = side / 2
-    centre_y = side / 2 - OPTICAL_LIFT * side
-    top = centre_y - HEIGHT_OF_GLASS * side / 2
-    bottom = centre_y + HEIGHT_OF_GLASS * side / 2
-    half = WIDTH_OF_GLASS * side / 2
-    neck = WAIST * side / 2
-    lid = CAP * side / 2
-
-    def in_glass(px, py, upper):
-        first, last = top + 2 * lid, bottom - 2 * lid
-        if upper:
-            if not first <= py <= centre_y:
-                return False
-            fallen = (py - first) / (centre_y - first)
-        else:
-            if not centre_y <= py <= last:
-                return False
-            fallen = (last - py) / (last - centre_y)
-        return abs(px - centre_x) <= half + (neck - half) * fallen
-
-    def in_lid(px, py):
-        for at in (top + lid, bottom - lid):
-            along = min(max(px, centre_x - half + lid), centre_x + half - lid)
-            dx, dy = px - along, py - at
-            if dx * dx + dy * dy <= lid * lid:
-                return True
-        return False
-
-    ink = _coverage(lambda dx, dy: in_lid(x + 0.5 + dx, y + 0.5 + dy)
-                    or in_glass(x + 0.5 + dx, y + 0.5 + dy, False))
-    sand = _coverage(lambda dx, dy: in_glass(x + 0.5 + dx, y + 0.5 + dy, True))
-    return max(ink, sand * SAND)
-
-
-def icon(side: int):
-    colours = [[(0, 0, 0)] * side for _ in range(side)]
-    alpha = [[0.0] * side for _ in range(side)]
-    for y in range(side):
-        for x in range(side):
-            outside = _mask(x, y, side)
-            if outside <= 0:
-                continue
-            covered = _glass(x, y, side)
-            colours[y][x] = tuple(
-                round(b + (m - b) * covered) for b, m in zip(BACKGROUND, MARK)
-            )
-            alpha[y][x] = outside
+def icon(artwork, side: int):
+    colours = shrink(artwork, side)
+    alpha = [[_mask(x, y, side) for x in range(side)] for y in range(side)]
     return colours, alpha
 
 
@@ -169,17 +192,22 @@ def write_png(canvas, path: Path) -> None:
 
 
 def main() -> None:
+    here = Path(__file__).resolve().parent
+    artwork = read_png(
+        here.parent / "Quiet/Resources/Assets.xcassets/AppIcon.appiconset/icon-1024.png"
+    )
+
     canvas = wallpapers()
     for origin, tones in ((0, ((214, 210, 202), (198, 194, 186))),
                           (WIDTH // 2, ((64, 64, 72), (52, 52, 60)))):
         left = origin + 60
         for side in SIZES:
             paste(canvas, placeholder(side, tones[0]), left, 70 - side // 6)
-            paste(canvas, icon(side), left, 240 - side // 2)
+            paste(canvas, icon(artwork, side), left, 240 - side // 2)
             paste(canvas, placeholder(side, tones[1]), left, 420 - side // 6)
             left += side + 34
 
-    destination = Path(__file__).resolve().parent / "icon-in-place.png"
+    destination = here / "icon-in-place.png"
     write_png(canvas, destination)
     print(f"wrote {destination} ({destination.stat().st_size:,} bytes)")
 

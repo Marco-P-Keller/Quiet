@@ -230,9 +230,17 @@ Three things arrived after the listing was written and belong in it:
 other apps, 40 in Spotlight, 29 in Settings, on a light wallpaper and a dark
 one, behind the rounded mask iOS applies whether the artwork expects it or not.
 
-It holds at every size, and reads as a full stop rather than as dust on the
-display. The smallest — the App Library — is where it comes closest to reading
-as a camera lens, and is the size to look at again if the diameter ever changes.
+The sheet used to draw the mark a second time from four numbers copied across
+by hand. It reads the shipped PNG and shrinks it now, which is both what iOS
+itself does and the thing that cannot drift: the mark's sand level is solved
+rather than chosen, and a hand-copy of a solved number is not a second opinion.
+
+It holds at every size. At sixty points the glass, the empty top and the heap
+are all three legible; by twenty-nine the funnel and the falling sand have
+washed out and what is left is a glass with an empty top and a heap in the
+bottom, which was the sentence anyway. The size to look at again if the wall or
+the neck ever change is the App Library's, where the wall is a pixel and a half
+and comes out grey rather than gone.
 
 ### 3.2 The moment the curtain arrives — *seen, and answered*
 
