@@ -280,6 +280,37 @@ final class WebSurface {
         )
     }
 
+    /// The face, fetched by the page from the same place the page would fetch
+    /// it, and handed over as bytes.
+    ///
+    /// Quiet still asks nobody for anything: this runs inside Instagram's own
+    /// page, with Instagram's own cookies, against a URL Instagram gave it. A
+    /// picture that will not come is not an error worth reporting — a list
+    /// stands in a letter instead.
+    ///
+    /// Written once and pasted into both questions that need it. It was written
+    /// twice for a while, which is two places for a size limit to be raised in
+    /// one of them.
+    private static let fetchesAFace = """
+        async function face(url) {
+          if (!url) { return ""; }
+          try {
+            const response = await fetch(url, { credentials: "omit" });
+            if (!response.ok) { return ""; }
+            const buffer = await response.arrayBuffer();
+            if (buffer.byteLength > 300000) { return ""; }
+            const bytes = new Uint8Array(buffer);
+            let binary = "";
+            for (let i = 0; i < bytes.length; i++) {
+              binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary);
+          } catch (error) {
+            return "";
+          }
+        }
+        """
+
     /// Who matches this name.
     ///
     /// The request is made by Instagram's own page, with the page's own cookies,
@@ -305,27 +336,7 @@ final class WebSurface {
           "/web/search/topsearch/?context=blended&query=" + term
         ];
 
-        // The face, fetched by the page from the same place the page would
-        // fetch it, and handed over as bytes. Quiet still asks nobody for
-        // anything. A picture that will not come is not an error worth
-        // reporting — the list stands in a letter instead.
-        async function face(url) {
-          if (!url) { return ""; }
-          try {
-            const response = await fetch(url, { credentials: "omit" });
-            if (!response.ok) { return ""; }
-            const buffer = await response.arrayBuffer();
-            if (buffer.byteLength > 300000) { return ""; }
-            const bytes = new Uint8Array(buffer);
-            let binary = "";
-            for (let i = 0; i < bytes.length; i++) {
-              binary += String.fromCharCode(bytes[i]);
-            }
-            return btoa(binary);
-          } catch (error) {
-            return "";
-          }
-        }
+        \(Self.fetchesAFace)
 
         for (const path of paths) {
           try {
@@ -366,6 +377,86 @@ final class WebSurface {
         )
         guard let json = answer as? String, let data = json.data(using: .utf8) else { return nil }
         return try? JSONDecoder().decode([Person].self, from: data)
+    }
+
+    /// The faces of people already on the recently-opened list.
+    ///
+    /// Somebody who was opened by typing their name and pressing return leaves
+    /// no picture behind, and neither does anybody remembered by a version of
+    /// the app that did not keep one. So the list asks, once, for the ones it
+    /// is missing — and only for those, because a list that re-fetched eight
+    /// photographs every time it appeared would be a list that costs somebody
+    /// their data allowance to look at their own friends.
+    ///
+    /// All of them in one round trip rather than one at a time, for the same
+    /// reason the search's six are: eight waits in a row is a list filling in
+    /// down the screen while somebody watches.
+    ///
+    /// Two shapes of the same question, in order. The profile endpoint is the
+    /// exact answer; search is what is left when Instagram has moved it, and it
+    /// is only trusted when a name comes back matching exactly — a search for
+    /// "ada" that returns somebody else is not a near miss, it is the wrong
+    /// person's face beside the right person's name.
+    func faces(of names: [String]) async -> [String: UIImage] {
+        let wanted = names.map { $0.lowercased() }.filter { !$0.isEmpty }
+        guard !wanted.isEmpty, let webView else { return [:] }
+
+        let body = """
+        \(Self.fetchesAFace)
+
+        async function look(name) {
+          const term = encodeURIComponent(name);
+          const paths = [
+            "/api/v1/users/web_profile_info/?username=" + term,
+            "/api/v1/web/search/topsearch/?context=blended&query=" + term
+          ];
+          for (const path of paths) {
+            try {
+              const response = await fetch(path, {
+                credentials: "same-origin",
+                headers: { "X-IG-App-ID": appID }
+              });
+              if (!response.ok) { continue; }
+              const answer = await response.json();
+              const profile = answer && answer.data && answer.data.user;
+              let picture = (profile && profile.profile_pic_url) || "";
+              if (!picture) {
+                const match = ((answer && answer.users) || [])
+                  .map(function (entry) { return entry.user || {}; })
+                  .find(function (user) {
+                    return (user.username || "").toLowerCase() === name;
+                  });
+                picture = (match && match.profile_pic_url) || "";
+              }
+              if (picture) { return await face(picture); }
+            } catch (error) {
+              // Try the next shape of the same request, then give up quietly.
+            }
+          }
+          return "";
+        }
+
+        const pictures = await Promise.all(names.map(look));
+        const found = {};
+        names.forEach(function (name, index) {
+          if (pictures[index]) { found[name] = pictures[index]; }
+        });
+        return JSON.stringify(found);
+        """
+
+        let answer = try? await webView.callAsyncJavaScript(
+            body,
+            arguments: ["names": Array(wanted.prefix(8)), "appID": WebScripts.appID],
+            in: nil,
+            contentWorld: .defaultClient
+        )
+        guard let json = answer as? String,
+            let data = json.data(using: .utf8),
+            let coded = try? JSONDecoder().decode([String: String].self, from: data)
+        else {
+            return [:]
+        }
+        return coded.compactMapValues { Data(base64Encoded: $0).flatMap(UIImage.init(data:)) }
     }
 
     /// Watching the cookie that says which account this is. Started with the

@@ -2789,3 +2789,44 @@ reader, and a third of that sentence had just stopped being true. So did the
 store listing and the published page. A default changed in the code and left
 standing in the prose is not a smaller version of the same change; it is the app
 saying something about itself that is false.
+
+---
+
+## The list you see before you type has faces now
+
+The search results have had a picture beside each name from the start, and the
+reason is written down: a row of names is a spreadsheet, and finding a friend is
+something people do by recognising them. The recently-opened list — the one that
+is on the screen *before* anybody types, which is the list most people will
+actually use — had a grey circle with a letter in it.
+
+There was no argument for that. It was where the pictures had not been fetched
+yet.
+
+Three things had to be true for it to be worth doing rather than just possible.
+
+**It has to be right in its first frame.** This is the same rule the row along
+the bottom already lives by, and for the same reason: a list that draws eight
+letters and then replaces them with eight faces is an app correcting itself
+while somebody watches. So the faces are kept beside the names, read before the
+first frame, and only the ones that are missing are ever asked for.
+
+**It must not become a hoard.** Instagram's own profile picture can be three
+hundred kilobytes and the list draws it at thirty-two points. Kept whole, eight
+of them would be two megabytes of somebody else's photographs sitting in
+`UserDefaults` to be read on every launch. They are cut down to ninety-six
+pixels first — a retina thirty-two — at which size all eight together are
+smaller than one of them was.
+
+**It must not become a history.** A face outliving the name it belongs to would
+turn a shortcut into a record of everybody this phone has ever opened, kept as a
+photograph. So the store is pruned to the names on every write, "Clear" takes
+both, and a picture that arrives late for somebody who has since been pushed off
+the list is refused rather than filed.
+
+The asking is the same shape as the searching: Instagram's own page, Instagram's
+own cookies, one round trip for all of them rather than eight waits in a row.
+Quiet still makes no request of its own. Two endpoints are tried in order, and
+the fallback is only believed when a name comes back matching exactly — a search
+for "ada" that returns somebody else is not a near miss, it is the wrong
+person's face beside the right person's name.

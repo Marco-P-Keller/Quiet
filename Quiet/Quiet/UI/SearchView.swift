@@ -24,6 +24,10 @@ struct SearchView: View {
     @State private var found: [Person] = []
     /// The handful of people this phone actually opens.
     @State private var recent: [String] = Remembered.visits()
+    /// Their faces, as they were known last time. Read before the first frame
+    /// rather than fetched after it, so the list does not fill itself in while
+    /// somebody is looking at it.
+    @State private var faces: [String: UIImage] = Remembered.visitFaces()
     @State private var outcome = Outcome.idle
     @State private var asking: Task<Void, Never>?
     @FocusState private var isFocused: Bool
@@ -171,10 +175,10 @@ struct SearchView: View {
             LazyVStack(alignment: .leading, spacing: 0) {
                 ForEach(found) { person in
                     Button {
-                        open(person.username)
+                        open(person.username, face: person.image)
                     } label: {
                         HStack(spacing: 13) {
-                            face(of: person)
+                            face(person.image, of: person.username, at: 44)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(person.username)
                                     .font(.quietBody)
@@ -241,14 +245,7 @@ struct SearchView: View {
                     open(handle)
                 } label: {
                     HStack(spacing: 13) {
-                        Circle()
-                            .fill(Paper.ink.opacity(0.08))
-                            .frame(width: 32, height: 32)
-                            .overlay(
-                                Text(String(handle.prefix(1)).uppercased())
-                                    .font(.quietSmall)
-                                    .foregroundStyle(Paper.inkSoft)
-                            )
+                        face(faces[handle], of: handle, at: 32)
                         Text(handle)
                             .font(.quietBody)
                         Spacer(minLength: 0)
@@ -262,31 +259,69 @@ struct SearchView: View {
                 .accessibilityHint(Text("Opens this profile"))
             }
         }
+        .task(id: recent) { await collectFaces() }
     }
 
     /// The face, or the letter that stands in for one.
     ///
     /// A picture that will not load is not worth an error or an empty ring: the
     /// first letter of the name, set on paper, is a perfectly good way to tell
-    /// six rows apart.
-    @ViewBuilder
-    private func face(of person: Person) -> some View {
-        if let image = person.image {
-            Image(uiImage: image)
-                .resizable()
-                .scaledToFill()
-                .frame(width: 44, height: 44)
-                .clipShape(Circle())
-        } else {
-            Circle()
-                .fill(Paper.ink.opacity(0.08))
-                .frame(width: 44, height: 44)
-                .overlay(
-                    Text(String(person.username.prefix(1)).uppercased())
-                        .font(.quietBody)
-                        .foregroundStyle(Paper.inkSoft)
-                )
+    /// six rows apart. It is a stand-in and not a style, which is why the two
+    /// lists on this screen share it rather than each having their own — the
+    /// results had faces and the recently-opened list had letters, and the only
+    /// reason for the difference was that nobody had gone and got the pictures.
+    private func face(_ picture: UIImage?, of handle: String, at side: CGFloat) -> some View {
+        Group {
+            if let picture {
+                Image(uiImage: picture)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: side, height: side)
+                    .clipShape(Circle())
+            } else {
+                Circle()
+                    .fill(Paper.ink.opacity(0.08))
+                    .frame(width: side, height: side)
+                    .overlay(
+                        Text(String(handle.prefix(1)).uppercased())
+                            .font(side < 40 ? .quietSmall : .quietBody)
+                            .foregroundStyle(Paper.inkSoft)
+                    )
+            }
         }
+        // The picture says nothing the name beside it does not, and a row that
+        // reads out "photo, ada" is a row that takes twice as long to hear.
+        .accessibilityHidden(true)
+    }
+
+    /// Go and get the faces this list has not got.
+    ///
+    /// Only the missing ones, and only while the list is the thing on the
+    /// glass. Somebody opened by typing their name has no picture at the moment
+    /// they are opened, and neither has anybody remembered before this list had
+    /// faces at all; both are filled in here and then kept, so the asking
+    /// happens once per person rather than once per look.
+    ///
+    /// Somebody whose picture cannot be had — no signal, a private account, an
+    /// endpoint Instagram has moved — is asked about again the next time this
+    /// screen opens. That is deliberate rather than an oversight: the common
+    /// reason for a face not arriving is that the first ask happened with no
+    /// signal, and a list that gave up permanently on the strength of that
+    /// would wear a letter beside that name for good.
+    ///
+    /// Nothing is said when it fails. There is no error worth showing for a
+    /// photograph that did not arrive beside a name that is already there.
+    private func collectFaces() async {
+        let missing = recent.filter { faces[$0] == nil }
+        guard !missing.isEmpty else { return }
+        let found = await surface.faces(of: missing)
+        guard !found.isEmpty else { return }
+        for (handle, picture) in found {
+            Remembered.remember(face: picture, for: handle)
+        }
+        // Read back rather than merged in, so what is drawn is what was kept —
+        // which is the cut-down copy, not the three-hundred-kilobyte original.
+        faces = Remembered.visitFaces()
     }
 
     /// One sentence, or none when the answer is the list itself.
@@ -331,14 +366,18 @@ struct SearchView: View {
         open(query)
     }
 
-    private func open(_ handle: String) {
+    /// The face is handed along when there is one — opening somebody out of
+    /// the search results is the one moment the app has their picture in its
+    /// hand, and letting it go there means asking Instagram for it again later.
+    private func open(_ handle: String, face picture: UIImage? = nil) {
         guard let url = ContentRules.profile(forHandle: handle) else { return }
         asking?.cancel()
         // The name as the app will use it, rather than as it was typed: a
         // pasted link and an @ in front of it are the same person.
         if let name = ContentRules.pathComponents(of: url).first {
-            Remembered.remember(visit: name)
+            Remembered.remember(visit: name, face: picture)
             recent = Remembered.visits()
+            faces = Remembered.visitFaces()
         }
         onOpen(url)
     }
