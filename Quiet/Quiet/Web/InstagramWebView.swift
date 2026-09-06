@@ -31,6 +31,25 @@ struct Person: Identifiable, Decodable, Equatable, Sendable {
 final class WebSurface {
     @ObservationIgnored fileprivate weak var webView: WKWebView?
 
+    /// The three pages, and which of them is on the glass.
+    ///
+    /// Weak for the same reason the view above is: the browsing screen owns
+    /// both, and a surface that outlived the screen holding a strong reference
+    /// to it would be holding three copies of Instagram open behind a curtain.
+    /// Everything below still speaks to one web view — this only decides which
+    /// one that is. See `PaneStack`.
+    @ObservationIgnored fileprivate weak var stack: PaneStack?
+
+    /// Which of Instagram's three the row should be marking.
+    ///
+    /// Read off the pane rather than off the address, which is the change the
+    /// panes brought with them. A tab bar marks the tab you are standing in,
+    /// not the page you have wandered to inside it: tap a friend in the feed
+    /// and you are still standing in **home**, the way you are still standing
+    /// in a tab on every phone ever made. The address said otherwise, and had
+    /// to — with one page there was nothing else to ask.
+    private(set) var pane: Pane = .home
+
     /// Resources that failed to load out of the bundle. Surfaced in the UI
     /// rather than swallowed.
     private(set) var missingResources: [String] = []
@@ -146,6 +165,27 @@ final class WebSurface {
     /// see `stumble`.
     private(set) var isBare = false
 
+    /// Whether the page has ever had anything on it.
+    ///
+    /// The moment this turns true is the moment there is something to look at,
+    /// and it is the moment the cover should come off. It used to wait for
+    /// `hasLoaded` as well — and `hasLoaded` is a question about a *request*.
+    /// Instagram's main frame is not finished when the feed is on the screen:
+    /// it goes on fetching for as long as there are pictures in the first
+    /// screenful, and every one of those seconds was a second Quiet held its
+    /// own blank over a feed that was sitting there ready to be read.
+    ///
+    /// So the two are read as one or the other rather than both. A page that
+    /// says it has drawn something is uncovered whatever the request is doing;
+    /// a page whose script never ran is uncovered when the request settles,
+    /// which is the behaviour that was there before. See `isCovered` in
+    /// `BrowserScreen`.
+    ///
+    /// One way only, like `isBare`: the page says this once and never takes it
+    /// back, so a client-side move between pages cannot bring the cover down
+    /// over a page somebody is reading.
+    private(set) var hasPainted = false
+
     func open(_ url: URL) {
         webView?.load(URLRequest(url: url))
     }
@@ -155,18 +195,14 @@ final class WebSurface {
     /// What the pull at the top of the feed does, and the only way back from a
     /// page that failed to arrive — a web view that could not load has an
     /// address but nothing on it, and `reload` is the request that fixes both.
-    /// Falls back to the first opening address for the one case where there is
-    /// nothing to reload, which is a cold view nobody has navigated yet. The
-    /// first rather than the one that failed: this is somebody asking to start
-    /// over, and the walk down `ContentRules.openings` starts again with it.
+    /// Falls back to that pane's own opening address for the one case where
+    /// there is nothing to reload, which is a view nobody has navigated yet.
+    ///
+    /// The pane in front, and only that one. **Try again** is somebody looking
+    /// at a page that did not arrive, and the inbox two taps away is not the
+    /// page they are looking at. See `WebPane.startAgain`.
     func reload() {
-        guard let webView else { return }
-        note(stumble: nil)
-        if webView.url == nil {
-            webView.load(URLRequest(url: ContentRules.openings[0]))
-        } else {
-            webView.reload()
-        }
+        stack?.reloadWhatIsInFront()
     }
 
     /// What a tap on the status bar has always done.
@@ -178,8 +214,7 @@ final class WebSurface {
     /// away every time the app leaves the screen, which is the last moment it
     /// is certain to be there. See `ThePlace`.
     func keepThePlace() {
-        guard let webView else { return }
-        ThePlace.keep(webView)
+        stack?.keepThePlace()
     }
 
     func scrollToTop() {
@@ -193,15 +228,27 @@ final class WebSurface {
     /// Forget the Instagram session entirely: cookies, storage, caches. Quiet
     /// never held the password, so this is the whole of what there is to forget.
     func signOut(completion: @escaping () -> Void = {}) {
-        // Including where you were. A page kept from before somebody signed out
-        // is a page they did not ask to see again.
-        ThePlace.forget()
+        // Including where you were, in all three panes. A page kept from before
+        // somebody signed out is a page they did not ask to see again — and an
+        // inbox left standing behind a fresh login screen would be somebody
+        // else's.
+        ThePlace.forgetEverything()
+        // And the bit that says which door to open on. The cookie watcher would
+        // reach the same answer a second and a bit later, having noticed the
+        // store empty itself — but an app killed inside that second and a bit
+        // would open the next launch on the feed, for somebody who has just
+        // signed out. See `TheLastLook`.
+        TheLastLook.found(somebody: false)
         let store = WKWebsiteDataStore.default()
         store.removeData(
             ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
             modifiedSince: .distantPast
         ) { [weak self] in
-            self?.open(ContentRules.home)
+            // Every pane torn down and the home one built again from nothing,
+            // rather than the current page reloaded: the other two are still
+            // holding a signed-in document, and a reload of one of them would
+            // put it straight back on the glass.
+            self?.stack?.startOver()
             completion()
         }
     }
@@ -321,18 +368,86 @@ final class WebSurface {
         return try? JSONDecoder().decode([Person].self, from: data)
     }
 
+    /// Watching the cookie that says which account this is. Started with the
+    /// first stack and never again — the browsing screen is built and taken
+    /// apart with the curtain, and the question outlives both.
+    @ObservationIgnored private var whoIsSignedIn: WhoIsSignedIn?
+
+    func attach(_ stack: PaneStack) {
+        self.stack = stack
+        guard whoIsSignedIn == nil else { return }
+        whoIsSignedIn = WhoIsSignedIn { [weak self] in
+            self?.startAgainAsSomebodyElse()
+        }
+    }
+
+    /// Somebody else is signed in, and every screen in the app is still the
+    /// last person's.
+    ///
+    /// Instagram's own account switcher changes who this browser is without
+    /// loading anything, so the two panes off the glass keep the feed and the
+    /// inbox they had — one tap from being brought forward — and the row keeps
+    /// the face. Reloading the page in front is not enough and never was: the
+    /// problem is precisely the pages that are *not* in front.
+    ///
+    /// The order is the whole of it.
+    ///
+    /// The caches go first, and they go before anything is asked for again.
+    /// Instagram's own service worker and fetch cache are keyed by address, and
+    /// two accounts ask the same addresses — a timeline, an inbox, a profile
+    /// picture — so a pane rebuilt over a warm cache can be handed the last
+    /// person's answers by the app's own storage. Not `allWebsiteDataTypes`,
+    /// which is what signing out uses: cookies and local storage are what being
+    /// signed in is made of, and this reader has just signed *in*.
+    ///
+    /// Then the app forgets who it thought it was — the name, the face, and
+    /// every pane's saved place, because a place is a page from before the
+    /// switch and restoring one puts the old account back on the glass without
+    /// a single request ever asking whether it was still theirs.
+    ///
+    /// And only then are the panes torn down and the feed built again from
+    /// nothing.
+    private func startAgainAsSomebodyElse() {
+        NSLog("Quiet: the account changed; starting every pane again")
+        clearCaches { [weak self] in
+            Task { @MainActor in
+                guard let self else { return }
+                // Before the forgetting, so that a page on its way out cannot
+                // hand any of it straight back. See `startingOver`.
+                self.startingOver = true
+                self.me = nil
+                self.myFace = nil
+                Remembered.forgetMe()
+                ThePlace.forgetEverything()
+                self.stack?.startOver()
+            }
+        }
+    }
+
+    /// Point at a pane.
+    ///
+    /// It used to reset `hasLoaded` and `isBare`, because the only view it was
+    /// ever handed was a new one. It must not now: a pane coming back to the
+    /// glass finished loading minutes ago, and wiping those two would drop
+    /// Quiet's own cover over a page that is sitting there ready — which is the
+    /// exact flicker the panes exist to remove. What each pane knows about
+    /// itself is pushed in straight afterwards. See `WebPane.takeTheGlass`.
     fileprivate func adopt(_ webView: WKWebView, missing: [String]) {
         self.webView = webView
         missingResources = missing
-        hasLoaded = false
-        isBare = false
     }
 
-    /// Called when the first navigation settles, whether it worked or not. A
-    /// failed load must lift the cover too, or a person offline would be left
-    /// looking at an empty page with no explanation.
-    fileprivate func markLoaded() {
-        hasLoaded = true
+    func note(pane: Pane) {
+        guard self.pane != pane else { return }
+        self.pane = pane
+    }
+
+    /// Called when a navigation settles, whether it worked or not. A failed
+    /// load must lift the cover too, or a person offline would be left looking
+    /// at an empty page with no explanation.
+    fileprivate func note(loaded: Bool) {
+        guard hasLoaded != loaded else { return }
+        hasLoaded = loaded
     }
 
     fileprivate func note(bare: Bool) {
@@ -340,9 +455,9 @@ final class WebSurface {
         isBare = bare
     }
 
-    fileprivate func note(path: String) {
-        guard let url = URL(string: path, relativeTo: ContentRules.feed)?.absoluteURL else { return }
-        note(address: url)
+    fileprivate func note(painted: Bool) {
+        guard hasPainted != painted else { return }
+        hasPainted = painted
     }
 
     fileprivate func note(address url: URL?) {
@@ -436,8 +551,74 @@ final class WebSurface {
         chrome = colour
     }
 
+    /// Set from the moment the account changed until a page has arrived under
+    /// the new one.
+    ///
+    /// Everything below forgets who this is — the name, the face, the panes —
+    /// and then asks for pages again. What it cannot do is stop the pages on
+    /// their way *out*: they are still running for a second or so, and
+    /// `faceFromRow` in trim.js will happily announce the account being left,
+    /// name and photograph together, a moment after the app has finished
+    /// forgetting it. `Remembered` writes it down again, and the last entry in
+    /// the row goes on wearing the previous account's face over the new
+    /// account's feed — which is the photograph that sent this back a fourth
+    /// time.
+    ///
+    /// That message is not wrong about the document it came from. It is simply
+    /// about somebody who is no longer signed in, and the only thing that can
+    /// tell the difference is which side of the switch it arrived on.
+    @ObservationIgnored private var startingOver = false
+
+    /// A document committed, so the panes have caught up with the account.
+    fileprivate func aPageArrived() {
+        startingOver = false
+    }
+
     fileprivate func note(me name: String, picture: String?) {
-        if me != name { me = name }
+        guard !startingOver else { return }
+
+        if me != name {
+            // Somebody else. Instagram lets you change accounts without ever
+            // passing through Quiet's own sign-out, and the profile pane is the
+            // one page in the app that is *about* whose account this is: left
+            // standing, it would go on holding the last person's photographs
+            // behind an entry marked "your profile".
+            //
+            // The new name first, because throwing the old pane away is also
+            // asking for the page that replaces it, and that page is worked out
+            // from here.
+            let wasSomebodyElse = me != nil
+            me = name
+            // The face goes with it, rather than waiting to be replaced. It is
+            // only replaced when a new one arrives, and a picture that does not
+            // come — a refused fetch to a content delivery network is an
+            // ordinary thing — would leave the last account's photograph under
+            // an entry marked "your profile". An outline says "not yet". The
+            // wrong face says nothing at all, because it looks like it works.
+            //
+            // **And every pane goes, not just the profile.** This used to
+            // forget the profile alone, on the reasoning that `WhoIsSignedIn`
+            // was watching the cookie and would take care of the rest. It does,
+            // when it hears — and `cookiesDidChange` is not promised for a
+            // cookie the network set rather than the app. When it stays quiet
+            // the switch still happens; it is simply never announced. Instagram
+            // navigates the pane its own switcher was on, that pane's script
+            // reports the new name, and the app looks right: the row wears the
+            // new face over two panes still holding the last person's feed and
+            // inbox, one tap away. That is the photograph this came back on.
+            //
+            // A name that has changed is the same fact the cookie carries, a
+            // moment later and by another road. It deserves the same answer.
+            //
+            // It cannot loop: this runs only when a name was already held, and
+            // starting again gives that name up — so the page that arrives
+            // afterwards is somebody being learned rather than somebody
+            // changing.
+            if wasSomebodyElse {
+                myFace = nil
+                startAgainAsSomebodyElse()
+            }
+        }
         let data = picture.flatMap { Data(base64Encoded: $0) }
         if let data, let face = UIImage(data: data) { myFace = face }
         Remembered.remember(me: name, face: data)
@@ -445,32 +626,106 @@ final class WebSurface {
 
     /// Where Quiet's own row can send you.
     ///
-    /// Through Instagram's own row rather than by loading an address. Loading
-    /// one throws the page away and builds it again — a spinner, the feed from
-    /// the top, the stories fetched a second time — every time you come back
-    /// from the inbox. Pressing the link the site already has hands the address
-    /// to the client running in the page, which keeps its shell, its caches and
-    /// the place you had scrolled to.
+    /// A pane each, now, so none of the three is a navigation at all: the page
+    /// you are asking for is already loaded and already scrolled where you left
+    /// it, and the tap is a `isHidden` on two views.
     ///
-    /// The address is the fallback, for the pages that carry no such row and for
-    /// the moment before the first one has loaded.
-    func goToFeed() { go("home", or: ContentRules.feed) }
-    func goToMessages() { go("messages", or: ContentRules.messages) }
+    /// The version before this pressed Instagram's own hidden link so that the
+    /// site's client would move without a page load, which kept the shell and
+    /// the caches. It did not keep the feed — Instagram unmounts what you left
+    /// and builds it again on the way back, which is the whole of what this was
+    /// for and the one thing it could not do. See `Pane`.
+    func goToFeed() { stack?.show(.home) }
+    func goToMessages() { stack?.show(.messages) }
 
+    /// And the one that needs a name before it has an address.
+    ///
+    /// A profile pane cannot be opened until the app knows whose profile it is,
+    /// and on a genuinely first launch it does not: `me` is learned from a
+    /// request the first page makes, a second or so in. Remembered from then
+    /// on, so this is the first second of the first launch and nothing else.
+    ///
+    /// In that second it does what the app did before there were panes — press
+    /// Instagram's own hidden profile link in whichever pane is up. Which
+    /// leaves the row marking `home` while your profile is on the glass, and
+    /// that is the right way round to be wrong: the alternative is a pane that
+    /// opens onto nothing.
     func goToMyProfile() {
-        go("profile", or: me.flatMap(ContentRules.profile(forHandle:)))
+        guard let me, ContentRules.profile(forHandle: me) != nil else {
+            pressInstagramsOwn("profile")
+            return
+        }
+        stack?.show(.profile)
     }
 
-    private func go(_ kind: String, or address: URL?) {
+    /// Hand the app to the other account.
+    ///
+    /// Two taps on the profile entry, and what arrives is Instagram's own
+    /// account switcher — the sheet their site already has, opened by pressing
+    /// the button their profile page already carries. Quiet writes down no
+    /// second account, holds no second session and asks for no password: the
+    /// sheet is theirs, the cookies are theirs, and the app's part is a press.
+    /// See `__quietSwitchAccounts` in trim.js.
+    ///
+    /// Nothing else here has to know about it. The cookie changes a moment
+    /// later, `WhoIsSignedIn` hears it, and all three panes start again as
+    /// somebody else — the same path a switch made in Instagram's own app has
+    /// taken since that watcher was written.
+    ///
+    /// The profile has to be on the glass first, because that is where the
+    /// button is. Which is also why this asks more than once.
+    func switchAccount() {
+        goToMyProfile()
+        askForTheSwitcher()
+    }
+
+    /// How long to wait before each ask, in seconds — two seconds' worth.
+    ///
+    /// The profile pane may have been built by the line above — a first tap
+    /// ever, a pane iOS discarded, a page still arriving — and a page that has
+    /// not drawn its header yet has no button to press. So the ask is repeated
+    /// across the couple of seconds that takes, and the gaps widen: a page
+    /// that is already up answers the first one, on the tap.
+    ///
+    /// It stops on the first yes rather than pressing five times, because
+    /// pressing the switcher twice closes the sheet it opened.
+    private static let asking: [TimeInterval] = [0, 0.25, 0.35, 0.5, 0.9]
+
+    private func askForTheSwitcher() {
+        Task { @MainActor [weak self] in
+            for wait in Self.asking {
+                if wait > 0 { try? await Task.sleep(for: .seconds(wait)) }
+                guard let self, let webView = self.webView else { return }
+                let answer = try? await webView.evaluateJavaScript(
+                    "window.__quietSwitchAccounts ? window.__quietSwitchAccounts() : false"
+                )
+                if (answer as? Bool) == true { return }
+            }
+        }
+    }
+
+    /// Open an address the reader chose, in the pane it belongs to.
+    ///
+    /// Finding somebody is a thing you do to look at them, and looking at
+    /// people is what the home pane is for — loading a stranger's profile into
+    /// the inbox would leave a half-read conversation behind a page nobody
+    /// asked to put there.
+    ///
+    /// Separate from `open` on purpose. `open` is the mechanical one — a retry,
+    /// a fallback address, the page after a failure — and none of those are
+    /// somebody asking to be somewhere else.
+    func visit(_ url: URL) {
+        stack?.show(.home)
+        open(url)
+    }
+
+    /// The old mechanism, kept for the one case that still needs it.
+    private func pressInstagramsOwn(_ kind: String) {
         guard let webView else { return }
         Task { @MainActor in
-            let answered = try? await webView.evaluateJavaScript(
+            _ = try? await webView.evaluateJavaScript(
                 "window.__quietGo ? window.__quietGo('\(kind)') : false"
             )
-            // A string is the address the page went to; anything else means
-            // there was no row to press.
-            if let went = answered as? String, !went.isEmpty { return }
-            if let address { open(address) }
         }
     }
 }
@@ -534,154 +789,151 @@ struct InstagramWebView: UIViewRepresentable {
     /// mechanism deleted and written again from memory.
     var inset: UIEdgeInsets
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator(session: session, surface: surface)
+    /// Whether Instagram's suggested posts are left where they are.
+    ///
+    /// Read from `Preferences` at the call site rather than here, so that
+    /// SwiftUI sees the dependency and runs `updateUIView` when it changes.
+    /// A view that reached into an observable object from inside a
+    /// `UIViewRepresentable` would be a view nothing ever told about the
+    /// change.
+    var showsSuggestions: Bool
+
+    func makeCoordinator() -> PaneStack {
+        PaneStack(session: session, surface: surface)
     }
 
-    func makeUIView(context: Context) -> WKWebView {
-        // The larger of what the layout has worked out and what the window
-        // knows. On the first pass the layout has worked out nothing and is
-        // still holding the twenty points the state starts at, while the window
-        // has had the real number since it opened.
-        // Whatever the screen is asked to keep clear, which is now nothing:
-        // the view starts below the clock, so the page's own world already
-        // does. Kept as a number rather than deleted because the mechanism is
-        // the right one for anything the app ever does need the page to know.
-        let top = inset.top
-        context.coordinator.top = top
-        let payload = WebScripts.load(top: top)
-
-        let controller = WKUserContentController()
-        payload.scripts.forEach(controller.addUserScript)
-        controller.add(ScriptRelay(context.coordinator), name: WebScripts.messageHandler)
-
-        let configuration = WKWebViewConfiguration()
-        configuration.userContentController = controller
-        // Persistent, so logging in is something you do once.
-        configuration.websiteDataStore = .default()
-        configuration.allowsInlineMediaPlayback = true
-        // Nothing plays until someone asks it to. Autoplay is the smallest of
-        // the hooks and among the easiest to remove.
-        configuration.mediaTypesRequiringUserActionForPlayback = .all
-
-        // The second lock, made of addresses, applied by WebKit before
-        // anything of Quiet's is asked. See `BlockList` for what it does and,
-        // more usefully, for what it does not.
-        BlockList.install(into: configuration) { [surface] error in
-            surface.note(blockList: error)
-        }
-
-        let webView = QuietWebView(frame: .zero, configuration: configuration)
-        webView.navigationDelegate = context.coordinator
-        webView.uiDelegate = context.coordinator
-        webView.allowsBackForwardNavigationGestures = true
-        webView.customUserAgent = UserAgent.mobileSafari(systemVersion: UIDevice.current.systemVersion)
-        // The blank between Quiet's own opening and Instagram's first paint.
-        //
-        // The two lines below were already here and did nothing at all, which
-        // is the whole of the bug: **an opaque WKWebView never shows its own
-        // background colour.** WebKit fills the view with the page's colour,
-        // and a page that has not painted yet has none — so it uses its base,
-        // which under a dark appearance is pure black. Every other surface in
-        // the app is `Paper.ground`, a shade off black, so the launch went
-        // ground, black, Instagram: one colour, a hole, and then a page.
-        //
-        // Asking the view not to be opaque is what makes the colour underneath
-        // real. It costs a composite that WebKit was doing anyway the moment
-        // anything on the page was translucent, and it buys a launch that is
-        // one colour all the way through.
-        webView.isOpaque = false
-        webView.backgroundColor = Paper.groundColour
-        webView.scrollView.backgroundColor = Paper.groundColour
-        // And the strip above and below the page while it is pulled past its
-        // own ends, which WebKit paints itself and would otherwise paint white.
-        webView.underPageBackgroundColor = Paper.groundColour
-
-        // The page is given the whole screen. All of it.
-        //
-        // Seven attempts went into the half-inch of glass above the feed, and
-        // every one of them took something away from the page in order to keep
-        // the clock legible — a shorter view, a viewport-fit, a content inset,
-        // a band of the app's own drawn over the top. The photograph that
-        // settled it shows why they were all wrong: whatever is taken off the
-        // top comes back as a black strip at the bottom, above the row, where
-        // Instagram runs its next photograph.
-        //
-        // That held for as long as the page was the only thing that could be
-        // wrong about where it ended. It stopped holding at the other end of
-        // the app: a sheet is anchored to the bottom of the viewport, and while
-        // the viewport ran to the bottom of the glass, every sheet Instagram
-        // opened arrived underneath Quiet's row. Eleven mechanisms tried to
-        // move the sheet back out and each had to recognise it first, which is
-        // the part that failed — in both directions.
-        //
-        // So the view is a frame with both ends taken off it, and the app
-        // paints the two strips itself in the page's own colour. The page is
-        // asked to keep clear of nothing, because nothing of it is behind
-        // anything: what is fixed, what is sticky and what asks for the full
-        // height are all right by construction. See the frame in
-        // `BrowserScreen`.
-        webView.scrollView.contentInsetAdjustmentBehavior = .never
-        // And the app's own, which is the other half of the same request: the
-        // page's are turned off in trim.css, and this is the one WebKit draws
-        // over the top of them.
-        webView.scrollView.showsVerticalScrollIndicator = false
-        webView.scrollView.showsHorizontalScrollIndicator = false
-        webView.scrollView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: inset.bottom, right: 0)
-        // The indicator is the one thing that should still respect the app's
-        // furniture: a scroll bar running under the row reads as a fault.
-        webView.scrollView.verticalScrollIndicatorInsets = inset
-        // Where you were, if you were there in the last twenty minutes.
-        //
-        // Restoring puts the page back without a load, so it is there before
-        // the first frame rather than a spinner and a feed from the top. When
-        // there is nothing to put back — a cold start, a stale place, an
-        // address the app no longer shows — this falls through to the feed,
-        // which is exactly what happened before it existed. See `ThePlace`.
-        if !ThePlace.restore(into: webView) {
-            webView.load(URLRequest(url: ContentRules.home))
-        }
-
-        context.coordinator.watch(webView.scrollView)
-        context.coordinator.addPull(to: webView.scrollView)
-        surface.adopt(webView, missing: payload.missing)
-        return webView
+    /// The container the panes stand in, rather than a web view.
+    ///
+    /// SwiftUI is handed one view whose identity never changes, and what is
+    /// inside it comes and goes: the home pane at launch, the inbox the first
+    /// time somebody taps it, and whichever of them a memory warning takes
+    /// away. Handing SwiftUI the web views themselves would have made a tab
+    /// switch a change of view identity, and a changed identity is a view
+    /// rebuilt — which is the one thing that would throw the page away and undo
+    /// the whole point of having three of them. See `PaneStack`.
+    func makeUIView(context: Context) -> UIView {
+        let stack = context.coordinator
+        stack.hand(top: inset.top, inset: inset, showsSuggestions: showsSuggestions)
+        stack.show(.home)
+        return stack.container
     }
 
-    func updateUIView(_ webView: WKWebView, context: Context) {
-        if webView.scrollView.verticalScrollIndicatorInsets != inset {
-            webView.scrollView.verticalScrollIndicatorInsets = inset
-        }
-        if webView.scrollView.contentInset.bottom != inset.bottom {
-            webView.scrollView.contentInset.bottom = inset.bottom
-        }
-        // The same larger-of-the-two as in `makeUIView`, so that a layout pass
-        // that still reports the starting twenty points cannot walk the number
-        // back down again once the window has given the real one.
-        // Whatever the screen is asked to keep clear, which is now nothing:
-        // the view starts below the clock, so the page's own world already
-        // does. Kept as a number rather than deleted because the mechanism is
-        // the right one for anything the app ever does need the page to know.
-        let top = inset.top
-        // Only when it has actually changed. This runs on every pass SwiftUI
-        // makes over the view, and a page asked to run a script on every frame
-        // of every animation is a page that stutters.
-        if context.coordinator.top != top {
-            context.coordinator.top = top
-            context.coordinator.tellEveryPage(webView, top: top)
-            context.coordinator.tellThisPage(webView)
-        }
+    func updateUIView(_ container: UIView, context: Context) {
         context.coordinator.session = session
+        // Whatever the screen is asked to keep clear, which is now nothing:
+        // the view starts below the clock, so the page's own world already
+        // does. Kept as a number rather than deleted because the mechanism is
+        // the right one for anything the app ever does need the page to know.
+        //
+        // Handed to every pane rather than to the one in front. A pane built
+        // three taps ago was built out of the numbers that were true then, and
+        // the pane nobody is looking at is the one whose wrong number nobody
+        // sees until they tap it. `hand` only does the expensive half — the
+        // scripts rebuilt, every page told again — when the number has actually
+        // moved, because this runs on every pass SwiftUI makes over the view
+        // and a page asked to run a script on every frame of every animation is
+        // a page that stutters.
+        context.coordinator.hand(
+            top: inset.top,
+            inset: inset,
+            showsSuggestions: showsSuggestions
+        )
     }
 
     @MainActor
-    static func dismantleUIView(_ webView: WKWebView, coordinator: Coordinator) {
-        webView.configuration.userContentController
-            .removeScriptMessageHandler(forName: WebScripts.messageHandler)
+    static func dismantleUIView(_ container: UIView, coordinator: PaneStack) {
+        coordinator.dismantle()
     }
 
+    /// What one pane knows about the page it is holding.
+    ///
+    /// Kept by the pane rather than written straight to the surface, which is
+    /// the change three web views forced. The surface says what is happening on
+    /// *the glass*, and two of the three panes are not on it — but they are
+    /// still running. Instagram polls, its client moves the address, the trim
+    /// pass goes on reporting what it found. A background pane allowed to speak
+    /// to the surface would collapse the row, repaint the band behind the
+    /// clock, or drop the "nothing arrived" screen over a page that is
+    /// perfectly fine.
+    ///
+    /// So each pane keeps its own answers and the one in front publishes them.
+    /// Which is also what makes coming back instant in the way that matters:
+    /// the pane that finished loading four minutes ago says so the moment it is
+    /// shown, and Quiet's cover never comes down over a page that is ready.
+    struct PaneState {
+        var address: URL?
+        var hasLoaded = false
+        var isBare = false
+        /// True from the first moment this page had anything on it, and never
+        /// false again. See `WebSurface.hasPainted`.
+        var hasPainted = false
+        var chrome: Color?
+        var stumble: StumbleView.Kind?
+        var isBarCollapsed = false
+        var isTyping = false
+        var isSheetUp = false
+    }
+
+    /// One pane: a web view, the delegates behind it, and what it knows about
+    /// the page it is holding.
+    ///
+    /// Not called `Coordinator`, and the name is load-bearing. A type nested in
+    /// a `UIViewRepresentable` and named `Coordinator` is taken as the witness
+    /// for the protocol's `Coordinator` associated type — ahead of anything
+    /// inferred from `makeCoordinator`. So while this was still called that,
+    /// `makeCoordinator() -> PaneStack` did not satisfy the requirement and the
+    /// whole conformance failed, with an error that names the protocol and says
+    /// nothing about the reason.
+    ///
+    /// The coordinator is `PaneStack` now, because what SwiftUI coordinates
+    /// with is the three of them rather than any one.
     @MainActor
-    final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
+    final class WebPane: NSObject, WKNavigationDelegate, WKUIDelegate {
+        /// Which of the three this is, and the web view it owns.
+        ///
+        /// Strongly: the pane *is* the web view's lifetime. `PaneStack` holds
+        /// the coordinators, and dropping one is how a page is given back to
+        /// the system.
+        let pane: Pane
+        let webView: QuietWebView
+
+        /// Resources that would not come out of the bundle, for this pane's
+        /// scripts. Handed to the surface when the pane takes the glass.
+        let missing: [String]
+
+        /// Weakly, and `unowned` was the tempting spelling. The stack holds the
+        /// coordinators, so it outlives them in every ordinary teardown — but
+        /// "every ordinary teardown" is exactly the assumption that turns a
+        /// delegate callback arriving one turn late into a crash rather than a
+        /// no-op. A pane with no stack has no glass to be on, which is what
+        /// `isLive` answers.
+        private weak var stack: PaneStack?
+
+        /// Everything this pane knows, and — when it is the one being read —
+        /// everything the screen is told.
+        ///
+        /// Published on every change rather than diffed here. The surface's own
+        /// setters all refuse a value they already hold, so saying the same
+        /// thing twice costs a handful of comparisons and buys one place where
+        /// the rule lives instead of eight.
+        var state = PaneState() {
+            didSet {
+                // The pull asks this on every frame of every flick, and asking
+                // `ContentRules` builds a string to do it. The answer changes
+                // when the address does and at no other time.
+                if state.address != oldValue.address {
+                    isImmersiveHere = ContentRules.isImmersive(state.address)
+                }
+                if isLive { publish() }
+            }
+        }
+
+        /// Whether the page on this pane is a story or a conversation, worked
+        /// out when the address changed rather than sixty times a second.
+        private var isImmersiveHere = false
+
+        var isLive: Bool { stack?.isLive(pane) ?? false }
+
         /// Watching the page move, so the island can get out of the way a
         /// little.
         ///
@@ -758,17 +1010,35 @@ struct InstagramWebView: UIViewRepresentable {
         /// otherwise be nothing to pull against on a profile with four posts.
         func keepPullAlive(_ scrollView: UIScrollView) {
             // Not on a story or inside a conversation. See `ContentRules`.
-            guard !ContentRules.isImmersive(surface.address) else {
+            guard !isImmersiveHere else {
                 if scrollView.refreshControl != nil { scrollView.refreshControl = nil }
+                // And give the bounce back before leaving. A conversation is a
+                // list, its bottom is where it starts, and springing there is
+                // what every messaging app on this phone does — but the rule
+                // below may have switched it off a screen down somebody's feed
+                // a moment ago, and a value left behind by another page is not
+                // a decision about this one.
+                if !scrollView.bounces { scrollView.bounces = true }
                 return
             }
             if scrollView.refreshControl !== pull { scrollView.refreshControl = pull }
-            if !scrollView.bounces { scrollView.bounces = true }
-            if !scrollView.alwaysBounceVertical { scrollView.alwaysBounceVertical = true }
+
+            // Both edges or neither — see `Overscroll`, which decides which of
+            // the two is the one within reach. Near the top that is the top,
+            // and the pull needs the bounce; a screen further down it is the
+            // bottom, and under the bottom there is nothing.
+            let bounce = Overscroll.bounces(
+                travelled: scrollView.contentOffset.y + scrollView.adjustedContentInset.top,
+                screen: scrollView.bounds.height
+            )
+            if scrollView.bounces != bounce { scrollView.bounces = bounce }
+            if scrollView.alwaysBounceVertical != bounce {
+                scrollView.alwaysBounceVertical = bounce
+            }
         }
 
         @objc private func pulled() {
-            surface.reload()
+            startAgain()
         }
 
         /// Let the spinner go.
@@ -793,8 +1063,70 @@ struct InstagramWebView: UIViewRepresentable {
 
             // At the top of the page there is nothing to get out of the way of.
             let atTop = offset <= -scrollView.contentInset.top + 4
-            surface.setBar(collapsed: atTop ? false : delta > 0)
+            collapse(atTop ? false : delta > 0)
+            comeBackWhenItStops()
+
+            // And how long the page being read has become, which is the only
+            // signal the app has that its three panes are about to cost more
+            // than iOS will let them. See `PaneStack.theFeedIsGettingLong`.
+            if scrollView.bounds.height > 0,
+               scrollView.contentSize.height > scrollView.bounds.height * Self.aLotOfPage {
+                stack?.theFeedIsGettingLong()
+            }
         }
+
+        /// A dozen screens. Long enough that nobody reaches it by accident and
+        /// short enough to be well before the page a phone gives up on.
+        private static let aLotOfPage: CGFloat = 12
+
+        /// Said only when it changes.
+        ///
+        /// Assigning a struct's field runs `didSet` whether or not the value
+        /// moved, and this one publishes the whole pane state to the screen.
+        /// Doing that on every eight points of every flick, to say what was
+        /// already said, is work in the frame path for nothing.
+        private func collapse(_ collapsed: Bool) {
+            guard state.isBarCollapsed != collapsed else { return }
+            state.isBarCollapsed = collapsed
+        }
+
+        /// The row is documented to draw itself in while the page moves under a
+        /// thumb and to come back out the moment it stops. It did the first
+        /// half.
+        ///
+        /// Nothing was watching for the stopping — the observer above only
+        /// fires while the page is moving — so a flick downward left the pill
+        /// small and faded, and it stayed that way until somebody scrolled
+        /// back up. What the file said and what the app did had disagreed since
+        /// the row was written.
+        ///
+        /// One task per flick rather than one per frame: cancelling and
+        /// building a task sixty times a second, to answer a question about a
+        /// timestamp, is the shape of the thing this whole pass is removing.
+        private func comeBackWhenItStops() {
+            lastMoved = ProcessInfo.processInfo.systemUptime
+            guard stillness == nil else { return }
+            stillness = Task { @MainActor [weak self] in
+                while let self,
+                      !Task.isCancelled,
+                      ProcessInfo.processInfo.systemUptime - self.lastMoved < Self.still {
+                    try? await Task.sleep(for: .seconds(Self.still))
+                }
+                guard let self, !Task.isCancelled else { return }
+                self.stillness = nil
+                self.collapse(false)
+            }
+        }
+
+        private var stillness: Task<Void, Never>?
+        private var lastMoved: TimeInterval = 0
+
+        /// How long the page has to hold still before the row comes back.
+        ///
+        /// The same tenth of a second and a bit the page uses to decide it is
+        /// still, for the same reason: longer than the gap between two frames
+        /// of one flick, shorter than anybody notices. See `STILL` in trim.js.
+        private static let still: TimeInterval = 0.14
 
         var session: QuietSession
         let surface: WebSurface
@@ -805,6 +1137,14 @@ struct InstagramWebView: UIViewRepresentable {
         /// below: the scripts are built and the first page is asked for before
         /// this number exists.
         var top: CGFloat = 0
+
+        /// Whether Instagram's suggested posts are left where they are.
+        ///
+        /// Held per pane and not read from `Preferences` here, for the same
+        /// reason `top` is: this object is built once and outlives every pass
+        /// SwiftUI makes, and what it was built with has to be kept up to date
+        /// from outside rather than fetched from inside. See `PaneStack.hand`.
+        var showsSuggestions = true
 
         /// Rebuild the injected scripts around the real number, so that every
         /// page from here on is told it before its first paint.
@@ -826,7 +1166,8 @@ struct InstagramWebView: UIViewRepresentable {
         func tellEveryPage(_ webView: WKWebView, top: CGFloat) {
             let controller = webView.configuration.userContentController
             controller.removeAllUserScripts()
-            WebScripts.load(top: top).scripts.forEach(controller.addUserScript)
+            WebScripts.load(top: top, showsSuggestions: showsSuggestions)
+                .scripts.forEach(controller.addUserScript)
         }
 
         /// And the document already on screen, whose scripts have run.
@@ -849,9 +1190,250 @@ struct InstagramWebView: UIViewRepresentable {
             webView.evaluateJavaScript(lines.joined(separator: "\n"))
         }
 
-        init(session: QuietSession, surface: WebSurface) {
+        /// The setting changed, and three pages are open.
+        ///
+        /// Separate from `tellThisPage` because it is not a number to be
+        /// written down: showing suggestions again means taking an attribute
+        /// off everything that has one and forgetting what was read, which the
+        /// page has to do for itself. `tellEveryPage` covers the next document
+        /// this pane loads; this covers the one it is holding.
+        ///
+        /// Sent to panes that are not on the glass on purpose. Those are the
+        /// ones this exists for — the inbox nobody has looked at since this
+        /// morning is one tap from being brought forward, and bringing it
+        /// forward is not a load.
+        func tellThisPageAboutSuggestions(_ webView: WKWebView) {
+            webView.evaluateJavaScript(
+                "window.__quietSuggestionsChanged && window.__quietSuggestionsChanged(\(showsSuggestions))"
+            )
+        }
+
+        init(
+            session: QuietSession,
+            surface: WebSurface,
+            stack: PaneStack,
+            pane: Pane,
+            top: CGFloat,
+            inset: UIEdgeInsets,
+            showsSuggestions: Bool
+        ) {
             self.session = session
             self.surface = surface
+            self.stack = stack
+            self.pane = pane
+            self.top = top
+            self.showsSuggestions = showsSuggestions
+            let built = WebPane.build(
+                top: top,
+                inset: inset,
+                surface: surface,
+                showsSuggestions: showsSuggestions
+            )
+            self.webView = built.view
+            self.missing = built.missing
+            super.init()
+            self.webView.navigationDelegate = self
+            self.webView.uiDelegate = self
+            // After `super.init`, because the relay needs a coordinator that
+            // exists. It holds this one weakly — see `ScriptRelay`.
+            self.webView.configuration.userContentController
+                .add(ScriptRelay(self), name: WebScripts.messageHandler)
+            watch(self.webView.scrollView)
+            addPull(to: self.webView.scrollView)
+        }
+
+        /// The web view itself, built the way the app has always built it.
+        ///
+        /// Lifted out of `makeUIView` word for word when there came to be three
+        /// of them. Every line of it was paid for once already and none of it
+        /// changed on the way across; what changed is only that it happens
+        /// three times instead of one, against the same persistent store, so
+        /// signing in is still something you do once.
+        private static func build(
+            top: CGFloat,
+            inset: UIEdgeInsets,
+            surface: WebSurface,
+            showsSuggestions: Bool
+        ) -> (view: QuietWebView, missing: [String]) {
+            let payload = WebScripts.load(top: top, showsSuggestions: showsSuggestions)
+
+            let controller = WKUserContentController()
+            payload.scripts.forEach(controller.addUserScript)
+
+            let configuration = WKWebViewConfiguration()
+            configuration.userContentController = controller
+            // Persistent, so logging in is something you do once.
+            configuration.websiteDataStore = .default()
+            configuration.allowsInlineMediaPlayback = true
+            // Nothing plays until someone asks it to. Autoplay is the smallest of
+            // the hooks and among the easiest to remove.
+            configuration.mediaTypesRequiringUserActionForPlayback = .all
+
+            // The second lock, made of addresses, applied by WebKit before
+            // anything of Quiet's is asked. See `BlockList` for what it does and,
+            // more usefully, for what it does not.
+            BlockList.install(into: configuration) { [surface] error in
+                surface.note(blockList: error)
+            }
+
+            let webView = QuietWebView(frame: .zero, configuration: configuration)
+            webView.allowsBackForwardNavigationGestures = true
+            webView.customUserAgent = UserAgent.mobileSafari(systemVersion: UIDevice.current.systemVersion)
+            // The blank between Quiet's own opening and Instagram's first paint.
+            //
+            // The two lines below were already here and did nothing at all, which
+            // is the whole of the bug: **an opaque WKWebView never shows its own
+            // background colour.** WebKit fills the view with the page's colour,
+            // and a page that has not painted yet has none — so it uses its base,
+            // which under a dark appearance is pure black. Every other surface in
+            // the app is `Paper.ground`, a shade off black, so the launch went
+            // ground, black, Instagram: one colour, a hole, and then a page.
+            //
+            // Asking the view not to be opaque is what makes the colour underneath
+            // real. It costs a composite that WebKit was doing anyway the moment
+            // anything on the page was translucent, and it buys a launch that is
+            // one colour all the way through.
+            webView.isOpaque = false
+            webView.backgroundColor = Paper.groundColour
+            webView.scrollView.backgroundColor = Paper.groundColour
+            // And the strip above and below the page while it is pulled past its
+            // own ends, which WebKit paints itself and would otherwise paint white.
+            webView.underPageBackgroundColor = Paper.groundColour
+
+            // The page is given the whole screen. All of it.
+            //
+            // Seven attempts went into the half-inch of glass above the feed, and
+            // every one of them took something away from the page in order to keep
+            // the clock legible — a shorter view, a viewport-fit, a content inset,
+            // a band of the app's own drawn over the top. The photograph that
+            // settled it shows why they were all wrong: whatever is taken off the
+            // top comes back as a black strip at the bottom, above the row, where
+            // Instagram runs its next photograph.
+            //
+            // That held for as long as the page was the only thing that could be
+            // wrong about where it ended. It stopped holding at the other end of
+            // the app: a sheet is anchored to the bottom of the viewport, and while
+            // the viewport ran to the bottom of the glass, every sheet Instagram
+            // opened arrived underneath Quiet's row. Eleven mechanisms tried to
+            // move the sheet back out and each had to recognise it first, which is
+            // the part that failed — in both directions.
+            //
+            // So the view is a frame with both ends taken off it, and the app
+            // paints the two strips itself in the page's own colour. The page is
+            // asked to keep clear of nothing, because nothing of it is behind
+            // anything: what is fixed, what is sticky and what asks for the full
+            // height are all right by construction. See the frame in
+            // `BrowserScreen`.
+            webView.scrollView.contentInsetAdjustmentBehavior = .never
+            // And the app's own, which is the other half of the same request: the
+            // page's are turned off in trim.css, and this is the one WebKit draws
+            // over the top of them.
+            webView.scrollView.showsVerticalScrollIndicator = false
+            webView.scrollView.showsHorizontalScrollIndicator = false
+            webView.scrollView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: inset.bottom, right: 0)
+            // The indicator is the one thing that should still respect the app's
+            // furniture: a scroll bar running under the row reads as a fault.
+            webView.scrollView.verticalScrollIndicatorInsets = inset
+            return (webView, payload.missing)
+        }
+
+        /// The first page this pane ever shows.
+        ///
+        /// Where you were, if you were there in the last twenty minutes.
+        /// Restoring puts the page back without a load, so it is there before
+        /// the first frame rather than a spinner and a feed from the top. When
+        /// there is nothing to put back — a cold start, a stale place, an
+        /// address the app no longer shows — this falls through to the pane's
+        /// own opening address. See `ThePlace`.
+        func openTheFirstPage() {
+            if ThePlace.restore(into: webView, for: pane) { return }
+            guard let opening = pane.opening(me: surface.me) else { return }
+            webView.load(URLRequest(url: opening))
+        }
+
+        /// This pane is the one being read now. Say everything it knows.
+        func takeTheGlass() {
+            surface.adopt(webView, missing: missing)
+            surface.note(pane: pane)
+            // Whatever the keyboard was doing on this page, it is not doing it
+            // now: the page has been off the glass and the field with it. The
+            // session caps what typing is worth and would otherwise go on
+            // holding the curtain for a sentence nobody is writing.
+            if state.isTyping { state.isTyping = false }
+            session.setTyping(false)
+            publish()
+        }
+
+        private func publish() {
+            surface.note(address: state.address)
+            surface.note(loaded: state.hasLoaded)
+            surface.note(bare: state.isBare)
+            surface.note(painted: state.hasPainted)
+            if let colour = state.chrome { surface.note(chrome: colour) }
+            surface.note(stumble: state.stumble)
+            surface.setBar(collapsed: state.isBarCollapsed)
+            surface.note(typing: state.isTyping)
+            surface.note(sheet: state.isSheetUp)
+        }
+
+        /// The keyboard belongs to the page on the glass, and this one is
+        /// leaving it.
+        func letGoOfTheKeyboard() {
+            webView.endEditing(true)
+            if state.isTyping { state.isTyping = false }
+            session.setTyping(false)
+        }
+
+        func keepThePlace() {
+            ThePlace.keep(webView, for: pane)
+        }
+
+        /// Ask for this pane's page again, whatever state it is in.
+        ///
+        /// What the pull at the top does, and what a pane whose web content
+        /// process iOS killed needs: a view that has lost its process has an
+        /// address and nothing on it, and both want the same request.
+        func startAgain() {
+            state.stumble = nil
+            if webView.url == nil {
+                openTheFirstPage()
+            } else {
+                webView.reload()
+            }
+        }
+
+        func apply(inset: UIEdgeInsets) {
+            let scrollView = webView.scrollView
+            if scrollView.verticalScrollIndicatorInsets != inset {
+                scrollView.verticalScrollIndicatorInsets = inset
+            }
+            if scrollView.contentInset.bottom != inset.bottom {
+                scrollView.contentInset.bottom = inset.bottom
+            }
+        }
+
+        /// Give the page back to the system.
+        func dismantle() {
+            stillness?.cancel()
+            stillness = nil
+            scrolling?.invalidate()
+            scrolling = nil
+            webView.navigationDelegate = nil
+            webView.uiDelegate = nil
+            webView.stopLoading()
+            webView.configuration.userContentController
+                .removeScriptMessageHandler(forName: WebScripts.messageHandler)
+        }
+
+        /// iOS killed this pane's web content process.
+        ///
+        /// Not a crash and not an error — it is the phone reclaiming memory,
+        /// and with three pages open it is a thing to expect rather than a
+        /// thing to be surprised by. What is left behind is a web view with an
+        /// address and a blank rectangle where the page was, which is why this
+        /// has to be answered rather than logged: nothing else ever will.
+        func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+            stack?.died(pane)
         }
 
         func webView(
@@ -956,7 +1538,7 @@ struct InstagramWebView: UIViewRepresentable {
         /// address it gave away, and the panel keeps the last one so it can be
         /// reported rather than reconstructed from memory.
         func handOff(_ url: URL) {
-            if ContentRules.isSignInFlow(surface.address) {
+            if ContentRules.isSignInFlow(state.address) {
                 surface.note(handedOff: url)
                 session.show(String(
                     localized: "\(url.host ?? "That page") is not part of Instagram, so it opened in Safari. If you were signing in, come back and start again."
@@ -968,18 +1550,56 @@ struct InstagramWebView: UIViewRepresentable {
         func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
             // Something arrived, so whatever did not arrive last time is no
             // longer the news.
-            surface.note(stumble: nil)
-            surface.note(address: webView.url)
+            state.stumble = nil
+            state.address = webView.url
+            // And neither is anything the last document said about its own
+            // furniture. A document that has just committed has no sheet up and
+            // no field holding the keyboard — both of those are facts about a
+            // page that no longer exists, and both of them take Quiet's row off
+            // the screen.
+            //
+            // This is the app's half of the switcher. The page says its first
+            // answer on every document now, which fixes it from that end too;
+            // this end is asserted anyway because it needs nothing of
+            // Instagram's to be true. The row is the only way to Quiet's own
+            // settings, and it must never be possible to be left without it
+            // because a script did not run.
+            state.isSheetUp = false
+            if state.isTyping { state.isTyping = false }
+            session.setTyping(false)
+            // A page has arrived, so whatever the account was changing into, it
+            // has changed. See `startingOver`.
+            surface.aPageArrived()
             tellThisPage(webView)
             keepPullAlive(webView.scrollView)
         }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            surface.note(address: webView.url)
-            surface.markLoaded()
+            state.address = webView.url
+            state.hasLoaded = true
+            standOnItsOwn(webView)
             tellThisPage(webView)
             endPull()
             keepPullAlive(webView.scrollView)
+        }
+
+        /// Give the fast path back, now that the page is painting its own
+        /// background.
+        ///
+        /// The view is created transparent so that the app's own ground shows
+        /// through the second before Instagram has painted anything — otherwise
+        /// WebKit fills it with black and the launch has a hole in it. That
+        /// transparency is not free: a view that is not opaque cannot use the
+        /// fast path for its tiles, and every frame of every flick is composited
+        /// over whatever is behind it. Paid for one second, that is a good
+        /// trade; paid for ever, it is a stutter in the one thing this app does
+        /// all day.
+        ///
+        /// So it is given back at the first paint and never taken again. A
+        /// later navigation has a painted page underneath it already.
+        private func standOnItsOwn(_ webView: WKWebView) {
+            guard !webView.isOpaque else { return }
+            webView.isOpaque = true
         }
 
         /// The page did not arrive.
@@ -1001,11 +1621,15 @@ struct InstagramWebView: UIViewRepresentable {
             let failure = error as NSError
             let code = failure.code
             guard code != NSURLErrorCancelled else { return }
-            surface.markLoaded()
+            state.hasLoaded = true
 
             let offline = Self.offlineCodes.contains(code)
             guard webView.url == nil else {
-                if offline { session.show(String(localized: "No connection.")) }
+                // Only about the page somebody is looking at. A pane off the
+                // glass losing a background request is not news anybody asked
+                // for, and a sentence about it would arrive over a page that is
+                // loading perfectly well.
+                if offline, isLive { session.show(String(localized: "No connection.")) }
                 return
             }
 
@@ -1023,11 +1647,11 @@ struct InstagramWebView: UIViewRepresentable {
             // the view, which by now is holding nothing.
             let failed = failure.userInfo[NSURLErrorFailingURLErrorKey] as? URL
             if !offline, let next = ContentRules.opening(after: failed) {
-                surface.open(next)
+                webView.load(URLRequest(url: next))
                 return
             }
 
-            surface.note(stumble: offline ? .offline : .unreachable)
+            state.stumble = offline ? .offline : .unreachable
         }
 
         /// The codes that mean "there is no network", as against the ones that
@@ -1047,7 +1671,7 @@ struct InstagramWebView: UIViewRepresentable {
             didFail navigation: WKNavigation!,
             withError error: Error
         ) {
-            surface.markLoaded()
+            state.hasLoaded = true
             endPull()
         }
 
@@ -1069,7 +1693,7 @@ struct InstagramWebView: UIViewRepresentable {
                 // Instagram's client changes the address without loading
                 // anything, so this is the only way the row learns it moved.
                 if let path = body["path"] as? String {
-                    surface.note(path: path)
+                    state.address = URL(string: path, relativeTo: ContentRules.feed)?.absoluteURL
                 }
 
             case "icon":
@@ -1084,13 +1708,24 @@ struct InstagramWebView: UIViewRepresentable {
                 // stands on. Sent again whenever it changes, which is how the
                 // band follows the phone from light to dark.
                 if let colour = Chrome.colour(in: body) {
-                    surface.note(chrome: colour)
+                    state.chrome = colour
                 }
 
             case "bare":
                 // Whether Instagram has drawn anything yet. The cover over the
                 // top of it stays up until this says there is something to see.
-                surface.note(bare: body["on"] as? Bool ?? false)
+                let bare = body["on"] as? Bool ?? false
+                state.isBare = bare
+                if !bare {
+                    state.hasPainted = true
+                    // The first paint, which is the event the line below has
+                    // always been waiting for and never had. It used to be
+                    // taken at `didFinish`, because that was the only signal
+                    // there was — and on Instagram that is whole seconds after
+                    // the page is on the glass, every one of them composited
+                    // rather than drawn straight.
+                    standOnItsOwn(webView)
+                }
 
             case "health":
                 // What the trim pass found, and did not find. The one message
@@ -1103,13 +1738,15 @@ struct InstagramWebView: UIViewRepresentable {
                 // Somebody is halfway through a message. The session decides
                 // what that is worth, and caps it.
                 let typing = body["on"] as? Bool ?? false
-                surface.note(typing: typing)
-                session.setTyping(typing)
+                state.isTyping = typing
+                // Only the page on the glass can be being typed in, and only
+                // that one may hold the end of the day back for a sentence.
+                if isLive { session.setTyping(typing) }
 
             case "sheet":
                 // Something modal is covering the foot of the glass. The row
                 // steps aside until it goes; see `quietBar` in BrowserScreen.
-                surface.note(sheet: body["up"] as? Bool ?? false)
+                state.isSheetUp = body["up"] as? Bool ?? false
 
             case "me":
                 // Read out of Instagram's navigation before it was taken out.
@@ -1124,13 +1761,13 @@ struct InstagramWebView: UIViewRepresentable {
     }
 }
 
-/// Holds the coordinator weakly, because `WKUserContentController` holds its
-/// message handlers strongly and the coordinator owns the web view's lifetime.
+/// Holds the pane weakly, because `WKUserContentController` holds its message
+/// handlers strongly and the pane owns the web view's lifetime.
 private final class ScriptRelay: NSObject, WKScriptMessageHandler {
-    private weak var coordinator: InstagramWebView.Coordinator?
+    private weak var pane: InstagramWebView.WebPane?
 
-    init(_ coordinator: InstagramWebView.Coordinator) {
-        self.coordinator = coordinator
+    init(_ pane: InstagramWebView.WebPane) {
+        self.pane = pane
     }
 
     func userContentController(
@@ -1138,7 +1775,7 @@ private final class ScriptRelay: NSObject, WKScriptMessageHandler {
         didReceive message: WKScriptMessage
     ) {
         MainActor.assumeIsolated {
-            coordinator?.receive(message)
+            pane?.receive(message)
         }
     }
 }

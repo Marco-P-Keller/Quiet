@@ -27,6 +27,10 @@ struct SearchView: View {
     @State private var outcome = Outcome.idle
     @State private var asking: Task<Void, Never>?
     @FocusState private var isFocused: Bool
+#if DEBUG
+    @State private var whereIAm: CGFloat = -1
+    @State private var whereTheFieldIs: CGFloat = -1
+#endif
 
     private enum Outcome: Equatable {
         case idle, asking, answered, unavailable
@@ -66,8 +70,54 @@ struct SearchView: View {
             .toolbarBackground(Paper.page, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
         }
+        // Deliberately not `.ignoresSafeArea(.keyboard)`. That reads like the
+        // way to say "do not move for a keyboard" and it is the opposite: it
+        // *expands* the view to cover the region it ignores, so this page
+        // asked its container for its own height plus the keyboard's — and the
+        // stack it stands in answered by overflowing, which is where the
+        // seventy-six points came from. The page not moving is settled where
+        // it belongs, by the stack having a size. See `quietPages`.
         .presentationBackground(Paper.page)
+#if DEBUG
+        // Where this page actually is on the glass, which is the question the
+        // photograph could not answer: a page whose top strip has collapsed and
+        // a page that has been slid upward look identical, and only one of them
+        // is about the safe area.
+        .background(
+            GeometryReader { proxy in
+                Color.clear
+                    .onAppear { whereIAm = proxy.frame(in: .global).minY }
+                    .onChange(of: proxy.frame(in: .global).minY) { whereIAm = $1 }
+            }
+        )
+#endif
+        .onAppear(perform: rehearse)
         .onDisappear { asking?.cancel() }
+    }
+
+    /// A staged photograph with the keyboard up, and what the app read while
+    /// it was.
+    ///
+    /// Nothing here runs in a build anybody can install — `Rehearsal` is `#if
+    /// DEBUG` in its entirety. It exists because the defect it was written for
+    /// cannot be seen without a keyboard: a keyboard puts a second full-screen
+    /// window in front of the app's, and the app used to take the height of the
+    /// notch from whichever window had the keys.
+    private func rehearse() {
+#if DEBUG
+        guard Rehearsal.measuresTheSearchPage else { return }
+        if Rehearsal.opensKeyboard { isFocused = true }
+        Task {
+            // After the keyboard, not before it. The window that would change
+            // any of this does not exist until it is on screen.
+            try? await Task.sleep(for: .seconds(2))
+            NSLog(
+                "Quiet: top %.1f, page at %.1f, field at %.1f, keyboard %@",
+                Double(SafeArea.top), Double(whereIAm), Double(whereTheFieldIs),
+                Rehearsal.opensKeyboard ? "up" : "down"
+            )
+        }
+#endif
     }
 
     private var field: some View {
@@ -105,6 +155,15 @@ struct SearchView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .padding(.horizontal, 28)
         .padding(.top, 12)
+#if DEBUG
+        .background(
+            GeometryReader { proxy in
+                Color.clear
+                    .onAppear { whereTheFieldIs = proxy.frame(in: .global).minY }
+                    .onChange(of: proxy.frame(in: .global).minY) { whereTheFieldIs = $1 }
+            }
+        )
+#endif
     }
 
     private var results: some View {
@@ -142,6 +201,9 @@ struct SearchView: View {
             }
             .padding(.top, 14)
         }
+        // Three names do not fill the glass, and a list of three that bounces
+        // is a list claiming to have more.
+        .scrollBounceBehavior(.basedOnSize)
     }
 
     /// The three or four people you came here for.

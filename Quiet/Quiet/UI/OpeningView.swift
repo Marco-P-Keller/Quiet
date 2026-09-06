@@ -29,9 +29,16 @@ struct OpeningView: View {
 
             VStack {
                 Spacer(minLength: 0)
+                // The app signing its name, which is not the same as a logo
+                // screen: it is at the foot, it is the size of the word next
+                // to it, and nobody has to look at it. What it buys is that
+                // the thing on the home screen and the thing that opens are
+                // recognisably the same app.
+                Hourglass(height: 16)
                 Text(verbatim: "Quiet")
                     .font(.quietFine)
                     .foregroundStyle(Paper.inkSoft)
+                    .padding(.top, 7)
                     .padding(.bottom, 28)
             }
         }
@@ -48,6 +55,22 @@ struct OpeningView: View {
     /// out is one you learn to resent, and this one is in front of somebody who
     /// has already decided what they came to do.
     static let held: Duration = .seconds(1.4)
+
+    /// And how long it is up when the page behind it is already there.
+    ///
+    /// The sentence is the reason this screen exists, so there is a floor and
+    /// it is not zero. What there is no reason for is the second half of the
+    /// wait *after* Instagram has painted — which is most of what a warm launch
+    /// is: the place is put back without a load, the feed is on the glass in a
+    /// tenth of a second, and Quiet went on showing its own paper over the top
+    /// of it for more than a second longer because a timer said so.
+    ///
+    /// The slow launch is unchanged. Nothing here shortens a wait that is real;
+    /// it only stops adding to one that is over. See `RootView`.
+    static let least: Duration = .seconds(1.0)
+
+    /// What is left of the wait, once the least of it has been spent.
+    static var rest: Duration { held - least }
 }
 
 /// Whether this launch shows the opening, and for how long.

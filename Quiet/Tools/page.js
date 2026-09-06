@@ -55,7 +55,14 @@ function installBoxes(win) {
   };
 }
 
-async function page(html, url, head) {
+/**
+ * @param world extra globals, set where the app sets them: after everything a
+ *   fixture always gets and *before* trim.js runs. Anything the app injects at
+ *   document start has to arrive here or it arrives too late — the script reads
+ *   several of them on its first pass, and a value written afterwards is a
+ *   value the first pass never saw.
+ */
+async function page(html, url, head, world) {
   const dom = new JSDOM(
     `<!doctype html><html><head>${head || ""}</head><body>${html}</body></html>`,
     { runScripts: "outside-only", url, virtualConsole: speaker() }
@@ -64,6 +71,22 @@ async function page(html, url, head) {
     await new Promise((go) => dom.window.addEventListener("load", go));
   }
   const win = dom.window;
+  dress(win);
+  if (world) Object.keys(world).forEach((key) => { win[key] = world[key]; });
+  win.eval(TRIM);
+  win.drain();
+  return win;
+}
+
+/**
+ * Everything a fixture has to answer for, put on one window.
+ *
+ * Separate from `page` so that the same stubs can be put on the window of a
+ * real iframe, which is the only honest way to ask what the script does in a
+ * subframe: `window.top` is not a property jsdom lets anybody redefine, and a
+ * test that faked it would be testing the fake.
+ */
+function dress(win) {
   installBoxes(win);
   // A phone, not a desktop browser. jsdom's window is a thousand points wide,
   // and rules that ask whether something spans the glass answer no to every
@@ -87,6 +110,11 @@ async function page(html, url, head) {
   win.document.elementFromPoint = function () {
     return win.document.querySelector("[data-at-top]");
   };
+  // jsdom scrolls nothing, so what the script asks the page to scroll by is
+  // recorded instead. Taking a block out above the top of the glass has to be
+  // paid for in the same frame, and this is where the payment shows up.
+  win.scrolledBy = [];
+  win.scrollBy = (x, y) => win.scrolledBy.push(y);
   // What the script sends up to the app, kept so a test can read it.
   win.sent = [];
   win.webkit = { messageHandlers: { quiet: { postMessage: (m) => win.sent.push(m) } } };
@@ -95,9 +123,50 @@ async function page(html, url, head) {
   const frames = [];
   win.requestAnimationFrame = (fn) => frames.push(fn);
   win.drain = () => { while (frames.length) frames.shift()(); };
+  // The frames, and then the pass the script holds back.
+  //
+  // trim.js rations its full pass: a document that is still rewriting itself
+  // gets the immediate half on the frame and everything else once it stops,
+  // because doing all of it on every frame of a load is what made the feed
+  // arrive last. A browser pays that tenth of a second by itself. A fixture
+  // has to ask, and this is the asking — so a test that wants to know about
+  // anything the full pass does wants `settle`, and a test about what happens
+  // *while* a thumb is moving wants `drain`.
+  win.settle = async () => {
+    win.drain();
+    await new Promise((go) => setTimeout(go, 200));
+    win.drain();
+  };
   // The script asks Instagram who is signed in. There is nobody here to ask.
   win.fetch = () => new win.Promise(() => {});
   win.__quietTop = 59;
+  // The two sentences the app hands the page, so the end of a feed can be said
+  // in whichever language the phone is in. The catalogue owns the real ones.
+  win.__quietEnd = "That's everyone you follow.";
+  win.__quietEndNote = "Instagram would go on with people you don't. Pull down at the top for new posts.";
+  // Instagram's suggestions, and the one thing here that is deliberately *not*
+  // the app's own default.
+  //
+  // The app shows them unless somebody asks otherwise, and that default is
+  // pinned in Swift, where it lives — `PreferencesTests`. What these tools ask
+  // about is the trimming: whether a block Instagram inserted is found, and
+  // whether an ordinary post survives. Both questions are only askable of a
+  // script that has been asked to trim, so a fixture is one that has, and the
+  // handful of checks about the setting itself say so in as many words by
+  // passing `{ __quietShowsSuggestions: true }`.
+  win.__quietShowsSuggestions = false;
+  return win;
+}
+
+/**
+ * The same script, in a frame inside a page — which is what an advertisement in
+ * a feed is.
+ */
+async function subframe(html, url) {
+  const outer = await page(`<iframe></iframe>`, url);
+  const win = outer.document.querySelector("iframe").contentWindow;
+  win.document.body.innerHTML = html;
+  dress(win);
   win.eval(TRIM);
   win.drain();
   return win;
@@ -136,4 +205,4 @@ function scoreboard(title) {
   return { check, done };
 }
 
-module.exports = { page, installBoxes, scoreboard, TRIM };
+module.exports = { page, subframe, dress, installBoxes, scoreboard, TRIM };

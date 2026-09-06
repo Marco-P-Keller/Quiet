@@ -14,6 +14,13 @@ import UIKit
 /// in the same place, on every page — including the ones where Instagram draws
 /// no bar at all.
 ///
+/// Four of them, for the first ten seconds. The clock is the only thing in the
+/// row that is Quiet's, and an app that puts itself in the middle of somebody
+/// else's navigation on the first frame is an app announcing itself before the
+/// page it stands in front of has drawn a post. So it arrives late, in its own
+/// slot, with a small plop; a double tap sends it away again and a tap on the
+/// empty slot brings it back. See `isClockOnTheRow` and `clockButton`.
+///
 /// The bar is the shape Instagram's own is: the full width of the glass, flush
 /// against the bottom edge, opaque, with a hairline above it and the system's
 /// strip beneath. It was a floating pill for a while, and a pill is the one
@@ -31,6 +38,14 @@ import UIKit
 /// a story and an open conversation both put something of their own along the
 /// bottom edge, and a row drawn over the top of it covers the one control the
 /// screen exists for. See `isImmersive`.
+///
+/// The three that are Instagram's are three pages, open at once. Tapping one is
+/// not a navigation: the page is already there, already scrolled where it was
+/// left, with the half-written message still in the box. It used to be one page
+/// and five entries pointing at it, and coming back from the inbox meant
+/// Instagram building the feed again — its router unmounts what you left, which
+/// is the site's behaviour and not something an app outside a single page can
+/// talk it out of. See `Pane` and `PaneStack`.
 ///
 /// The two screens that are Quiet's own — the settings behind the clock, and
 /// finding someone — are pages here rather than sheets over the top. A sheet
@@ -74,6 +89,33 @@ struct BrowserScreen: View {
     /// bottom — the home indicator, to the point. Ignoring the safe area is a
     /// request. A size is not.
     @State private var glass: CGSize = SafeArea.glass
+#if DEBUG
+    @State private var whereTheGlassIs: CGFloat = -1
+#endif
+
+    /// Whether the clock is on the row at all.
+    ///
+    /// It is not there when the app opens. The four entries beside it are
+    /// Instagram's and they are what somebody came here to use; the clock is
+    /// Quiet's, and Quiet arriving first — in the middle of the row, on the
+    /// first frame — is the app introducing itself before the thing it stands
+    /// in front of has drawn a single post. So the row opens as four, and the
+    /// fifth arrives ten seconds later, once the page is there and being read.
+    ///
+    /// The slot is held either way. Only the glyph comes and goes, so the four
+    /// never move and a thumb aimed at messages finds messages whether the
+    /// clock is out or not.
+    @State private var isClockOnTheRow = false
+
+    /// Whether the person has had a hand in that, which ends the ten seconds'
+    /// say in it.
+    ///
+    /// Without this, a clock dismissed at the eighth second would come back at
+    /// the tenth — the app overruling somebody about the one thing on the row
+    /// they are allowed to overrule. Once a tap has said where the clock should
+    /// be, the timer has no more opinions for the rest of the session.
+    @State private var clockDecidedByHand = false
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -98,7 +140,11 @@ struct BrowserScreen: View {
                     left: 0,
                     bottom: furniture - pageGivesUp,
                     right: 0
-                )
+                ),
+                // Read here rather than inside the representable, so that
+                // SwiftUI knows this view depends on it and runs the update
+                // when somebody flicks the switch in the panel.
+                showsSuggestions: preferences.showsSuggestions
             )
             // Six mechanisms went into keeping Instagram's own bars off the
             // status bar: a content inset, a padding on the document, a lift on
@@ -197,8 +243,22 @@ struct BrowserScreen: View {
             alignment: .top
         )
         .ignoresSafeArea()
+#if DEBUG
+        // Where the whole browsing screen is, which is the question five
+        // rounds of changes *inside* it never asked. A screen that is being
+        // moved whole cannot be fixed from within, and telling those two apart
+        // is one number.
+        .background(
+            GeometryReader { proxy in
+                Color.clear
+                    .onAppear { whereTheGlassIs = proxy.frame(in: .global).minY }
+                    .onChange(of: proxy.frame(in: .global).minY) { whereTheGlassIs = $1 }
+            }
+        )
+#endif
         .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: surface.hasLoaded)
         .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: surface.isBare)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: surface.hasPainted)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: surface.stumble)
         // The band changing colour: the first answer from a page, and every
         // change of scheme after it. A fade, because a flat area of the screen
@@ -215,6 +275,72 @@ struct BrowserScreen: View {
             bottomInset = SafeArea.bottom
             glass = SafeArea.glass
         }
+        .task { await letTheClockArrive() }
+#if DEBUG
+        .task { await sayWhatTheGlassIs() }
+#endif
+    }
+
+#if DEBUG
+    /// The numbers this screen is actually laid out against, said aloud once,
+    /// in the one staged scene that puts a keyboard up.
+    ///
+    /// `SafeArea.top` being right is not the same as `topInset` being right.
+    /// The second is a copy taken at `onAppear`, and if the window had not been
+    /// laid out by then it is the fallback rather than the notch — which would
+    /// collapse the strip the clock stands in, and would also leave `glass` at
+    /// zero, which takes the fixed height off the stack that holds everything
+    /// else up. Two hypotheses, one line, and no more guessing at arithmetic.
+    private func sayWhatTheGlassIs() async {
+        guard Rehearsal.measuresTheSearchPage else { return }
+        try? await Task.sleep(for: .seconds(2))
+        NSLog(
+            "Quiet: top %.1f held; glass %.0f x %.0f at %.1f, keyboard %@",
+            Double(topInset), Double(glass.width), Double(glass.height),
+            Double(whereTheGlassIs), Rehearsal.opensKeyboard ? "up" : "down"
+        )
+    }
+#endif
+
+    // MARK: - The clock arriving
+
+    /// Ten seconds, and then the clock is on the row.
+    ///
+    /// Cancelled with the screen, and silent if a tap has already settled the
+    /// question — either way round: somebody who asked for the clock at the
+    /// third second is not shown it arriving again at the tenth, and somebody
+    /// who sent it away is not handed it back.
+    private func letTheClockArrive() async {
+        guard !clockDecidedByHand, !isClockOnTheRow else { return }
+        try? await Task.sleep(for: .seconds(Self.clockArrivesAfter))
+        guard !Task.isCancelled, !clockDecidedByHand else { return }
+        withAnimation(plop) { isClockOnTheRow = true }
+    }
+
+    /// How long the row stands as four.
+    ///
+    /// Long enough that the clock is not part of the app opening — which is the
+    /// whole point of the wait — and short enough that it is there before
+    /// anybody has finished the first screenful and gone looking for it.
+    private static let clockArrivesAfter: TimeInterval = 10
+
+    /// The plop.
+    ///
+    /// A spring rather than a fade, because the clock is arriving rather than
+    /// being switched on, and a thing that arrives has a little weight to it:
+    /// it comes up from just under full size, overshoots by a hair, and
+    /// settles. About a quarter of a second, all of it inside a twenty-five
+    /// point box — small enough that it registers out of the corner of an eye
+    /// and never asks to be watched, which is the whole brief for anything this
+    /// app draws.
+    ///
+    /// Reduce Motion gets the fade instead. Something appearing in the
+    /// furniture still has to be noticed; it is the springing about that the
+    /// setting is asking not to see.
+    private var plop: Animation {
+        reduceMotion
+            ? .easeInOut(duration: 0.2)
+            : .spring(response: 0.28, dampingFraction: 0.58)
     }
 
     /// Whether Quiet's own blank is over the top of the web view.
@@ -225,8 +351,18 @@ struct BrowserScreen: View {
     /// a shell, and the second or two between the request finishing and the
     /// first screen appearing is its own black rectangle. Both are the app
     /// starting, and both should look like it. See `WebSurface.isBare`.
+    ///
+    /// **Either of the two ways of being ready, not both.** This asked for the
+    /// request to have finished *and* the page to have drawn something, and on
+    /// Instagram those are seconds apart in the wrong order: the feed is on the
+    /// glass, readable, while the main frame is still fetching the pictures
+    /// below it. Quiet held its own blank over all of it. So a page that says
+    /// it has drawn something is uncovered whatever the request is doing, and
+    /// a page whose script never ran — which can never say anything — is
+    /// uncovered when the request settles, exactly as before.
     private var isCovered: Bool {
-        !surface.hasLoaded || surface.isBare
+        if surface.isBare { return true }
+        return !surface.hasPainted && !surface.hasLoaded
     }
 
     /// What Quiet holds over the web view until there is a page under it.
@@ -250,11 +386,14 @@ struct BrowserScreen: View {
     private var cover: some View {
         ZStack {
             clockBand
-            Text(verbatim: "Quiet: No More Doomscrolling")
-                .font(.quietSmall)
-                .foregroundStyle(Paper.inkSoft)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
+            VStack(spacing: 12) {
+                Hourglass(height: 22)
+                Text(verbatim: "Quiet: No More Doomscrolling")
+                    .font(.quietSmall)
+                    .foregroundStyle(Paper.inkSoft)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.horizontal, 32)
         }
         .ignoresSafeArea()
         .transition(.opacity)
@@ -272,7 +411,30 @@ struct BrowserScreen: View {
     @ViewBuilder
     private var quietPages: some View {
         if isShowingQuietPage {
-            ZStack {
+            // `.top`, and it is the whole of the bug the photograph showed.
+            //
+            // Measured, as a pair, which is what finally settled it. The page
+            // with no keyboard up starts at 62 — the strip the clock stands in
+            // — and the field 54 below that. With a keyboard the page starts at
+            // **minus 79.5** and the field 116 below *that*: the column moved
+            // up a hundred and forty-one points, and inside it the navigation
+            // bar put back the sixty-two it now believed it owed the status
+            // bar, having found itself at the top of the window.
+            //
+            // A hundred and forty-one is half of two hundred and eighty-three,
+            // and two hundred and eighty-three is what a keyboard is on this
+            // phone. That is the shape of an overflow being *centred*: the
+            // column asks for the glass plus a keyboard, gets the glass, and a
+            // stack with no alignment puts the difference out of both ends —
+            // half of it above the top of the screen, taking the clock's strip
+            // and the page's own title row onto the time.
+            //
+            // The stack this one stands in has said `.top` since it was
+            // written, for a related reason. This one never did, and the
+            // default is centre. Told which end to lose, the overflow goes
+            // downward instead, behind the keyboard, where there is nothing to
+            // read.
+            ZStack(alignment: .top) {
                 Paper.page
                 VStack(spacing: 0) {
                     // The clock's own strip, which the app already draws.
@@ -294,7 +456,7 @@ struct BrowserScreen: View {
                             surface: surface,
                             onDone: { session.isSearchShowing = false },
                             onOpen: { url in
-                                surface.open(url)
+                                surface.visit(url)
                                 session.isSearchShowing = false
                             }
                         )
@@ -304,6 +466,13 @@ struct BrowserScreen: View {
                     Color.clear.frame(height: furniture)
                 }
             }
+            // Deliberately no size here, for now. One was added when the
+            // page was found at minus seventy-nine with a keyboard up, on the
+            // reasoning that a stack with no size takes the one its content
+            // asks for and an overflowing column is centred. The next run read
+            // minus seventy-nine again, to the tenth of a point, so whatever
+            // moves this page it is not that — and a change that fixed nothing
+            // is taken back rather than left in to be inherited as a fact.
             .ignoresSafeArea()
             .transition(.opacity)
         }
@@ -325,12 +494,21 @@ struct BrowserScreen: View {
         case home, search, clock, messages, profile
     }
 
-    /// Where the page is, whatever is drawn over the top of it.
+    /// Which of Instagram's three you are standing in.
+    ///
+    /// The pane, now, rather than the address. Three pages are open at once and
+    /// each keeps its own place, so "where you are" is which of them is on the
+    /// glass — and that is also what a tab bar has always marked. Tap a friend
+    /// in the feed and you are still standing in **home**, the way you are
+    /// still standing in a tab on every phone ever made; the address said
+    /// otherwise, and had to, because with one page there was nothing else to
+    /// ask.
     private var pageEntry: Entry {
-        let path = surface.address?.path ?? "/"
-        if path.hasPrefix("/direct") { return .messages }
-        if let me = surface.me, path == "/\(me)" || path == "/\(me)/" { return .profile }
-        return .home
+        switch surface.pane {
+        case .home: return .home
+        case .messages: return .messages
+        case .profile: return .profile
+        }
     }
 
     private var current: Entry {
@@ -412,6 +590,24 @@ struct BrowserScreen: View {
     /// no reason to take the way out away.
     private var isRowLive: Bool {
         if isShowingQuietPage { return true }
+        // **The bar never stands down.** It is a bar: it stands on the bottom
+        // edge, and the page stops above it — see `pageGivesUp`, which takes
+        // the bar's own height out of the viewport Instagram is given. A sheet
+        // is anchored to the bottom of that viewport and a comment box is
+        // pinned to it, so neither can arrive underneath the bar. It is not
+        // that a collision there is rare; there is nowhere for one to happen.
+        //
+        // So there was nothing for it to get out of the way of, and getting out
+        // of the way cost something real: switching accounts took the whole row
+        // off the screen, and a page arriving afterwards without saying the
+        // sheet had gone took it off for good.
+        guard preferences.row == .island else { return true }
+
+        // **The island still does**, for both. It gives the page nothing —
+        // seeing the feed move under it is the entire reason to choose that
+        // shape — so a sheet does reach the bottom edge and does land under the
+        // pill. "Log in to an Existing Account" drawn through the middle of it
+        // is the photograph that started this. A keyboard is the same thing.
         return !surface.isSheetUp && !surface.isTyping
     }
 
@@ -505,12 +701,16 @@ struct BrowserScreen: View {
     /// The five entries, in Instagram's own order: home, search, the middle
     /// one, messages, you. The middle is where Instagram puts the thing its app
     /// does rather than the thing the site does, and Quiet's is the clock.
+    ///
+    /// Five slots, always. The clock's is empty until the clock is out, and an
+    /// empty slot is still a slot: it holds its width, so the other four are
+    /// where they were, and it still takes a tap, which is how the clock is
+    /// asked back.
     private var row: some View {
         HStack(spacing: 0) {
             barButton(.home, "house", "house.fill", Text("Home"))
             barButton(.search, "magnifyingglass", "magnifyingglass", Text("Find someone"))
-            barButton(.clock, theClock(filled: false), theClock(filled: true), Text("Quiet settings"))
-                .accessibilityValue(Text(timeLeftAloud))
+            clockButton
             barButton(.messages, "paperplane", "paperplane.fill", Text("Messages"))
             // Only once the page has said who is signed in. A button that leads
             // nowhere is worse than one that arrives a second late.
@@ -518,6 +718,95 @@ struct BrowserScreen: View {
                 myProfileButton
             }
         }
+    }
+
+    /// The middle entry, which is the one thing in the row that answers a tap
+    /// with something other than a page.
+    ///
+    /// Three things a finger can do here, and they are three because the clock
+    /// is the only entry a person is allowed to have an opinion about being
+    /// there at all:
+    ///
+    /// **Tap it when it is out** and the panel opens, which is what every other
+    /// entry in the row does and what this one has always done.
+    ///
+    /// **Tap the empty slot** and it arrives — the same plop as the ten
+    /// seconds, because it is the same arrival, asked for rather than waited
+    /// out. The slot is live the whole time it is empty, so this is never a
+    /// hunt: the clock is where the clock has always been.
+    ///
+    /// **Tap it twice and it goes away.** Sending it away is the point of the
+    /// gesture and it is deliberately not a thing you can do by accident with
+    /// one finger, which is why it is two taps rather than a press: a press is
+    /// what a thumb resting on the row does by itself.
+    ///
+    /// The double tap is declared before the single one, which is how SwiftUI
+    /// is told which of the two to try first; the single tap then waits out the
+    /// double's window before it fires. That wait is the cost of the gesture
+    /// and it is paid by the panel opening a moment after the tap rather than
+    /// on it — worth it here, and worth it on the entry at the other end of the
+    /// row, where two taps swap which account you are signed in to. The three
+    /// in between are plain buttons that answer instantly, and the test is the
+    /// same one every time: a second thing to do here has to be *about* this
+    /// entry, or it is a gesture nobody will find.
+    private var clockButton: some View {
+        let here = current == .clock
+        return glyph(.clock, here, theClock(filled: false), theClock(filled: true))
+            .foregroundStyle(Color(uiColor: .label))
+            // The glyph, and only the glyph. The frame around it is the slot,
+            // which stays whether or not there is anything drawn in it.
+            .scaleEffect(scaleOfTheClock)
+            .opacity(isClockOnTheRow ? 1 : 0)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .contentShape(Rectangle())
+            .onTapGesture(count: 2) { clockTappedTwice() }
+            .onTapGesture { clockTapped() }
+            .accessibilityElement(children: .ignore)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAddTraits(here ? .isSelected : [])
+            // A slot with nothing in it is not "Quiet settings" — it is the way
+            // to get the clock back, and it says so. The number goes with the
+            // clock: there is nothing there to be told the time by.
+            .accessibilityLabel(isClockOnTheRow ? Text("Quiet settings") : Text("Show the clock"))
+            .accessibilityValue(Text(isClockOnTheRow ? timeLeftAloud : ""))
+            .accessibilityAction { clockTapped() }
+            // Two taps in the same place is a sighted gesture. Sending the
+            // clock away is not, so it is also a named action.
+            .accessibilityAction(named: Text("Hide the clock")) { hideTheClock() }
+    }
+
+    /// Where the plop starts from.
+    ///
+    /// Not zero. A glyph that grows out of nothing is a thing being drawn; one
+    /// that comes up from just under its own size is a thing arriving, and the
+    /// difference at this scale is the whole character of it.
+    private var scaleOfTheClock: CGFloat {
+        if isClockOnTheRow { return 1 }
+        return reduceMotion ? 1 : 0.45
+    }
+
+    private func clockTapped() {
+        guard isClockOnTheRow else { return showTheClock() }
+        go(to: .clock)
+    }
+
+    /// Two taps on an empty slot mean the same as one: whoever is tapping there
+    /// wants the clock, and counting their taps back at them is not an answer.
+    private func clockTappedTwice() {
+        guard isClockOnTheRow else { return showTheClock() }
+        hideTheClock()
+    }
+
+    private func showTheClock() {
+        Touch.tick()
+        clockDecidedByHand = true
+        withAnimation(plop) { isClockOnTheRow = true }
+    }
+
+    private func hideTheClock() {
+        Touch.tick()
+        clockDecidedByHand = true
+        withAnimation(plop) { isClockOnTheRow = false }
     }
 
     /// What the clock says to somebody who cannot see it.
@@ -636,34 +925,68 @@ struct BrowserScreen: View {
 
     /// The last entry, with your own face in it, the way Instagram's row ends.
     /// An outline of a person stands in until the page has handed one over.
+    ///
+    /// The second entry in the row a finger can say two things to, and for the
+    /// same reason the clock is the first: what the second thing does is
+    /// **about whose entry this is**. One tap opens your profile. Two open
+    /// Instagram's own account switcher, which is the sheet a person with two
+    /// Instagrams has always used and the one thing Quiet's row could not
+    /// reach — the way there was to leave the app, switch in Instagram's, and
+    /// come back. See `WebSurface.switchAccount`.
+    ///
+    /// Two taps rather than a long press, exactly as on the clock: a press is
+    /// what a thumb resting on the row does by itself, and swapping which
+    /// account somebody is signed in to is not a thing to do by accident. It
+    /// costs the single tap its immediacy — the profile opens after the
+    /// double's window rather than on the touch — and that cost is why the
+    /// other three entries are still plain buttons that answer instantly.
     private var myProfileButton: some View {
         let here = current == .profile
-        return Button { go(to: .profile) } label: {
-            Group {
-                if let face = surface.myFace {
-                    Image(uiImage: face)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 25, height: 25)
-                        .clipShape(Circle())
-                        .overlay(
-                            Circle().strokeBorder(
-                                Color(uiColor: .label).opacity(here ? 0.95 : 0.2),
-                                lineWidth: here ? 1.5 : 0.5
-                            )
+        return Group {
+            if let face = surface.myFace {
+                Image(uiImage: face)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 25, height: 25)
+                    .clipShape(Circle())
+                    .overlay(
+                        Circle().strokeBorder(
+                            Color(uiColor: .label).opacity(here ? 0.95 : 0.2),
+                            lineWidth: here ? 1.5 : 0.5
                         )
-                } else {
-                    Image(systemName: here ? "person.crop.circle.fill" : "person.crop.circle")
-                        .font(.system(size: 24, weight: .regular))
-                        .foregroundStyle(Color(uiColor: .label))
-                }
+                    )
+            } else {
+                Image(systemName: here ? "person.crop.circle.fill" : "person.crop.circle")
+                    .font(.system(size: 24, weight: .regular))
+                    .foregroundStyle(Color(uiColor: .label))
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .contentShape(Rectangle())
+        // Declared before the single one, which is how SwiftUI is told which
+        // of the two to try first. See `clockButton`, where the same pair is
+        // written out at length.
+        .onTapGesture(count: 2) { swapTheAccount() }
+        .onTapGesture { go(to: .profile) }
+        .accessibilityElement(children: .ignore)
+        .accessibilityAddTraits(.isButton)
         .accessibilityLabel(Text("Your profile"))
         .accessibilityAddTraits(here ? .isSelected : [])
+        .accessibilityAction { go(to: .profile) }
+        // Two taps in the same place is a sighted gesture, so the thing they
+        // do is also a named action — the same courtesy the clock is owed for
+        // being sent away.
+        .accessibilityAction(named: Text("Switch account")) { swapTheAccount() }
+    }
+
+    /// Ask for Instagram's account switcher, and answer the finger first.
+    ///
+    /// The tick before the sheet, because the sheet is somebody else's page
+    /// arriving in its own time and the row has to answer on the touch. Every
+    /// other entry here does the same.
+    private func swapTheAccount() {
+        Touch.tick()
+        surface.switchAccount()
     }
 
     /// What a tap on the row does.
@@ -904,10 +1227,48 @@ enum SafeArea {
 
     private static var insets: UIEdgeInsets? { window?.safeAreaInsets }
 
+    /// Quiet's own window, which is not always the key one.
+    ///
+    /// `isKeyWindow` is the obvious spelling, and it is wrong at exactly the
+    /// moment this matters. While a keyboard is up, the window receiving keys
+    /// is the keyboard's own: a full-screen window above the app's, with
+    /// nothing above *it*, and therefore a top inset of zero. Read from there,
+    /// the phone has no notch — the strip Quiet reserves for the clock
+    /// collapses, and every page in the app moves up by the height of the
+    /// status bar and sits under the time.
+    ///
+    /// Quiet has one window and it is at the ordinary level. Everything the
+    /// system puts over that — the keyboard, the window an alert arrives in —
+    /// sits above it by definition, which is what makes the level the honest
+    /// question to ask rather than which window has the keys.
     private static var window: UIWindow? {
-        UIApplication.shared.connectedScenes
+        let scenes = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+        let scene = scenes.first { $0.activationState == .foregroundActive } ?? scenes.first
+        guard let windows = scene?.windows else { return nil }
+        return windows.first { $0.windowLevel == .normal && !$0.isHidden }
+            // Both fallbacks are for a state that should not happen. The old
+            // answer is kept as the first of them because a wrong inset beats
+            // no inset: twenty points of guess is a worse screen, and nil is a
+            // blank one.
+            ?? windows.first { $0.isKeyWindow }
+            ?? windows.first
+    }
+
+#if DEBUG
+    /// Both answers, side by side, for the rehearsal that puts a keyboard up.
+    ///
+    /// The bug this file just fixed is invisible in a screenshot taken without
+    /// one and invisible in a unit test, because it is a question about which
+    /// of the system's windows is in front. So the app says what it read, and
+    /// a run that puts a keyboard up says whether the two spellings still
+    /// disagree.
+    static var reading: String {
+        let keyed = UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
             .flatMap(\.windows)
             .first { $0.isKeyWindow }
+        return "top \(top) from ours, \(keyed.map { "\($0.safeAreaInsets.top)" } ?? "no window") from isKeyWindow"
     }
+#endif
 }

@@ -361,6 +361,26 @@
         }
       }
     },
+    "Hide suggested posts": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorgeschlagene Beiträge ausblenden"
+          }
+        }
+      }
+    },
+    "Hide the clock": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uhr ausblenden"
+          }
+        }
+      }
+    },
     "Home": {
       "localizations": {
         "de": {
@@ -397,6 +417,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Instagram hat nicht geantwortet."
+          }
+        }
+      }
+    },
+    "Instagram fills the feed with posts from people you do not follow once it runs out of the ones you do. Off, you see them all. On, the feed stops where the people you chose stop.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram füllt den Feed mit Beiträgen von Leuten, denen du nicht folgst, sobald die von deinen Freunden ausgehen. Aus: Du siehst sie alle. An: Der Feed hört dort auf, wo deine Freunde aufhören."
+          }
+        }
+      }
+    },
+    "Instagram would go on with people you don't. Pull down at the top for new posts.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram würde mit Leuten weitermachen, denen du nicht folgst. Zieh oben nach unten für Neues."
           }
         }
       }
@@ -511,12 +551,12 @@
         }
       }
     },
-    "No Reels. No Explore. No accounts suggested between your friends.": {
+    "No Reels. No Explore.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Keine Reels. Kein Explore. Keine vorgeschlagenen Konten zwischen deinen Freunden."
+            "value": "Keine Reels. Kein Explore."
           }
         }
       }
@@ -811,6 +851,16 @@
         }
       }
     },
+    "Show the clock": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uhr einblenden"
+          }
+        }
+      }
+    },
     "Sign out": {
       "localizations": {
         "de": {
@@ -851,6 +901,16 @@
         }
       }
     },
+    "Switch account": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konto wechseln"
+          }
+        }
+      }
+    },
     "Takes effect now.": {
       "localizations": {
         "de": {
@@ -877,6 +937,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Das war's\nfür heute."
+          }
+        }
+      }
+    },
+    "That's everyone you follow.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das war's von deinen Freunden."
           }
         }
       }
@@ -967,6 +1037,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Die Seite ist nicht angekommen. Das ist meistens ein Moment und kein Problem."
+          }
+        }
+      }
+    },
+    "The posts Instagram suggests between your friends are still there. A switch in Quiet's settings takes them out.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Beiträge, die Instagram zwischen deine Freunde schiebt, sind da. Ein Schalter in den Quiet-Einstellungen nimmt sie weg."
           }
         }
       }

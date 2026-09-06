@@ -138,7 +138,10 @@ Defence in depth, in order of how much weight each carries:
    class name, because Instagram's class names are generated and change weekly.
 3. **`trim.js`** catches what the other two cannot: suggestion blocks, which
    carry no address and can only be recognised by their wording, and route
-   changes made by Instagram's own client without loading a page.
+   changes made by Instagram's own client without loading a page. The
+   suggestion blocks are the one thing here that is a *setting* — they are
+   shown unless somebody asks otherwise. Blocks of Reels go either way; see
+   `REELS_LABELS`.
 
 If the trim files ever fail to load out of the bundle, the app says so on screen
 in red rather than quietly becoming the thing it replaces.

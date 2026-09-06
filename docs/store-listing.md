@@ -37,8 +37,9 @@ whenever you like. Raise it once a week, starting the next day.
 Quiet shows Instagram's mobile site with the endless surfaces taken out.
 
 Your feed, your stories, your messages and your profile load the way you know
-them. Reels, Explore and the accounts suggested between your friends are not
-there. You sign in on Instagram's own page, so your password never touches
+them. Reels and Explore are not there. The posts Instagram suggests between your
+friends are — and one switch takes them out, which also gives the feed an end to
+reach. You sign in on Instagram's own page, so your password never touches
 Quiet.
 
 Then there is a limit.
@@ -156,20 +157,71 @@ say.
 
 ## Screenshots
 
-Four, in this order, all from the app's own screens rather than from Instagram's
-pages. A listing whose screenshots are all somebody else's product invites the
-question the review notes are there to answer.
+Four, in this order, all from the app's own screens rather than from
+Instagram's pages. A listing whose screenshots are all somebody else's product
+invites the question the review notes are there to answer, and what is being
+sold here is the limiter rather than the site it limits. The absence of Reels is
+a sentence; it does not have to be a picture.
 
-They are produced by the `Screenshots` workflow at 1320 × 2868, which is the
-6.9-inch size App Store Connect requires; a smaller one is rejected on upload
-rather than scaled. Download them from the run's artifact.
+They are made by the `Screenshots` workflow, which photographs each screen on a
+Pro Max at 1320 × 2868 — the 6.9-inch size App Store Connect requires; a smaller
+one is rejected on upload rather than scaled — and then composes the frames with
+`Tools/make-the-store-shots.py`. Download `app-store-screenshots` from the run.
+Inside it, `store-frames/en` and `store-frames/de` are what gets uploaded and
+`store/` is the raw photographs they were made from.
 
-| # | File | Caption |
-| --- | --- | --- |
-| 1 | `setup.png` | Instagram, minus the parts that keep you there. |
-| 2 | `limit.png` | Less takes effect at once. More waits a week. |
-| 3 | `curtain.png` | When the day is spent, the app closes. |
-| 4 | `panel.png` | No account. No servers. Nothing to check. |
+Order is the argument. The first two or three carry most of the decision, so
+they are: what the app is for, the one rule nothing else has, and the proof
+that the rule bites. Trust comes last, for somebody who is already reading.
+
+| # | From | Headline | Underneath |
+| --- | --- | --- | --- |
+| 1 | `setup` | No Reels. No Explore. | Your feed, your messages, your profile. Nothing else. |
+| 2 | `limit` | Raise it once a week. | Lower it whenever you like — that takes effect at once. |
+| 3 | `curtain` | The day closes itself. | When the minutes are gone, so is the app. |
+| 4 | `panel` | No account. No servers. | Nothing collected, nothing to check, nothing to sign into. |
+
+Four rather than five, and the screen the app opens with is the one that went.
+It is a single centred line on an otherwise empty page, which is exactly right
+for the second and a half it is on screen in a hand, and a blank rectangle at
+the size a listing is actually read at. A frame whose card says nothing is
+worse than one frame fewer, and four is inside the three to five that works.
+
+Both languages are composed, because the first frames are the ones worth
+localising and the German is already written. Upload `en` under English and `de`
+under German; App Store Connect keeps a separate set per localisation.
+
+What the composer does beyond the caption, and why:
+
+* **The status bar is cut, not retouched.** Those 54 points belong to iOS and
+  carry a battery level and a time that mean nothing to a reader. The frame
+  starts where the app starts. The workflow still overrides the bar to 9:41 and
+  a full battery first, so that nothing odd can arrive in a frame if the crop is
+  ever a few points out on a phone with a different bar.
+* **The ground is `Paper.night`,** the same colour the app itself stands in, so
+  the card has no seam against the frame around it — only the hairline the app
+  draws every other border with.
+* **One headline size across the set, and one line each,** chosen as the
+  largest at which every caption in that language still fits on a single line.
+  The first set composed had four English headlines on one line and the fifth
+  on two, and four German ones on two and the fifth on one — inside the rules
+  as they were written and visibly a set of unrelated posters. A headline that
+  needs a second line is a headline that needs shortening, which is the same
+  thing the usual App Store advice means by three to five words. German gets
+  its own size, being a third longer: 94 px against 104.
+* **The screens are photographed dark,** which is the appearance they were
+  designed around and the one most people's phones are in at the hour this app
+  is about.
+
+`Tools/read-the-shots.py` then checks the four ways a frame fails App Store
+Connect while looking perfectly fine on screen: a size a few pixels out, a stray
+alpha channel, a caption that came out the colour of the ground, and a card
+composed from a photograph that never arrived. CI fails on any of them.
+
+A frame of the real signed-in feed is the one thing no runner can take — it has
+no Instagram account, so it photographs a login page. If it is ever wanted,
+`Tools/store-shots/README.md` says where to put one taken on a real phone; it
+becomes the first frame and the rest move down.
 
 ---
 

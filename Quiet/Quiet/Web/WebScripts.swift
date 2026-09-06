@@ -34,21 +34,36 @@ enum WebScripts {
     ///   rather than taken out of the web view as an inset. An inset shortens
     ///   what the page is given; this does not.
     ///
+    /// - Parameter showsSuggestions: whether Instagram's suggested posts are
+    ///   left where they are, which is what the app does unless somebody has
+    ///   said otherwise. See `Preferences.showsSuggestions`.
+    ///
+    ///   Handed over at document start with the rest, because trim.js reads it
+    ///   on its first pass — a value that arrived afterwards would be a value
+    ///   that pass never saw, and the first pass is the one before anything has
+    ///   been drawn. The three pages already open are told separately; see
+    ///   `WebPane.tellThisPageAboutSuggestions`.
+    ///
+    ///   No default. Both callers are a pane being built or rebuilt, both know
+    ///   the answer, and a default here would be a third caller silently
+    ///   getting one behaviour because nobody thought about it.
     static func load(
         from bundle: Bundle = .main,
-        top: CGFloat
+        top: CGFloat,
+        showsSuggestions: Bool
     ) -> Payload {
         var scripts: [WKUserScript] = []
-        var missing: [String] = []
+        let files = sources(in: bundle)
+        let missing = files.missing
 
-        if let css = text(named: "trim", extension: "css", in: bundle) {
-            scripts.append(userScript(source: styleInjector(css: css)))
-        } else {
-            missing.append("trim.css")
+        if let style = files.style {
+            scripts.append(userScript(source: style))
         }
 
-        // The two numbers the page needs from the app, injected before the trim
-        // runs so that both are there before its first paint.
+        // What the page needs from the app, injected before the trim runs so
+        // that all of it is there before its first paint: two numbers, the two
+        // sentences that say where a feed ended, and the one setting a person
+        // can change.
         //
         // Three more used to be here. One named Quiet's own settings, for a
         // mark the script drew beside Instagram's on your own profile; that
@@ -61,12 +76,15 @@ enum WebScripts {
         scripts.append(userScript(source: """
         window.__quietAppID = \(quoted(WebScripts.appID));
         window.__quietTop = \(Int(top.rounded()));
+        window.__quietShowsSuggestions = \(showsSuggestions);
+        window.__quietEnd = \(quoted(String(localized: "That's everyone you follow.")));
+        window.__quietEndNote = \(quoted(String(
+            localized: "Instagram would go on with people you don't. Pull down at the top for new posts."
+        )));
         """))
 
-        if let js = text(named: "trim", extension: "js", in: bundle) {
-            scripts.append(userScript(source: js))
-        } else {
-            missing.append("trim.js")
+        if let trim = files.trim {
+            scripts.append(userScript(source: trim))
         }
 
         #if DEBUG
@@ -166,6 +184,48 @@ enum WebScripts {
     })();
     """
     #endif
+
+    /// The two files, as the strings that are actually injected.
+    private struct Sources {
+        var style: String?
+        var trim: String?
+        var missing: [String]
+    }
+
+    /// Read once, for the bundle every launch actually uses.
+    ///
+    /// A hundred and ten kilobytes of JavaScript and sixteen of CSS, off the
+    /// disk and — for the stylesheet — through a JSON encoder to become a
+    /// string literal. None of that changes between one call and the next, and
+    /// this was doing all of it three times on the way up, once per pane, and
+    /// again for all three whenever the status bar changed height. It is the
+    /// main thread, during a launch, next to the first request of the feed.
+    ///
+    /// A `static let` rather than a cache with a lock: it is built the first
+    /// time anybody asks, once, however many threads ask at once.
+    private static let readFromTheApp = read(from: .main)
+
+    private static func sources(in bundle: Bundle) -> Sources {
+        // Anything but the app's own bundle is a test or a preview, and is read
+        // afresh: keeping a second bundle's answers would be caching for the
+        // one caller that has no launch to speed up.
+        bundle === Bundle.main ? readFromTheApp : read(from: bundle)
+    }
+
+    private static func read(from bundle: Bundle) -> Sources {
+        var found = Sources(style: nil, trim: nil, missing: [])
+        if let css = text(named: "trim", extension: "css", in: bundle) {
+            found.style = styleInjector(css: css)
+        } else {
+            found.missing.append("trim.css")
+        }
+        if let js = text(named: "trim", extension: "js", in: bundle) {
+            found.trim = js
+        } else {
+            found.missing.append("trim.js")
+        }
+        return found
+    }
 
     private static func userScript(source: String) -> WKUserScript {
         WKUserScript(

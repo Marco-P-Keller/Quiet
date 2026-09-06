@@ -196,3 +196,71 @@ enum Phrase {
         return String(localized: "on \(date.formatted(.dateTime.day().month(.wide)))")
     }
 }
+
+/// Quiet's mark: an hourglass, half run through.
+///
+/// The same shape as the app icon, drawn rather than shipped as a picture. The
+/// icon is drawn by `Tools/make-icon.py` in pixels and this draws it in points,
+/// from the same four numbers, so the two agree because they are the same
+/// arithmetic rather than because somebody remembered to export both.
+///
+/// It says the thing a clock cannot. A clock runs for ever; an hourglass runs
+/// *out*. It holds a fixed amount, it is spending it, and when it is empty the
+/// day is over — which is the whole of this app in one shape, and it is
+/// already the shape the row draws for the last five minutes.
+///
+/// Never large. This is the app signing its name at the foot of a screen, not
+/// a logo somebody has to look at: the opening is deliberately not a logo
+/// screen and this does not turn it into one.
+struct Hourglass: View {
+    /// How tall the glass is. Everything else follows from it.
+    var height: CGFloat = 18
+
+    /// Taken from the icon, where they are fractions of the square: the glass
+    /// is 0.430 wide and 0.545 tall, its lids are 0.047, and the neck is 0.024.
+    /// Divided through, they are these — which is why changing one of them
+    /// there means changing one of them here and nowhere else.
+    private static let aspect: CGFloat = 0.430 / 0.545
+    private static let lid: CGFloat = 0.047 / 0.545
+    private static let neck: CGFloat = (0.024 / 2) / 0.430
+
+    /// How much of the mark the sand still up there is.
+    private static let sand: Double = 0.46
+
+    var body: some View {
+        ZStack {
+            Half(upper: true).fill(Paper.ink.opacity(Self.sand))
+            Half(upper: false).fill(Paper.ink)
+            VStack(spacing: 0) {
+                Capsule(style: .continuous).frame(height: height * Self.lid)
+                Spacer(minLength: 0)
+                Capsule(style: .continuous).frame(height: height * Self.lid)
+            }
+            .foregroundStyle(Paper.ink)
+        }
+        .frame(width: height * Self.aspect, height: height)
+        .accessibilityHidden(true)
+    }
+
+    /// The glass above the neck, or below it.
+    ///
+    /// It runs *between* the lids rather than under them, so a lid is a bar
+    /// across the end and not a bar with two corners of glass poking past it.
+    private struct Half: Shape {
+        var upper: Bool
+
+        func path(in box: CGRect) -> Path {
+            let lid = box.height * Hourglass.lid
+            let neck = box.width * Hourglass.neck
+            let edge = upper ? box.minY + 2 * lid : box.maxY - 2 * lid
+
+            var path = Path()
+            path.move(to: CGPoint(x: box.minX, y: edge))
+            path.addLine(to: CGPoint(x: box.maxX, y: edge))
+            path.addLine(to: CGPoint(x: box.midX + neck, y: box.midY))
+            path.addLine(to: CGPoint(x: box.midX - neck, y: box.midY))
+            path.closeSubpath()
+            return path
+        }
+    }
+}

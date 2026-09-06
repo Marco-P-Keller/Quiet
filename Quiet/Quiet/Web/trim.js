@@ -53,9 +53,7 @@
     "suggested for you",
     "suggested posts",
     "suggested accounts",
-    "suggested reels",
     "suggested threads",
-    "reels",
     "discover people",
     /* German */
     "vorgeschlagene beiträge",
@@ -158,9 +156,48 @@
       .toLowerCase();
   }
 
+  /**
+   * The blocks that are Reels wearing a heading, which are not suggestions.
+   *
+   * They used to sit in the list above and be hidden with everything else, and
+   * they cannot now, because everything else is shown unless somebody asks
+   * otherwise. Reels are refused by address in three other places in this app;
+   * a carousel of them coming back into the feed under a setting about
+   * *suggestions* would be one promise quietly undone by a switch about
+   * another. So they are their own list and they go either way.
+   */
+  var REELS_LABELS = [
+    "reels",
+    "suggested reels",
+  ];
+
+  /**
+   * Every heading that marks a block, and which kind of block it marks.
+   *
+   * The value is the reason it is taken out, which is the same word `hide`
+   * writes on the node — so what the page carries says which of the two rules
+   * took it, and the end of the feed can count suggestions without counting
+   * Reels.
+   */
   var labelSet = Object.create(null);
   for (var i = 0; i < SUGGESTION_LABELS.length; i++) {
-    labelSet[normalise(SUGGESTION_LABELS[i])] = true;
+    labelSet[normalise(SUGGESTION_LABELS[i])] = "suggestion";
+  }
+  for (var r = 0; r < REELS_LABELS.length; r++) {
+    labelSet[normalise(REELS_LABELS[r])] = "reels";
+  }
+
+  /**
+   * Whether Instagram's suggested posts are shown, which they are.
+   *
+   * The app injects this at document start and it is the one thing in this
+   * file a person can change. Undefined means hide, deliberately: a build
+   * where the injection failed keeps the older, narrower behaviour instead of
+   * quietly showing everything, and there is no arrangement of a missing
+   * global that turns the app into one that does not trim.
+   */
+  function showsSuggestions() {
+    return window.__quietShowsSuggestions === true;
   }
 
   /** The Reels tab on a profile: /someone/reels/. */
@@ -222,6 +259,65 @@
   var asked = false;
 
   /**
+   * Whether this document is the page itself rather than a frame inside it.
+   *
+   * The scripts are injected into every frame on purpose, so that an embedded
+   * player never gets to appear first. Almost nothing below cares which frame
+   * it is in — hiding a reel is hiding a reel — but the two questions that go
+   * out over the network do: there is one answer to each, the app only listens
+   * to the main frame anyway, and a page with three frames in it was asking
+   * three times.
+   */
+  var isThePage = (function () {
+    try {
+      return window.top === window;
+    } catch (error) {
+      // A frame from another origin cannot see the top of its own window,
+      // which is itself the answer: it is not the page.
+      return false;
+    }
+  })();
+
+  /** The longest anything below waits for the page to be done arriving. */
+  var LATEST = 3000;
+
+  var waiting = [];
+
+  /**
+   * Work that is worth doing, and is not worth doing *now*.
+   *
+   * Both of the requests below are made from inside Instagram's own page with
+   * Instagram's own cookies, at document start — which is to say, in the same
+   * few hundred milliseconds as the feed's own requests, over the same
+   * connections, competing with the thing somebody is waiting to see. One of
+   * them fetches an entire second HTML page to read a logo out of it.
+   *
+   * Neither is on the way to the feed. What they buy is a name and a face in
+   * Quiet's own row and the right wordmark at the top; all three arrive a
+   * second or two later than they used to, on the first launch only, and every
+   * one of them has something sensible to show in the meantime. What it buys
+   * back is the feed.
+   */
+  function afterTheFeed(work) {
+    if (document.readyState === "complete") {
+      work();
+      return;
+    }
+    if (!waiting.length) {
+      var go = function () {
+        var all = waiting;
+        waiting = [];
+        for (var i = 0; i < all.length; i++) all[i]();
+      };
+      window.addEventListener("load", go, { once: true });
+      // A ceiling, because a page that never finishes is a page whose row
+      // would never learn whose it is.
+      setTimeout(go, LATEST);
+    }
+    waiting.push(work);
+  }
+
+  /**
    * Who is signed in — asked, not deduced.
    *
    * Two versions of this read the name off a link in the page, and both got it
@@ -235,24 +331,26 @@
    * name and nothing else. There is nothing left to guess at.
    */
   function whoAmI() {
-    if (asked || window.__quietMe) return;
+    if (!isThePage || asked || window.__quietMe) return;
     asked = true;
-    fetch("/api/v1/web/accounts/edit/web_form_data/", {
-      credentials: "same-origin",
-      headers: { "X-IG-App-ID": window.__quietAppID || "" }
-    })
-      .then(function (response) { return response.ok ? response.json() : null; })
-      .then(function (data) {
-        var name = data && data.form_data && data.form_data.username;
-        if (!name) return;
-        window.__quietMe = name;
-        var form = data.form_data || {};
-        announce(name, form.profile_pic_url || form.profile_pic_url_hd || null);
+    afterTheFeed(function () {
+      fetch("/api/v1/web/accounts/edit/web_form_data/", {
+        credentials: "same-origin",
+        headers: { "X-IG-App-ID": window.__quietAppID || "" }
       })
-      .catch(function () {
-        // Signed out, or the endpoint moved. The row keeps its four entries.
-        asked = false;
-      });
+        .then(function (response) { return response.ok ? response.json() : null; })
+        .then(function (data) {
+          var name = data && data.form_data && data.form_data.username;
+          if (!name) return;
+          window.__quietMe = name;
+          var form = data.form_data || {};
+          announce(name, form.profile_pic_url || form.profile_pic_url_hd || null);
+        })
+        .catch(function () {
+          // Signed out, or the endpoint moved. The row keeps its four entries.
+          asked = false;
+        });
+    });
   }
 
   /**
@@ -610,10 +708,22 @@
     }
   }
 
+  /**
+   * Elements this has already measured, whatever the answer was.
+   *
+   * The attribute alone was the memo, which meant every element that did *not*
+   * have a floor was measured again on every call — eleven `getComputedStyle`
+   * reads a frame, each one a forced style resolution, for as long as anybody
+   * was scrolling. A question with a stable answer is worth asking once.
+   */
+  var floorAsked = new WeakSet();
+
   /** Enough bottom padding to be a reservation rather than a choice. */
   function markFloor(node) {
     if (!node || node.nodeType !== 1) return;
     if (node.getAttribute("data-quiet-floor") !== null) return;
+    if (floorAsked.has(node)) return;
+    floorAsked.add(node);
 
     var style = window.getComputedStyle(node);
     var padding = parseFloat(style.paddingBottom);
@@ -758,6 +868,94 @@
   window.__quietOpenProfile = function () {
     return window.__quietGo("profile");
   };
+
+  /* ── The other account ────────────────────────────────────────────────── */
+
+  /**
+   * Open Instagram's own account switcher.
+   *
+   * Two accounts is one person with a second Instagram, and moving between
+   * them is a thing the site does in a sheet: the username at the top of your
+   * own profile is a button, and pressing it asks who you would like to be.
+   * Quiet hides the row that would take you there, and it never hid the way to
+   * this — there simply was no way to ask for it, so the answer was to leave
+   * the app, open Instagram's, switch, and come back.
+   *
+   * It is Instagram's sheet rather than a list of Quiet's own, and that is the
+   * whole design of it. Signing in to a second account, its cookies, the
+   * confirmation when a session has expired — all of that is Instagram's,
+   * already written, and already the thing a person recognises. The app knows
+   * nothing here it did not know before: it presses a button on a page.
+   *
+   * `WhoIsSignedIn` takes it from there. The cookie changes, the app hears it,
+   * and all three panes start again as somebody else — which has been true of
+   * a switch made in Instagram's own app since the day that watcher was
+   * written, and is what makes this two lines rather than a feature.
+   *
+   * It answers yes or no rather than doing nothing quietly, because the page
+   * may not be the profile yet: the app asks again for a moment. See
+   * `WebSurface.switchAccount`.
+   */
+  window.__quietSwitchAccounts = function () {
+    var control = theSwitcher();
+    if (!control) return false;
+    control.click();
+    letGo(control);
+    return true;
+  };
+
+  /**
+   * The one control on your own profile that is your own name.
+   *
+   * Found by what it says rather than by where it sits, because where it sits
+   * is Instagram's to move: the header is theirs, the class names are theirs,
+   * and both have changed under this app before. What does not change is that
+   * the button carries the name of whoever is signed in — the app already
+   * knows that name, asked of Instagram's own settings endpoint — and that
+   * nothing else on the page is a button saying exactly that.
+   *
+   * A link is never it. Your name is a link in half a dozen places on a
+   * profile, and every one of them is a navigation; the switcher is a button
+   * because it opens a sheet rather than going anywhere.
+   *
+   * And only on your own profile, matched against the address. A stranger's
+   * page carries their name, not yours, so the test can only fail closed —
+   * but the app would rather press nothing at all than press something it
+   * cannot name on a page it did not mean to be on.
+   */
+  function theSwitcher() {
+    var me = window.__quietMe;
+    if (!me || !onMyOwnProfile(me)) return null;
+
+    var name = normalise(me);
+    var buttons = document.querySelectorAll('button, [role="button"]');
+    var best = null;
+
+    for (var i = 0; i < buttons.length; i++) {
+      var node = buttons[i];
+      if (ours(node)) continue;
+      if (node.closest && node.closest("a[href]")) continue;
+      if (normalise(node.textContent || "") !== name) continue;
+
+      var box = node.getBoundingClientRect();
+      if (box.width < 1 || box.height < 1) continue;
+
+      if (!best) { best = node; continue; }
+      /* The same control found twice, once from the inside. The outer one is
+       * the one a finger presses. */
+      if (node.contains(best)) { best = node; continue; }
+      if (best.contains(node)) continue;
+      /* Two of them, genuinely. The switcher is in the header, so the higher
+       * one is it. */
+      if (box.top < best.getBoundingClientRect().top) best = node;
+    }
+    return best;
+  }
+
+  function onMyOwnProfile(me) {
+    var here = location.pathname.replace(/\/+$/, "").toLowerCase();
+    return here === "/" + me.toLowerCase();
+  }
 
   /**
    * Start the page below the clock, for the case where the app has handed it
@@ -1042,6 +1240,238 @@
     return true;
   }
 
+  /* ── The end of the feed ──────────────────────────────────────────────── */
+
+  /**
+   * Instagram's feed does not end. Quiet's does.
+   *
+   * This is the last endless surface in the app and the one nobody had
+   * noticed, because it does not look like Reels or Explore — it looks like
+   * the feed. You read everything the people you follow have posted, and
+   * Instagram goes on: suggested posts, for ever, from people you did not
+   * choose. Quiet takes every one of those out, which is right, and what is
+   * left is a black nothing you can scroll through until the phone gives up.
+   * The photograph a person sends back says "no feed any more, just black",
+   * and they are describing the app working exactly as designed with no place
+   * to stop.
+   *
+   * So it stops. What is below the last post is looked at rather than
+   * guessed, and what is looked for is not emptiness but *Instagram's own
+   * answer with the inside taken out*: two of its suggested posts in a row,
+   * with nothing of anybody's between them. Emptiness cannot be the test. A
+   * feed still being fetched is empty under the last post too, in exactly the
+   * same way, and telling somebody the feed has ended while it is on its way
+   * is the one mistake this must not make.
+   *
+   * Then Quiet says where the end is, in the app's own words, handed in by
+   * the app so the catalogue owns them. The words go in the page rather than
+   * in the app's furniture because the end of a feed is a place in a
+   * document — furniture does not scroll.
+   */
+  var END = "quiet-end";
+
+  /**
+   * Enough of somebody else's posts in a row to be the end rather than one.
+   *
+   * One is ambiguous: a suggestion between two posts looks exactly the same
+   * while more are still on their way. Two, with nothing of anybody's between
+   * them, is the section Instagram fills the rest of the day with.
+   */
+  var ENOUGH_OF_THEM = 2;
+
+  /** One of theirs, taken out. The mark `hide` leaves and nothing else. */
+  var THEIRS = '[data-quiet-hidden="suggestion"]';
+
+  function endOfTheFeed() {
+    if (!isFeed()) return;
+    var main = document.querySelector("main");
+    if (!main) return;
+
+    // The last post *there is to read*, walked back from the end rather than
+    // taken off it. Instagram writes its suggestions as posts like any other,
+    // and Quiet has already hidden them by the time this runs — so the last
+    // element called `article` is very often the last thing somebody was never
+    // going to see, and everything worth stopping after is above it.
+    var posts = main.querySelectorAll("article");
+    if (!posts.length) return;
+
+    var last = null;
+    for (var p = posts.length - 1; p >= 0; p--) {
+      if (hasInk(posts[p])) { last = posts[p]; break; }
+    }
+
+    // No post of anybody's on the whole page is not nothing to say. It is the
+    // feed of somebody who has already read everything the people they follow
+    // posted — Instagram draws its own "you're all caught up" card and then
+    // begins the treadmill — and it is the shape a person waited fifteen
+    // seconds in front of. Page after page of suggestions arrived, Quiet took
+    // every one of them out, correctly, and the app said nothing at all. What
+    // they reported was a feed that would not load. Nothing was loading: it
+    // had already arrived and there was none of it for them.
+    //
+    // So the walk starts at the top of the list instead of under a post, and
+    // the sentence goes above the lot.
+    // The list, which is whatever the posts are siblings in.
+    //
+    // With no post there is none to take it from, so the first article stands
+    // in — and the first article is then one of Instagram's suggestions, which
+    // it writes as a post like any other. Where it has instead written one
+    // *inside* a box the list reserved, this reaches the box rather than the
+    // list, and the walk below sees the one suggestion in it rather than the
+    // run of them. Which is a failure to say the end, never a false one: the
+    // count cannot reach two, so nothing is said. That is the direction this
+    // whole rule is built to fail in.
+    var list = (last || posts[0]).parentElement;
+    if (!list) return;
+
+    var ended = !!document.getElementById(END);
+    var takenOut = 0;
+
+    for (var node = last ? last.nextElementSibling : list.firstElementChild;
+         node;
+         node = node.nextElementSibling) {
+      if (node.id === END) continue;
+      // Anything at all down there and this is a feed, not the end of one.
+      //
+      // Only below a post. With no post on the page there is nothing for this
+      // to protect — anything with ink above the suggestions is Instagram's
+      // own card saying the same thing this is about to, and a card agreeing
+      // is not a feed still arriving. Nor can it hide a post: a post with ink
+      // is what `last` is, and there is not one.
+      if (last && hasInk(node)) return;
+      // Something Instagram served and Quiet took out. That is the whole of
+      // the evidence: the site is still answering, and everything it answers
+      // with from here on is a person nobody chose.
+      if (oneOfTheirs(node)) takenOut += 1;
+    }
+
+    // The evidence is what Instagram answered with. It is never a height.
+    //
+    // A version of this had a second rule that said the end on half a screen
+    // of empty boxes below the last post, on the reasoning that placeholders
+    // whose content is removed the moment it arrives are the treadmill with
+    // its contents taken out. They are. So is the next page of the feed, for
+    // the second before it lands — a virtualised list reserves the boxes
+    // first and fills them when the answer comes back, and at that moment the
+    // two are the same document.
+    //
+    // `Tools/read-the-end.js` measures it: one post drawn, a gap under it,
+    // and the sentence went on the page. Then three posts arrived in the gap.
+    // Somebody was told they had read everything their friends posted while
+    // the feed was still being fetched — and because a feed that has ended
+    // stays ended, the sentence then followed them down the whole of it. That
+    // is the app lying about the one thing it exists to be right about, and no
+    // height could have told it apart from the thing it was looking for.
+    //
+    // So there is one rule, and it is the one the paragraph above always
+    // said: the site answered, and Quiet emptied the answer. Twice, with
+    // nothing of anybody's in between.
+    //
+    // Once it has ended it stays ended, so what arrives next goes without
+    // having to make the case again.
+
+    // Said, and nothing else done.
+    //
+    // A version of this took the tail away as well — the placeholders, the
+    // thing at the bottom that asks for more, and the floor the list was
+    // holding open under them — on the reasoning that an app whose argument is
+    // that the endless part should end ought not to go on fetching it. The
+    // photograph that came back had a spinner still turning under the sentence
+    // and a page that could no longer be scrolled: Instagram was not finished,
+    // and the app had shut the door on it.
+    //
+    // It was also answering a question nobody asked. "I can still scroll on,
+    // which is fine, but then no feed comes" — the scrolling was never the
+    // complaint. Not knowing why was.
+    //
+    // So this says where the feed ran out and touches nothing. The page keeps
+    // its height, the list keeps asking, and anything that does arrive from
+    // somebody you follow moves the sentence down below it. Being wrong now
+    // costs a line in the wrong place for a second, which is the cheapest way
+    // to be wrong that this file has.
+    if (!ended && takenOut < ENOUGH_OF_THEM) return;
+    sayItEnds(list, last);
+  }
+
+  /**
+   * Whether this is one of Instagram's suggestions with the inside taken out.
+   *
+   * Two shapes, because Instagram writes it both ways. Most often the
+   * suggested post is the sibling itself and carries the mark. Sometimes it is
+   * inside a box the list reserved, and the box stays — which is the case the
+   * height rule above was reaching for and could not reach without also
+   * catching every gap in a feed that was still arriving.
+   *
+   * Only suggestions count. `data-quiet-hidden` is also how the navigation row
+   * and the wordmark are taken down, and neither is a post Instagram served in
+   * answer to a request for more feed. Counting one would be finding evidence
+   * in the app's own furniture.
+   */
+  function oneOfTheirs(node) {
+    if (!node.getAttribute) return false;
+    if (node.getAttribute("data-quiet-hidden") === "suggestion") return true;
+    return !!(node.querySelector && node.querySelector(THEIRS));
+  }
+
+  /** Whether anything in here is drawn, skipping what Quiet has taken out. */
+  function hasInk(node) {
+    if (!node.getAttribute || node.getAttribute("data-quiet-hidden") !== null) {
+      return false;
+    }
+    if (node.matches && node.matches(INK)) {
+      var own = node.getBoundingClientRect();
+      if (own.width > 0 && own.height > 0) return true;
+    }
+    var found = node.querySelectorAll ? node.querySelectorAll(INK) : [];
+    for (var i = 0; i < found.length; i++) {
+      if (found[i].closest("[data-quiet-hidden]")) continue;
+      var box = found[i].getBoundingClientRect();
+      if (box.width > 0 && box.height > 0) return true;
+    }
+    return false;
+  }
+
+  /**
+   * Said once, in the app's words, under the last post there is — or above
+   * everything, when there is no post on the page to be under.
+   *
+   * And it *follows* that post rather than being said and left behind. A feed
+   * that has run out can still be answered a minute later — somebody posts, a
+   * pull at the top fetches it — and a line reading "that is everyone you
+   * follow" with two of their photographs underneath it would be the app
+   * lying about the one thing it is here to be right about.
+   *
+   * Moved only when it is in the wrong place, because moving a node is a
+   * change to the document, and a change to the document asks for another
+   * pass.
+   */
+  function sayItEnds(list, last) {
+    if (!window.__quietEnd) return;
+    var mark = document.getElementById(END);
+
+    if (!mark) {
+      mark = document.createElement("div");
+      mark.id = END;
+
+      var line = document.createElement("p");
+      line.textContent = window.__quietEnd;
+      mark.appendChild(line);
+
+      if (window.__quietEndNote) {
+        var note = document.createElement("p");
+        note.className = "quiet-end-note";
+        note.textContent = window.__quietEndNote;
+        mark.appendChild(note);
+      }
+    }
+
+    // Under the last post, or above everything when there is no post to be
+    // under. `insertBefore` with a null second argument appends, which is not
+    // what an empty feed wants, so the two are chosen rather than fallen into.
+    var after = last ? last.nextSibling : list.firstChild;
+    if (after !== mark) list.insertBefore(mark, after);
+  }
+
   /* ── Instagram's header, in the arrangement its own app uses ──────────── */
 
   /**
@@ -1249,28 +1679,82 @@
   var lastY = 0;
   var headerAway = false;
 
+  /**
+   * How far the page has gone in the direction it is currently going.
+   *
+   * Reset by a change of direction rather than carried, which is the whole of
+   * the hysteresis below.
+   */
+  var travel = 0;
+
   /** Far enough down that there is something worth reading. */
   var CLEAR_OF_THE_TOP = 64;
 
-  /** Enough movement to be a decision rather than a fingertip resting. */
+  /** Enough movement upward to want the header back. */
   var DELIBERATE = 8;
+
+  /**
+   * And enough downward to send it away, which is five times as much.
+   *
+   * The two used to be the same eight points, measured from wherever the page
+   * last was, and the header went away on the first eight points of any
+   * downward movement past the top. Eight points is a thumb settling. The
+   * header slid out over a fifth of a second, slid back on the next eight
+   * points up, and did it again — the furniture twitching while somebody read.
+   *
+   * The asymmetry is the point and it is the way every list on this phone
+   * behaves: hiding a bar is a decision the page makes about somebody, so it
+   * asks for a deliberate movement; showing it again is a decision somebody
+   * has made, and it happens at once.
+   */
+  var ENOUGH_TO_GO = 40;
 
   function watchTheHeader() {
     window.addEventListener("scroll", function () {
-      var y = window.scrollY || document.documentElement.scrollTop || 0;
-      var delta = y - lastY;
-      if (Math.abs(delta) < DELIBERATE) return;
-      lastY = y;
+      // First, and before any early return: this is the only place that knows
+      // a thumb is on the glass, and what runs during a flick depends on it.
+      // See `moving`.
+      noteScroll();
 
-      showOrHideHeader(isFeed() && y > CLEAR_OF_THE_TOP && delta > 0);
       // And the row, which is the safety valve on the whole sheet question. A
       // page that is scrolling is a page that is not locked, so if the app is
       // holding its row down for a modal that has since gone — because the
       // closing never showed up as a mutation, or because Instagram forgot to
-      // unlock — the first flick of a thumb puts it back. The row is the only
-      // way to Quiet's own settings, and it must never be possible to be
-      // stranded without it.
-      saySheet();
+      // unlock — the first flick of a thumb puts it back.
+      //
+      // Asked only when the answer could change. `saySheet` reads boxes and
+      // computed styles, and this runs on every scroll event of every flick;
+      // doing that work to confirm what is already believed is the shape of a
+      // stutter. The row is down or it is not, and only the first case has a
+      // question in it. Before the thresholds rather than after them, because
+      // a row stuck down is not less stuck for a page that moved four points.
+      if (lastSheet) saySheet();
+
+      var y = window.scrollY || document.documentElement.scrollTop || 0;
+      var delta = y - lastY;
+      lastY = y;
+      if (!delta) return;
+
+      // At the top, and in the rubber band above it, the header is simply
+      // there. A band alternates its deltas, and none of them are a decision.
+      if (y <= CLEAR_OF_THE_TOP) {
+        travel = 0;
+        showOrHideHeader(false);
+        return;
+      }
+
+      if ((delta > 0) !== (travel > 0)) travel = 0;
+      travel += delta;
+
+      if (travel >= ENOUGH_TO_GO) {
+        travel = 0;
+        // Every other page's top bar is that page's own — the name on a
+        // profile, the search in the inbox, the back arrow in a conversation.
+        showOrHideHeader(isFeed());
+      } else if (travel <= -DELIBERATE) {
+        travel = 0;
+        showOrHideHeader(false);
+      }
     }, { passive: true });
   }
 
@@ -1288,6 +1772,9 @@
   function headerComesBack() {
     if (isFeed()) return;
     lastY = 0;
+    // With it, or the first scroll of the next page inherits a direction from
+    // the last one and answers before anybody has moved.
+    travel = 0;
     showOrHideHeader(false);
   }
 
@@ -1321,8 +1808,15 @@
   function refuseTheDoor() {
     var doors = document.querySelectorAll(THE_DOOR);
     for (var i = 0; i < doors.length; i++) {
+      // Not inside somebody's post, for the same reason the stylesheet stops
+      // there. An advertisement is a post whose button goes to the App Store;
+      // taking that button out takes a piece of the post out, the page below
+      // slides up, and Instagram mounts and unmounts that post while a thumb
+      // is moving. The tap is still refused — that is `ContentRules`, and it
+      // does not care what was drawn.
+      if (doors[i].closest("article")) continue;
       var banner = bannerAround(doors[i]) || doors[i];
-      note(banner, "data-quiet-hidden", "upsell");
+      hide(banner, "upsell");
     }
     takeDownTheStrip();
   }
@@ -1372,7 +1866,7 @@
         if (!stack) continue;
         for (var i = 0; i < stack.length; i++) {
           if (isTheStrip(stack[i])) {
-            note(stack[i], "data-quiet-hidden", "upsell");
+            hide(stack[i], "upsell");
           }
         }
       }
@@ -1494,22 +1988,24 @@
    * arrangement as everything else here.
    */
   function learnWordmark() {
-    if (window.__quietWordmarkAsked || rememberedWordmark()) return;
+    if (!isThePage || window.__quietWordmarkAsked || rememberedWordmark()) return;
     window.__quietWordmarkAsked = true;
 
-    fetch("/accounts/login/", { credentials: "omit" })
-      .then(function (answer) { return answer.ok ? answer.text() : null; })
-      .then(function (html) {
-        if (!html) return;
-        var found = wordmarkIn(new DOMParser().parseFromString(html, "text/html"));
-        if (!found) return;
-        try { window.localStorage.setItem(WORDMARK, found); } catch (error) { return; }
-        dressHeader();
-      })
-      .catch(function () {
-        // Offline, or the page moved. Worth one more try on the next page.
-        window.__quietWordmarkAsked = false;
-      });
+    afterTheFeed(function () {
+      fetch("/accounts/login/", { credentials: "omit" })
+        .then(function (answer) { return answer.ok ? answer.text() : null; })
+        .then(function (html) {
+          if (!html) return;
+          var found = wordmarkIn(new DOMParser().parseFromString(html, "text/html"));
+          if (!found) return;
+          try { window.localStorage.setItem(WORDMARK, found); } catch (error) { return; }
+          dressHeader();
+        })
+        .catch(function () {
+          // Offline, or the page moved. Worth one more try on the next page.
+          window.__quietWordmarkAsked = false;
+        });
+    });
   }
 
   /**
@@ -1771,12 +2267,45 @@
    * confirms the obvious is a message worth not sending. */
   var lastSheet = false;
 
+  /* Except once. This is the half that was missing, and it is why the row went
+   * away for good the moment somebody switched accounts.
+   *
+   * The switcher is a sheet, so the row stands down — rightly. What follows is
+   * a page load, and a load is a new document: this script runs again from the
+   * top, `lastSheet` is false again, and the first pass on the new page finds
+   * no sheet and therefore has nothing to report. Meanwhile the app is still
+   * holding the `true` it was given before, because nothing ever told it
+   * otherwise. The row was not hidden by a fault in the hiding. It was hidden
+   * by a message nobody sent.
+   *
+   * So the first answer on any document is said whether or not it is news. One
+   * message per page load, and it is the one that puts the row back. */
+  var saidSheet = false;
+
   function saySheet() {
     var up = !!theSheet();
-    if (up === lastSheet) return;
+    if (up === lastSheet && saidSheet) return;
+    saidSheet = true;
     lastSheet = up;
     post({ kind: "sheet", up: up });
   }
+
+  /**
+   * A document coming back out of the browser's own cache.
+   *
+   * The scripts here run when a document is built, and a page restored by going
+   * back is not built again — so both halves of the pair above survive from the
+   * last time this page was on screen, while the app has already put its own
+   * back to false on the navigation. That disagreement is stuck: the page would
+   * think it had said `true` and stay quiet, and the app would think there was
+   * no sheet and leave the island drawn over one.
+   *
+   * One line, and the next answer is said outright.
+   */
+  window.addEventListener("pageshow", function () {
+    saidSheet = false;
+    saySheet();
+  });
 
   function theSheet() {
     return theSheetItSaysItIs() ||
@@ -2106,74 +2635,456 @@
     return !!element.closest("a");
   }
 
-  function trimSuggestions(root) {
-    var candidates = root.querySelectorAll(
-      'span, h1, h2, h3, h4, div[role="heading"]'
-    );
-    for (var i = 0; i < candidates.length; i++) {
-      var element = candidates[i];
+  /**
+   * Take something out of the page without moving the page.
+   *
+   * `display: none` does not just hide a thing, it takes its height out of the
+   * flow — and WebKit anchors a scroll to nothing, so everything below slides
+   * up by exactly that height. If any of it was above the top of the glass,
+   * what somebody is reading moves under their thumb. Do that to an
+   * advertisement that Instagram's own list keeps unmounting and mounting
+   * again, and the feed goes up and down.
+   *
+   * So: how much of it is above the glass is exactly how far the page will
+   * slide. Under a thumb, anything with a part up there waits — nothing above
+   * the glass can be seen, so waiting costs nothing. Once the hand is off, it
+   * goes and the scroll is moved back by what the page lost, in the same
+   * frame, so nothing moves on screen at all.
+   *
+   * Something drawn *over* the page rather than laid out in it — a fixed bar,
+   * an absolutely placed banner — takes nothing with it when it goes, and is
+   * hidden straight away.
+   */
+  function hide(node, why) {
+    if (!node || !node.getAttribute) return false;
+    if (node.getAttribute("data-quiet-hidden") === why) return false;
 
-      var text = normalise(element.textContent);
-      if (lastSeenText.get(element) === text) continue;
-      lastSeenText.set(element, text);
+    var box = node.getBoundingClientRect();
+    var style = window.getComputedStyle(node);
+    var inTheFlow = style.position !== "fixed" && style.position !== "absolute";
+    var above = inTheFlow
+      ? Math.min(Math.max(-box.top, 0), box.height)
+      : 0;
 
-      if (!text || text.length > 40 || !labelSet[text]) continue;
-      if (isCaption(element)) continue;
+    if (above > 0.5 && moving()) return false;
 
-      /* Only ever a block inside the feed. `closest` climbs as far as the
-       * document, so without this it could reach a <section> wrapping the
-       * whole page and hide everything — a blank app, from one matching
-       * word. */
-      var block = element.closest("article, section");
-      if (!block || block === root || !root.contains(block)) {
-        block = element.parentElement;
-      }
-      if (block && block !== root && root.contains(block)) {
-        if (block.getAttribute("data-quiet-hidden") !== "suggestion") {
-          tally.hidden += 1;
-        }
-        block.setAttribute("data-quiet-hidden", "suggestion");
-      }
-    }
+    node.setAttribute("data-quiet-hidden", why);
+    if (above > 0.5 && window.scrollBy) window.scrollBy(0, -above);
+    return true;
   }
+
+  var HEADINGS = 'span, h1, h2, h3, h4, div[role="heading"]';
+
+  /**
+   * Everything in a subtree that might be a suggestion block, and the block
+   * itself if it is one.
+   *
+   * `root` is what to look through and `feed` is what a block must be inside,
+   * and they are two arguments rather than one because of what runs during a
+   * flick. Sweeping `main` reads the text of every span in the feed — hundreds
+   * of them, sixty times a second, each one a walk of a subtree — and the
+   * memo below only saves the comparison, never the reading. So while a thumb
+   * is on the glass only what the page has just added is looked through, and
+   * the whole feed is swept when the hand comes off.
+   */
+  function trimSuggestions(root, feed) {
+    if (root.matches && root.matches(HEADINGS)) consider(root, feed);
+    var candidates = root.querySelectorAll(HEADINGS);
+    for (var i = 0; i < candidates.length; i++) consider(candidates[i], feed);
+  }
+
+  function consider(element, feed) {
+    var text = normalise(element.textContent);
+    if (lastSeenText.get(element) === text) return;
+
+    var why = labelSet[text];
+    if (!text || text.length > 40 || !why || isCaption(element)) {
+      lastSeenText.set(element, text);
+      return;
+    }
+
+    /* Shown, because somebody either asked for them or never asked for
+     * anything. Not remembered as seen: the setting can be turned back on
+     * while this very page is open, and a heading written down as read here
+     * would never be looked at again. `__quietSuggestionsChanged` clears the memo for
+     * the same reason from the other side. */
+    if (why === "suggestion" && showsSuggestions()) return;
+
+    /* Only ever a block inside the feed. `closest` climbs as far as the
+     * document, so without this it could reach a <section> wrapping the
+     * whole page and hide everything — a blank app, from one matching
+     * word. */
+    var block = element.closest("article, section");
+    if (!block || block === feed || !feed.contains(block)) {
+      block = element.parentElement;
+    }
+    if (!block || block === feed || !feed.contains(block)) {
+      lastSeenText.set(element, text);
+      return;
+    }
+
+    /* How big it is, before anything is done to it.
+     *
+     * A suggestion block is one card in a feed. `closest` climbs as far as the
+     * document, and a `<section>` wrapping half of somebody's afternoon is
+     * exactly as easy to reach as the post the heading belongs to — one span
+     * reading "Reels" inside such a section takes the rest of the feed with
+     * it, and what is left is a black hole you scroll through. Being inside
+     * `main` was the only guard, and `main` is not the only thing bigger than
+     * a card.
+     *
+     * Two questions, both about the drawn thing: it must not be taller than
+     * the glass and a half, and it must not have a post inside it. */
+    var box = block.getBoundingClientRect();
+    var glass = window.innerHeight || 844;
+    if (box.height > glass * 1.5 || block.querySelector("article")) {
+      lastSeenText.set(element, text);
+      return;
+    }
+
+    if (!hide(block, why)) {
+      /* Already gone, or waiting for the hand to come off the glass. Only the
+       * first of those may be remembered, or the wait becomes forever. */
+      if (block.getAttribute("data-quiet-hidden") === why) {
+        lastSeenText.set(element, text);
+      }
+      return;
+    }
+    lastSeenText.set(element, text);
+    tally.hidden += 1;
+  }
+
+  /**
+   * The setting changed while somebody was looking at the page.
+   *
+   * The app hands the flag in at document start, which covers every page
+   * loaded afterwards and none of the three already open. This is the other
+   * half: called from Swift on the pane in front and on the two behind it, so
+   * that a switch flicked in the panel is true of the feed you go back to and
+   * of the inbox you have not looked at since this morning.
+   *
+   * Coming back is not the same shape as going away. `hide` writes an
+   * attribute, so showing them again is removing it — but the memo has to go
+   * with it. `lastSeenText` exists so that a heading read once is not read
+   * again on every frame, and a heading remembered as read while the setting
+   * said "show" would never be looked at again when it said "hide". A new map
+   * is cheaper and more obviously correct than walking the old one.
+   *
+   * The sentence at the end of the feed goes too. It is a claim that there is
+   * nothing below but people you did not choose, and with those people on the
+   * page it is no longer a claim about anything — the feed does not end any
+   * more, which is the whole of what this setting means.
+   *
+   * Nothing here pays a scroll back, and `hide` is careful to — so this is a
+   * known asymmetry rather than an oversight, and it is written down because
+   * the next person will notice it and wonder.
+   *
+   * Going away, a block is taken out of the flow while somebody's thumb is on
+   * the glass, and the page slides up under their finger. That is unbearable
+   * and `hide` measures it and pays it back in the same frame. Coming back,
+   * the height returns and the page below it moves down — so somebody who
+   * flicks this switch deep in a feed will be further up it than they were,
+   * by however much of it was hidden above the top of the glass.
+   *
+   * That is accepted, on three grounds and not on the grounds that it does not
+   * happen. It happens behind the panel, which covers the page, so nothing
+   * moves in front of anybody. It happens once, deliberately, at the moment a
+   * person is changing what the feed *is* — which is not the moment they are
+   * holding a place in it. And Instagram's list is virtualised, so what is
+   * hidden above the glass is a window rather than an afternoon.
+   *
+   * What would change the answer is a report of losing a place, and the fix is
+   * the one every scroll anchor is: measure an element at the top of the glass
+   * before and after, and scroll by the difference. It is not here because
+   * nothing in these tools can lay a page out, so it could be written but not
+   * checked, and an unchecked correction to a scroll position is how the feed
+   * came to bounce in the first place.
+   */
+  window.__quietSuggestionsChanged = function (show) {
+    var was = showsSuggestions();
+    window.__quietShowsSuggestions = show === true;
+    if (was === showsSuggestions()) return;
+
+    lastSeenText = new WeakMap();
+
+    if (showsSuggestions()) {
+      var theirs = document.querySelectorAll(THEIRS);
+      for (var i = 0; i < theirs.length; i++) {
+        theirs[i].removeAttribute("data-quiet-hidden");
+      }
+      var mark = document.getElementById(END);
+      if (mark && mark.parentNode) mark.parentNode.removeChild(mark);
+    }
+
+    schedule();
+  };
 
   /* ── 4. Keep up with the page ─────────────────────────────────────────── */
 
   var pending = false;
 
+  /**
+   * How long after the last scroll the page counts as still.
+   *
+   * A tenth of a second and a bit: longer than the gap between two scroll
+   * events in one flick, shorter than anybody notices a header being dressed.
+   */
+  var STILL = 140;
+
+  var lastScrolled = 0;
+  var afterTheFlick = null;
+
+  /**
+   * The longest the whole pass may be held off, however busy the page stays.
+   *
+   * The two speeds below were about a thumb: while the page is under one, only
+   * what must be immediate runs, and everything else waits for the hand to come
+   * off. What nothing here was watching is the other time the document rewrites
+   * itself faster than anybody could read it — while it is arriving.
+   *
+   * A cold launch is Instagram's client mounting a feed, and every mutation of
+   * it bought a full pass. `Tools/read-the-cost.js` puts a number on it: on a
+   * fixture with eight posts in it, sixty-eight calls a frame that force the
+   * browser to lay the whole page out again, against nought point six under a
+   * thumb. A hundred times the work, sixty times a second, on the one thread
+   * Instagram is trying to render the feed on, for the whole of the wait
+   * somebody is watching a blank.
+   *
+   * And it feeds itself: each render mutates the document, each mutation buys a
+   * pass, each pass holds up the next render. Which is exactly the complaint
+   * this was written for — the stories arrive at once, the feed takes for ever.
+   * They are drawn by the same client on the same thread; the difference is
+   * what that thread was doing by the time the feed's turn came.
+   *
+   * So a page that is still arriving is treated as what it is: busy. The
+   * immediate half runs on the frame, and the full pass waits for the document
+   * to go quiet for `STILL` — the same wait, for the same reason, as the hand
+   * coming off the glass. Nothing in the full pass is worth a frame of a load:
+   * a colour band, a wordmark, a header being dressed, the end of the feed —
+   * none of them is being looked at before the first post is.
+   *
+   * The ceiling is the backstop, and it is why this is a debounce with a limit
+   * rather than a debounce. Something on an Instagram page always eventually
+   * moves — a story ring filling, a video's own controls — and a page that
+   * never went quiet would be a page whose header was never dressed. A second
+   * is far longer than a mount and far shorter than a wait.
+   */
+  var NO_LONGER_THAN = 1000;
+
+  /** When the whole pass last ran, which is what the ceiling is measured from. */
+  var lastPass = 0;
+
+  /** Armed by a frame that held the full pass back, so none is ever the last. */
+  var afterTheChurn = null;
+
+  /**
+   * The subtrees the page has added since anything last looked.
+   *
+   * Kept from the observer's own records rather than found again by asking the
+   * document. The observer has just been handed the exact list of what changed;
+   * throwing it away and re-reading the whole feed was the largest single cost
+   * in the frame.
+   */
+  var arrivals = [];
+
+  /** More than any one rewrite has, and a full sweep is cheaper than the list. */
+  var ARRIVALS_MOST = 500;
+
+  /** Set when the list was dropped, so nothing is lost by dropping it. */
+  var sweepNext = false;
+
+  function noteArrivals(records) {
+    for (var i = 0; i < records.length; i++) {
+      var added = records[i].addedNodes;
+      for (var j = 0; j < added.length; j++) {
+        if (added[j].nodeType === 1) arrivals.push(added[j]);
+      }
+    }
+    if (arrivals.length > ARRIVALS_MOST) {
+      arrivals.length = 0;
+      sweepNext = true;
+    }
+  }
+
+  /** Whether a thumb is on the glass right now. */
+  function moving() {
+    return Date.now() - lastScrolled < STILL;
+  }
+
+  /**
+   * Remember that the page moved, and make sure the full pass happens once it
+   * stops — even if nothing in the document changed to ask for one.
+   */
+  function noteScroll() {
+    lastScrolled = Date.now();
+    if (afterTheFlick) return;
+    afterTheFlick = setTimeout(function again() {
+      if (moving()) {
+        afterTheFlick = setTimeout(again, STILL);
+        return;
+      }
+      afterTheFlick = null;
+      pass();
+    }, STILL);
+  }
+
+  /**
+   * The pass, at two speeds.
+   *
+   * Instagram's feed is a virtualised list: it rewrites the document
+   * continuously while a thumb is moving, and every one of those rewrites used
+   * to run all eighteen calls below — inside an animation frame, which is to
+   * say inside the sixteen milliseconds the phone has to draw the next one.
+   * Several of them read computed styles and boxes, which forces layout. That
+   * is a stutter with a cause rather than a mystery.
+   *
+   * So while the page is moving, only what *must* be immediate runs: the things
+   * that hide what this app exists to hide. A reel that appears for two frames
+   * has appeared. Everything else — a colour, a name, a header being dressed,
+   * a wordmark, the sheet question — is either already done or can wait a
+   * tenth of a second for the hand to stop, and none of it can change while
+   * the page is under a thumb anyway.
+   */
   function schedule() {
     if (pending) return;
     pending = true;
     requestAnimationFrame(function () {
       pending = false;
-      var main = document.querySelector("main");
-      if (main) trimSuggestions(main);
-      coverTheGlass();
-      makeRoom();
-      takeUpTheFloor(document.body);
-      guardLocation();
-      sayWhere();
-      sayChrome();
-      whoAmI();
-      replaceNav();
-      headerComesBack();
-      refuseTheDoor();
-      learnWordmark();
-      dressHeader();
-      liftHeader();
-      shapeHeader();
-      sayHealth();
-      // Last, because Instagram's own bottom navigation and its door back into
-      // the app are both full-width things at the foot of the glass — which is
-      // to say, both indistinguishable from a sheet right up until the calls
-      // above mark them.
-      saySheet();
-      // And last of all, whether any of that found anything: the answer has to
-      // be read after the calls above have hidden what they hide, or
-      // Instagram's own navigation row counts as a page.
-      sayBare();
-      settle();
+      // A thumb on the glass: `noteScroll` owns the pass that follows it, and
+      // arming a second timer for the same moment would only run it twice.
+      if (moving()) {
+        keepItClean(false);
+        return;
+      }
+      // Held off long enough. A page that never goes quiet still gets swept.
+      if (Date.now() - lastPass >= NO_LONGER_THAN) {
+        pass();
+        return;
+      }
+      keepItClean(false);
+      holdOn();
     });
+  }
+
+  /**
+   * Wait for the document to stop, and then run the whole pass.
+   *
+   * Re-armed rather than left standing, which is the difference between this
+   * and a timer: while the mutations keep coming the pass keeps being pushed
+   * out, and it runs on the first quiet moment after them rather than in the
+   * middle of the noise. `NO_LONGER_THAN` in `schedule` is what stops that
+   * being for ever.
+   */
+  function holdOn() {
+    if (afterTheChurn) clearTimeout(afterTheChurn);
+    afterTheChurn = setTimeout(function () {
+      afterTheChurn = null;
+      if (moving()) {
+        holdOn();
+        return;
+      }
+      pass();
+    }, STILL);
+  }
+
+  /**
+   * What cannot wait: anything whose job is that something never appears.
+   *
+   * `everything` is the difference between the two speeds. Off, only the
+   * subtrees the page has just added are looked through — which is the same
+   * work the browser has just done and no more. On, the whole feed is swept,
+   * which is what catches a block whose wording changed in place rather than
+   * arriving, and is affordable exactly once the hand is off the glass.
+   */
+  function keepItClean(everything) {
+    // First, because it is the question every line under it is about, and
+    // because it is what starts a new page's answer over: anything counted
+    // before the reset is counted against the page just left.
+    //
+    // Here rather than in the full pass, where it was, because it is the only
+    // thing the row along the bottom ever learns its own address from and it
+    // is a string compared to a string — no layout, nothing to ration. A tap
+    // on **profile** lights the right entry on the frame it happens, not a
+    // tenth of a second later.
+    sayWhere();
+    var feed = document.querySelector("main");
+    if (!feed) {
+      arrivals.length = 0;
+    } else if (everything || sweepNext) {
+      arrivals.length = 0;
+      sweepNext = false;
+      trimSuggestions(feed, feed);
+    } else {
+      for (var i = 0; i < arrivals.length; i++) {
+        var node = arrivals[i];
+        if (node.nodeType === 1 && feed.contains(node)) {
+          trimSuggestions(node, feed);
+        }
+      }
+      arrivals.length = 0;
+    }
+    replaceNav();
+    guardLocation();
+  }
+
+  /** Everything, once the hand is off the glass and the page has stopped. */
+  function pass() {
+    // Kept here rather than at the two call sites, so that a third one added
+    // later cannot forget and quietly put the ration back to sixty a second.
+    lastPass = Date.now();
+    if (afterTheChurn) {
+      clearTimeout(afterTheChurn);
+      afterTheChurn = null;
+    }
+    keepItClean(true);
+    // A frame is not a page. Everything below this line answers a question
+    // about the app's own chrome — the header, the row, the colour behind the
+    // clock, the end of the feed, who is signed in — and `receive` in
+    // InstagramWebView.swift already drops every one of those answers that
+    // arrives from a subframe. An advert in a feed is a frame, and it was
+    // being asked all of it, sixty times a second, so that the app could
+    // throw the answers away.
+    if (window.top !== window) return;
+    // Out of the immediate half, and it is the largest single thing left in
+    // there. `takeDownTheStrip` asks the browser what is drawn at twelve
+    // points on the glass, and every one of those is a hit test that forces a
+    // layout — twelve of them, sixty times a second, for as long as anybody is
+    // scrolling.
+    //
+    // Nothing is lost by waiting a tenth of a second. There are two nets under
+    // this one and both hold from the first paint: trim.css hides every one of
+    // these addresses by selector, and `ContentRules` refuses to open them at
+    // all. What this adds is taking down the *strip* around a door, and a
+    // strip that is there for a tenth of a second longer is not a reel.
+    refuseTheDoor();
+    // Out of the immediate half on purpose. It walks eleven ancestors asking
+    // the browser for a computed style, which forces layout, and the thing it
+    // is fixing is a band of nothing under the last post — the one place in
+    // the page nobody is looking at while they are flicking through it.
+    takeUpTheFloor(document.body);
+    coverTheGlass();
+    makeRoom();
+    sayChrome();
+    whoAmI();
+    headerComesBack();
+    learnWordmark();
+    dressHeader();
+    liftHeader();
+    shapeHeader();
+    // After everything else has hidden what it hides: the tail below the last
+    // post is only *nothing* once the suggestions in it are out.
+    endOfTheFeed();
+    sayHealth();
+    // Last, because Instagram's own bottom navigation and its door back into
+    // the app are both full-width things at the foot of the glass — which is
+    // to say, both indistinguishable from a sheet right up until the calls
+    // above mark them.
+    saySheet();
+    // And last of all, whether any of that found anything: the answer has to
+    // be read after the calls above have hidden what they hide, or
+    // Instagram's own navigation row counts as a page.
+    sayBare();
+    settle();
   }
 
   var lastRescue = 0;
@@ -2222,7 +3133,10 @@
 
   watchForTyping();
 
-  new MutationObserver(schedule).observe(document.documentElement, {
+  new MutationObserver(function (records) {
+    noteArrivals(records);
+    schedule();
+  }).observe(document.documentElement, {
     childList: true,
     subtree: true,
   });

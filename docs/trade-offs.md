@@ -62,8 +62,9 @@ It does not get you:
   says so in the panel. It cannot mend anything. It turns "somebody eventually
   notices while scrolling" into a sentence.
 * **Suggested posts are recognised by their wording**, in twenty-four
-  languages. In a language not on the list they will still appear; adding one is
-  a line. The comparison is accent-blind and ignores how the spaces and capitals
+  languages, and only when somebody has asked for them to be taken out — they
+  are shown by default. In a language not on the list they will still appear
+  when asked for; adding one is a line. The comparison is accent-blind and ignores how the spaces and capitals
   arrive, which is what makes a list of hand-written phrases survive contact
   with a real page.
 * **Instagram can serve a different page to a web view than to Safari.** Quiet

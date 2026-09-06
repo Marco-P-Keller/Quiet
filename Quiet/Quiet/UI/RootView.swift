@@ -46,7 +46,30 @@ struct RootView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        content
+        // An overlay on a piece of nothing that has already refused the
+        // keyboard — which is the same answer this file gives one line further
+        // down, to the same failure arriving a different way.
+        //
+        // Measured, because seven attempts before this were not. The browsing
+        // screen sits at 14 points with no keyboard and at **minus 141.5** with
+        // one: it does not lay itself out wrongly, it is moved whole. A view
+        // given a fixed height and put in a region shorter than that height is
+        // centred, and half of what a keyboard takes is what it moves by.
+        //
+        // Five of those attempts were changes inside the screen and could
+        // never have worked. Two were requests to ignore the keyboard, made
+        // here — and a request is not a size. Whatever is doing the moving sits
+        // further out than a modifier written in this file can reach.
+        //
+        // So nothing is asked of it. `Color.clear` refuses the keyboard, is
+        // therefore the height of the window whatever is in front of it, and
+        // the screen is laid *over* that and pinned to its top. An overlay is
+        // sized to the thing it covers, so the screen is proposed the window
+        // and placed at the top of it, and there is no shorter region anywhere
+        // for anything to be centred in.
+        Color.clear
+            .ignoresSafeArea(.keyboard, edges: .bottom)
+            .overlay(alignment: .top) { content }
             .animation(reduceMotion ? nil : .easeInOut(duration: 0.3), value: session.screen)
             // An overlay rather than a stack, and the difference is not a
             // matter of taste.
@@ -83,7 +106,13 @@ struct RootView: View {
             }
             .task {
                 guard !Opening.stays else { return }
-                try? await Task.sleep(for: OpeningView.held)
+                try? await Task.sleep(for: OpeningView.least)
+                // The rest of the wait is only owed while there is nothing
+                // behind the paper. A page that has already drawn something is
+                // a page somebody could have been reading for a second.
+                if !surface.hasPainted {
+                    try? await Task.sleep(for: OpeningView.rest)
+                }
                 isOpening = false
             }
             .task(id: scenePhase) { await countTowardsAsking() }
@@ -177,7 +206,7 @@ struct RootView: View {
                 surface: surface,
                 onDone: { session.isSearchShowing = false },
                 onOpen: { url in
-                    surface.open(url)
+                    surface.visit(url)
                     session.isSearchShowing = false
                 }
             )

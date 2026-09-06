@@ -24,9 +24,50 @@
 
 "use strict";
 
+const fs = require("fs");
+const path = require("path");
 const { page, scoreboard, TRIM } = require("./page");
 
 const { check, done } = scoreboard("The trim");
+
+/* ── The stylesheet stops at the edge of a post ─────────────────────────── */
+
+/* The feed jumped up and down where there were advertisements, and none of the
+ * work in the script could have stopped it: it was the stylesheet.
+ *
+ * An advertisement is the one post that carries these addresses inside it —
+ * its media is a reel, its button goes to the App Store. Hiding a link inside a
+ * post does not remove an entrance, it removes a piece of the post; the height
+ * goes with it and the page below slides up. A stylesheet cannot wait for the
+ * hand to come off the glass and cannot pay a scroll back, so it must not
+ * change a layout somebody is looking at at all.
+ *
+ * Read as text rather than through a DOM on purpose. jsdom's support for
+ * Level 4 selectors is not the question — what the file says is. */
+const CSS = fs
+  .readFileSync(path.join(__dirname, "..", "Quiet", "Web", "trim.css"), "utf8")
+  .replace(/\/\*[\s\S]*?\*\//g, "");
+
+/* Only the ones that match by address. The two that do not are deliberate and
+ * neither can move a page: `[data-quiet-hidden]` is set by the script, which
+ * decides for itself when a thing may go and pays the scroll back when it
+ * does, and a scrollbar is not a box in the flow. */
+const byAddress = CSS
+  .split("}")
+  .filter((block) => /display:\s*none/.test(block))
+  .flatMap((block) => block.split("{")[0].split(","))
+  .map((one) => one.trim())
+  .filter((one) => one.includes("[href") || one.includes(":has("));
+
+check(
+  "every rule that hides part of a page by its address stops at a post",
+  byAddress.filter((one) => !/:not\(article /.test(one)),
+  []
+);
+
+/* And there is more than a handful of them, or the check above passes on an
+ * empty list and says nothing at all. */
+check("and there are rules to say it about", byAddress.length > 10, true);
 
 const FEED = "https://www.instagram.com/";
 
@@ -57,7 +98,7 @@ function labels() {
  */
 async function settle(win) {
   await new Promise((go) => setTimeout(go, 0));
-  win.drain();
+  await win.settle();
 }
 
 /** Tap a link the way a thumb does, and say what the page made of it. */
@@ -344,6 +385,86 @@ function tap(win, selector) {
     (({ pages, nav }) => ({ pages, nav }))(health(walked)),
     { pages: 2, nav: 2 }
   );
+
+  /* ── The suggestions, and whose choice they are ───────────────────────── */
+
+  /* Instagram's suggested posts are *shown*. That is the app's default and it
+   * was asked for in those words: all of them, with a switch in the panel for
+   * anybody who would rather not have them.
+   *
+   * Which makes this the one rule in the file that runs both ways, and both
+   * ways have to be checked. A setting that only ever tightens is a setting
+   * nobody can undo, and the memo below is exactly the thing that would have
+   * made undoing it impossible.
+   *
+   * The fixtures elsewhere in these tools leave the flag alone and are trimmed,
+   * because what they are asking about is the trimming. Here it is set the way
+   * the app sets it. See `dress` in page.js. */
+  const BOTH = `
+    <main data-box="0,0,390,3000"><div id="list" data-box="0,0,390,3000">
+      <article data-name="mine" data-box="0,0,390,600"><img data-box="0,0,390,390"></article>
+      <article data-name="theirs" data-box="0,0,390,600">
+        <div data-box="0,0,390,20"><span data-box="0,0,200,20">Suggested for you</span></div>
+        <img data-box="0,0,390,390">
+      </article>
+      <article data-name="alsoTheirs" data-box="0,0,390,600">
+        <div data-box="0,0,390,20"><span data-box="0,0,200,20">Suggested posts</span></div>
+        <img data-box="0,0,390,390">
+      </article>
+      <div data-name="reels" data-box="0,0,390,300"><h2>Reels</h2></div>
+    </div></main>`;
+
+  const why = (win, name) =>
+    win.document
+      .querySelector(`[data-name="${name}"]`)
+      ?.getAttribute("data-quiet-hidden") ?? null;
+
+  const shown = await page(BOTH, FEED, null, { __quietShowsSuggestions: true });
+  await settle(shown);
+  check("shown, a suggestion is left where it is", why(shown, "theirs"), null);
+  check("and so is the next one", why(shown, "alsoTheirs"), null);
+
+  /* Reels are not a suggestion, whatever the heading over them says. They are
+   * refused by address in three other places in this app, and a carousel of
+   * them arriving back in the feed under a switch about *suggestions* would be
+   * one promise undone by a setting about another. */
+  check("but a block of Reels still goes", why(shown, "reels"), "reels");
+
+  /* And with them on the page the feed does not end, so nothing says it does.
+   * The sentence is a claim that there is nothing below but people you did not
+   * choose; below this there are exactly those people, visible. */
+  check(
+    "and nothing is said about the feed ending",
+    !!shown.document.getElementById("quiet-end"),
+    false
+  );
+
+  /* Asked for, they go — which is the behaviour every other fixture here gets. */
+  const asked = await page(BOTH, FEED);
+  await settle(asked);
+  check("asked for, a suggestion goes", why(asked, "theirs"), "suggestion");
+  check("and the end of the feed is said again", 
+        !!asked.document.getElementById("quiet-end"), true);
+
+  /* ── The switch, flicked while the page is open ───────────────────────── */
+
+  /* Three pages are open at once and only one of them is on the glass, so the
+   * flag arriving at document start covers none of the three. This is the
+   * other half, and it has to work in both directions. */
+  asked.__quietSuggestionsChanged(true);
+  await settle(asked);
+  check("flicked, they come back on the page already open", why(asked, "theirs"), null);
+  check("and the sentence about the end goes with them",
+        !!asked.document.getElementById("quiet-end"), false);
+
+  /* Back the other way, which is the direction that was nearly impossible.
+   * `lastSeenText` is what stops a heading being read on every frame, and a
+   * heading remembered as read while they were shown would never be looked at
+   * again once they were not. */
+  asked.__quietSuggestionsChanged(false);
+  await settle(asked);
+  check("and off again, they go a second time", why(asked, "theirs"), "suggestion");
+  check("with the post either side untouched throughout", why(asked, "mine"), null);
 
   done();
 })();

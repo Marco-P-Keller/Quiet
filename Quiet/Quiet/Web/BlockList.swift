@@ -123,7 +123,38 @@ enum BlockList {
             report(Failure.noStore)
             return
         }
-        resolved.compileContentRuleList(
+        // Asked for before it is built, and this is the whole of what the
+        // version in the identifier is for.
+        //
+        // Compiling is not free: WebKit turns the rules into its own machine
+        // and writes it to disk, and the app was asking for that from scratch
+        // three times over — once per pane — on every launch, on the main
+        // thread's back, in the same handful of milliseconds as the first
+        // request of the feed. A list that is already on disk is handed back
+        // instead of built, and a list that is not is built once and then
+        // found by the two panes after it. The identifier changes whenever
+        // the rules do, so what is found is never last month's.
+        resolved.lookUpContentRuleList(forIdentifier: identifier) { found, _ in
+            MainActor.assumeIsolated {
+                if let found {
+                    configuration.userContentController.add(found)
+                    report(nil)
+                    return
+                }
+                compile(into: configuration, using: resolved, then: report)
+            }
+        }
+    }
+
+    /// Build the list and hand it over. Only ever reached when there is nothing
+    /// on disk to hand over instead.
+    @MainActor
+    private static func compile(
+        into configuration: WKWebViewConfiguration,
+        using store: WKContentRuleListStore,
+        then report: @escaping @MainActor (Error?) -> Void
+    ) {
+        store.compileContentRuleList(
             forIdentifier: identifier,
             encodedContentRuleList: rules
         ) { list, error in

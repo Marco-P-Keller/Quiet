@@ -21,10 +21,31 @@ import WebKit
 ///
 /// A preference, not a promise: it lives where preferences live, and losing it
 /// costs a scroll rather than a rule.
+///
+/// One of these per pane now, because there is one page per pane. Which also
+/// widened what it is *for*: it used to be a launch, and it is now every time a
+/// pane leaves the glass — three pages in one app's memory is a phone that will
+/// take one of them away, and the pane that comes back from that comes back
+/// where it was rather than at the top. See `Pane`.
 enum ThePlace {
-    private static let state = "quiet.place"
-    private static let when = "quiet.place.at"
-    private static let address = "quiet.place.address"
+    static let state = "quiet.place"
+    static let when = "quiet.place.at"
+    static let address = "quiet.place.address"
+
+    /// One place per pane, because there is now one page per pane.
+    ///
+    /// The home pane keeps the keys it has always had, so an update does not
+    /// throw away the place somebody was standing in when they installed it.
+    /// The other two get a suffix. A version of this that keyed all three
+    /// afresh would have cost every reader on the store one scroll, once, for
+    /// nothing — which is small, and is the kind of small that is free to
+    /// avoid.
+    /// Not private, because it is the whole of the compatibility promise above
+    /// and the one line here that can break somebody's install quietly. See
+    /// `PanesTests`.
+    static func key(_ base: String, _ pane: Pane) -> String {
+        pane == .home ? base : base + "." + pane.rawValue
+    }
 
     /// How stale a place may be and still be somewhere you were.
     static let fresh: TimeInterval = 20 * 60
@@ -41,13 +62,14 @@ enum ThePlace {
     @MainActor
     static func keep(
         _ webView: WKWebView,
+        for pane: Pane = .home,
         now: Date = Date(),
         in defaults: UserDefaults = .standard
     ) {
         guard let data = webView.interactionState as? Data else { return }
-        defaults.set(data, forKey: state)
-        defaults.set(now.timeIntervalSince1970, forKey: when)
-        defaults.set(webView.url?.absoluteString ?? "", forKey: address)
+        defaults.set(data, forKey: key(state, pane))
+        defaults.set(now.timeIntervalSince1970, forKey: key(when, pane))
+        defaults.set(webView.url?.absoluteString ?? "", forKey: key(address, pane))
     }
 
     /// Put the page back, and say whether it happened.
@@ -60,13 +82,14 @@ enum ThePlace {
     @discardableResult
     static func restore(
         into webView: WKWebView,
+        for pane: Pane = .home,
         now: Date = Date(),
         in defaults: UserDefaults = .standard
     ) -> Bool {
-        guard let data = defaults.data(forKey: state) else { return false }
-        guard isFresh(defaults.double(forKey: when), now: now),
-              isStillShown(defaults.string(forKey: address)) else {
-            forget(in: defaults)
+        guard let data = defaults.data(forKey: key(state, pane)) else { return false }
+        guard isFresh(defaults.double(forKey: key(when, pane)), now: now),
+              isStillShown(defaults.string(forKey: key(address, pane))) else {
+            forget(pane, in: defaults)
             return false
         }
         webView.interactionState = data
@@ -97,9 +120,20 @@ enum ThePlace {
         return ContentRules.routing(for: url) == .allow
     }
 
-    static func forget(in defaults: UserDefaults = .standard) {
-        defaults.removeObject(forKey: state)
-        defaults.removeObject(forKey: when)
-        defaults.removeObject(forKey: address)
+    static func forget(_ pane: Pane, in defaults: UserDefaults = .standard) {
+        defaults.removeObject(forKey: key(state, pane))
+        defaults.removeObject(forKey: key(when, pane))
+        defaults.removeObject(forKey: key(address, pane))
+    }
+
+    /// All three of them.
+    ///
+    /// There is deliberately no `forget()` taking no pane at all. Signing out
+    /// has to reach every page the app is holding, and a call that quietly
+    /// forgot one of the three while reading as though it forgot all of them
+    /// would leave somebody else's inbox behind a fresh login — which is the
+    /// one bug in this file that would matter.
+    static func forgetEverything(in defaults: UserDefaults = .standard) {
+        Pane.allCases.forEach { forget($0, in: defaults) }
     }
 }

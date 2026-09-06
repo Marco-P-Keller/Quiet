@@ -136,7 +136,7 @@ const GROUPED = `
   box("chevron", "224,10,20,24");
   win.document.querySelector("main").appendChild(win.document.createElement("div"));
   await new Promise((go) => setTimeout(go, 0));
-  win.drain();
+  await win.settle();
 
   check("the three keep their places once the arrangement has moved them", slots(win), before);
 
@@ -186,7 +186,7 @@ const GROUPED = `
   wrapper.style.top = "59px"; // what the stylesheet has now done to it
   sticky.document.querySelector("main").appendChild(sticky.document.createElement("div"));
   await new Promise((go) => setTimeout(go, 0));
-  sticky.drain();
+  await sticky.settle();
   check("what has been lifted stays lifted", lifted(sticky), "pinnedwrapper");
 
   // The viewport has to admit there is a notch before env() answers anything.
@@ -498,6 +498,76 @@ const GROUPED = `
     [false, false, false]
   );
 
+  /* ── The other account ───────────────────────────────────────────────── */
+
+  /* Two taps on the profile entry open Instagram's own account switcher, and
+   * the whole of the app's part in that is pressing a button on their page.
+   * Which button is asked of the page by name rather than by place: the one
+   * control on your own profile that says who you are. */
+  const MINE = (header) => `
+    <div data-name="nav">
+      <a href="/">home</a>
+      <a href="/direct/inbox/">messages</a>
+      <a href="/marco/"><img src="face.jpg"></a>
+    </div>
+    <main><header>${header}</header></main>`;
+
+  const MY_PROFILE = "https://www.instagram.com/marco/";
+
+  /** The page, and how many times the switcher was pressed. */
+  const askToSwitch = async (html, url) => {
+    const win = await page(MINE(html), url || MY_PROFILE);
+    let presses = 0;
+    const control = win.document.querySelector('[data-name="switcher"]');
+    if (control) control.addEventListener("click", () => { presses += 1; });
+    const answer = win.__quietSwitchAccounts();
+    return { answer, presses };
+  };
+
+  check(
+    "your own name, on your own profile, is the way to the other account",
+    await askToSwitch(
+      `<div role="button" data-name="switcher" data-box="16,60,120,24">marco</div>`
+    ),
+    { answer: true, presses: 1 }
+  );
+
+  /* Your name is a link in half a dozen places on a profile and every one of
+   * them is a navigation. The switcher is a button, because it opens a sheet
+   * rather than going anywhere. */
+  check(
+    "a name inside a link is a navigation, not the switcher",
+    await askToSwitch(
+      `<a href="/marco/"><span role="button" data-name="switcher"
+          data-box="16,60,120,24">marco</span></a>`
+    ),
+    { answer: false, presses: 0 }
+  );
+
+  /* Somebody else's page carries their name rather than yours, so the address
+   * can only fail closed — and it does the failing rather than the button
+   * hunt, because the app would rather press nothing at all than press
+   * something it cannot name on a page it did not mean to be on. */
+  check(
+    "and nothing is pressed on a page that is not your own profile",
+    await askToSwitch(
+      `<div role="button" data-name="switcher" data-box="16,60,120,24">marco</div>`,
+      "https://www.instagram.com/someone/"
+    ),
+    { answer: false, presses: 0 }
+  );
+
+  /* A header Instagram has rewritten, with nothing in it the app can name.
+   * Declining is the answer: the app asks again for a moment, and a press it
+   * cannot make is a sheet that does not open rather than a wrong one. */
+  check(
+    "a header with no such button declines rather than guessing",
+    await askToSwitch(
+      `<div role="button" data-name="other" data-box="16,60,120,24">Follow</div>`
+    ),
+    { answer: false, presses: 0 }
+  );
+
   /* ── The other wordmark ──────────────────────────────────────────────── */
 
   /* Instagram has two, and both are theirs: the script one in the app, the
@@ -518,7 +588,7 @@ const GROUPED = `
   const again = async (win) => {
     win.document.querySelector("main").appendChild(win.document.createElement("div"));
     await new Promise((go) => setTimeout(go, 0));
-    win.drain();
+    await win.settle();
   };
 
   const dressed = await page(WORDMARKED, FEED);
@@ -741,6 +811,7 @@ const GROUPED = `
    * These check both halves: that the answer is right, and that nothing was
    * touched to arrive at it. */
   const sheetOf = (win) => win.sent.filter((m) => m.kind === "sheet").pop();
+  const sheetsOf = (win) => win.sent.filter((m) => m.kind === "sheet");
   const marks = (win, name) => {
     const node = win.document.querySelector(`[data-name="${name}"]`);
     return [
@@ -756,9 +827,34 @@ const GROUPED = `
     '<button data-name="one">marco</button>' +
     '<button data-name="two">Log In to an Existing Account</button>';
 
-  /* With nothing modal on screen, nothing is said. */
+  /* With nothing modal on screen the answer is `false` — said once, and not
+   * again.
+   *
+   * Silence used to be the answer here, and it is what stranded the row. The
+   * switcher goes up, the row stands down, choosing a name loads a page — and a
+   * new document with no sheet on it had nothing to report, so the app went on
+   * holding the `true` from before the load and the island never came back.
+   * Once, because a fresh page has to say where it stands; not again, because a
+   * message that only ever confirms the obvious is one worth not sending. */
   const plainFeed = await page(`<main><article>a post</article></main>`, FEED);
-  check("with nothing modal on screen, nothing is said", sheetOf(plainFeed), undefined);
+  check(
+    "with nothing modal on screen, the page says so once",
+    sheetsOf(plainFeed).map((m) => m.up),
+    [false]
+  );
+
+  /* And says it again for a document the browser kept rather than built.
+   * Going back does not re-run these scripts, so both halves of the pair
+   * survive from the last time the page was on screen while the app has
+   * already reset its own — a disagreement that would leave the island drawn
+   * over a sheet, and never correct itself. */
+  const restored = await page(`<main><article>a post</article></main>`, FEED);
+  restored.dispatchEvent(new restored.Event("pageshow"));
+  check(
+    "and again when the browser brings a page back",
+    sheetsOf(restored).map((m) => m.up),
+    [false, false]
+  );
 
   /* The account switcher: held against the bottom, the width of the glass,
    * full of things to press, and saying nothing anywhere about being modal.
@@ -793,11 +889,7 @@ const GROUPED = `
      </div></main>`,
     "https://www.instagram.com/direct/inbox/"
   );
-  check(
-    "the inbox, which was moved for eleven builds, is not a sheet",
-    sheetOf(conversations),
-    undefined
-  );
+  check("the inbox, which was moved for eleven builds, is not a sheet", sheetOf(conversations)?.up, false);
   check("and it is left entirely alone", marks(conversations, "threads"), "||||");
 
   /* The one that does not depend on Instagram's markup at all.
@@ -829,7 +921,7 @@ const GROUPED = `
      </div></main>`,
     "https://www.instagram.com/direct/inbox/"
   );
-  check("a page that still scrolls has not", sheetOf(scrollingInbox), undefined);
+  check("a page that still scrolls has not", sheetOf(scrollingInbox)?.up, false);
 
   /* A backdrop is as tall as the glass. The sheet is the thing inside it. */
   const backdrop = await page(
@@ -837,7 +929,7 @@ const GROUPED = `
           data-box="0,0,390,844"><button>x</button></div><main></main>`,
     FEED
   );
-  check("the dimmed backdrop is not the sheet", sheetOf(backdrop), undefined);
+  check("the dimmed backdrop is not the sheet", sheetOf(backdrop)?.up, false);
 
   /* Something tucked into a corner is a menu or a toast, not a sheet. */
   const corner = await page(
@@ -845,7 +937,7 @@ const GROUPED = `
           data-box="200,500,180,300"><button>x</button></div><main></main>`,
     FEED
   );
-  check("something that does not span the glass is not a sheet", sheetOf(corner), undefined);
+  check("something that does not span the glass is not a sheet", sheetOf(corner)?.up, false);
 
   /* Instagram's own navigation row is full width and at the foot of the glass,
    * and it is taken out before the question is asked. */
@@ -855,7 +947,7 @@ const GROUPED = `
      <main></main>`,
     FEED
   );
-  check("what Quiet has already taken out is not a sheet", sheetOf(ownRow), undefined);
+  check("what Quiet has already taken out is not a sheet", sheetOf(ownRow)?.up, false);
 
   /* And the fourth question, asked in the middle of the glass rather than at
    * the foot of it: is the page still the thing on the screen?
@@ -881,7 +973,7 @@ const GROUPED = `
     `<main><article data-name="post" data-at-top data-box="0,0,390,844">a post</article></main>`,
     FEED
   );
-  check("the page itself is not something over the page", sheetOf(showing), undefined);
+  check("the page itself is not something over the page", sheetOf(showing)?.up, false);
 
   /* The shell Instagram draws everything in is as big as the glass and is
    * often positioned. It holds the page rather than covering it. */
@@ -891,7 +983,7 @@ const GROUPED = `
      </div>`,
     FEED
   );
-  check("nor is the shell the page is drawn in", sheetOf(holding), undefined);
+  check("nor is the shell the page is drawn in", sheetOf(holding)?.up, false);
 
   /* A toast, a cookie bar, a tooltip: over the page and nowhere near all of
    * it. */
@@ -901,7 +993,7 @@ const GROUPED = `
      </div><main></main>`,
     FEED
   );
-  check("something over part of it is not", sheetOf(toast), undefined);
+  check("something over part of it is not", sheetOf(toast)?.up, false);
 
   /* And a wrapper the size of the glass that is laid out rather than drawn on
    * top — which is what a page whose content lives outside `main` looks like,
@@ -912,7 +1004,446 @@ const GROUPED = `
      </div><main></main>`,
     FEED
   );
-  check("and neither is a page that simply fills the glass", sheetOf(outside), undefined);
+  check("and neither is a page that simply fills the glass", sheetOf(outside)?.up, false);
+
+  /* ── Two speeds ──────────────────────────────────────────────────────── */
+
+  /* Instagram's feed is a virtualised list: it rewrites the document
+   * continuously while a thumb is moving, and every one of those rewrites used
+   * to run the whole pass inside an animation frame — several calls of which
+   * read computed styles and boxes, which forces layout. That is a stutter with
+   * a cause.
+   *
+   * So the pass has two speeds, and the line between them is what these check:
+   * anything whose job is that something never appears stays immediate, and
+   * everything else waits for the hand to come off the glass. */
+  const rest = (ms) => new Promise((done) => setTimeout(done, ms));
+
+  /* Wait for the pass to have happened rather than for a number of
+   * milliseconds to have gone by.
+   *
+   * The checks below used a flat 260 against a settle of 140, which is nearly
+   * twice the room needed and was still red one run in five: several of these
+   * fixtures are alive at once, each with its own chain of timers, and a
+   * `setTimeout` under that is a request rather than a promise. A check that
+   * goes red at random teaches everybody to ignore red, which is worse than
+   * not having it.
+   *
+   * The assertion is unchanged — this only stops it being an assertion about
+   * *when*. */
+  const until = async (holds, ms = 2000) => {
+    const deadline = Date.now() + ms;
+    while (Date.now() < deadline && !holds()) await rest(20);
+    return holds();
+  };
+
+  const hiddenIn = (win, name) =>
+    win.document.querySelector(`[data-name="${name}"]`).getAttribute("data-quiet-hidden");
+
+  const flick = await page(`<main></main>`, FEED);
+  flick.dispatchEvent(new flick.Event("scroll"));
+
+  /* A suggestion block arriving mid-flick. Two frames of a reel is two frames
+   * of a reel, so this one cannot wait. */
+  const suggested = flick.document.createElement("div");
+  suggested.setAttribute("data-name", "block");
+  suggested.innerHTML = "<h2>Suggested for you</h2><a href=\"/someone/\">someone</a>";
+  flick.document.querySelector("main").appendChild(suggested);
+  /* A turn of the loop first: jsdom hands mutation records to the observer as a
+   * microtask, so the pass has not been asked for yet on the line above. */
+  await rest(0);
+  flick.drain();
+  check(
+    "what must never appear is still taken out mid-flick",
+    flick.document.querySelector('[data-name="block"]').getAttribute("data-quiet-hidden"),
+    "suggestion"
+  );
+
+  /* And the rest waits rather than being lost. */
+  const waiting = await page(`<main></main>`, FEED);
+  waiting.dispatchEvent(new waiting.Event("scroll"));
+  const late = waiting.document.createElement("div");
+  late.setAttribute("data-at-bottom", "");
+  late.setAttribute("style", "position: fixed");
+  late.setAttribute("data-box", "0,300,390,520");
+  late.innerHTML = "<h2>Switch accounts</h2><button>marco</button>";
+  waiting.document.body.appendChild(late);
+  await rest(0);
+  waiting.drain();
+  check("the sheet question is not asked mid-flick", sheetOf(waiting)?.up, false);
+
+  await until(() => sheetOf(waiting)?.up === true);
+  check("and is asked once the hand comes off the glass", sheetOf(waiting)?.up, true);
+
+  /* Only what the page just added, rather than the whole feed. The observer is
+   * handed the exact list of what changed; sweeping every span in the feed
+   * sixty times a second to find it again was the largest cost in the frame.
+   * A block nested inside an arrival still has to be found. */
+  const nested = await page(`<main></main>`, FEED);
+  nested.dispatchEvent(new nested.Event("scroll"));
+  const buried = nested.document.createElement("div");
+  buried.innerHTML =
+    '<div><div data-name="deep"><h2>Suggested for you</h2></div></div>';
+  nested.document.querySelector("main").appendChild(buried);
+  await rest(0);
+  nested.drain();
+  check(
+    "a block buried inside what arrived is found too",
+    nested.document.querySelector('[data-name="deep"]').getAttribute("data-quiet-hidden"),
+    "suggestion"
+  );
+
+  /* ── Nothing moves under a thumb ─────────────────────────────────────── */
+
+  /* WebKit anchors a scroll to nothing. Take a block out above the top of the
+   * glass and everything below slides up by exactly its height — under the
+   * thumb, in the middle of a flick, which is the feed jumping.
+   *
+   * Nothing up there can be seen, so it waits; and when the hand comes off it
+   * is taken out and the scroll is moved by what the page lost, in the same
+   * frame, so that nothing moves on screen at all. */
+  const above = await page(`<main></main>`, FEED);
+  above.dispatchEvent(new above.Event("scroll"));
+  const passed = above.document.createElement("div");
+  passed.setAttribute("data-name", "passed");
+  passed.setAttribute("data-box", "0,-300,390,200");
+  passed.innerHTML = "<h2>Suggested for you</h2>";
+  above.document.querySelector("main").appendChild(passed);
+  await rest(0);
+  above.drain();
+  check(
+    "a block above the glass is left alone while the page is moving",
+    above.document.querySelector('[data-name="passed"]').getAttribute("data-quiet-hidden"),
+    null
+  );
+  check("and nothing has been scrolled", above.scrolledBy, []);
+
+  await until(() => hiddenIn(above, "passed") === "suggestion");
+  check("once the hand is off the glass it goes", hiddenIn(above, "passed"), "suggestion");
+  check("and the page is moved by exactly what it lost", above.scrolledBy, [-200]);
+
+  /* And the case the phone actually reported: an advertisement, half of it
+   * above the top of the glass. Instagram's list unmounts and mounts these
+   * while a thumb is moving, so this happens over and over — and every time it
+   * did, the page slid by the part that was above the fold. */
+  const half = await page(`<main></main>`, FEED);
+  half.dispatchEvent(new half.Event("scroll"));
+  const straddling = half.document.createElement("div");
+  straddling.setAttribute("data-name", "straddling");
+  straddling.setAttribute("data-box", "0,-80,390,300");
+  straddling.innerHTML = "<h2>Suggested for you</h2>";
+  half.document.querySelector("main").appendChild(straddling);
+  await rest(0);
+  half.drain();
+  check(
+    "one straddling the top of the glass waits too",
+    half.document.querySelector('[data-name="straddling"]').getAttribute("data-quiet-hidden"),
+    null
+  );
+  await until(() => hiddenIn(half, "straddling") === "suggestion");
+  check("and then goes", hiddenIn(half, "straddling"), "suggestion");
+  check("paid for by the part that was above the fold, and no more",
+        half.scrolledBy, [-80]);
+
+  /* ── Never a hole where the feed was ─────────────────────────────────── */
+
+  /* `closest` climbs as far as the document, so a `<section>` wrapping half of
+   * somebody's afternoon is exactly as easy to reach as the post the heading
+   * belongs to. One span reading "Reels" inside one of those took the rest of
+   * the feed with it — which is the black nothing that comes back when you
+   * scroll far enough down. */
+  const huge = await page(
+    `<main><section data-name="lots" data-box="0,100,390,1400">
+       <h2>Suggested for you</h2>
+     </section></main>`,
+    FEED
+  );
+  check(
+    "a block taller than the glass and a half is not a suggestion block",
+    huge.document.querySelector('[data-name="lots"]').getAttribute("data-quiet-hidden"),
+    null
+  );
+
+  const withPosts = await page(
+    `<main><section data-name="around" data-box="0,100,390,600">
+       <h2>Suggested for you</h2>
+       <article>somebody's photograph</article>
+     </section></main>`,
+    FEED
+  );
+  check(
+    "and neither is one with a post inside it",
+    withPosts.document.querySelector('[data-name="around"]').getAttribute("data-quiet-hidden"),
+    null
+  );
+
+  /* The card itself still goes, which is the whole point of the pass. */
+  const card = await page(
+    `<main><div data-name="card" data-box="0,100,390,420">
+       <h2>Suggested for you</h2>
+     </div></main>`,
+    FEED
+  );
+  check(
+    "a block the size of a card still does",
+    card.document.querySelector('[data-name="card"]').getAttribute("data-quiet-hidden"),
+    "suggestion"
+  );
+
+  /* ── The door stops at a post too ────────────────────────────────────── */
+
+  /* An advertisement is a post whose button goes to the App Store. Taking that
+   * button out takes a piece of the post out — and Instagram mounts and
+   * unmounts that post while a thumb is moving, which is a feed going up and
+   * down. The tap is still refused; that is `ContentRules`, and it does not
+   * care what was drawn. */
+  const insideAPost = await page(
+    `<main><article data-box="0,0,390,600">
+       <img data-box="0,0,390,400">
+       <a data-name="cta" href="https://apps.apple.com/app/id1" data-box="0,420,390,44">
+         Install
+       </a>
+     </article></main>`,
+    FEED
+  );
+  check("a door inside somebody's post is left where it is",
+        hiddenIn(insideAPost, "cta"), null);
+
+  /* And outside one it goes, exactly as before. */
+  const loose = await page(
+    `<main></main>
+     <a data-name="cta" href="https://apps.apple.com/app/id1"
+        data-box="0,700,390,44">Get the app</a>`,
+    FEED
+  );
+  check("and one that is not in a post still goes",
+        hiddenIn(loose, "cta"), "upsell");
+
+  /* ── Where the feed ends ─────────────────────────────────────────────── */
+
+  /* Instagram's feed does not end: after the people you follow it goes on with
+   * people you did not choose, and Quiet takes every one of those out. What was
+   * left was a black nothing you could scroll through for ever — "no feed any
+   * more, just black", which is the app working exactly as designed with no
+   * place to stop. */
+  const theEndMark = (win) => win.document.getElementById("quiet-end");
+
+  /* Half a screen of nothing below the last post used to be enough on its own,
+   * and it cannot be. A feed still being fetched looks exactly like this: the
+   * list reserves the boxes and fills them when the answer comes back, so for
+   * the second in between there is a post, a void, and nothing to tell the two
+   * apart. It went on the phone — one post, the sentence under it, and the
+   * rest of the feed arriving below a line saying there was no more of it.
+   * `Tools/read-the-end.js` measures that sequence. */
+  const stillComing = await page(
+    `<main><div>
+       <article data-box="0,0,390,600"><img data-box="0,0,390,400"></article>
+       <div data-name="tail" data-box="0,600,390,500"></div>
+     </div></main>`,
+    FEED
+  );
+  check("a void under the last post is not the end on its own",
+        theEndMark(stillComing), null);
+
+  /* What that rule was reaching for, and the shape it has to be reached by.
+   * Instagram reserves the box and renders its suggestion into it, so the box
+   * keeps its height and what Quiet took out is a child of it. Counted from
+   * the outside only, two of these read as nought. */
+  const endedFeed = await page(
+    `<main><div>
+       <article data-box="0,0,390,600"><img data-box="0,0,390,400"></article>
+       <div data-name="tail" data-box="0,600,390,250">
+         <div data-box="0,600,390,250"><h2>Suggested for you</h2></div>
+       </div>
+       <div data-name="more" data-box="0,850,390,250">
+         <div data-box="0,850,390,250"><h2>Suggested posts</h2></div>
+       </div>
+     </div></main>`,
+    FEED
+  );
+  check("two of theirs inside the boxes reserved for them is the end",
+        theEndMark(endedFeed) !== null, true);
+  check("and that half screen is left exactly where it is",
+        hiddenIn(endedFeed, "tail"), null);
+  check("and Quiet says so, in the app's words",
+        theEndMark(endedFeed)?.firstChild.textContent,
+        "That's everyone you follow.");
+
+  /* The shape a person actually reported, and the one the first version of
+   * this could not see: nothing black, the feed simply stops. What is under
+   * the last post has been taken out, and something taken out has no height at
+   * all — so there is no void to measure. The evidence is not a height. It is
+   * that Instagram answered and Quiet emptied the answer. */
+  const stopped = await page(
+    `<main><div>
+       <article data-box="0,0,390,600"><img data-box="0,0,390,400"></article>
+       <div data-name="theirs" data-box="0,600,390,0">
+         <h2>Suggested for you</h2>
+       </div>
+       <div data-name="andTheirs" data-box="0,600,390,0">
+         <h2>Suggested posts</h2>
+       </div>
+     </div></main>`,
+    FEED
+  );
+  check("a suggestion taken out is the whole of the evidence",
+        hiddenIn(stopped, "theirs"), "suggestion");
+  check("so the feed that simply stops is an end too",
+        theEndMark(stopped)?.firstChild.textContent,
+        "That's everyone you follow.");
+
+  /* One is not enough to say it. A suggestion between two posts looks exactly
+   * the same while more are still on their way, and a line reading "that is
+   * everyone you follow" over somebody's photographs is the app lying about
+   * the one thing it exists to be right about. */
+  const justOne = await page(
+    `<main><div>
+       <article data-box="0,0,390,600"><img data-box="0,0,390,400"></article>
+       <div data-name="theirs" data-box="0,600,390,0">
+         <h2>Suggested for you</h2>
+       </div>
+     </div></main>`,
+    FEED
+  );
+  check("one of theirs is not the end", theEndMark(justOne), null);
+
+  /* Two in a row, with nothing of anybody's between them, is the section
+   * Instagram fills the rest of the day with. That is when it is said — and
+   * *only* said. */
+  const twoOfTheirs = await page(
+    `<main><div><div data-name="list" style="padding-bottom: 40px" data-box="0,0,390,900">
+       <article data-box="0,0,390,600"><img data-box="0,0,390,400"></article>
+       <div data-name="one" data-box="0,600,390,0"><h2>Suggested for you</h2></div>
+       <div data-name="two" data-box="0,600,390,0"><h2>Suggested posts</h2></div>
+       <div data-name="asks" data-box="0,600,390,4"></div>
+       <div data-name="air" data-box="0,604,390,240"></div>
+     </div></div></main>`,
+    FEED
+  );
+  check("two of theirs in a row is", theEndMark(twoOfTheirs) !== null, true);
+
+  /* And nothing below it is touched. A version of this took the tail away as
+   * well, and the photograph that came back had a spinner still turning under
+   * the sentence and a page that could no longer be scrolled: Instagram was
+   * not finished, and the app had shut the door on it. */
+  check("and what asks for more is left where it is",
+        hiddenIn(twoOfTheirs, "asks"), null);
+  check("and so is the air below", hiddenIn(twoOfTheirs, "air"), null);
+  check("and the list keeps its own floor",
+        twoOfTheirs.document
+          .querySelector('[data-name="list"]').hasAttribute("data-quiet-floor"),
+        false);
+
+  /* And the line follows the last post rather than being said and left behind.
+   * A feed that has run out can be answered a minute later, and a line reading
+   * "that is everyone you follow" with two of their photographs under it would
+   * be the app lying about the one thing it is here to be right about. */
+  const answered = await page(
+    `<main><div data-name="list">
+       <article data-box="0,0,390,600"><img data-box="0,0,390,400"></article>
+       <div data-name="theirs" data-box="0,600,390,0">
+         <h2>Suggested for you</h2>
+       </div>
+       <div data-name="andTheirs" data-box="0,600,390,0">
+         <h2>Suggested posts</h2>
+       </div>
+     </div></main>`,
+    FEED
+  );
+  const fresh = answered.document.createElement("article");
+  fresh.setAttribute("data-name", "fresh");
+  fresh.setAttribute("data-box", "0,700,390,600");
+  fresh.innerHTML = '<img data-box="0,700,390,400">';
+  answered.document.querySelector('[data-name="list"]').appendChild(fresh);
+  await rest(0);
+  await answered.settle();
+  await until(() =>
+    theEndMark(answered)?.previousElementSibling?.getAttribute("data-name") === "fresh");
+  check("a post arriving after the end moves the end below it",
+        theEndMark(answered)?.previousElementSibling?.getAttribute("data-name"),
+        "fresh");
+
+  /* A feed that is still arriving has a spinner in it, and a spinner is
+   * something. This is the check that keeps the end of the feed from being
+   * declared in the middle of it. */
+  const stillLoading = await page(
+    `<main><div>
+       <article data-box="0,0,390,600"><img data-box="0,0,390,400"></article>
+       <div data-name="tail" data-box="0,600,390,500">
+         <svg data-box="170,780,40,40"></svg>
+       </div>
+     </div></main>`,
+    FEED
+  );
+  check("a spinner below the last post is not the end",
+        hiddenIn(stillLoading, "tail"), null);
+  check("and nothing is said", theEndMark(stillLoading), null);
+
+  /* Said once. The pass runs on every rewrite of the document, and a sentence
+   * that arrived on each of them would be a wall of them. */
+  const saidOnce = await page(
+    `<main><div>
+       <article data-box="0,0,390,600"><img data-box="0,0,390,400"></article>
+       <div data-name="one" data-box="0,600,390,0"><h2>Suggested for you</h2></div>
+       <div data-name="two" data-box="0,600,390,0"><h2>Suggested posts</h2></div>
+     </div></main>`,
+    FEED
+  );
+  saidOnce.document.querySelector("main").appendChild(saidOnce.document.createElement("p"));
+  await rest(0);
+  await saidOnce.settle();
+  await until(() => saidOnce.document.querySelectorAll("#quiet-end").length > 0);
+  check("and said once, however many times the page is rewritten",
+        saidOnce.document.querySelectorAll("#quiet-end").length, 1);
+
+  /* And never on a page with no posts on it, which is every page that is not
+   * the feed and the feed itself while it is still empty. */
+  const noPostsYet = await page(`<main><div data-box="0,0,390,900"></div></main>`, FEED);
+  check("a page with no posts on it has no end to announce", theEndMark(noPostsYet), null);
+
+  /* ── The door, out of the frame path ─────────────────────────────────── */
+
+  /* `takeDownTheStrip` asks the browser what is drawn at twelve points on the
+   * glass, and each of those is a hit test that forces a layout. Twelve, sixty
+   * times a second, for as long as anybody is scrolling. Two nets hold under
+   * it from the first paint — the stylesheet and the URL rules — so it can
+   * wait for the hand to come off. */
+  const door = await page(`<main></main>`, FEED);
+  door.dispatchEvent(new door.Event("scroll"));
+  const bar = door.document.createElement("div");
+  bar.setAttribute("data-name", "bar");
+  bar.setAttribute("data-at-bottom", "");
+  bar.setAttribute("style", "position: fixed");
+  bar.setAttribute("data-box", "0,760,390,60");
+  bar.innerHTML = "<button>Open</button>";
+  door.document.body.appendChild(bar);
+  await rest(0);
+  door.drain();
+  check(
+    "the strip is not hunted for mid-flick",
+    door.document.querySelector('[data-name="bar"]').getAttribute("data-quiet-hidden"),
+    null
+  );
+  await until(() => hiddenIn(door, "bar") === "upsell");
+  check("and is taken down once the hand comes off the glass", hiddenIn(door, "bar"), "upsell");
+
+  /* A block in front of somebody is taken out at once and paid for by nobody:
+   * removing it moves what is *below* it, which is not what they are reading. */
+  const ahead = await page(`<main></main>`, FEED);
+  ahead.dispatchEvent(new ahead.Event("scroll"));
+  const coming = ahead.document.createElement("div");
+  coming.setAttribute("data-name", "coming");
+  coming.setAttribute("data-box", "0,600,390,200");
+  coming.innerHTML = "<h2>Suggested for you</h2>";
+  ahead.document.querySelector("main").appendChild(coming);
+  await rest(0);
+  ahead.drain();
+  check(
+    "one still on its way up is taken out mid-flick",
+    ahead.document.querySelector('[data-name="coming"]').getAttribute("data-quiet-hidden"),
+    "suggestion"
+  );
+  check("and the scroll is left alone", ahead.scrolledBy, []);
 
   /* ── Somebody mid-sentence ───────────────────────────────────────────── */
 
@@ -1010,7 +1541,7 @@ const GROUPED = `
   twice.document.querySelector("main").appendChild(
     twice.document.createElement("div")
   );
-  twice.drain();
+  await twice.settle();
   check(
     "the same colour is not said twice",
     twice.sent.filter((m) => m.kind === "chrome").length,
@@ -1060,7 +1591,7 @@ const GROUPED = `
     FEED
   );
   emptiedAgain.document.querySelector("main").innerHTML = "";
-  emptiedAgain.drain();
+  await emptiedAgain.settle();
   check(
     "a page that empties itself after painting does not bring the cover back",
     emptiedAgain.sent.filter((m) => m.kind === "bare").map((m) => m.on),
@@ -1073,7 +1604,7 @@ const GROUPED = `
   stillEmpty.document.querySelector("main").appendChild(
     stillEmpty.document.createElement("div")
   );
-  stillEmpty.drain();
+  await stillEmpty.settle();
   check(
     "and the same answer is not said twice",
     stillEmpty.sent.filter((m) => m.kind === "bare").length,
@@ -1085,10 +1616,12 @@ const GROUPED = `
   /* jsdom lays nothing out and scrolls nothing, so the page is scrolled by
    * saying where it is and telling it so — which is exactly what a browser
    * does, and is all the listener reads. */
+  const awayOf = (win) => win.document.documentElement.hasAttribute("data-quiet-away");
+
   const scrollTo = (win, y) => {
     Object.defineProperty(win, "scrollY", { value: y, configurable: true });
     win.dispatchEvent(new win.Event("scroll"));
-    return win.document.documentElement.hasAttribute("data-quiet-away");
+    return awayOf(win);
   };
 
   const feed = await page(GROUPED, FEED);
@@ -1102,6 +1635,30 @@ const GROUPED = `
   check("a movement too small to mean anything changes nothing", [
     scrollTo(feed, 400), scrollTo(feed, 403),
   ], [true, true]);
+
+  /* And nor is eight points, which is what it used to take. The header slid
+   * out over a fifth of a second on the first eight points of any downward
+   * movement, slid back on the next eight up, and did it again while somebody
+   * was reading. Going away now asks for forty points in one direction; the
+   * nudges add up, and a change of direction starts the tally again. */
+  const calm = await page(GROUPED, FEED);
+  scrollTo(calm, 300);
+  scrollTo(calm, 280);
+  check("a nudge back up brings it straight back", awayOf(calm), false);
+  check("three small nudges down are not a decision", [
+    scrollTo(calm, 292), scrollTo(calm, 304), scrollTo(calm, 316),
+  ], [false, false, false]);
+  check("the fourth is", scrollTo(calm, 328), true);
+
+  /* Which only holds because the tally is a direction rather than a total: a
+   * page wobbling under a thumb never accumulates forty of anything. */
+  const wobble = await page(GROUPED, FEED);
+  scrollTo(wobble, 300);
+  scrollTo(wobble, 280);
+  check("a page wobbling under a thumb sends nothing away", [
+    scrollTo(wobble, 300), scrollTo(wobble, 280),
+    scrollTo(wobble, 300), scrollTo(wobble, 280),
+  ], [false, false, false, false]);
 
   /* Every other page's top bar is that page's own: the name on a profile, the
    * search in the inbox, the back arrow in a conversation. A back arrow that

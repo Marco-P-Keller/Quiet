@@ -98,6 +98,52 @@ final class PreferencesTests: XCTestCase {
             Preferences(defaults: defaults, hardware: .iPhone15).saysWhatIsLeft
         )
     }
+
+    // MARK: - What is in the feed
+
+    /// The default that is the whole of the decision, pinned where it lives.
+    ///
+    /// Quiet used to take every one of Instagram's suggested posts out, always,
+    /// and nobody had chosen that — it was the app editing somebody's feed on
+    /// their behalf, which is the thing it objects to when the site does it.
+    /// They are shown now, and there is a switch for anybody who would rather
+    /// not have them.
+    ///
+    /// The tools in `Tools/` cannot ask this question. They test the script,
+    /// and the script is handed the answer; this is where the answer is
+    /// decided. It is also `object(forKey:)` rather than `bool(forKey:)` for
+    /// the same reason as the notices above, and getting that wrong here would
+    /// ship an app that hides them until somebody finds the switch — silently,
+    /// and looking exactly like a working app.
+    func testSuggestedPostsAreShownUntilSomebodySaysOtherwise() {
+        XCTAssertTrue(Preferences(defaults: defaults, hardware: .iPhone15).showsSuggestions)
+    }
+
+    func testHidingThemIsRememberedAndSoIsChangingYourMind() {
+        let first = Preferences(defaults: defaults, hardware: .iPhone15)
+        first.showsSuggestions = false
+        XCTAssertFalse(
+            Preferences(defaults: defaults, hardware: .iPhone15).showsSuggestions
+        )
+
+        first.showsSuggestions = true
+        XCTAssertTrue(
+            Preferences(defaults: defaults, hardware: .iPhone15).showsSuggestions
+        )
+    }
+
+    /// And that the answer actually reaches the page, which is the half of this
+    /// that a preference test usually forgets. A setting nothing is told about
+    /// is a switch that does nothing.
+    func testThePageIsToldWhichWayTheSwitchIs() {
+        let shown = WebScripts.load(top: 59, showsSuggestions: true)
+            .scripts.map(\.source).joined(separator: "\n")
+        XCTAssertTrue(shown.contains("window.__quietShowsSuggestions = true"))
+
+        let hidden = WebScripts.load(top: 59, showsSuggestions: false)
+            .scripts.map(\.source).joined(separator: "\n")
+        XCTAssertTrue(hidden.contains("window.__quietShowsSuggestions = false"))
+    }
 }
 
 private extension Hardware {

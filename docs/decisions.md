@@ -2344,3 +2344,448 @@ the page is pulled past its own ends.
 The lesson is the one this project keeps meeting: a line that looks like it
 configures something is not evidence that anything is configured. The colour was
 set, written down, and invisible.
+
+## Two speeds, and the fast path given back
+
+Two things were making the feed heavier than it needed to be, and one of them was
+put there this morning.
+
+**The whole pass ran on every frame of every flick.** Instagram's feed is a
+virtualised list: it rewrites the document continuously while a thumb is moving,
+and every rewrite scheduled the pass — eighteen calls, inside an animation frame,
+several of them reading computed styles and boxes, which forces layout. That is
+a stutter with a cause rather than a mystery.
+
+So the pass has two speeds, and the line between them is a rule rather than a
+guess: **anything whose job is that something never appears stays immediate**,
+and everything else waits for the hand to come off the glass. A reel that shows
+for two frames has shown. A header being dressed a tenth of a second later is a
+header nobody saw undressed — and none of the slow work can change while the
+page is under a thumb anyway. The page counts as still a hundred and forty
+milliseconds after the last scroll event, which is longer than the gap between
+two events in one flick and shorter than anybody notices.
+
+The sheet question went with it, and gained a second saving: the safety valve on
+every scroll now asks only when the row is actually down. Doing the work to
+confirm what is already believed, sixty times a second, is the shape of a
+stutter.
+
+**And the web view is opaque again.** It is created transparent so the app's own
+ground shows through the second before Instagram paints — that was this
+morning's fix for the black hole in the launch — but a view that is not opaque
+cannot use the fast path for its tiles, so every frame of every flick is
+composited over what is behind it. Paid for one second that is a good trade;
+paid for ever it is a tax on the one thing the app does all day. It is given
+back at the first paint and never taken again.
+
+Three checks pin the line: a suggestion block arriving mid-flick is still taken
+out, the sheet question is *not* asked mid-flick, and it is asked once the hand
+stops — deferred rather than lost.
+
+What is not claimed: none of this was measured on a phone. It is work removed
+from the frame path by mechanism, which is a smaller claim than "it is faster"
+and the honest one.
+
+## Nowhere to scroll to
+
+You could drag the feed off its own bottom, and the rectangle behind it was
+Quiet's ground. Nothing is down there. Every other surface in the app has spent
+this release learning to say what it is; a scroll view springing into empty
+space is one of them suggesting there might be something.
+
+Taking it away is not as simple as switching the bounce off, because `bounces`
+is one property for both edges and the top one is the pull — the gesture every
+list on this phone has had for fifteen years, which the app already goes to some
+trouble to keep alive against a web view that removes it on every load. Losing
+that is the failure that looks like nothing at all: no message, nothing to
+press, a gesture that used to work and now does not.
+
+So the question is answered by *where the page is* rather than by which edge is
+being dragged. A whole screen of page above you means the top is out of reach —
+nobody arrives at it without scrolling back through that screen first, and the
+bounce returns on the way, long before the top does. The switch therefore always
+happens in the middle of a page, where no edge is reachable and nothing can be
+felt.
+
+Two things it deliberately does not do. A page shorter than about a screen and a
+half keeps its bottom bounce: on a profile with four posts there is no screen of
+page to be below, so any rule that removed the bottom spring there would remove
+the pull with it, and the empty space under four posts is an inch rather than a
+page. And a conversation gets the bounce back on the way in, because its bottom
+is where it starts and springing there is what every messaging app does — a
+value left behind by somebody's feed is not a decision about this page.
+
+The app's own screens got the same treatment from the other end. The setup and
+limit screens already refused to bounce when their content fitted; the panel and
+the search list did not, and a list of three names that springs is a list
+claiming to have more.
+
+What is not claimed: the pull was not re-tested by hand here. The rule that
+protects it is a pure function with tests, but only a thumb can say whether the
+gesture still feels like the system's.
+
+## The frame path, and four things in it
+
+The feed was asked to be perfect and was read end to end for it: the pass in
+`trim.js`, the header, the row, and the scroll view underneath all three. Four
+things in that path cost frames or moved the page, and none of them was
+visible from any single screenshot.
+
+**The largest was a sweep.** While a thumb was on the glass, every rewrite of
+Instagram's virtualised list ran `trimSuggestions` over the whole feed — every
+span, every heading, reading the text of each — sixty times a second. The memo
+in front of it only saved the *comparison*; the reading happened anyway, and
+reading `textContent` walks a subtree. Meanwhile the observer that triggered
+all this was handed the exact list of what had changed and threw it away. So
+the records are kept now: during a flick only what the page has just added is
+looked through, and the whole feed is swept when the hand comes off, which is
+what still catches a block whose wording changed in place rather than arriving.
+
+**The second was a question with a stable answer, asked every frame.** The
+floor under Instagram's hidden navigation row is found by walking eleven
+ancestors and asking each for its computed style. The memo was the attribute
+the walk *sets*, so every element that turned out not to have a floor was
+measured again on the next frame, and the next — eleven forced style
+resolutions a frame, for as long as anybody scrolled. Asked once per element
+now, whatever the answer, and the walk itself moved out of the immediate half
+of the pass entirely: what it fixes is a band of nothing under the last post,
+which is the one part of the page nobody is looking at while they flick
+through it.
+
+**The third moved the page.** WebKit anchors a scroll to nothing, so taking a
+block out above the top of the glass slides everything below it up by exactly
+its height — under the thumb, mid-flick. That is the feed jumping, and it is
+the app's own doing. Nothing above the glass can be seen, so it waits; and
+when the hand comes off, the block goes and the scroll is moved by what the
+page just lost, in the same frame, so nothing moves on screen at all. A block
+*below* the glass is still taken out at once and costs nothing: removing it
+moves what is under it, which is not what anybody is reading.
+
+**The fourth was the furniture twitching.** The header went away on the first
+eight points of downward movement past the top and came back on the next eight
+up — and eight points is a thumb settling, not a decision. It slid out over a
+fifth of a second, slid back, and did it again while somebody read. Going away
+now asks for forty points in one direction, with the tally reset by a change of
+direction; coming back still asks for eight. The asymmetry is the point and it
+is what every list on this phone does: hiding a bar is a decision the page
+makes about somebody, so it asks to be sure; showing it is a decision somebody
+has already made.
+
+And one thing that was simply missing. The row is documented to draw itself in
+while the page moves under a thumb and to come back out the moment it stops. It
+did the first half: nothing watched for the stopping, because the observer only
+fires while the page is moving, so a flick downward left the pill small and
+faded until somebody scrolled back up. What the file said and what the app did
+had disagreed since the row was written.
+
+Eleven new checks hold the four, including the two that are the whole point:
+a block above the glass is left alone under a thumb, and when it goes the page
+is moved by exactly what it lost.
+
+What is not claimed: none of this was measured on a phone. It is work removed
+from the frame path by mechanism and one page movement removed by arithmetic,
+which is a smaller claim than "the feed is smooth now" and the honest one.
+
+## Eight attempts at one screen moving
+
+The photograph was Quiet's own title row drawn across the clock, with a keyboard
+up. It took eight tries, and seven of them were wrong in the same way.
+
+What the app finally said about itself, once it was asked:
+
+    page at   62.0, field at 116.0, keyboard down
+    page at  -79.5, field at  36.7, keyboard up
+    glass 440 x 956 at   14.0, keyboard down
+    glass 440 x 956 at -141.5, keyboard up
+
+The browsing screen does not lay itself out wrongly. **It is moved whole.** A
+view given a fixed height and put in a region shorter than that height is
+centred, and half of what a keyboard takes out of the region is exactly what it
+moves by. Everything else in those numbers follows: the page goes with the
+screen, and inside it the navigation bar puts back the sixty-two points it now
+believes it owes a status bar, having found itself at the top of the window.
+
+The seven wrong answers sort into two piles, and both piles are one mistake.
+
+**Five were changes inside the screen** — the safe area read from the wrong
+window, a view told to ignore the keyboard, a stack given a size, a stack told
+which end to lose, the same for the stack inside it. None of them could ever
+have worked, because the screen was never the thing laying itself out.
+
+**Two were requests made in `RootView`** — ignore the keyboard; fill the room
+and pin to the top. A request is not a size, and whatever moves this screen sits
+further out than a modifier written in that file can reach.
+
+The eighth asks nothing of it. `Color.clear` refuses the keyboard, is therefore
+the height of the window whatever is in front of it, and the screen is laid over
+that and pinned to its top. An overlay is sized to the thing it covers, so there
+is no shorter region left anywhere for anything to be centred in — which is the
+answer this file already gives one line further down, to the same failure
+arriving through a `ZStack` instead of a keyboard.
+
+What actually cost the seven rounds is smaller than any of that, and it is worth
+writing down on its own: **every one of them was inferred from a single
+measurement with nothing beside it.** Minus seventy-nine is a number. Whether it
+is a fault depends on what the same page reads with no keyboard up, and that was
+not asked until the fourth round. Whether the fault is *in* that page depends on
+where the screen around it is, and that was not asked until the seventh.
+
+The instrumentation stays. It is `DEBUG` only, it runs in one staged scene, and
+the workflow prints the four numbers on every run — so a screen that starts
+moving again says so in a line rather than in a photograph somebody has to
+notice.
+
+## A signed-in launch opens on the feed, not on the redirect
+
+`Quiet opens on the login form, not on instagram.com`, further up this file, is
+still right about the reason it gives: signed out, the site's own front door
+leads with a button into Instagram's app, and the login form is the page a
+person came to use.
+
+It was wrong about everybody else. For a reader who is already signed in,
+`/accounts/login/` is not a page at all — Instagram answers it with a redirect,
+and a cold launch is then a request across the world, an answer that is only an
+address, and *then* the feed. Nobody ever sees the first two. They are paid for
+on the one screen where somebody is sitting watching a blank.
+
+So the door is chosen. `TheLastLook` keeps one bit — whether the last reading of
+the cookies found anybody at all, never who — and the home pane opens on the
+feed when it says somebody, on the login form when it says nobody. It has to be
+a remembered bit rather than a question asked at launch, because reading the
+cookie store is asynchronous and the pane is built now.
+
+Getting it wrong is cheap and self-correcting: a session that expired between
+launches lands on Instagram's signed-out page, which is the trade
+`ContentRules.openings` already describes and accepts, and the next reading
+writes the bit back.
+
+## The cover comes off at the first paint, not at the end of the request
+
+`A cover over the web view, not a spinner` asked for two things before it would
+lift: the navigation finished, and the page saying it had drawn something. Both,
+and they are not two halves of one event — on Instagram they are seconds apart,
+in the wrong order.
+
+`hasLoaded` is a question about a *request*. Instagram's main frame is not
+finished when the feed is on the glass; it goes on fetching for as long as there
+are pictures in the first screenful. So the feed was there, readable, with
+Quiet's own paper held over the top of it until the last of them arrived.
+
+The two are read as either-or now. A page that says it has drawn something is
+uncovered whatever the request is still doing. A page whose script never ran —
+which can never say anything — is uncovered when the request settles, exactly as
+before. And a page that says it is bare stays covered under both rules, which is
+the case the second condition was added for.
+
+The same signal gives the fast path back. `Two speeds, and the fast path given
+back` takes the view's transparency away at the first paint, and the only signal
+there was for that was `didFinish` — which is to say every one of those seconds
+was composited rather than drawn straight.
+
+## The opening lets go early when there is a page behind it
+
+`The second and a half the app opens with` says nothing waits on it. That was
+true of the *web view*, which loads behind it, and not true of the reader: the
+paper came down when a timer said so and not before, and on a warm launch —
+where the place is put back without a load and the feed is on the glass in a
+tenth of a second — that was a second of an app being deliberately slower than
+it is.
+
+There is a floor, because the sentence is the whole reason the screen exists,
+and it is not zero. Past the floor the paper goes as soon as the page behind it
+has drawn something. The slow launch is unchanged: nothing here shortens a wait
+that is real, it only stops adding to one that is already over.
+
+## The two questions Quiet asks the page wait for the feed
+
+`trim.js` asks Instagram who is signed in, and asks the login page for the
+wordmark. Both are made from inside Instagram's own page with Instagram's own
+cookies, which is the arrangement that keeps the app from making requests of its
+own — and both were made at document start, in the same moment as the feed's own
+requests, over the same connections. One of them fetches an entire second HTML
+page to read a logo out of it.
+
+Neither is on the way to the feed. What they buy is a name and a face in Quiet's
+row and the right wordmark at the top of it; all three now arrive after the page
+has finished, or three seconds in, whichever comes first, and each has something
+sensible to show in the meantime.
+
+They are also asked once now rather than once per frame. The scripts run in
+every frame so that an embedded player never gets to appear first, and the app
+only ever listened to the main frame — so a page with three frames in it was
+asking the same two questions three times and throwing two of each answer away.
+
+## The rule list is looked up before it is built
+
+`WKContentRuleList` compiles the block list into WebKit's own machine and writes
+it to disk under an identifier. The app was asking for that compilation from
+scratch three times on every launch, once per pane, next to the first request of
+the feed — while the finished list from the last launch sat on the disk under
+the identifier it was filed by.
+
+It is asked for by name now, and only built when it is not there. The version in
+the identifier is what makes that safe, and it was already there for exactly
+this reason: the name changes whenever the rules do, so what is found is never
+last month's.
+
+The two files injected into every page get the same treatment for the same
+reason — a hundred and ten kilobytes of JavaScript off the disk, and a
+stylesheet through a JSON encoder, three times on the way up. They are read
+once now.
+
+**None of this has been measured on a phone.** Every one of the five is a thing
+the app was doing that it did not need to do, which is a different claim from a
+number, and the number is what point 38 in `verbesserungen.md` is still asking
+for.
+
+## The trim pass is rationed while the page is arriving
+
+The last five were reasoned about and not measured, and the section above says
+so. This one is measured, and the number is why it is here rather than in a
+commit message.
+
+The complaint was "the stories load straight away, only the feed takes for
+ever". Both are drawn by the same client on the same thread, so the difference
+is not the network — it is what else that thread was doing by the time the
+feed's turn came.
+
+`trim.js` already had two speeds, and they were about a thumb: while the page is
+under one, only what must be immediate runs, and everything else waits for the
+hand to come off. A page that is *loading* is exactly as busy and had no speed
+limit at all. Instagram's client mutates the document on every frame while it
+mounts a feed, and every one of those mutations bought the whole pass — twelve
+hit tests, a sweep of the feed, dozens of boxes and computed styles, each one
+forcing the browser to lay the whole page out before it can answer.
+
+`Tools/read-the-cost.js` counts those calls. On a fixture with eight posts in
+it, at a phone's frame rate:
+
+| | |
+|---|---|
+| a page arriving, before | 68.6 a frame |
+| a page arriving, after | 2.2 a frame |
+| under a thumb | 0.6 a frame |
+
+A hundred times the work of a flick, sixty times a second, for the whole of the
+wait somebody is watching a blank. And it feeds itself: each render mutates the
+document, each mutation buys a pass, each pass holds up the next render. The
+header and the stories arrive before there is much to chew on. The feed arrives
+after.
+
+So a page that is still arriving is now treated as what it is — busy. The
+immediate half runs on the frame; the full pass waits for the document to go
+quiet for the same tenth of a second the flick already waits, with a one-second
+ceiling so that a page which never goes quiet is still swept. Nothing in the
+full pass is worth a frame of a load: a colour band, a wordmark, a header being
+dressed, the end of the feed, none of them is being looked at before the first
+post is.
+
+Two things came out of writing the check rather than the fix. `sayWhere` was in
+the full pass, and it is the only thing Quiet's row ever learns its own address
+from — a string compared to a string, no layout in it, and no reason to make a
+tap on **profile** wait a tenth of a second to light the right entry. It is in
+the immediate half now, first, because it is also what starts a new page's tally
+over. And the full pass stops at the edge of a subframe: everything in it is a
+question about the app's own chrome, and `receive` in `InstagramWebView.swift`
+has always dropped every answer to those that arrives from one. An advertisement
+in a feed is a subframe, and it was being asked all of it, on every frame, so
+that the app could throw the answers away.
+
+The lesson is the one this file keeps learning in a new place. The two checks
+that already existed ask whether the pass is *right*, and both would have stayed
+green through all of this for ever. Nothing was wrong. It was only slow, and
+only where somebody was waiting — so there is now a check that asks what it
+costs, and it fails at ten calls a frame rather than at sixty-eight, because the
+exact number moves whenever a fixture does and a return to sixty is the
+regression.
+
+## The end of a feed is what the site answered with, never a height
+
+The feed's end had two rules for saying so, and the second could not work.
+
+Half a screen of empty boxes below the last post was read as the treadmill with
+its contents taken out. It is also, exactly and indistinguishably, a virtualised
+list that has reserved the boxes for the next page and is waiting for the answer
+to come back. A spinner was supposed to tell the two apart, and a spinner is
+only in the tail for the part of the wait when Instagram happens to be drawing
+one.
+
+What that shipped was the worst thing this app can do. One post, and under it
+"That's everyone you follow." Then the rest of the feed arrived below the
+sentence, and because a feed that has ended stays ended, the sentence followed
+it down the whole afternoon. The app lying about the one thing it exists to be
+right about.
+
+So the height is gone and there is one rule, which is the one the code's own
+paragraph always named: the site answered, and Quiet emptied the answer, twice,
+with nothing of anybody's in between. The counting looks inside the boxes as
+well as at them, because Instagram writes a suggestion both ways — as the
+sibling, and inside a box the list reserved, where the mark is on a child and
+two of them used to count as nought. That nested shape is the whole of what the
+height rule was reaching for.
+
+## A feed with none of your people in it is an end too
+
+The other account, and the other half of the same function. "The feed loads
+extremely slowly, over fifteen seconds before I see it."
+
+Nothing was loading. The photograph showed Instagram's own "You've completely
+caught up" card with no post above it at all: the feed response had come back
+and there was none of it for them. Instagram began the treadmill, Quiet took
+every suggestion out — correctly — and said nothing. Page after page of answers
+deleted in silence under a turning spinner.
+
+The end could not be said there because it was only ever said *under a post*,
+and that is the one shape with no post to be under. So the walk starts at the
+top of the list when there is none, and the sentence goes above the lot.
+
+The lesson is about the shape of the report rather than the code. Two accounts
+gave two opposite complaints — one said the feed ended when it had not, one said
+the feed would not load when it already had — and they were one function, broken
+in both directions. A report that contradicts another report is a reason to look
+for the thing underneath both.
+
+## Instagram's suggestions are shown, and taking them out is a switch
+
+The app used to take every one of Instagram's suggested posts out of the feed,
+always, and nobody had ever chosen that.
+
+Which is the objection this app makes to the site, made by the app. Instagram
+decides what belongs in somebody's feed and puts it there; Quiet decided what
+belonged in somebody's feed and took it out. Both are an opinion about a
+person's afternoon held by software they did not ask. The difference between
+them is not the direction — it is whether anybody was asked.
+
+So they are shown, and there is a switch in the panel. Off, which is where it
+starts, the feed is what Instagram sends. On, the feed stops at the last post by
+somebody you chose, and Quiet says so where it stops.
+
+**Which way round the default goes is the whole decision.** A switch that starts
+in the narrower position is not a choice offered, it is a choice made with a
+switch beside it — and almost nobody moves a default. The wider position is the
+honest one for a setting about what another service is allowed to show you.
+
+Three things had to hold for this not to be a hole in something else.
+
+**Reels are not a suggestion.** They shared the heading list, because a block
+headed "Reels" in the feed is inserted exactly like one. They have their own
+list now and they go either way. Reels are refused by address in three other
+places in this app, and a promise made there is not something a setting about
+suggested posts gets to undo — a carousel of them arriving back under this
+switch would be one promise quietly cancelled by another.
+
+**The setting has to reach three pages, in both directions.** The flag is handed
+in at document start, which covers every page loaded afterwards and none of the
+three already open. Coming back is also not the mirror of going away: `hide`
+writes an attribute, so showing them again removes it — but the memo has to go
+too. `lastSeenText` exists so a heading read once is not read on every frame,
+and a heading remembered as read while the setting said "show" would never be
+looked at again when it said "hide". The switch would have worked once and then
+been stuck, which is the failure a check for one direction would have missed.
+
+**The app had to stop promising the old behaviour.** The setup screen said "No
+Reels. No Explore. No accounts suggested between your friends" to every new
+reader, and a third of that sentence had just stopped being true. So did the
+store listing and the published page. A default changed in the code and left
+standing in the prose is not a smaller version of the same change; it is the app
+saying something about itself that is false.
