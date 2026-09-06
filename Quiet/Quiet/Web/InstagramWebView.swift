@@ -595,9 +595,28 @@ final class WebSurface {
             // ordinary thing — would leave the last account's photograph under
             // an entry marked "your profile". An outline says "not yet". The
             // wrong face says nothing at all, because it looks like it works.
+            //
+            // **And every pane goes, not just the profile.** This used to
+            // forget the profile alone, on the reasoning that `WhoIsSignedIn`
+            // was watching the cookie and would take care of the rest. It does,
+            // when it hears — and `cookiesDidChange` is not promised for a
+            // cookie the network set rather than the app. When it stays quiet
+            // the switch still happens; it is simply never announced. Instagram
+            // navigates the pane its own switcher was on, that pane's script
+            // reports the new name, and the app looks right: the row wears the
+            // new face over two panes still holding the last person's feed and
+            // inbox, one tap away. That is the photograph this came back on.
+            //
+            // A name that has changed is the same fact the cookie carries, a
+            // moment later and by another road. It deserves the same answer.
+            //
+            // It cannot loop: this runs only when a name was already held, and
+            // starting again gives that name up — so the page that arrives
+            // afterwards is somebody being learned rather than somebody
+            // changing.
             if wasSomebodyElse {
                 myFace = nil
-                stack?.forgetTheProfile()
+                startAgainAsSomebodyElse()
             }
         }
         let data = picture.flatMap { Data(base64Encoded: $0) }

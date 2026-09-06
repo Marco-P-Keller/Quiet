@@ -322,24 +322,6 @@ final class PaneStack {
         panes[pane] = nil
     }
 
-    /// The profile pane, thrown away because it is no longer this reader's
-    /// profile.
-    ///
-    /// Its place goes too. A page put back from twenty minutes ago would be the
-    /// account somebody has just left, restored without a load and therefore
-    /// without anything ever asking whether it was still theirs.
-    func forgetTheProfile() {
-        ThePlace.forget(.profile)
-        guard let webPane = panes[.profile] else { return }
-        if current == .profile {
-            // On the glass, so it cannot simply vanish. It is sent to the page
-            // the new name owns instead.
-            webPane.openTheFirstPage()
-        } else {
-            drop(.profile, webPane)
-        }
-    }
-
     /// Signing out, which is the one thing that has to reach all three.
     ///
     /// A pane left standing would be somebody else's inbox behind a fresh login
