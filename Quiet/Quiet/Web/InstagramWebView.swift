@@ -412,6 +412,9 @@ final class WebSurface {
         clearCaches { [weak self] in
             Task { @MainActor in
                 guard let self else { return }
+                // Before the forgetting, so that a page on its way out cannot
+                // hand any of it straight back. See `startingOver`.
+                self.startingOver = true
                 self.me = nil
                 self.myFace = nil
                 Remembered.forgetMe()
@@ -548,7 +551,32 @@ final class WebSurface {
         chrome = colour
     }
 
+    /// Set from the moment the account changed until a page has arrived under
+    /// the new one.
+    ///
+    /// Everything below forgets who this is — the name, the face, the panes —
+    /// and then asks for pages again. What it cannot do is stop the pages on
+    /// their way *out*: they are still running for a second or so, and
+    /// `faceFromRow` in trim.js will happily announce the account being left,
+    /// name and photograph together, a moment after the app has finished
+    /// forgetting it. `Remembered` writes it down again, and the last entry in
+    /// the row goes on wearing the previous account's face over the new
+    /// account's feed — which is the photograph that sent this back a fourth
+    /// time.
+    ///
+    /// That message is not wrong about the document it came from. It is simply
+    /// about somebody who is no longer signed in, and the only thing that can
+    /// tell the difference is which side of the switch it arrived on.
+    @ObservationIgnored private var startingOver = false
+
+    /// A document committed, so the panes have caught up with the account.
+    fileprivate func aPageArrived() {
+        startingOver = false
+    }
+
     fileprivate func note(me name: String, picture: String?) {
+        guard !startingOver else { return }
+
         if me != name {
             // Somebody else. Instagram lets you change accounts without ever
             // passing through Quiet's own sign-out, and the profile pane is the
@@ -561,7 +589,16 @@ final class WebSurface {
             // from here.
             let wasSomebodyElse = me != nil
             me = name
-            if wasSomebodyElse { stack?.forgetTheProfile() }
+            // The face goes with it, rather than waiting to be replaced. It is
+            // only replaced when a new one arrives, and a picture that does not
+            // come — a refused fetch to a content delivery network is an
+            // ordinary thing — would leave the last account's photograph under
+            // an entry marked "your profile". An outline says "not yet". The
+            // wrong face says nothing at all, because it looks like it works.
+            if wasSomebodyElse {
+                myFace = nil
+                stack?.forgetTheProfile()
+            }
         }
         let data = picture.flatMap { Data(base64Encoded: $0) }
         if let data, let face = UIImage(data: data) { myFace = face }
@@ -1496,6 +1533,24 @@ struct InstagramWebView: UIViewRepresentable {
             // longer the news.
             state.stumble = nil
             state.address = webView.url
+            // And neither is anything the last document said about its own
+            // furniture. A document that has just committed has no sheet up and
+            // no field holding the keyboard — both of those are facts about a
+            // page that no longer exists, and both of them take Quiet's row off
+            // the screen.
+            //
+            // This is the app's half of the switcher. The page says its first
+            // answer on every document now, which fixes it from that end too;
+            // this end is asserted anyway because it needs nothing of
+            // Instagram's to be true. The row is the only way to Quiet's own
+            // settings, and it must never be possible to be left without it
+            // because a script did not run.
+            state.isSheetUp = false
+            if state.isTyping { state.isTyping = false }
+            session.setTyping(false)
+            // A page has arrived, so whatever the account was changing into, it
+            // has changed. See `startingOver`.
+            surface.aPageArrived()
             tellThisPage(webView)
             keepPullAlive(webView.scrollView)
         }

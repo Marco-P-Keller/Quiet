@@ -811,6 +811,7 @@ const GROUPED = `
    * These check both halves: that the answer is right, and that nothing was
    * touched to arrive at it. */
   const sheetOf = (win) => win.sent.filter((m) => m.kind === "sheet").pop();
+  const sheetsOf = (win) => win.sent.filter((m) => m.kind === "sheet");
   const marks = (win, name) => {
     const node = win.document.querySelector(`[data-name="${name}"]`);
     return [
@@ -826,9 +827,34 @@ const GROUPED = `
     '<button data-name="one">marco</button>' +
     '<button data-name="two">Log In to an Existing Account</button>';
 
-  /* With nothing modal on screen, nothing is said. */
+  /* With nothing modal on screen the answer is `false` — said once, and not
+   * again.
+   *
+   * Silence used to be the answer here, and it is what stranded the row. The
+   * switcher goes up, the row stands down, choosing a name loads a page — and a
+   * new document with no sheet on it had nothing to report, so the app went on
+   * holding the `true` from before the load and the island never came back.
+   * Once, because a fresh page has to say where it stands; not again, because a
+   * message that only ever confirms the obvious is one worth not sending. */
   const plainFeed = await page(`<main><article>a post</article></main>`, FEED);
-  check("with nothing modal on screen, nothing is said", sheetOf(plainFeed), undefined);
+  check(
+    "with nothing modal on screen, the page says so once",
+    sheetsOf(plainFeed).map((m) => m.up),
+    [false]
+  );
+
+  /* And says it again for a document the browser kept rather than built.
+   * Going back does not re-run these scripts, so both halves of the pair
+   * survive from the last time the page was on screen while the app has
+   * already reset its own — a disagreement that would leave the island drawn
+   * over a sheet, and never correct itself. */
+  const restored = await page(`<main><article>a post</article></main>`, FEED);
+  restored.dispatchEvent(new restored.Event("pageshow"));
+  check(
+    "and again when the browser brings a page back",
+    sheetsOf(restored).map((m) => m.up),
+    [false, false]
+  );
 
   /* The account switcher: held against the bottom, the width of the glass,
    * full of things to press, and saying nothing anywhere about being modal.
@@ -863,11 +889,7 @@ const GROUPED = `
      </div></main>`,
     "https://www.instagram.com/direct/inbox/"
   );
-  check(
-    "the inbox, which was moved for eleven builds, is not a sheet",
-    sheetOf(conversations),
-    undefined
-  );
+  check("the inbox, which was moved for eleven builds, is not a sheet", sheetOf(conversations)?.up, false);
   check("and it is left entirely alone", marks(conversations, "threads"), "||||");
 
   /* The one that does not depend on Instagram's markup at all.
@@ -899,7 +921,7 @@ const GROUPED = `
      </div></main>`,
     "https://www.instagram.com/direct/inbox/"
   );
-  check("a page that still scrolls has not", sheetOf(scrollingInbox), undefined);
+  check("a page that still scrolls has not", sheetOf(scrollingInbox)?.up, false);
 
   /* A backdrop is as tall as the glass. The sheet is the thing inside it. */
   const backdrop = await page(
@@ -907,7 +929,7 @@ const GROUPED = `
           data-box="0,0,390,844"><button>x</button></div><main></main>`,
     FEED
   );
-  check("the dimmed backdrop is not the sheet", sheetOf(backdrop), undefined);
+  check("the dimmed backdrop is not the sheet", sheetOf(backdrop)?.up, false);
 
   /* Something tucked into a corner is a menu or a toast, not a sheet. */
   const corner = await page(
@@ -915,7 +937,7 @@ const GROUPED = `
           data-box="200,500,180,300"><button>x</button></div><main></main>`,
     FEED
   );
-  check("something that does not span the glass is not a sheet", sheetOf(corner), undefined);
+  check("something that does not span the glass is not a sheet", sheetOf(corner)?.up, false);
 
   /* Instagram's own navigation row is full width and at the foot of the glass,
    * and it is taken out before the question is asked. */
@@ -925,7 +947,7 @@ const GROUPED = `
      <main></main>`,
     FEED
   );
-  check("what Quiet has already taken out is not a sheet", sheetOf(ownRow), undefined);
+  check("what Quiet has already taken out is not a sheet", sheetOf(ownRow)?.up, false);
 
   /* And the fourth question, asked in the middle of the glass rather than at
    * the foot of it: is the page still the thing on the screen?
@@ -951,7 +973,7 @@ const GROUPED = `
     `<main><article data-name="post" data-at-top data-box="0,0,390,844">a post</article></main>`,
     FEED
   );
-  check("the page itself is not something over the page", sheetOf(showing), undefined);
+  check("the page itself is not something over the page", sheetOf(showing)?.up, false);
 
   /* The shell Instagram draws everything in is as big as the glass and is
    * often positioned. It holds the page rather than covering it. */
@@ -961,7 +983,7 @@ const GROUPED = `
      </div>`,
     FEED
   );
-  check("nor is the shell the page is drawn in", sheetOf(holding), undefined);
+  check("nor is the shell the page is drawn in", sheetOf(holding)?.up, false);
 
   /* A toast, a cookie bar, a tooltip: over the page and nowhere near all of
    * it. */
@@ -971,7 +993,7 @@ const GROUPED = `
      </div><main></main>`,
     FEED
   );
-  check("something over part of it is not", sheetOf(toast), undefined);
+  check("something over part of it is not", sheetOf(toast)?.up, false);
 
   /* And a wrapper the size of the glass that is laid out rather than drawn on
    * top — which is what a page whose content lives outside `main` looks like,
@@ -982,7 +1004,7 @@ const GROUPED = `
      </div><main></main>`,
     FEED
   );
-  check("and neither is a page that simply fills the glass", sheetOf(outside), undefined);
+  check("and neither is a page that simply fills the glass", sheetOf(outside)?.up, false);
 
   /* ── Two speeds ──────────────────────────────────────────────────────── */
 
@@ -1048,7 +1070,7 @@ const GROUPED = `
   waiting.document.body.appendChild(late);
   await rest(0);
   waiting.drain();
-  check("the sheet question is not asked mid-flick", sheetOf(waiting), undefined);
+  check("the sheet question is not asked mid-flick", sheetOf(waiting)?.up, false);
 
   await until(() => sheetOf(waiting)?.up === true);
   check("and is asked once the hand comes off the glass", sheetOf(waiting)?.up, true);

@@ -2267,12 +2267,45 @@
    * confirms the obvious is a message worth not sending. */
   var lastSheet = false;
 
+  /* Except once. This is the half that was missing, and it is why the row went
+   * away for good the moment somebody switched accounts.
+   *
+   * The switcher is a sheet, so the row stands down — rightly. What follows is
+   * a page load, and a load is a new document: this script runs again from the
+   * top, `lastSheet` is false again, and the first pass on the new page finds
+   * no sheet and therefore has nothing to report. Meanwhile the app is still
+   * holding the `true` it was given before, because nothing ever told it
+   * otherwise. The row was not hidden by a fault in the hiding. It was hidden
+   * by a message nobody sent.
+   *
+   * So the first answer on any document is said whether or not it is news. One
+   * message per page load, and it is the one that puts the row back. */
+  var saidSheet = false;
+
   function saySheet() {
     var up = !!theSheet();
-    if (up === lastSheet) return;
+    if (up === lastSheet && saidSheet) return;
+    saidSheet = true;
     lastSheet = up;
     post({ kind: "sheet", up: up });
   }
+
+  /**
+   * A document coming back out of the browser's own cache.
+   *
+   * The scripts here run when a document is built, and a page restored by going
+   * back is not built again — so both halves of the pair above survive from the
+   * last time this page was on screen, while the app has already put its own
+   * back to false on the navigation. That disagreement is stuck: the page would
+   * think it had said `true` and stay quiet, and the app would think there was
+   * no sheet and leave the island drawn over one.
+   *
+   * One line, and the next answer is said outright.
+   */
+  window.addEventListener("pageshow", function () {
+    saidSheet = false;
+    saySheet();
+  });
 
   function theSheet() {
     return theSheetItSaysItIs() ||

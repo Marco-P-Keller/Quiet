@@ -590,6 +590,24 @@ struct BrowserScreen: View {
     /// no reason to take the way out away.
     private var isRowLive: Bool {
         if isShowingQuietPage { return true }
+        // **The bar never stands down.** It is a bar: it stands on the bottom
+        // edge, and the page stops above it — see `pageGivesUp`, which takes
+        // the bar's own height out of the viewport Instagram is given. A sheet
+        // is anchored to the bottom of that viewport and a comment box is
+        // pinned to it, so neither can arrive underneath the bar. It is not
+        // that a collision there is rare; there is nowhere for one to happen.
+        //
+        // So there was nothing for it to get out of the way of, and getting out
+        // of the way cost something real: switching accounts took the whole row
+        // off the screen, and a page arriving afterwards without saying the
+        // sheet had gone took it off for good.
+        guard preferences.row == .island else { return true }
+
+        // **The island still does**, for both. It gives the page nothing —
+        // seeing the feed move under it is the entire reason to choose that
+        // shape — so a sheet does reach the bottom edge and does land under the
+        // pill. "Log in to an Existing Account" drawn through the middle of it
+        // is the photograph that started this. A keyboard is the same thing.
         return !surface.isSheetUp && !surface.isTyping
     }
 
