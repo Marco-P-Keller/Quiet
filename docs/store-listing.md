@@ -157,71 +157,223 @@ say.
 
 ## Screenshots
 
-Four, in this order, all from the app's own screens rather than from
-Instagram's pages. A listing whose screenshots are all somebody else's product
-invites the question the review notes are there to answer, and what is being
-sold here is the limiter rather than the site it limits. The absence of Reels is
-a sentence; it does not have to be a picture.
+Seven, in English and in German, built by `Tools/make-shots.py` and finished at
+1320 × 2868 — the 6.9-inch size App Store Connect requires, a smaller one being
+rejected on upload rather than scaled. Most captures come from the simulator at
+that size; three come from a real phone at 1179 × 2556 and are scaled into the
+device by the same projection as everything else.
 
-They are made by the `Screenshots` workflow, which photographs each screen on a
-Pro Max at 1320 × 2868 — the 6.9-inch size App Store Connect requires; a smaller
-one is rejected on upload rather than scaled — and then composes the frames with
-`Tools/make-the-store-shots.py`. Download `app-store-screenshots` from the run.
-Inside it, `store-frames/en` and `store-frames/de` are what gets uploaded and
-`store/` is the raw photographs they were made from.
+The untouched phone captures are kept in `Tools/shots/originals`, with an index
+saying where each one goes, which three are not used and why, and exactly what
+was retouched out of the one that was. Keeping them is not sentiment: a slide
+that cannot be re-cut from its own frame has to be re-shot from scratch.
 
-Order is the argument. The first two or three carry most of the decision, so
-they are: what the app is for, the one rule nothing else has, and the proof
-that the rule bites. Trust comes last, for somebody who is already reading.
+    python3 Tools/make-shots.py            # all three
+    python3 Tools/make-shots.py v2        # → Tools/shots/out/v2/{en,de}/
+    python3 Tools/make-shots.py house     # → Tools/shots/out/{en,de}/
+    python3 Tools/make-shots.py loud      # → Tools/shots/out/loud/{en,de}/
 
-| # | From | Headline | Underneath |
+### Three sets, and v2 is the one to upload
+
+**v2** is the house style with its hierarchy fixed for the place these are
+actually read — a row of thumbnails about 300 px wide, in which the headline is
+the only thing that survives. Three things change and all three are about that
+row:
+
+* **The headline is as large as German will carry.** 106 pt: `Mehr *nächste
+  Woche*.` is the longest line either language has, and it clears the margin by
+  47 px there and overruns at 112. German sets the type size in this set, every
+  time.
+* **The subline stops being a whisper.** It was 41 pt of muted grey, which is
+  nine pixels of noise at the size that decides anything. Now 46 pt, and a
+  third of the way from the grey towards the ink.
+* **The hero is the post, not the story row.** Slide 1 was the top of the feed
+  — a story ring, an author line, and a picture running off the bottom of the
+  glass. The scrolled frame shows a whole post *and* the missing tab: the like
+  count, the comment count, the caption and the date, over a row with a hole in
+  it. Somebody deciding whether this is their Instagram gets the answer from
+  that frame and not from the other one. The arrow moved with it and now says
+  `No Reels` rather than `Reels was here` — the phrase somebody would search
+  for.
+
+* **No sparkles.** Four white stars scattered around a phone are the house
+  decoration of this whole category, and they were softening a set whose entire
+  argument is that it is serious about the thing it does. The slides do not
+  look emptier without them; they look composed rather than dressed.
+* **One red marker, and only one.** The arrow and its label on slide 1 are the
+  only colour anywhere in the set. `spans()` in `Tools/make-shots.py` says
+  Quiet has no accent colour and that inventing one for the store would be
+  advertising a different app — and that still holds for the type, which gets
+  weight rather than hue. This is not type. It is a marker laid over a
+  photograph saying *look at this one spot*, and a marker that matches
+  everything around it is not a marker. It stays off the headline, off the
+  subline and off the other six slides, which is what keeps it reading as a
+  pointer rather than as a brand.
+
+That also fixed a slide that was being wasted: slides 1 and 5 used to be the
+same photograph under two different captions. The story-row capture now carries
+slide 5 on its own, under the claim that the stories, the messages and the
+profile are all still there — which is the thing it is a picture of.
+
+**House** is the original: the same slides, a smaller headline, the quieter
+subline, and slide 1 on the story row. **Loud** is the uniform this whole
+category wears — cream throughout, a heavy sans, the phone run most of the way
+off the frame. Every listing you will be compared against on the shelf looks
+like the third one.
+
+All three exist as contact sheets (`sheet-en.png` in each folder), and the
+comparison worth making is at the size a search result gives a slide, because
+that is the only size that decides anything.
+
+What loud does **not** borrow is the furniture those listings carry above the
+fold: a star rating, "trusted by 500K+ people", laurel wreaths, an Apple mark.
+They are the loudest things on a slide of that kind, they are the first thing
+the eye lands on, and every one of them would be a lie on an app that has not
+shipped. Copying a layout is fair; copying a claim is not. When the numbers are
+real they can go in, and the layout is already there to hold them.
+
+**The first slide is the product**, and two earlier versions of this set got
+that wrong: they led with Quiet's own screens — the curtain, the panel, the
+screen the app opens with — which are the pleasant ones to design and none of
+which show what the app *is*. Somebody on a store page is asking one question,
+and it is not what the settings look like. It is: is this my Instagram, and what
+has been taken out of it.
+
+So slide one is the feed, with Instagram's own header on it and Quiet's row
+along the bottom — where the third entry, the one Instagram gives to Reels, is a
+clock counting today down. The whole app is in one photograph.
+
+| # | Screen | Caption | Answers |
 | --- | --- | --- | --- |
-| 1 | `setup` | No Reels. No Explore. | Your feed, your messages, your profile. Nothing else. |
-| 2 | `limit` | Raise it once a week. | Lower it whenever you like — that takes effect at once. |
-| 3 | `curtain` | The day closes itself. | When the minutes are gone, so is the app. |
-| 4 | `panel` | No account. No servers. | Nothing collected, nothing to check, nothing to sign into. |
+| 1 | feed, light | Instagram, without **Reels**. | **what is it** |
+| 2 | curtain, dark | No **five more** minutes. | and there is a limit |
+| 3 | panel, light | Less **now**. More **next week**. | why does it hold |
+| 4 | *set in type*, dark | What **isn't** here. | what else is gone |
+| 5 | the feed again, dark | Everything else is **untouched**. | what is still there |
+| 6 | setup, light | The whole trade, **up front**. | what am I giving up |
+| 7 | opening, dark | No account. No **tracking**. | can I trust you |
 
-Four rather than five, and the screen the app opens with is the one that went.
-It is a single centred line on an otherwise empty page, which is exactly right
-for the second and a half it is on screen in a hand, and a blank rectangle at
-the size a listing is actually read at. A frame whose card says nothing is
-worse than one frame fewer, and four is inside the three to five that works.
+Slides 4 and 5 are a pair and are meant to be swiped as one: the removals set in
+type and struck through, then a photograph of everything that was left alone.
+Four says what is gone, and on its own it reads as a smaller Instagram. Five is
+the answer to the question four raises — the like count, the comment count, the
+caption and the date, on Instagram's own page, with the empty tab slot still at
+the foot of it. It is also the brightest slide in the set: a white screen on
+Quiet's dark ground, which is what a listing wants at the size a search result
+gives it.
 
-Both languages are composed, because the first frames are the ones worth
-localising and the German is already written. Upload `en` under English and `de`
-under German; App Store Connect keeps a separate set per localisation.
+Slide 3's English capture is the panel with the day spent **and a raise already
+queued** — `Daily limit 20 minutes` over `45 minutes from tomorrow`. The caption
+has claimed the asymmetry since the first version of this set; that capture is
+the first one that shows it. The German slide still uses the light panel, and
+should be re-shot in the same state, because a German listing wants a German
+screenshot more than it wants this detail.
 
-What the composer does beyond the caption, and why:
+### How they are drawn
 
-* **The status bar is cut, not retouched.** Those 54 points belong to iOS and
-  carry a battery level and a time that mean nothing to a reader. The frame
-  starts where the app starts. The workflow still overrides the bar to 9:41 and
-  a full battery first, so that nothing odd can arrive in a frame if the crop is
-  ever a few points out on a phone with a different bar.
-* **The ground is `Paper.night`,** the same colour the app itself stands in, so
-  the card has no seam against the frame around it — only the hairline the app
-  draws every other border with.
-* **One headline size across the set, and one line each,** chosen as the
-  largest at which every caption in that language still fits on a single line.
-  The first set composed had four English headlines on one line and the fifth
-  on two, and four German ones on two and the fifth on one — inside the rules
-  as they were written and visibly a set of unrelated posters. A headline that
-  needs a second line is a headline that needs shortening, which is the same
-  thing the usual App Store advice means by three to five words. German gets
-  its own size, being a third longer: 94 px against 104.
-* **The screens are photographed dark,** which is the appearance they were
-  designed around and the one most people's phones are in at the hour this app
-  is about.
+The phone is a real perspective projection of a box with thickness, extruded
+from its back face to its front in twenty-two steps — which is what gives the
+side of the device a surface and its corners a radius, and what separates a
+photograph of a thing from a screenshot pasted onto a colour. The maths is in
+`Tools/make-shots.py`; the linear solver is written out rather than imported,
+because the whole toolchain here has one dependency and a good reason for it.
 
-`Tools/read-the-shots.py` then checks the four ways a frame fails App Store
-Connect while looking perfectly fine on screen: a size a few pixels out, a stray
-alpha channel, a caption that came out the colour of the ground, and a card
-composed from a photograph that never arrived. CI fails on any of them.
+**One light, and a corner measured rather than chosen.** Everything on the
+front now agrees about where the light is: the reflection enters at the top
+left, the chamfer is brightest where it turns over there, and the shadow falls
+away from it on every slide. It used to flip sides with the pose, so half the
+set had a phone throwing its shadow towards the light — the kind of wrongness a
+reader feels without being able to name it. The display's corner is 14% of its
+own width, which is what a phone this size actually does; it was 9.9%, and a
+screen squarer than a real one is the first tell a mockup gives. The frame is
+concentric with it, because an outer radius is an inner radius plus the border
+between them and any other pair leaves the bezel fat at the corners.
 
-A frame of the real signed-in feed is the one thing no runner can take — it has
-no Instagram account, so it photographs a login page. If it is ever wanted,
-`Tools/store-shots/README.md` says where to put one taken on a real phone; it
-becomes the first frame and the rest move down.
+The glass carries two reflections, a wide soft one and a narrow bright one, and
+how much of either survives is measured off the screenshot underneath — a lit
+screen washes a reflection out and a dark one hands it back. One fixed strength
+for all seven was invisible on the feed and about right on the curtain.
+
+Two things follow from that projection rather than from a coordinate somebody
+typed. The device is sized by **height**, so the bottom of the screen — where
+Quiet's row stands — is always on the slide; fitting it by width put the row
+past the bottom edge and threw away the only proof slide 1 has. And the arrow on
+slide 1 is aimed at a point given in *screen* coordinates and run through the
+same projection, so it lands on the clock however the pose changes.
+
+The arrow is the only annotation in the set and it earns its place: the claim is
+a tab that is **not** there, and an absence is the one thing a screenshot cannot
+show. It points at what stands in its place, and says *Reels was here*.
+
+**A version with that slot empty was asked for and not made.** It would read
+more strongly, and it would be a picture of an app that does not exist: the
+clock is not decoration, it is the button that opens Quiet's own settings
+(`BrowserScreen.swift`, announced to VoiceOver as "Quiet settings"), and there
+is no state in which the row has four entries. Retouching it out would show a
+reviewer one thing and hand them another, and it would delete the only way into
+the panel from the picture. The arrow makes the same point and is true.
+
+### What the set deliberately does not say
+
+Listings of this shape usually carry a star rating, a "trusted by N people"
+line, press logos, an Apple mark. All of them are easy to draw and every one
+would be an invention on an app that has never shipped. A screenshot is
+metadata; metadata that overstates is the kind an app gets removed for, and none
+of it is true yet. When it is true, it can go in.
+
+### Where slide 1 comes from
+
+Every other slide is Quiet's own screen, captured from the simulator, carrying
+nobody's content. Slide 1 cannot be: the feature is the feed, and a feed is
+somebody's. So it is a real photograph — of a post from an account the developer
+owns, liked by the developer, with the developer's own profile picture in the
+row. Nothing in it belongs to anybody else.
+
+Getting there took three passes, and the first two are worth remembering because
+both looked finished:
+
+1. A celebrity's post. Somebody's copyrighted photograph and somebody's
+   likeness, in an advertisement.
+2. Instagram's own corporate account. Better — no private person — but still a
+   post nobody involved here wrote.
+3. The developer's own post. What ships.
+
+Even then, other people survived into the frame in three places, and all three
+were edited out rather than argued down:
+
+* the three profile pictures in the **"Liked by …" row** — other accounts'
+  photographs, forty pixels wide. Removed, and the line closed up to the left
+  margin, which is where Instagram puts it anyway when there is nothing to show
+  there;
+* a **story avatar** peeking from behind the floating row in the English
+  capture, filled row by row with the colour of the row above it so the pill's
+  own edge survived;
+* the **next post's author line** under the row in the German one.
+
+Two artefacts were deliberately *not* removed: a pair of dots at the right of
+the row and a hairline below it, both belonging to the post underneath. They
+identify nobody, and the first attempt at taking them out cut a notch in the
+row's rounded end — a screenshot that has been over-retouched looks faked, which
+costs more than a stray pixel.
+
+Small is not the test. Whose it is, is the test.
+
+The one thing slide 1 still accepts is **guideline 5.2.1**: a caption is
+marketing copy, on the same shelf as a name and a subtitle, and this one says
+"Instagram". Factual, non-affiliating, and the whole point of the app — but not
+free. It is a considered risk, not an oversight.
+
+The rule the rest of the set follows, and the one to keep when re-shooting, is
+at the foot of `Tools/make-shots.py`: *if a person who is not you can be
+recognised in it, it does not go in the listing.*
+
+### The two feed photographs
+
+`source/feed.png` is English; `source/de/feed.png` is a German post, so the
+German listing shows a German feed rather than an English one under German
+captions. Any slide can be localised the same way: a file in `source/<lang>/`
+wins over the shared one, and the script prints "(shared capture)" for anything
+still falling back, so a missing translation is visible rather than assumed.
 
 ---
 
