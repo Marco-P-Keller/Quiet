@@ -4,6 +4,37 @@ import SwiftUI
 ///
 /// It is short on purpose. An app with a settings screen you can get lost in has
 /// already lost the argument it was built to win.
+///
+/// Short is not the same as legible, and for a long time this screen was only
+/// the first. Nine sections ran down it; every one was cut off from the next by
+/// the same rule at the same weight, and every line of type on it — the name of
+/// a group, the label on a switch, the row that changes the number the whole app
+/// is about — was set in the same seventeen points of the same ink. Nine equal
+/// things in a row is a list, and a list cannot be skimmed: there is nothing for
+/// the eye to catch on, so finding the one switch you came in for meant reading
+/// from the top.
+///
+/// So the page has a shape now, made of three things and no colour:
+///
+///   * **Three levels of type instead of one.** A running head says what the
+///     next few controls are about; a control is set in body ink; the sentence
+///     under it is fine and soft. Small tracked capitals for the heads — on a
+///     page this full of prose, it is the one treatment that can never be
+///     mistaken for prose.
+///   * **Rules where rows meet, air where groups do.** A running head with a
+///     generous gap over it parts two groups better than a hairline does, and
+///     drawing both is saying it twice. The rules moved to the one place they
+///     earn their keep: between two rows of the same short table.
+///   * **Things you press look pressed.** The limit and the search were rows
+///     with a chevron. The three doors at the foot were bare runs of body text,
+///     indistinguishable from the paragraphs around them — "Sign out of
+///     Instagram" read as a remark about the app rather than as the button that
+///     signs you out. They are all rows now.
+///
+/// Not one sentence was rewritten to do it, and nothing moved that a reader had
+/// learnt the position of except the search, which came up to sit beside the
+/// limit: the two places this panel can take you, together, rather than one of
+/// them stranded between two rules in the middle of the page.
 @MainActor
 struct PanelView: View {
     let session: QuietSession
@@ -29,23 +60,35 @@ struct PanelView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    timeSection
-                    Divider().overlay(Paper.rule).padding(.vertical, 24)
-                    theWait
-                    Divider().overlay(Paper.rule).padding(.vertical, 24)
-                    findSomeone
-                    Divider().overlay(Paper.rule).padding(.vertical, 24)
-                    warnings
-                    Divider().overlay(Paper.rule).padding(.vertical, 24)
-                    suggestions
-                    Divider().overlay(Paper.rule).padding(.vertical, 24)
-                    appointment
-                    Divider().overlay(Paper.rule).padding(.vertical, 24)
-                    otherDevices
-                    Divider().overlay(Paper.rule).padding(.vertical, 24)
-                    rowShape
-                    Divider().overlay(Paper.rule).padding(.vertical, 24)
-                    about
+                    today
+
+                    Cluster("The wait between increases") { theWait }
+
+                    Cluster("What is in the feed") { suggestions }
+
+                    // Two switches under one head, because they answer the same
+                    // question — does the app speak to you, and when. A rule
+                    // between them, because they are two answers and not one.
+                    Cluster("What Quiet says") {
+                        warnings
+                        Hairline().padding(.vertical, 4)
+                        appointment
+                    }
+
+                    Cluster("Your other devices") { otherDevices }
+
+                    Cluster("The row along the bottom") { rowShape }
+
+                    Cluster("Instagram on this phone") { instagramHere }
+
+                    Cluster("The way out") { letGo }
+
+                    // Nothing at all, on almost every launch — head and all.
+                    if hasTrouble {
+                        Cluster("What is not working") { trouble }
+                    }
+
+                    Cluster("About Quiet") { about }
                 }
                 .padding(.horizontal, 28)
                 .padding(.top, 8)
@@ -91,7 +134,16 @@ struct PanelView: View {
 
     // MARK: - Today
 
-    private var timeSection: some View {
+    /// The top of the page, and the only group that needs no head: the headline
+    /// is one.
+    ///
+    /// Under it, the two rows that leave this screen, set as a short table with
+    /// a rule above, between and below. That the limit is the most-used control
+    /// in the app was true before and invisible before — it hung under a
+    /// paragraph with two dozen points of nothing over it and looked like a
+    /// footnote to a sentence. A table is a table; you can see that it is
+    /// something to press.
+    private var today: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(headline)
                 .font(.quietTitle)
@@ -103,36 +155,39 @@ struct PanelView: View {
                 .padding(.top, 8)
                 .fixedSize(horizontal: false, vertical: true)
 
-            Button {
-                isChangingLimit = true
-            } label: {
-                HStack {
-                    Text("Daily limit")
-                    Spacer()
-                    Text(Phrase.minutes(session.limit.minutes))
-                        .foregroundStyle(Paper.inkSoft)
-                    Image(systemName: "chevron.right")
-                        .font(.quietSmall.weight(.semibold))
-                        .foregroundStyle(Paper.inkSoft)
+            VStack(alignment: .leading, spacing: 0) {
+                Hairline()
+
+                Step(
+                    "Daily limit",
+                    value: Phrase.minutes(session.limit.minutes)
+                ) {
+                    isChangingLimit = true
                 }
-                .font(.quietBody)
-                .contentShape(Rectangle())
+
+                Hairline()
+
+                // The pill carries a search too, announced by the same name —
+                // which is right for a reader and ambiguous for a test. An
+                // identifier is not spoken aloud and tells the two apart.
+                Step("Find someone", identifier: "panel.findSomeone", action: onFindSomeone)
+
+                Hairline()
             }
-            .buttonStyle(.plain)
-            .padding(.top, 24)
+            .padding(.top, 20)
 
             if let pending = session.limit.pending {
                 Text("\(Phrase.minutes(pending.minutes)) from \(Phrase.day(pending.effective, relativeTo: session.today)).")
                     .font(.quietSmall)
                     .foregroundStyle(Paper.inkSoft)
-                    .padding(.top, 6)
+                    .padding(.top, 12)
             }
 
             if session.isClockRewound {
                 Text("The date on this phone is behind where Quiet last saw it. The limit can be lowered, but not raised, until it catches up.")
                     .font(.quietSmall)
                     .foregroundStyle(Paper.inkSoft)
-                    .padding(.top, 10)
+                    .padding(.top, 12)
                     .fixedSize(horizontal: false, vertical: true)
             } else if session.isClockAdvanced {
                 // The other half of the same sentence. It reads as an accusation
@@ -141,7 +196,7 @@ struct PanelView: View {
                 Text("The date on this phone is ahead of Instagram's, so Quiet is going by Instagram's. The limit can be lowered, but not raised, until the two agree.")
                     .font(.quietSmall)
                     .foregroundStyle(Paper.inkSoft)
-                    .padding(.top, 10)
+                    .padding(.top, 12)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -176,10 +231,7 @@ struct PanelView: View {
     /// to bite, and the app would have spent all this effort building a door
     /// into its own rule.
     private var theWait: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("The wait between increases")
-                .font(.quietBody)
-
+        VStack(alignment: .leading, spacing: Metric.underControl) {
             HStack(spacing: 10) {
                 ForEach(LimitPolicy.cooldowns, id: \.self) { days in
                     wait(days)
@@ -232,29 +284,6 @@ struct PanelView: View {
         }
     }
 
-    // MARK: - Find someone
-
-    private var findSomeone: some View {
-        Button {
-            onFindSomeone()
-        } label: {
-            HStack {
-                Text("Find someone")
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.quietSmall.weight(.semibold))
-                    .foregroundStyle(Paper.inkSoft)
-            }
-            .font(.quietBody)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        // The pill carries a search too, announced by the same name — which is
-        // right for a reader and ambiguous for a test. An identifier is not
-        // spoken aloud and tells the two apart.
-        .accessibilityIdentifier("panel.findSomeone")
-    }
-
     // MARK: - What the app says on the way down
 
     /// The one setting that changes what the app says rather than what it
@@ -272,7 +301,7 @@ struct PanelView: View {
     /// reader, the sentence that starts a last five minutes. Both are true and
     /// neither is true of everybody, which is exactly the shape of a setting.
     private var warnings: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: Metric.underControl) {
             Toggle(isOn: Binding(
                 get: { preferences.saysWhatIsLeft },
                 set: { preferences.saysWhatIsLeft = $0 }
@@ -304,7 +333,7 @@ struct PanelView: View {
     /// in the feed goes either way — that is refused by address in three other
     /// places and a setting about suggestions does not get to undo it.
     private var suggestions: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: Metric.underControl) {
             Toggle(isOn: Binding(
                 get: { !preferences.showsSuggestions },
                 set: { preferences.showsSuggestions = !$0 }
@@ -334,7 +363,7 @@ struct PanelView: View {
     /// it is an invitation to a second visit, which is the opposite of the
     /// point.
     private var appointment: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: Metric.underControl) {
             Toggle(isOn: Binding(
                 get: { session.appointment.isOn },
                 set: { wanted in
@@ -409,7 +438,7 @@ struct PanelView: View {
     /// place, with the same asymmetry as everything else here. Less time never
     /// waits; more time does.
     private var otherDevices: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: Metric.underControl) {
             Toggle(isOn: Binding(
                 get: { session.carriesBetweenDevices },
                 set: { session.carryBetweenDevices($0) }
@@ -432,10 +461,7 @@ struct PanelView: View {
     /// neither turned out to be wrong: the bar is what Instagram draws, the
     /// island is the nicer object. Two names and a tap, not a screen.
     private var rowShape: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("The row along the bottom")
-                .font(.quietBody)
-
+        VStack(alignment: .leading, spacing: Metric.underControl) {
             HStack(spacing: 10) {
                 ForEach(RowShape.allCases, id: \.self) { shape in
                     choice(shape)
@@ -468,15 +494,22 @@ struct PanelView: View {
         .accessibilityAddTraits(chosen ? .isSelected : [])
     }
 
-    // MARK: - About
+    // MARK: - Instagram on this phone
 
-    private var about: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Button("Sign out of Instagram") {
+    /// The two doors that are only housekeeping: the sign-in this app is
+    /// holding, and the pile of pages it has kept so the site is quick.
+    ///
+    /// They are together and away from the limit because neither of them
+    /// touches it, and that is the thing somebody signing out at midnight most
+    /// needs to be sure of. The dialog says so; standing them under their own
+    /// head says it before the dialog has to.
+    private var instagramHere: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Hairline()
+
+            Door("Sign out of Instagram") {
                 isConfirmingSignOut = true
             }
-            .font(.quietBody)
-            .buttonStyle(.plain)
             .confirmationDialog(
                 "Sign out of Instagram?",
                 isPresented: $isConfirmingSignOut,
@@ -490,32 +523,23 @@ struct PanelView: View {
                 Text("This clears the Instagram session from this app. Your daily limit stays as it is.")
             }
 
-            trouble
+            Hairline()
 
-            letGo
-
-            Button("Clear cached pages") {
+            Door("Clear cached pages", isEnabled: !hasCleared) {
                 surface.clearCaches()
                 hasCleared = true
             }
-            .font(.quietBody)
-            .buttonStyle(.plain)
-            .disabled(hasCleared)
 
-            if hasCleared {
-                Note("Cleared.")
-            } else {
-                Note("Months of pages, pictures and answers are kept so the site is quick. Throwing them away costs a slower page or two and does not sign you out.")
-            }
+            Hairline()
 
-            VStack(alignment: .leading, spacing: 8) {
-                Note("Quiet has no account, no server of its own and no analytics. It stores six things on this phone: your limit, today's total, the last time it saw, the day you set it up, whether you have asked it to forget, and what your other devices have spent today.")
-                Note("If you carry it between your devices, three of those go into your own iCloud — the limit, the wait, and how much each device has spent today. Nothing else, nowhere else, and only while the switch above is on.")
-                Note("Your limit is kept in the keychain, which outlives the app. Deleting Quiet and installing it again does not reset it.")
-                Note("Quiet is not affiliated with or endorsed by Instagram or Meta.")
-                Note(verbatim: Build.versionLine)
+            Group {
+                if hasCleared {
+                    Note("Cleared.")
+                } else {
+                    Note("Months of pages, pictures and answers are kept so the site is quick. Throwing them away costs a slower page or two and does not sign you out.")
+                }
             }
-            .padding(.top, 6)
+            .padding(.top, Metric.underControl)
         }
     }
 
@@ -534,38 +558,76 @@ struct PanelView: View {
     /// again at any moment before then for nothing. Somebody changing their
     /// mind about being released is asking to be held to the rule, and the app
     /// has never stood in the way of that.
+    ///
+    /// It has a head of its own now rather than a line in the middle of the
+    /// small print. It is the most consequential thing on this screen and it
+    /// was set in the same ink as the paragraph about analytics.
     @ViewBuilder
     private var letGo: some View {
         if let day = session.forgetOn {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 0) {
                 Text("Quiet forgets everything \(Phrase.day(day, relativeTo: session.today)).")
                     .font(.quietBody)
                     .fixedSize(horizontal: false, vertical: true)
+                    .padding(.bottom, Metric.underControl)
 
-                Button("Keep my limit") { session.keepRemembering() }
-                    .font(.quietBody)
-                    .buttonStyle(.plain)
+                Hairline()
+                Door("Keep my limit") { session.keepRemembering() }
+                Hairline()
 
                 Note("Until that day nothing changes. Changing your mind costs nothing and can be done at any time.")
+                    .padding(.top, Metric.underControl)
             }
         } else {
-            Button("Make Quiet forget everything") {
-                isConfirmingForget = true
-            }
-            .font(.quietBody)
-            .buttonStyle(.plain)
-            .confirmationDialog(
-                "Make Quiet forget everything?",
-                isPresented: $isConfirmingForget,
-                titleVisibility: .visible
-            ) {
-                Button("Ask to be forgotten", role: .destructive) {
-                    session.askToBeForgotten()
+            VStack(alignment: .leading, spacing: 0) {
+                Hairline()
+
+                Door("Make Quiet forget everything") {
+                    isConfirmingForget = true
                 }
-            } message: {
-                Text("Your limit, your day and the wait are thrown away — after \(Phrase.days(session.limit.cooldownDays)), not now. You can call it off at any time before then. Your Instagram sign-in is a separate thing and is not touched.")
+                .confirmationDialog(
+                    "Make Quiet forget everything?",
+                    isPresented: $isConfirmingForget,
+                    titleVisibility: .visible
+                ) {
+                    Button("Ask to be forgotten", role: .destructive) {
+                        session.askToBeForgotten()
+                    }
+                } message: {
+                    Text("Your limit, your day and the wait are thrown away — after \(Phrase.days(session.limit.cooldownDays)), not now. You can call it off at any time before then. Your Instagram sign-in is a separate thing and is not touched.")
+                }
+
+                Hairline()
             }
         }
+    }
+
+    // MARK: - About
+
+    private var about: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Note("Quiet has no account, no server of its own and no analytics. It stores six things on this phone: your limit, today's total, the last time it saw, the day you set it up, whether you have asked it to forget, and what your other devices have spent today.")
+            Note("If you carry it between your devices, three of those go into your own iCloud — the limit, the wait, and how much each device has spent today. Nothing else, nowhere else, and only while the switch above is on.")
+            Note("Your limit is kept in the keychain, which outlives the app. Deleting Quiet and installing it again does not reset it.")
+            Note("Quiet is not affiliated with or endorsed by Instagram or Meta.")
+
+            signature
+        }
+    }
+
+    /// The app signing its name, the way it does at the foot of the opening and
+    /// on the blank before the first page. Small, centred, nobody has to look
+    /// at it — and it gives the version number something to be under instead of
+    /// leaving the page to stop mid-paragraph.
+    private var signature: some View {
+        VStack(spacing: 8) {
+            Hourglass(height: 18)
+            Text(verbatim: Build.versionLine)
+                .font(.quietFine)
+                .foregroundStyle(Paper.inkSoft)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 28)
     }
 
     // MARK: - When something has gone wrong quietly
@@ -587,7 +649,13 @@ struct PanelView: View {
     /// address rules standing — Reels and Explore are refused because of where
     /// they are, and no amount of Instagram redesigning changes that — so the
     /// sentence says what stopped rather than implying the app has fallen over.
-    @ViewBuilder
+    ///
+    /// It sat at the top of the About block until the screenshot showed what
+    /// that looked like: a report that one of Quiet's two locks had not loaded,
+    /// set in exactly the same fine soft type as the paragraph about analytics,
+    /// under a head reading "About Quiet". It read as boilerplate, which is the
+    /// one thing it is not. So it has a head of its own — and the head is only
+    /// there on the launches where the report is, which is almost none of them.
     private var trouble: some View {
         VStack(alignment: .leading, spacing: 8) {
             if surface.health.hasLostTheShape {
@@ -600,7 +668,161 @@ struct PanelView: View {
                 Note("A page at \(host) was opened in Safari during a sign-in. If signing in did not work, that is the address to report.")
             }
         }
-        .padding(.top, 6)
+    }
+
+    private var hasTrouble: Bool {
+        surface.health.hasLostTheShape || surface.blockListFailed || surface.handedOff != nil
+    }
+
+    // MARK: - The furniture
+
+    /// The distances the page is built out of, in one place, because a rhythm
+    /// is a thing you can only keep if the numbers keeping it have names.
+    private enum Metric {
+        /// Over a running head. Doing the work nine identical rules used to do,
+        /// and doing it better.
+        static let betweenGroups: CGFloat = 34
+        /// Under a running head, before the first thing it names.
+        static let underHeading: CGFloat = 14
+        /// Between a control and the sentence explaining it.
+        static let underControl: CGFloat = 10
+        /// Over and under the words in a row you can press. Two of these plus a
+        /// line of body text is a comfortable target on glass.
+        static let rowPadding: CGFloat = 14
+    }
+
+    /// A running head: small, tracked capitals in soft ink.
+    ///
+    /// The capitals are the whole point. This page is nine tenths prose, and
+    /// every other way of marking a heading — bigger, bolder, a different face —
+    /// still leaves something the eye reads as a sentence and has to finish
+    /// before it knows it was a label. Small capitals are read as a label
+    /// before they are read at all, which is what a running head is for. They
+    /// grow with the reader's text size like everything else, and VoiceOver
+    /// gets the string as it was written, not as it is drawn.
+    private struct Cluster<Content: View>: View {
+        private let heading: LocalizedStringKey
+        private let content: Content
+
+        init(_ heading: LocalizedStringKey, @ViewBuilder content: () -> Content) {
+            self.heading = heading
+            self.content = content()
+        }
+
+        var body: some View {
+            VStack(alignment: .leading, spacing: Metric.underHeading) {
+                Text(heading)
+                    .font(.quietSmall.weight(.medium))
+                    .tracking(0.8)
+                    .textCase(.uppercase)
+                    .foregroundStyle(Paper.inkSoft)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityAddTraits(.isHeader)
+
+                content
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, Metric.betweenGroups)
+        }
+    }
+
+    /// A rule between two rows of the same table, and nowhere else.
+    private struct Hairline: View {
+        var body: some View {
+            Divider().overlay(Paper.rule)
+        }
+    }
+
+    /// A row that takes you somewhere: it has a chevron, and the chevron means
+    /// what it means everywhere else on a phone.
+    ///
+    /// The name and the value share a line, and stop sharing one when they
+    /// cannot. At the largest text sizes "Daily limit" and "20 minutes" both
+    /// wrap, and a row of two two-line columns fighting over the same width is
+    /// not a row any more — the accessibility screenshot is where that shows
+    /// up, and it showed up. Past the ordinary sizes the value goes underneath
+    /// the name, where each of them gets the whole width.
+    private struct Step: View {
+        private let title: LocalizedStringKey
+        private let value: String?
+        private let identifier: String
+        private let action: () -> Void
+
+        @Environment(\.dynamicTypeSize) private var typeSize
+
+        init(
+            _ title: LocalizedStringKey,
+            value: String? = nil,
+            identifier: String = "",
+            action: @escaping () -> Void
+        ) {
+            self.title = title
+            self.value = value
+            self.identifier = identifier
+            self.action = action
+        }
+
+        var body: some View {
+            Button(action: action) {
+                HStack(spacing: 12) {
+                    if typeSize.isAccessibilitySize {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(title)
+                            if let value {
+                                Text(value)
+                                    .foregroundStyle(Paper.inkSoft)
+                            }
+                        }
+                        .fixedSize(horizontal: false, vertical: true)
+                        Spacer(minLength: 8)
+                    } else {
+                        Text(title)
+                        Spacer(minLength: 8)
+                        if let value {
+                            Text(value)
+                                .foregroundStyle(Paper.inkSoft)
+                        }
+                    }
+
+                    Image(systemName: "chevron.right")
+                        .font(.quietSmall.weight(.semibold))
+                        .foregroundStyle(Paper.inkSoft)
+                }
+                .font(.quietBody)
+                .padding(.vertical, Metric.rowPadding)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier(identifier)
+        }
+    }
+
+    /// A row where something happens rather than one that goes somewhere, so no
+    /// chevron — and no red either. The two that deserve a warning ask for
+    /// confirmation, and a warning belongs in the question, not on the handle.
+    private struct Door: View {
+        private let title: LocalizedStringKey
+        private let isEnabled: Bool
+        private let action: () -> Void
+
+        init(_ title: LocalizedStringKey, isEnabled: Bool = true, action: @escaping () -> Void) {
+            self.title = title
+            self.isEnabled = isEnabled
+            self.action = action
+        }
+
+        var body: some View {
+            Button(action: action) {
+                Text(title)
+                    .font(.quietBody)
+                    .foregroundStyle(isEnabled ? Paper.ink : Paper.inkSoft)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, Metric.rowPadding)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(!isEnabled)
+        }
     }
 
     private struct Note: View {

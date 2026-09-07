@@ -2830,3 +2830,65 @@ Quiet still makes no request of its own. Two endpoints are tried in order, and
 the fallback is only believed when a name comes back matching exactly — a search
 for "ada" that returns somebody else is not a near miss, it is the wrong
 person's face beside the right person's name.
+
+---
+
+## The panel had one level of type and nine identical rules
+
+Everything Quiet can be told to do is on one screen, and being short was the
+only thing that screen had ever been asked to be. It was short. It was also
+unreadable in a particular way nobody had written down: nine sections ran down
+it, each cut off from the next by the same rule at the same weight, and every
+line of type on it was set in the same seventeen points of the same ink. The
+name of a group, the label on a switch, and the row that changes the number the
+whole app is about were typographically the same thing.
+
+Nine equal things in a row is a list, and a list cannot be skimmed. There is
+nothing for the eye to catch on, so finding the one switch you came in for
+meant reading from the top — on the screen whose whole argument is that you
+should not have to spend time here.
+
+Three things fixed it, and none of them is colour.
+
+**Three levels of type instead of one.** A running head says what the next few
+controls are about; a control is set in body ink; the sentence under it is fine
+and soft. The heads are small tracked capitals, which is the treatment that
+survived the argument: on a page nine tenths prose, bigger or bolder or a
+different face all still leave something the eye reads as a sentence and has to
+finish before it knows it was a label. Small capitals are a label before they
+are read at all. They grow with the reader's text size like everything else,
+and VoiceOver is handed the string as it was written rather than as it is drawn.
+
+**Rules where rows meet, air where groups do.** A running head with a generous
+gap over it parts two groups better than a hairline does, and drawing both is
+saying it twice. So the rules moved to the one place they earn their keep:
+between two rows of the same short table. The joins between groups are empty
+now, and the page has a rhythm instead of a stripe every two inches.
+
+**Things you press look pressed.** The limit and the search were rows with a
+chevron. The three doors at the foot — sign out, clear the cached pages, ask to
+be forgotten — were bare runs of body text, indistinguishable from the
+paragraphs around them. "Sign out of Instagram" read as a remark about the app
+rather than as the button that signs you out. They are rows now, in short
+hairline-bounded tables of their own.
+
+Three things moved, and only three. The search came up from the middle of the
+page to sit beside the daily limit: they are the two places this panel can take
+you, and one of them was stranded alone between two rules. "Make Quiet forget
+everything" got a head of its own — it is the most consequential thing on the
+screen and it was set in the same ink as the paragraph about analytics, four
+lines below it. And the quiet failure report moved out from under "About
+Quiet", where the screenshot showed what it had always looked like: a notice
+that one of Quiet's two locks had not loaded, set in the same fine soft type as
+the disclaimer about Meta, reading as boilerplate. It has its own head now, on
+the launches where it has anything to say.
+
+Not one sentence was rewritten to do any of this. Seven running heads are the
+whole of the new text; every explanation on the screen is the one that was
+there before, in both languages.
+
+The accessibility screenshot caught the last of it, which is what it is for.
+"Daily limit" and "20 minutes" share a line, and at the largest text size they
+both wrap and the row becomes two two-line columns fighting over one width.
+Past the ordinary sizes the value goes underneath the name now, where each gets
+the whole of it.
