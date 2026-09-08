@@ -245,17 +245,31 @@ workflow's run number and only ever climbs, so it never has to be typed.
 
 ---
 
-### 2.7 What the store listing now has to say
+### 2.7 What the store listing had to say — *said, and one of them was a false claim*
 
-Three things arrived after the listing was written and belong in it:
+Three things arrived after the listing was written and belonged in it. All
+three are in the description now, and writing them in turned up a fourth that
+was worse than an omission.
 
-* the app asks for camera, microphone and photo permissions — it does not use
-  any of them itself, and the strings say so, but the reviewer's questionnaire
-  asks;
-* there is a way to have the app forget everything, which answers the obvious
-  question about a limit kept in the keychain;
-* Reels and Explore being deliberately absent is now said on the first screen
-  rather than only in the listing.
+* **Camera, microphone and photos.** The description said "No permission prompt
+  unless you ask for the daily reminder." That was not merely incomplete, it was
+  wrong: attaching a photo on Instagram's own page raises an iOS prompt nobody
+  asked Quiet for, and a person who read that line and then saw one has been
+  told something untrue by the App Store page. It now says which prompts can
+  appear, who is asking, and that Quiet uses none of the three itself.
+* **The way out.** A limit kept in the keychain raises one obvious question —
+  how do I stop? — and the answer was on the privacy page and nowhere a buyer
+  would look. It is in the description now, with the wait, and with the reason
+  the wait is there.
+* **Reels and Explore.** Said on the first screen as well as in the listing.
+
+**And the number was stale in the place that matters most.** The description
+said four things are kept in the keychain. It is six, and has been since the
+way out and the other devices arrived — the exact drift `read-the-site.py` was
+written to catch, in the one document it did not read. The App Store product
+page is the sentence somebody reads *before* installing; the privacy page is
+the one they read after. The checker reads both now, and going back to four in
+either goes red.
 
 ---
 

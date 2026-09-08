@@ -64,12 +64,24 @@ WHAT QUIET DOES NOT DO
   which stays quiet on any day you have already been.
 • No countdown on the screen. A timer you can watch is a timer you do watch;
   what is left is in the panel, for the moments you actually want to know.
-• No permission prompt unless you ask for the daily reminder.
+• Quiet asks you for nothing of its own. The one prompt it can raise is for the
+  daily reminder, and only after you turn it on. Instagram's own pages can
+  still ask for the camera, the microphone or your photos when you attach
+  something to a post or a message — that is iOS asking on Instagram's behalf,
+  and Quiet uses none of the three itself.
 
-Four things are kept, on your phone, in the keychain: your limit, today's total,
-the furthest point in time the app has seen, and the day you set it up. They
-survive deleting the app, on purpose. A limit you can lift by reinstalling is
-not a limit.
+Six things are kept, on your phone, in the keychain: your limit and any change
+you have queued for a later day, today's total, the furthest point in time the
+app has seen, the day you set it up, the day you have asked it to forget
+everything, and what your other devices have spent if you are carrying the
+limit between them. They survive deleting the app, on purpose. A limit you can
+lift by reinstalling is not a limit.
+
+Which is why there is a way out that is not the App Store. "Make Quiet forget
+everything", at the foot of the panel, throws all six away and the copy in
+iCloud with them — after the same wait that stands between you and a bigger
+number. An app with no way out at all would be a trap; one you can leave in the
+moment you want five more minutes would not be a limit.
 
 The day turns at four in the morning rather than at midnight, so a late evening
 belongs to the evening it feels like.

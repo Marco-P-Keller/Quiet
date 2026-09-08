@@ -24,6 +24,12 @@ So the page is checked against the source of truth, which is `StoreKey`:
      the sync is off until asked for, that there is a way out, that the
      reminder exists?
 
+And so is the **store description**, which carries the same number and drifted
+in exactly the same way while this file watched the page beside it. It said
+four long after the answer was six — on the App Store product page, which is
+the sentence somebody reads before installing rather than after. It is the more
+expensive of the two places to be wrong and it was the one nothing read.
+
 What this cannot check is whether the sentences are *true*. Nothing can. It
 checks the one kind of wrong that has already happened twice and would happen
 again, and it costs a second.
@@ -36,6 +42,7 @@ import sys
 HERE = pathlib.Path(__file__).resolve().parent
 STORAGE = HERE.parent / "Quiet" / "Core" / "Storage.swift"
 SITE = HERE.parent.parent / "site"
+LISTING = HERE.parent.parent / "docs" / "store-listing.md"
 
 # Only as far as anybody would ever write one of these out in a sentence.
 NUMBERS = {
@@ -127,6 +134,28 @@ def main() -> int:
                 % (listed, len(keys), ", ".join(keys))
             )
 
+    # The same number, in the other document that carries it. The listing
+    # writes it as prose rather than as a list, so only the sentence is
+    # checked — but the sentence is the whole of what went wrong.
+    if keys:
+        if not LISTING.exists():
+            problems.append(f"{LISTING.name}: not there.")
+        else:
+            flat = re.sub(r"\s+", " ", LISTING.read_text(encoding="utf-8"))
+            said = re.search(r"(\w+) things are kept, on your phone", flat)
+            want = NUMBERS.get(len(keys), str(len(keys)))
+            if said is None:
+                problems.append(
+                    "store-listing.md: the description no longer says how many "
+                    'things are kept. It should read "%s things are kept, on '
+                    'your phone".' % want.capitalize()
+                )
+            elif said.group(1).lower() != want:
+                problems.append(
+                    'store-listing.md says "%s things are kept"; StoreKey has '
+                    "%d: %s." % (said.group(1), len(keys), ", ".join(keys))
+                )
+
     for name, pattern, what in MUST_SAY:
         page = SITE / name
         if not page.exists():
@@ -143,7 +172,10 @@ def main() -> int:
         print()
         return 1
 
-    print(f"The site: all good ({len(keys)} keys, and the pages say so).")
+    print(
+        f"The site: all good ({len(keys)} keys, and the pages "
+        "and the listing say so)."
+    )
     return 0
 
 
