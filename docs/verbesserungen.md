@@ -135,8 +135,15 @@ Nicht Teil der 38, aber beim Bauen aufgefallen:
   ausgeliefert wird. Ich hatte nur die Kopie im Monorepo gelesen. Meine
   zweite Seitenkopie und `pages.yml` sind wieder entfernt: zwei
   Datenschutzerklärungen unter zwei Adressen sind genau das, wovor ich in
-  derselben Nachricht gewarnt hatte. **Offen bleibt echte Arbeit:** die
-  bestehende Seite sagt „four things" im Schlüsselbund, es sind jetzt fünf. ⬜
+  derselben Nachricht gewarnt hatte. **Die offene Arbeit ist erledigt:** ✅ die
+  Seite sagte „four things" im Schlüsselbund, es waren fünf und sind inzwischen
+  sechs. `Tools/read-the-site.py` liest die Zahl jetzt aus `StoreKey` und prüft
+  sie gegen die Seite *und* gegen den Store-Text — in dem sie nämlich immer
+  noch bei vier stand, an der teureren der beiden Stellen. Und was gar nicht
+  aufgefallen war: `site.yml` lief auf `push` nach `main`, wohin nichts gepusht
+  wird. Die Seiten waren also nie erreichbar — GitHub Pages war überdies nie
+  eingeschaltet, alle URLs im Listing antworteten 404. Beides behoben; der
+  Workflow hört jetzt auf `dev`.
 * **Der Content-Blocker war nie lesbar.** ✅ Jedes Filter enthält `\.` — in
   einem regulären Ausdruck ein Punkt, in JSON keine gültige Escape-Sequenz. Das
   handgeschriebene Dokument war unparsebar; WebKit hätte es auf dem Telefon
