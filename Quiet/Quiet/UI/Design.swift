@@ -225,6 +225,49 @@ private enum Sandglass {
     static let level: CGFloat = 0.1112
     static let heap: CGFloat = 0.1500
 
+    // MARK: - The run
+    //
+    // And the three the same script solves for the glass *arriving* at that
+    // pose, which is what the opening screen draws.
+    //
+    // A pose part of the way there cannot be had by scaling the two above.
+    // Each is solved out of a volume, and half a volume is not half a length.
+    // What came back from solving the whole path, though, was shorter than a
+    // table, because two of the three things that move turn out to move
+    // straight:
+    //
+    //   * The funnel is dug first, and it costs a quarter of the run before
+    //     the surface has moved at all. That is not a liberty taken to make
+    //     the opening more interesting — the chamber is at its widest under
+    //     the top lid, so the dish draining sand digs into a full one holds a
+    //     great deal. It is what `dish` is worth in a chamber this shape.
+    //   * It deepens at a constant rate, because its width goes as the square
+    //     root of its depth, so its volume goes as its depth.
+    //   * The heap rises at a constant rate, for a related reason: a heap of
+    //     this profile holds a fixed multiple of its own height.
+    //
+    // Which leaves the surface, and that one is a curve.
+    //
+    //     python3 Tools/make-icon.py
+
+    /// How much of the run is spent digging the funnel.
+    static let crater: CGFloat = 0.2624
+
+    /// And how much is over before the first grain lands. Two hundredths of
+    /// it: a couple of frames, which is about what falling that far takes.
+    static let landing: CGFloat = 0.0240
+
+    /// Where the surface has got to, across the rest of the run. Thirteen
+    /// points describe it to within a hundredth of a point at the size the
+    /// opening draws the mark. The first is the underside of the lid and the
+    /// last is `level`, which is what makes the run end at the icon.
+    static let levels: [CGFloat] = [
+        0.0440, 0.0481, 0.0523, 0.0567,
+        0.0613, 0.0660, 0.0711, 0.0764,
+        0.0822, 0.0883, 0.0951, 0.1026,
+        0.1112,
+    ]
+
     /// How much of the ink the sand is, against the glass holding it. The ratio
     /// the icon's own two tones stand in above its field, which is nearly all
     /// of it: two materials, not two colours.
@@ -241,7 +284,6 @@ private enum Sandglass {
     static let neckOutside = throat + wall
     static let span = middle - throatHeight / 2 - shoulder
     static let flare = half - neckOutside
-    static let apex = base - heap
 
     /// How far along the taper this height is: nothing at the throat, all of it
     /// at the lid.
@@ -275,26 +317,96 @@ private enum Sandglass {
         return outside(y) - wall * (1 + slope * slope).squareRoot()
     }
 
+    /// Where the sand is, this far through the run.
+    ///
+    /// One value rather than four, because the four are one state and every
+    /// shape below needs more than one of them.
+    struct Pose {
+        /// Where the surface of what is left has got to.
+        var level: CGFloat
+        /// How deep the funnel in it is.
+        var dish: CGFloat
+        /// How tall the heap under it stands.
+        var heap: CGFloat
+        /// Where the falling sand ends: the top of the heap, or — for the two
+        /// frames before the first grain lands — as far as the column's front
+        /// has fallen.
+        var front: CGFloat
+    }
+
+    /// The pose this far through the run: 0 a glass just turned over, 1 the
+    /// one the app icon is drawn in.
+    static func pose(at run: CGFloat) -> Pose {
+        let run = min(max(run, 0), 1)
+        let risen = max(run - landing, 0) / (1 - landing)
+
+        // The surface does not move until the funnel is dug, which is why this
+        // reads the table from `crater` rather than from nothing.
+        let surface: CGFloat
+        if run <= crater {
+            surface = roof
+        } else {
+            let step = (run - crater) / (1 - crater) * CGFloat(levels.count - 1)
+            let stop = min(Int(step), levels.count - 2)
+            surface = levels[stop]
+                + (levels[stop + 1] - levels[stop]) * (step - CGFloat(stop))
+        }
+
+        return Pose(
+            level: surface,
+            dish: dish * min(run / crater, 1),
+            heap: heap * risen,
+            front: run < landing ? front(at: run) : base - heap * risen
+        )
+    }
+
+    /// How far the falling sand has got, in the moment before any of it has
+    /// landed and the chamber below is genuinely empty.
+    ///
+    /// Solved rather than eased, out of the same free fall the column's width
+    /// comes from: a stream that is speeding up holds sand in proportion to the
+    /// square root of how far it has fallen, so inverting that puts the front
+    /// at the *square* of how much has left the throat.
+    static func front(at run: CGFloat) -> CGFloat {
+        let slowing = ease(to: base)
+        let whole = (1 + (base - neckBelow) / slowing).squareRoot()
+        let reached = 1 + (run / landing) * (whole - 1)
+        return neckBelow + slowing * (reached * reached - 1)
+    }
+
     /// How far out from the middle the sand starts, inside the funnel it has
     /// drained. Sand draining through a hole makes one; a flat top is a photo
     /// of an hourglass nobody has turned over.
-    static func funnel(_ y: CGFloat) -> CGFloat {
-        let gone = (y - level) / dish
-        if gone <= 0 { return inside(y) }
+    ///
+    /// The first line is not a tidying-up. At the very start the funnel has no
+    /// depth at all, and the division that follows would be zero by zero — one
+    /// `nan` point is a path SwiftUI draws nothing whatever from.
+    static func funnel(_ y: CGFloat, _ pose: Pose) -> CGFloat {
+        if y <= pose.level { return inside(y) }
+        guard pose.dish > 0 else { return 0 }
+        let gone = (y - pose.level) / pose.dish
         if gone >= 1 { return 0 }
-        return min(inside(level) * (1 - gone).squareRoot(), inside(y))
+        return min(inside(pose.level) * (1 - gone).squareRoot(), inside(y))
     }
 
     /// Half the width of the falling sand, this far below the throat.
     ///
     /// It leaves at the throat's own width and thins, and how fast it thins is
     /// not a taste: the same sand per second through a column going faster is
-    /// a column narrower by the fourth root. One constant, fitted so that it
-    /// arrives at the heap at `fall`, and the shape of the pour follows.
-    static func falling(_ y: CGFloat) -> CGFloat {
-        guard y >= neckBelow, y <= apex else { return 0 }
-        let ease = (apex - neckBelow) / (pow(throat / (fall / 2), 4) - 1)
-        return throat * pow(1 + (y - neckBelow) / ease, -0.25)
+    /// a column narrower by the fourth root.
+    ///
+    /// Drawn down to the front, which is not always where the pour is fitted
+    /// to land. For the two frames before the first grain arrives they are
+    /// different, and the difference is the whole of what those frames say.
+    static func falling(_ y: CGFloat, _ pose: Pose) -> CGFloat {
+        guard y >= neckBelow, y <= pose.front else { return 0 }
+        return throat * pow(1 + (y - neckBelow) / ease(to: base - pose.heap), -0.25)
+    }
+
+    /// The one constant in the pour, fitted so the column arrives at the heap
+    /// at `fall` however tall the heap has grown.
+    static func ease(to apex: CGFloat) -> CGFloat {
+        (apex - neckBelow) / (pow(throat / (fall / 2), 4) - 1)
     }
 
     /// Half the width of the heap at this height. Straight-sided with the point
@@ -305,9 +417,10 @@ private enum Sandglass {
     /// point is a path SwiftUI draws nothing at all from — so the arithmetic
     /// that says the top of the heap is exactly at the top of the heap has to
     /// be allowed to be a hair either side of it.
-    static func heaped(_ y: CGFloat) -> CGFloat {
-        guard y >= apex, y <= base else { return 0 }
-        return min(inside(base) * pow(max(1 - (base - y) / heap, 0), 1 / pile), inside(y))
+    static func heaped(_ y: CGFloat, _ pose: Pose) -> CGFloat {
+        guard pose.heap > 0, y >= base - pose.heap, y <= base else { return 0 }
+        return min(
+            inside(base) * pow(max(1 - (base - y) / pose.heap, 0), 1 / pile), inside(y))
     }
 
     /// Where a point this far right of the middle and this far down the square
@@ -360,17 +473,31 @@ private enum Sandglass {
 /// day is over — which is the whole of this app in one shape, and it is
 /// already the shape the row draws for the last five minutes.
 ///
-/// Never large. This is the app signing its name at the foot of a screen, not
-/// a logo somebody has to look at: the opening is deliberately not a logo
-/// screen and this does not turn it into one. At eighteen points the funnel and
-/// the falling sand are a pixel or two each and mostly wash out, which is the
-/// right way for them to go: what is left is a glass with an empty top and a
-/// heap in the bottom, which was the whole sentence anyway.
+/// Small in three of the four places it appears. In the row and the panel this
+/// is the app signing its name rather than a logo somebody has to look at, and
+/// at eighteen points the funnel and the falling sand are a pixel or two each
+/// and mostly wash out — which is the right way for them to go. What is left is
+/// a glass with an empty top and a heap in the bottom, which was the whole
+/// sentence anyway.
+///
+/// The opening is the exception, and it earns it by moving: see `run`.
 struct Hourglass: View {
     /// How tall the glass is. Everything else follows from it.
     var height: CGFloat = 18
 
+    /// How far through its run the sand is, from 0 — a glass just turned over,
+    /// brim full, nothing fallen — to 1, which is the pose the app icon is
+    /// drawn in.
+    ///
+    /// The default is 1 because everywhere but the opening this is a mark and a
+    /// mark does not move. The opening drives it from a clock, and what that
+    /// buys is the one thing a still hourglass cannot say: it is *running*, and
+    /// it comes to rest on the picture that is already on the home screen.
+    var run: CGFloat = 1
+
     var body: some View {
+        let pose = Sandglass.pose(at: run)
+
         ZStack {
             // Stacked and then faded together rather than each faded on its
             // own: the falling sand touches both the sand above it and the heap
@@ -378,9 +505,9 @@ struct Hourglass: View {
             // two dark seams across the one place the mark is trying to say
             // something.
             ZStack {
-                Sand(part: .remaining)
-                Sand(part: .falling)
-                Sand(part: .fallen)
+                Sand(part: .remaining, pose: pose)
+                Sand(part: .falling, pose: pose)
+                Sand(part: .fallen, pose: pose)
             }
             .opacity(Sandglass.grain)
 
@@ -453,35 +580,40 @@ struct Hourglass: View {
         }
 
         var part: Part
+        var pose: Sandglass.Pose
 
         func path(in box: CGRect) -> Path {
+            let funnel = { Sandglass.funnel($0, pose) }
+            let falling = { Sandglass.falling($0, pose) }
+            let heaped = { Sandglass.heaped($0, pose) }
+
             var path = Path()
             switch part {
             case .remaining:
-                let level = Sandglass.level
+                let level = pose.level
                 let neck = Sandglass.neckBelow
                 var sand = Sandglass.wall(
                     from: level, to: neck, -1, Sandglass.inside, in: box)
                 sand += Sandglass.wall(
                     from: neck, to: level, 1, Sandglass.inside, in: box)
                 sand += Sandglass.wall(
-                    from: level, to: level + Sandglass.dish, 1, Sandglass.funnel, in: box)
+                    from: level, to: level + pose.dish, 1, funnel, in: box)
                 sand += Sandglass.wall(
-                    from: level + Sandglass.dish, to: level, -1, Sandglass.funnel, in: box)
+                    from: level + pose.dish, to: level, -1, funnel, in: box)
                 path.addLines(sand)
             case .falling:
+                let front = pose.front
                 var stream = Sandglass.wall(
-                    from: Sandglass.neckBelow, to: Sandglass.apex, 1, Sandglass.falling,
-                    in: box)
+                    from: Sandglass.neckBelow, to: front, 1, falling, in: box)
                 stream += Sandglass.wall(
-                    from: Sandglass.apex, to: Sandglass.neckBelow, -1, Sandglass.falling,
-                    in: box)
+                    from: front, to: Sandglass.neckBelow, -1, falling, in: box)
                 path.addLines(stream)
             case .fallen:
+                let apex = Sandglass.base - pose.heap
                 var heap = Sandglass.wall(
-                    from: Sandglass.apex, to: Sandglass.base, 1, Sandglass.heaped, in: box)
+                    from: apex, to: Sandglass.base, 1, heaped, in: box)
                 heap += Sandglass.wall(
-                    from: Sandglass.base, to: Sandglass.apex, -1, Sandglass.heaped, in: box)
+                    from: Sandglass.base, to: apex, -1, heaped, in: box)
                 path.addLines(heap)
             }
             path.closeSubpath()

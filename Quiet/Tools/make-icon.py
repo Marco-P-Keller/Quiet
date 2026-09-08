@@ -287,6 +287,95 @@ APEX = FLOOR - HEAP
 assert APEX - NECK_BELOW > _px(0.06), "the heap has grown up into the neck"
 
 
+# ── The run ──────────────────────────────────────────────────────────────────
+#
+# The icon is one pose. The app draws the same glass *running*, over the second
+# and a half it holds its opening screen, and a pose part of the way there is
+# not something either of the two numbers above can be scaled towards: the sand
+# still up there and the heap under it are each solved out of a volume, and
+# halving a volume does not halve either length.
+#
+# So the whole path is solved here too, and it turns out to be three findings
+# rather than a table of numbers, which is why what gets copied into
+# `Design.swift` is so short:
+#
+# * **The crater comes first, and it costs a quarter of the sand.** The chamber
+#   is at its widest under the top lid, so the dish that sand draining through a
+#   hole digs into a full one holds a great deal — twenty-six percent of
+#   everything that runs, before the surface has moved at all. That is not a
+#   liberty; it is what the icon's own `DISH` is worth in a chamber this shape,
+#   and it is why the mark's first half-second is a dimple deepening rather than
+#   a level dropping.
+# * **The crater deepens linearly.** Its width goes as the square root of its
+#   depth, so its volume goes as its depth, so at a constant rate it deepens at
+#   a constant rate. No table.
+# * **The heap grows linearly too**, and for a related reason: a heap of this
+#   profile holds a fixed multiple of its own height times the floor it stands
+#   on, so at a constant rate it rises at a constant rate. Also no table.
+#
+# Which leaves one curve — where the surface has got to, once the crater is dug
+# — and thirteen numbers describe it to within a hundredth of a point at the
+# size the opening draws the mark.
+#
+# Constant rate throughout, because that is what an hourglass does. A tank
+# empties more slowly as it empties; sand does not, which is the whole reason a
+# glass of it can be used to measure anything at all. Nothing here eases.
+
+
+def _hole(y: float, level: float, dish: float) -> float:
+    """`_dish`, with the depth of the funnel asked for rather than assumed."""
+    if y <= level:
+        return _inside(y)
+    if dish <= 0:
+        return 0.0
+    fallen = (y - level) / dish
+    if fallen >= 1:
+        return 0.0
+    return _inside(level) * math.sqrt(1 - fallen)
+
+
+def _above(level: float, dish: float) -> float:
+    """What is still in the upper chamber, at this surface and this funnel."""
+
+    def radius(y: float) -> float:
+        outer, inner = _inside(y), _hole(y, level, dish)
+        return math.sqrt(max(outer * outer - inner * inner, 0.0))
+
+    return _volume(level, NECK_BELOW, radius)
+
+
+# Brim full, flat, nothing dug and nothing gone: where the run starts.
+BRIMFUL = _volume(CEILING, NECK_BELOW, _inside)
+
+# And where it ends, which is the icon. The run is measured against this, so
+# that "all the way through" means "the thing on the home screen" rather than
+# an empty glass the app never draws.
+RUN = BRIMFUL - _above(LEVEL, _px(DISH))
+
+# How much of the run is spent digging the funnel, with the surface still up
+# against the lid, and how much is spent before the first grain lands.
+CRATER = (BRIMFUL - _above(CEILING, _px(DISH))) / RUN
+LANDING = _has_fallen(0.0) / RUN
+
+# Enough points to draw the one thing here that is a curve. Twelve intervals
+# put linear interpolation within 0.0002 of the square of the solved value,
+# which is a hundredth of a point on the mark at the size the opening draws it.
+STOPS = 12
+LEVELS = [
+    _solve(
+        BRIMFUL - (CRATER + (1 - CRATER) * step / STOPS) * RUN,
+        CEILING,
+        NECK_BELOW,
+        lambda surface: _above(surface, _px(DISH)),
+    )
+    for step in range(STOPS + 1)
+]
+
+assert abs(LEVELS[0] - CEILING) < 1e-6, "the crater does not end at the lid"
+assert abs(LEVELS[-1] - LEVEL) < 1e-6, "the run does not end at the icon"
+
+
+
 
 def _glass(y: float):
     """The spans of glass across this scanline: the wall, and the two lids."""
@@ -428,3 +517,16 @@ if __name__ == "__main__":
         f"    static let level: CGFloat = {(LEVEL - TOP) / SIZE:.4f}\n"
         f"    static let heap: CGFloat = {HEAP / SIZE:.4f}"
     )
+    # And the run, for the opening screen. Three lines and a short table,
+    # because the two things that could have needed one turned out to be
+    # straight — see the section above.
+    print(
+        "\n    static let crater: CGFloat = "
+        f"{CRATER:.4f}\n"
+        f"    static let landing: CGFloat = {LANDING:.4f}\n"
+        "    static let levels: [CGFloat] = ["
+    )
+    for start in range(0, len(LEVELS), 4):
+        row = LEVELS[start:start + 4]
+        print("        " + ", ".join(f"{(y - TOP) / SIZE:.4f}" for y in row) + ",")
+    print("    ]")
