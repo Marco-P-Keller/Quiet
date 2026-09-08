@@ -244,12 +244,24 @@ final class WebSurface {
             ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
             modifiedSince: .distantPast
         ) { [weak self] in
-            // Every pane torn down and the home one built again from nothing,
-            // rather than the current page reloaded: the other two are still
-            // holding a signed-in document, and a reload of one of them would
-            // put it straight back on the glass.
-            self?.stack?.startOver()
-            completion()
+            // WebKit answers on the main thread, said out loud the same way
+            // `BlockList` says it two files away rather than hopped to: the
+            // handler is `@Sendable`, the pane stack is not, and a `Task` here
+            // would put the rebuild a turn of the run loop later — a turn in
+            // which the panes standing on the glass are a signed-out person's.
+            //
+            // That WebKit answers where this claims it does is not taken on
+            // trust: `testTheSessionIsForgottenOnTheMainThread` calls the same
+            // method and fails if the answer ever arrives anywhere else, which
+            // is the difference between an assumption and a trap.
+            MainActor.assumeIsolated {
+                // Every pane torn down and the home one built again from
+                // nothing, rather than the current page reloaded: the other two
+                // are still holding a signed-in document, and a reload of one
+                // of them would put it straight back on the glass.
+                self?.stack?.startOver()
+                completion()
+            }
         }
     }
 
