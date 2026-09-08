@@ -7,10 +7,25 @@ name: Site
 # page at real URLs, and a page that exists only in a repository is not a URL.
 # Copying the files by hand would mean the published pages and the ones in the
 # repository drift the first time somebody is in a hurry, so nobody copies
-# anything: what is on main is what is served.
+# anything: what is on the shipping branch is what is served.
+#
+# **`dev`, not `main`, and that is the whole point of this line.** The app ships
+# from `dev` — see CLAUDE.md, which says to push there always — so `dev` is the
+# app these pages describe. Watching `main` meant the two could not be the same
+# thing: every fix to a page sat on `dev` where the workflow could not see it,
+# and the URL Apple fetches went on serving whatever `main` last happened to
+# hold.
+#
+# That is not hypothetical, and it is why this changed. The published front page
+# said Reels, Explore *and the suggested accounts between your friends* were all
+# absent. Suggestions became a setting that is on by default; `dev` corrected the
+# sentence the same day, and the correction could not reach the web. A privacy
+# policy and a marketing page that describe a build nobody can install are worse
+# than none: one is a missing document, the other is a false statement about the
+# app, made on the developer's own domain, in front of a reviewer.
 on:
   push:
-    branches: [main]
+    branches: [dev]
     paths:
       - 'site/**'
       - '.github/workflows/site.yml'
