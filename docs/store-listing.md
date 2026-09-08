@@ -93,13 +93,32 @@ Apple already indexes those, and repeating them wastes the field.
 | Field | Value |
 | --- | --- |
 | Privacy Policy URL | `https://marco-p-keller.github.io/Quiet/privacy.html` |
-| Support URL | `https://marco-p-keller.github.io/Quiet/support.html` |
+| Support URL | `https://connexa-gmbh.ch/support` |
 | Marketing URL | `https://marco-p-keller.github.io/Quiet/` |
 
-Both required pages are in [`site/`](../site) and published to the `gh-pages`
-branch by a workflow, so what is served is what is in the repository. They need
-GitHub Pages switched on once: **Settings → Pages → Source: Deploy from a
-branch → `gh-pages` → `/ (root)`**.
+**The support URL is the publisher's, and the privacy URL is the app's, and
+that split is deliberate.** Quiet is published by Connexa GmbH, whose support
+desk answers for every app it ships — a real address, a stated response time,
+and a person rather than an issue tracker. That is a better support page than
+this project could write for itself, and App Store Connect is asking who
+answers when something breaks.
+
+Privacy is the other way round. `connexa-gmbh.ch/datenschutz` is a *website*
+policy: its third section is headed "Erhobene Daten auf dieser Website" and it
+covers server logs, the contact form and cookies. It does not mention the
+keychain, the iCloud key-value store, or the four permission strings — because
+it is not about an app. Apple asks for a policy that describes *this* app's
+data handling, and a reviewer who follows the link and finds a cookie notice
+has found a listing that does not match its binary. So the app keeps its own
+page, and that page now names Connexa GmbH as the responsible party, gives the
+privacy address, and says in as many words which of the two documents governs
+Quiet.
+
+The Quiet pages are in [`site/`](../site) and published to the `gh-pages`
+branch by a workflow that watches **`dev`** — the branch the app ships from.
+It watched `main` until the day this was written, which is why the published
+front page went on claiming the suggested accounts between your friends were
+absent long after they had become a setting that is on by default.
 
 ## Category
 

@@ -95,21 +95,32 @@ writing any more code.
 Things App Store Connect checks mechanically, before any human sees the app.
 
 * **Privacy manifest.** Present, at `Quiet/Resources/PrivacyInfo.xcprivacy`. It
-  declares one required-reason API: `ProcessInfo.systemUptime`, the clock the
-  limit rests on, under `NSPrivacyAccessedAPICategorySystemBootTime` with
-  reason `35F9.1` — measuring time between events inside the app. Without it
-  the upload is rejected with ITMS-91053 and never reaches review.
-* **Bundle identifier.** Ships as `com.example.quiet` and must be changed to a
-  real one, registered in the developer portal, with an app record created in
-  App Store Connect before anything can be uploaded against it.
+  declares **two** required-reason APIs, and both are needed:
+  `ProcessInfo.systemUptime`, the clock the limit rests on, under
+  `NSPrivacyAccessedAPICategorySystemBootTime` with reason `35F9.1` —
+  measuring time between events inside the app; and `UserDefaults`, where the
+  preferences live, under `NSPrivacyAccessedAPICategoryUserDefaults` with
+  reason `CA92.1` — written and read by this app alone, no app group.
+  Either one missing and the upload is rejected with ITMS-91053, before any
+  human sees it. The second was added after the first shipped without it, which
+  is the way this particular hole is normally found.
+* **Bundle identifier.** `com.connexa.quiet`, set in `project.yml` and in the
+  checked-in project, with team `B97SQSQBMR`. It still needs an app record
+  created against it in App Store Connect before anything can be uploaded —
+  the TestFlight workflow says so in as many words if it is missing, rather
+  than failing in xcodebuild's voice.
 * **Icon.** 1024×1024, opaque, no alpha channel — which is why
   `Tools/make-icon.py` writes 8-bit RGB rather than RGBA. An icon with alpha
-  is rejected.
+  is rejected. The one in the catalogue is 8-bit RGB and carries no `tRNS`
+  chunk, which is the pair of facts that sentence actually means.
 * **Export compliance.** `ITSAppUsesNonExemptEncryption` is `false` in
   `Info.plist`, so no question is asked on each upload.
-* **Build numbers.** `CURRENT_PROJECT_VERSION` is 1 and never moves. App Store
-  Connect refuses a second upload with a build number it has already seen, so
-  any real pipeline has to increment it.
+* **Build numbers.** Not typed and not kept in the repository.
+  `CURRENT_PROJECT_VERSION` reads 1 in the project and is overridden on the
+  command line by the TestFlight workflow, which passes `github.run_number` —
+  a number that only ever climbs. App Store Connect refuses a second upload
+  with a build number it has already seen, and this is why it never gets one.
+  `MARKETING_VERSION` is 1.0 and is the one a person sees.
 
 ## If it ships
 

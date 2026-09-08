@@ -147,27 +147,52 @@ third-party trademark, deliberately.
 Expect a conversation, not a rubber stamp. That part is not a task anybody can
 finish in advance.
 
-### 2.2 A privacy policy and a support page that exist — *written; one switch left*
+### 2.2 A privacy policy and a support page that resolve — *done, and the switch was not the only thing wrong*
 
-Both are in [`site/`](../site) and published to the `gh-pages` branch by a
-workflow, so what is served is what is in the repository rather than a copy that
-drifts. They need GitHub Pages turned on once, by hand:
+The pages were written. The URL was not: `Settings → Pages` had never been
+switched on, so every address in the listing answered **404**, and had done
+since the listing was written. A privacy policy that does not load is, to App
+Store Connect, a privacy policy that does not exist, and the section above this
+one said "one switch left" for long enough that the switch stopped being read as
+a task. It is on now — `gh-pages`, `/ (root)` — and the three addresses were
+checked by fetching them rather than by looking at the setting.
 
-> **Settings → Pages → Source: Deploy from a branch → `gh-pages` → `/ (root)`**
-
-Then `https://marco-p-keller.github.io/Quiet/privacy.html` and `/support.html`
-resolve, which is what App Store Connect demands.
+**The support URL in the listing is no longer one of them.** It is
+`connexa-gmbh.ch/support`, the publisher's own desk, which answers for every
+Connexa app with a real address and a stated response time. The privacy URL
+stays with the app, because the company's `/datenschutz` is a website policy —
+server logs, contact form, cookies — and says nothing about a keychain or an
+iCloud key-value store. See [the listing](store-listing.md#urls) for the whole
+of that reasoning.
 
 Both pages are relative to the standalone repository, which is where the app
 ships from. Reading them from the copy inside the monorepo — where `site/` sits
 a directory further out — is what once made this section look like a claim that
 had not been kept. It had been kept.
 
-**One line of it is now out of date, and this work is why.** The privacy page
-says Quiet keeps *four* things in the keychain. It keeps five: the day, if any,
-on which it has been asked to forget everything. That sentence needs the fifth
-entry and a line about the way out, in `site/privacy.html` and in the German
-half of `site/support.html`.
+**They now say who wrote them.** The privacy page named no controller and gave
+no address, and the support page's one route out was a GitHub issue tracker —
+which asks somebody who installed an app from the App Store to open an account
+somewhere else before they can report that it crashed. Both now carry Connexa
+GmbH, the Sirnach address, the company number, and `privacy@` and `support@`.
+A privacy policy with nobody responsible on it is not a privacy policy.
+
+**The keychain count is current again.** It said four, then the day the app can
+be asked to forget everything made it five, and what the reader's other phones
+have spent made it six. `site/privacy.html` lists six and `Storage.swift` says
+"the six things Quiet remembers, and there is no seventh" — one number in two
+places, which is the arrangement that lets it go wrong quietly. If a seventh
+key is ever added, both say so.
+
+**What was actually broken was the pipe, not the page.** The workflow published
+on a push to `main`, and nothing is pushed to `main` — the app ships from `dev`
+and this project's own instructions say to push there always. So every
+correction to these pages sat on `dev` where the workflow could not see it. What
+the world was being served was `main`'s copy, and it claimed the suggested
+accounts between your friends were absent from the feed. They are not: they are
+shown by default and there is a switch. A false sentence about the app, on the
+developer's own site, at the Marketing URL a reviewer is given. The workflow now
+watches `dev`, which is the branch these pages have to agree with.
 
 ### 2.3 The listing — *written*
 
@@ -180,15 +205,27 @@ The screenshots themselves come out of the `Screenshots` workflow at 1320 ×
 2868 — the 6.9-inch size App Store Connect requires — as a downloadable
 artifact.
 
-### 2.4 The first build on a real phone — *the one thing still blocked*
+### 2.4 The first build on a real phone — *done: build 102 is in TestFlight*
 
-The three secrets go into the repository, then **Actions → TestFlight → Run
-workflow**. Everything after the guard in that workflow — archive, export,
-upload — has never run, and cannot run until the secrets exist.
+This was the section that said nothing after the guard in that workflow had
+ever run. It has. The three secrets are in the repository, and on 8 September
+2026 the TestFlight workflow archived, exported and uploaded **build 102** from
+commit `3c67616` — the tip of `dev` — in two minutes and twenty-two seconds. It
+had already done the same thing an hour earlier. So every step that could only
+be proved by running it is now proved: the key has Admin, the agreement is
+signed, the app record exists in App Store Connect, and the certificate the run
+borrows is handed back at the end.
+
+**Run it from Actions → TestFlight → Run workflow.** The build number comes
+from the run number, so it never has to be typed and never repeats.
 
 The `.p8` private key belongs in **Settings → Secrets and variables → Actions**
 and nowhere else. Not in the repository, not in a message, not pasted into a
 chat.
+
+What is *not* proved by an upload is anything in part 1 of this page. A build
+in TestFlight is a build somebody can install; it is not evidence that signing
+in works, and the two are easy to confuse in a sentence like "it shipped".
 
 ### 2.5 English, or not — *decided: both*
 
