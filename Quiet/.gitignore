@@ -13,8 +13,26 @@ xcuserdata/
 build.log
 *.xcresult
 
-# Screenshots taken by CI.
-shots/
+# Screenshots taken by CI, which writes into Quiet/shots.
+#
+# Anchored. Unanchored, `shots/` matches at every depth — and the depth it also
+# matched was Tools/shots, which is not CI's output at all: it is the source
+# photographs the listing is built from. They were not in the repository, and
+# nobody could tell, because a file that was never added does not show up as
+# missing.
+/shots/
+
+# The finished slides, which `Tools/make-shots.py` writes and can write again.
+#
+# The frames they are cut from are kept — `Tools/shots/originals` and
+# `Tools/shots/source` are tracked on purpose, because a slide that cannot be
+# re-cut from its own frame has to be re-shot from scratch. The slides
+# themselves are output: thirty-three megabytes of it, in every clone, for
+# something one command reproduces.
+Tools/shots/out/
+
+# Left by running anything in Tools/.
+__pycache__/
 
 # Written by Tools/look-at-icon.py, for looking at rather than keeping.
 Tools/icon-in-place.png

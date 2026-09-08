@@ -61,6 +61,13 @@ jobs:
           xcrun simctl boot "$device" || true
           time xcrun simctl bootstatus "$device" -b
           echo "device=$device" >> "$GITHUB_OUTPUT"
+          # The identifier as well as the name. Changing the device's language
+          # means writing a file inside its own directory, and that directory
+          # is named by identifier — a name has spaces and a generation in
+          # brackets and is no use as a path.
+          udid=$(xcrun simctl list devices booted \
+            | sed -n 's/.*(\([0-9A-F-]\{36\}\)).*/\1/p' | head -1)
+          echo "udid=$udid" >> "$GITHUB_OUTPUT"
 
       - name: Build
         timeout-minutes: 25
@@ -140,11 +147,39 @@ jobs:
 
           # And in German, which is a third longer than English and therefore
           # the real test of every line that was written to fit.
-          german="-AppleLanguages (de) -AppleLocale de_DE"
-          shoot setup-german   fresh $german
-          shoot panel-german   panel $german
-          shoot limit-german   limit $german
-          shoot curtain-german spent $german
+          # Set on the device and rebooted into, not passed to the app.
+          #
+          # `-AppleLanguages (de)` as a launch argument does nothing here. It is
+          # the spelling every recipe on the internet gives, it is what this
+          # step used to do, and the four German screenshots it produced were
+          # byte-for-byte the English ones — `md5` on the pair is how that was
+          # finally noticed, because two screenshots of the same layout in two
+          # languages look plausible until you compare them. The bug was silent
+          # in exactly the way this workflow exists to prevent: it produced
+          # files, they were the right size, and they were a photograph of the
+          # wrong thing.
+          #
+          # Writing the preference into the device and booting it again does
+          # work, and costs one reboot.
+          prefs=~/Library/Developer/CoreSimulator/Devices/${{ steps.sim.outputs.udid }}/data/Library/Preferences/.GlobalPreferences.plist
+          xcrun simctl shutdown "${{ steps.sim.outputs.udid }}"
+          plutil -replace AppleLanguages -json '["de-DE","en-US"]' "$prefs"
+          plutil -replace AppleLocale -string "de_DE" "$prefs"
+          xcrun simctl boot "${{ steps.sim.outputs.udid }}"
+          xcrun simctl bootstatus "${{ steps.sim.outputs.udid }}" -b
+          xcrun simctl install booted "$app"
+
+          shoot setup-german   fresh
+          shoot panel-german   panel
+          shoot limit-german   limit
+          shoot curtain-german spent
+
+          # And prove it took. Identical files mean the language never changed,
+          # which is the failure this whole block is about.
+          if [ "$(md5 -q shots/setup.png)" = "$(md5 -q shots/setup-german.png)" ]; then
+            echo "The German screenshots are identical to the English ones." >&2
+            exit 1
+          fi
 
           file shots/*.png | sed 's|.*/||'
 

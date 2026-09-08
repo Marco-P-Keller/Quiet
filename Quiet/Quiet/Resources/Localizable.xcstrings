@@ -211,6 +211,16 @@
         }
       }
     },
+    "About Quiet": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Über Quiet"
+          }
+        }
+      }
+    },
     "Ask for %@ a day": {
       "localizations": {
         "de": {
@@ -427,6 +437,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Instagram füllt den Feed mit Beiträgen von Leuten, denen du nicht folgst, sobald die von deinen Freunden ausgehen. Aus: Du siehst sie alle. An: Der Feed hört dort auf, wo deine Freunde aufhören."
+          }
+        }
+      }
+    },
+    "Instagram on this phone": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram auf diesem Gerät"
           }
         }
       }
@@ -1071,6 +1091,16 @@
         }
       }
     },
+    "The way out": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Ausstieg"
+          }
+        }
+      }
+    },
     "This clears the Instagram session from this app. Your daily limit stays as it is.": {
       "localizations": {
         "de": {
@@ -1167,6 +1197,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Version %@ (%@)"
+          }
+        }
+      }
+    },
+    "What Quiet says": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Was Quiet sagt"
+          }
+        }
+      }
+    },
+    "What is in the feed": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Was im Feed steht"
+          }
+        }
+      }
+    },
+    "What is not working": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Was nicht funktioniert"
           }
         }
       }
@@ -1297,6 +1357,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dein Limit, deine Wartezeit und das heutige Total, abgelegt in deiner eigenen iCloud — damit ein zweites Gerät nicht ein zweites Kontingent ist. Mehr wird nicht gesendet, und niemand ausser dir kann es lesen: nicht einmal wir, denn es gibt kein wir. Quiet hat keinen Server und kein Konto. Ausschalten nimmt die Kopie wieder herunter."
+          }
+        }
+      }
+    },
+    "Your other devices": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine anderen Geräte"
           }
         }
       }

@@ -81,7 +81,14 @@ footer {
 nav { margin-top: 20px; font-size: 0.95rem; }
 nav a { margin-right: 18px; }
 
-/* The mark: a full stop, the same one on the icon. */
+/* The mark: a full stop.
+   It used to be the one on the app icon as well, and that sentence stood here
+   for a while after it had stopped being true — the icon is an hourglass now.
+   The dot stays because it is doing a different job: this is a full stop set
+   above a line of prose, at thirteen pixels, and an hourglass at that size on a
+   page of text is a favicon that has wandered into the copy. If the two are
+   ever to be the same mark again it is the page that would have to change
+   around it, which is a decision about the page and not about the icon. */
 .mark {
   display: block;
   width: 13px;
