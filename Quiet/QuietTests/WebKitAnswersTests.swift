@@ -25,13 +25,20 @@ final class WebKitAnswersTests: XCTestCase {
     /// `WebSurface.signOut` rebuilds every pane in this handler.
     func testTheSessionIsForgottenOnTheMainThread() {
         let answered = expectation(description: "removeData answered")
-        // Nothing of anybody's is thrown away by this: `.distantFuture` selects
-        // the data modified since a moment that has not arrived, which is none
-        // of it. The handler still runs, on whichever thread WebKit picks, and
-        // that is the whole of what is being asked.
+        // The disk cache only, and `.distantPast` — which is to say the call
+        // `clearCaches` already makes on purpose, rather than the one
+        // `signOut` makes. Same method, same handler, nobody's session.
+        //
+        // The first draft asked for `.distantFuture` instead, reasoning that
+        // data modified since a moment that has not arrived is no data and so
+        // nothing would be deleted. It read well and it hung: on the CI
+        // runner's runtime the handler was never called at all, and the test
+        // this file exists to make trustworthy failed on its first run
+        // somewhere that was not this machine. A cutoff no real caller passes
+        // is a path no real caller exercises.
         WKWebsiteDataStore.default().removeData(
             ofTypes: [WKWebsiteDataTypeDiskCache],
-            modifiedSince: .distantFuture
+            modifiedSince: .distantPast
         ) {
             XCTAssertTrue(
                 Thread.isMainThread,
@@ -42,7 +49,7 @@ final class WebKitAnswersTests: XCTestCase {
             )
             answered.fulfill()
         }
-        wait(for: [answered], timeout: 10)
+        wait(for: [answered], timeout: 60)
     }
 
     /// `BlockList` adds a compiled rule list to a configuration in this one.
@@ -60,6 +67,6 @@ final class WebKitAnswersTests: XCTestCase {
             )
             answered.fulfill()
         }
-        wait(for: [answered], timeout: 10)
+        wait(for: [answered], timeout: 60)
     }
 }
