@@ -28,7 +28,6 @@ struct PanelView: View {
     let session: QuietSession
     let surface: WebSurface
     let preferences: Preferences
-    var onFindSomeone: () -> Void
     var onDismiss: () -> Void
 
     @State private var isChangingLimit = false
@@ -36,7 +35,6 @@ struct PanelView: View {
     /// Which stretch of days the chart is showing, and whether the number it
     /// is all measured against is open for correction.
     @State private var recordLength = 7
-    @State private var isChangingBaseline = false
     /// The day being asked about on the chart, if one is. Cleared whenever the
     /// chart changes underneath it, because a day picked out of a week is not
     /// necessarily on the month.
@@ -151,13 +149,6 @@ struct PanelView: View {
                 }
 
                 Hairline()
-
-                // The pill carries a search too, announced by the same name —
-                // which is right for a reader and ambiguous for a test. An
-                // identifier is not spoken aloud and tells the two apart.
-                Step("Find someone", identifier: "panel.findSomeone", action: onFindSomeone)
-
-                Hairline()
             }
             .padding(.top, 20)
 
@@ -195,7 +186,7 @@ struct PanelView: View {
     }
 
     private var subhead: String {
-        String(localized: "Resets at \(Phrase.clockTime(session.resetsAt)). Only time with Instagram on screen counts.")
+        String(localized: "Resets at \(Phrase.clockTime(session.resetsAt)).")
     }
 
     // MARK: - The days behind you
@@ -225,7 +216,7 @@ struct PanelView: View {
                 // asks for this number; anybody who set Quiet up before it did
                 // has never been asked, and hiding the whole comparison leaves
                 // them a chart with no explanation of what the missing half is.
-                Note("Quiet does not know what your day was before this, so there is nothing yet to measure against. Saying so below starts it.")
+                Note("Quiet does not know what your day was before this, so there is nothing yet to measure against. The gear above is where to say.")
             }
 
             chart
@@ -234,19 +225,21 @@ struct PanelView: View {
                 // uses they read as one paragraph with buttons in it.
                 .padding(.top, 8)
 
-            Hairline().padding(.vertical, 4)
-
-            theDayYouStartedFrom
         }
     }
 
-    /// Completed days only, and the note underneath says so.
+    /// Completed days only.
     ///
     /// A total that counted today would fall while somebody watched it, because
     /// every minute spent is a minute of it unspent. A figure that goes
     /// backwards as you read it is a scoreboard, which is the one thing this
-    /// must not be. Today gets its own sentence, where it is obviously about
-    /// today and obviously still moving.
+    /// must not be.
+    ///
+    /// Two lines and no more. This carried today's standing and the caveat about
+    /// which days are counted as well; both were true and neither belonged here.
+    /// Today is a column on the chart directly below, which you can ask by
+    /// tapping it, and a caveat is a thing you read once — it is under the gear
+    /// now, with the rest of the prose.
     private var saved: some View {
         VStack(alignment: .leading, spacing: 0) {
             // A heading rather than the display face this had on a screen of
@@ -257,29 +250,12 @@ struct PanelView: View {
                 .font(.quietHeading)
                 .fixedSize(horizontal: false, vertical: true)
 
-            Text("less on Instagram than the \(Phrase.minutes(session.baseline)) a day you started from.")
+            Text("less than the \(Phrase.minutes(session.baseline)) a day you started from.")
                 .font(.quietNote)
                 .foregroundStyle(Paper.inkSoft)
                 .padding(.top, 6)
                 .fixedSize(horizontal: false, vertical: true)
-
-            Text(todayLine)
-                .font(.quietSmall)
-                .foregroundStyle(Paper.inkSoft)
-                .padding(.top, 12)
-                .fixedSize(horizontal: false, vertical: true)
-
-            Note("Counted across the days Quiet was open. A day you did not open it counts for nothing either way — Quiet cannot see what any other app on this phone did with it.")
-                .padding(.top, 8)
         }
-    }
-
-    private var todayLine: String {
-        let spent = session.ledger.seconds
-        guard session.savedToday > 0 else {
-            return String(localized: "Today: \(Phrase.span(spent)) so far.")
-        }
-        return String(localized: "Today: \(Phrase.span(spent)) so far, \(Phrase.span(session.savedToday)) under.")
     }
 
     private var chart: some View {
@@ -323,75 +299,23 @@ struct PanelView: View {
         .accessibilityAddTraits(chosen ? .isSelected : [])
     }
 
-    /// What the dashed lines mean, said in words rather than left to a key.
+    /// One line, holding either the whole window or the one day being asked
+    /// about.
     ///
-    /// A legend with coloured squares would need colour to carry meaning, and
-    /// this app has one ink. Two sentences cost more room and read on a phone
-    /// held at arm's length by somebody who does not already know the chart.
+    /// Two lines — a summary that stays and an answer that appears under it —
+    /// would move everything below the chart down by a line on every tap, which
+    /// is a page that flinches when you question it. The sentence naming the two
+    /// dashed rules went under the gear with the rest of the prose: it is read
+    /// once, and it was a third paragraph on a screen meant to be a number and
+    /// a picture.
     private var legend: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            let window = DayKey(ordinal: session.today.ordinal - recordLength + 1)...session.today
-            // One line, holding either the whole window or the one day being
-            // asked about. Two lines — a summary that stays and an answer that
-            // appears under it — would move everything below the chart down by
-            // a line on every tap, which is a page that flinches when you
-            // question it.
-            Text(selectedDay.map(dayLine) ?? String(
-                localized: "\(Phrase.span(session.record.spent(in: window))) over \(Phrase.days(recordLength)) — Quiet was open on \(session.record.days(in: window).count) of them."
-            ))
-                .font(.quietSmall)
-                .foregroundStyle(selectedDay == nil ? Paper.inkSoft : Paper.ink)
-                .fixedSize(horizontal: false, vertical: true)
-
-            if session.baseline > 0 {
-                Note("The upper line is the \(Phrase.minutes(session.baseline)) a day you started from. The lower one is your limit, \(Phrase.minutes(session.limit.minutes)).")
-            } else {
-                Note("The line is your limit, \(Phrase.minutes(session.limit.minutes)).")
-            }
-        }
-    }
-
-    /// The number from the first screen, and a way to correct it.
-    ///
-    /// Free to move, in both directions, which is not a hole in anything: it
-    /// touches no limit, no wait and no minute of today. It is one end of a
-    /// comparison, and a comparison against a figure somebody knows to be wrong
-    /// is worth nothing to them. The cost of leaving it open is that the figure
-    /// above is one you can flatter yourself with; the cost of sealing it would
-    /// be that one mis-spun wheel on the first morning poisons it for good.
-    private var theDayYouStartedFrom: some View {
-        VStack(alignment: .leading, spacing: Metric.underControl) {
-            Step(
-                "The day you started from",
-                value: session.baseline > 0
-                    ? Phrase.minutes(session.baseline)
-                    : String(localized: "not said"),
-                identifier: "panel.theDayYouStartedFrom"
-            ) {
-                isChangingBaseline.toggle()
-            }
-
-            if isChangingBaseline {
-                Picker("The day you started from", selection: Binding(
-                    get: { session.baseline > 0 ? session.baseline : 60 },
-                    set: { session.setBaseline($0) }
-                )) {
-                    ForEach(Self.baselines, id: \.self) { value in
-                        Text(Phrase.minutes(value))
-                            .font(.quietChoice)
-                            .tag(value)
-                    }
-                }
-                .pickerStyle(.wheel)
-                // See LimitView: a wheel's rows are a fixed height, so the
-                // numbers collide past the largest ordinary text size.
-                .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-                .frame(maxWidth: .infinity)
-                .frame(height: 150)
-            }
-
-            Note("It changes nothing about your limit or your day. It is the number everything above is measured against, so it is worth it being the true one.")
-        }
+        let window = DayKey(ordinal: session.today.ordinal - recordLength + 1)...session.today
+        return Text(selectedDay.map(dayLine) ?? String(
+            localized: "\(Phrase.span(session.record.spent(in: window))) over \(Phrase.days(recordLength)) — Quiet was open on \(session.record.days(in: window).count) of them."
+        ))
+            .font(.quietSmall)
+            .foregroundStyle(selectedDay == nil ? Paper.inkSoft : Paper.ink)
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     /// What one day came to, for the line under the chart.
@@ -412,7 +336,6 @@ struct PanelView: View {
     /// A week and a month, which are the two lengths anybody thinks in.
     private static let recordLengths = [7, 30]
 
-    private static let baselines = [10, 15, 20, 30, 45, 60, 75, 90, 120, 150, 180, 240, 300, 360, 420, 480]
 
 }
 

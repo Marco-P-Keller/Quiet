@@ -198,10 +198,6 @@ struct RootView: View {
                 session: session,
                 surface: surface,
                 preferences: preferences,
-                onFindSomeone: {
-                    session.isPanelShowing = false
-                    session.isSearchShowing = true
-                },
                 onDismiss: { session.isPanelShowing = false }
             )
         }

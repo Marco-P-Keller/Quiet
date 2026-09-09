@@ -25,6 +25,7 @@ struct SettingsView: View {
     var onDismiss: () -> Void
 
     @State private var isConfirmingSignOut = false
+    @State private var isChangingBaseline = false
 
     /// Why the last request to change the wait was turned down, if it was.
     /// Cleared by the next tap, so it answers the thing that was just pressed
@@ -40,6 +41,8 @@ struct SettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
+                Cluster("The days behind you") { theDayYouStartedFrom }
+
                 Cluster("The wait between increases") { theWait }
 
                 Cluster("What is in the feed") { suggestions }
@@ -83,6 +86,68 @@ struct SettingsView: View {
         .toolbarBackground(Paper.page, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
     }
+
+    // MARK: - The days behind you
+
+    /// The other end of the comparison the panel draws, and every sentence
+    /// explaining what that comparison does and does not say.
+    ///
+    /// All of it used to sit under the chart, and all of it was true. It was
+    /// also three paragraphs standing between a reader and a screen whose whole
+    /// job is a number and a picture — read once, in front of you every time.
+    /// Prose belongs on the screen you go to when you want prose.
+    ///
+    /// The number itself is free to move, in both directions, which is not a
+    /// hole in anything: it touches no limit, no wait and no minute of today. It
+    /// is one end of a comparison, and a comparison against a figure somebody
+    /// knows to be wrong is worth nothing to them. The cost of leaving it open
+    /// is that the figure in the panel is one you can flatter yourself with; the
+    /// cost of sealing it would be that one mis-spun wheel on the first morning
+    /// poisons it for good.
+    private var theDayYouStartedFrom: some View {
+        VStack(alignment: .leading, spacing: Metric.underControl) {
+            Step(
+                "The day you started from",
+                value: session.baseline > 0
+                    ? Phrase.minutes(session.baseline)
+                    : String(localized: "not said"),
+                identifier: "panel.theDayYouStartedFrom"
+            ) {
+                isChangingBaseline.toggle()
+            }
+
+            if isChangingBaseline {
+                Picker("The day you started from", selection: Binding(
+                    get: { session.baseline > 0 ? session.baseline : 60 },
+                    set: { session.setBaseline($0) }
+                )) {
+                    ForEach(Self.baselines, id: \.self) { value in
+                        Text(Phrase.minutes(value))
+                            .font(.quietChoice)
+                            .tag(value)
+                    }
+                }
+                .pickerStyle(.wheel)
+                // See LimitView: a wheel's rows are a fixed height, so the
+                // numbers collide past the largest ordinary text size.
+                .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+                .frame(maxWidth: .infinity)
+                .frame(height: 150)
+            }
+
+            Note("It changes nothing about your limit or your day. It is the number the chart is measured against, so it is worth it being the true one.")
+
+            Note("Only time with Instagram on screen counts, and only on days Quiet was open — a day you did not open it counts for nothing either way. Quiet cannot see what any other app on this phone did with it.")
+
+            if session.baseline > 0 {
+                Note("On the chart, the upper dashed line is that day and the lower one is your limit.")
+            } else {
+                Note("The dashed line on the chart is your limit.")
+            }
+        }
+    }
+
+    private static let baselines = [10, 15, 20, 30, 45, 60, 75, 90, 120, 150, 180, 240, 300, 360, 420, 480]
 
     // MARK: - How long the wait is
 
@@ -421,8 +486,46 @@ struct SettingsView: View {
                 }
             }
 
-            Note("The bar is the shape Instagram uses. The island floats over the page, and draws itself in while the page is moving.")
+            Note("The bar is the shape Instagram uses. The island floats over the page and gets out of the way while you read.")
+
+            // Only under the island. A bar stands on the bottom edge with the
+            // page stopping above it, so it has nothing to float over and
+            // nothing to get out of the way of — offering it a choice about how
+            // it moves would be offering a choice that does nothing.
+            if preferences.row == .island {
+                Hairline().padding(.vertical, 4)
+
+                Text("And how it gets out of the way")
+                    .font(.quietBody)
+                    .padding(.top, 4)
+
+                HStack(spacing: 10) {
+                    ForEach(RowMotion.allCases, id: \.self) { motion in
+                        movement(motion)
+                    }
+                }
+
+                Note("Sliding away is what Instagram's own bar does: scrolling down takes it off the screen and scrolling up brings it back. Drawing in keeps it there — smaller and fainter while the page moves, out again the moment it stops.")
+            }
         }
+    }
+
+    private func movement(_ motion: RowMotion) -> some View {
+        let chosen = preferences.rowMotion == motion
+        return Button {
+            preferences.rowMotion = motion
+        } label: {
+            Text(motion.name)
+                .font(.quietBody)
+                .foregroundStyle(chosen ? Paper.page : Paper.ink)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 9)
+                .background(Capsule().fill(chosen ? Paper.ink : Color.clear))
+                .overlay(Capsule().strokeBorder(Paper.rule, lineWidth: chosen ? 0 : 1))
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(chosen ? .isSelected : [])
     }
 
     private func choice(_ shape: RowShape) -> some View {

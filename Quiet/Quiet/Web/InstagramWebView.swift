@@ -1167,6 +1167,7 @@ struct InstagramWebView: UIViewRepresentable {
             // At the top of the page there is nothing to get out of the way of.
             let atTop = offset <= -scrollView.contentInset.top + 4
             collapse(atTop ? false : delta > 0)
+            if session.preferences.rowMotion == .drawsIn { comeBackWhenItStops() }
 
             // And how long the page being read has become, which is the only
             // signal the app has that its three panes are about to cost more
@@ -1192,23 +1193,51 @@ struct InstagramWebView: UIViewRepresentable {
             state.isBarCollapsed = collapsed
         }
 
-        /// Which way a thumb was going is the whole rule, and stopping is not
-        /// an answer to it.
+        /// Which way a thumb was going is the whole rule under `RowMotion.leaves`,
+        /// and stopping is not an answer to it.
         ///
-        /// This used to bring the row back after a tenth of a second of
-        /// stillness, on the reading that the row "comes back out the moment
-        /// the page stops". Reading a feed is not one long scroll; it is a
-        /// flick, a pause to look at a post, a flick. So the row drew itself
+        /// The row used to come back after a tenth of a second of stillness
+        /// whatever the setting, on the reading that it "comes back out the
+        /// moment the page stops". Reading a feed is not one long scroll; it is
+        /// a flick, a pause to look at a post, a flick. So the row drew itself
         /// in and popped back out on every one of those pauses — several times
         /// down a single feed — and the thing that was meant to get out of the
         /// way became the only moving object on the screen.
         ///
-        /// Instagram's own bar has the answer and has had it for years: down
-        /// hides it, up brings it back, and holding still does nothing at all.
-        /// A state that only changes when the reader changes direction is a
-        /// state the hand is already steering, which is why it goes unnoticed.
-        /// The top of the page brings it back too, because there is nothing up
-        /// there to be out of the way of.
+        /// Instagram's own bar has the other answer and has had it for years:
+        /// down hides it, up brings it back, and holding still does nothing at
+        /// all. A state that only changes when the reader changes direction is
+        /// a state the hand is already steering, which is why it goes
+        /// unnoticed. The top of the page brings it back too, because there is
+        /// nothing up there to be out of the way of.
+        ///
+        /// Both are kept. "The row never actually leaves" is a real preference
+        /// to hold and the argument for it was never wrong, only outvoted — so
+        /// this runs for `RowMotion.drawsIn` and nothing else.
+        private func comeBackWhenItStops() {
+            lastMoved = ProcessInfo.processInfo.systemUptime
+            guard stillness == nil else { return }
+            stillness = Task { @MainActor [weak self] in
+                while let self,
+                      !Task.isCancelled,
+                      ProcessInfo.processInfo.systemUptime - self.lastMoved < Self.still {
+                    try? await Task.sleep(for: .seconds(Self.still))
+                }
+                guard let self, !Task.isCancelled else { return }
+                self.stillness = nil
+                self.collapse(false)
+            }
+        }
+
+        private var stillness: Task<Void, Never>?
+        private var lastMoved: TimeInterval = 0
+
+        /// How long the page has to hold still before the row comes back.
+        ///
+        /// The same tenth of a second and a bit the page uses to decide it is
+        /// still, for the same reason: longer than the gap between two frames
+        /// of one flick, shorter than anybody notices. See `STILL` in trim.js.
+        private static let still: TimeInterval = 0.14
 
         var session: QuietSession
         let surface: WebSurface
@@ -1496,6 +1525,8 @@ struct InstagramWebView: UIViewRepresentable {
 
         /// Give the page back to the system.
         func dismantle() {
+            stillness?.cancel()
+            stillness = nil
             scrolling?.invalidate()
             scrolling = nil
             webView.navigationDelegate = nil

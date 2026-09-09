@@ -445,10 +445,6 @@ struct BrowserScreen: View {
                             session: session,
                             surface: surface,
                             preferences: preferences,
-                            onFindSomeone: {
-                                session.isPanelShowing = false
-                                session.isSearchShowing = true
-                            },
                             onDismiss: { session.isPanelShowing = false }
                         )
                     } else {
@@ -643,24 +639,24 @@ struct BrowserScreen: View {
             .background(.regularMaterial, in: Capsule())
             .shadow(color: .black.opacity(0.22), radius: 16, y: 6)
             .padding(.horizontal, 22)
-            // Off the bottom edge and back, rather than smaller and paler in
-            // place.
+            // Either off the bottom edge, or smaller and paler in place. Both
+            // were built, both are defensible, and which one is on is the
+            // reader's to say — see `RowMotion`, where the argument is written
+            // down.
             //
-            // Shrinking was the wrong verb for it. A pill at seven eighths of
-            // its size, two thirds opaque, is not out of the way of anything —
-            // it is the same object, still over the same post, drawing
-            // attention to itself by having changed. Instagram's bar leaves,
-            // and leaving is what makes the gesture legible: the page you are
-            // reading gets the whole glass, and the way back is one flick
-            // upward, which is the direction your thumb was going anyway.
-            //
-            // Far enough to clear the lift underneath it as well as its own
-            // height, or a sliver of blurred capsule sits on the bottom edge
-            // and reads as a drawing error rather than as a bar that has gone.
-            .offset(y: surface.isBarCollapsed ? Self.islandHeight + Self.islandLift : 0)
-            .opacity(surface.isBarCollapsed ? 0 : 1)
+            // The distance is far enough to clear the lift underneath the pill
+            // as well as its own height. Anything less leaves a sliver of
+            // blurred capsule on the bottom edge, which reads as a drawing
+            // error rather than as a row that has gone.
+            .offset(y: leaves && surface.isBarCollapsed
+                ? Self.islandHeight + Self.islandLift
+                : 0)
+            .scaleEffect(!leaves && surface.isBarCollapsed ? 0.86 : 1, anchor: .bottom)
+            .opacity(surface.isBarCollapsed ? (leaves ? 0 : 0.62) : 1)
             .animation(
-                reduceMotion ? nil : .spring(response: 0.32, dampingFraction: 0.9),
+                reduceMotion
+                    ? nil
+                    : .spring(response: leaves ? 0.32 : 0.34, dampingFraction: leaves ? 0.9 : 0.86),
                 value: surface.isBarCollapsed
             )
             // Off the bottom edge, with the app's own strip beneath it in the
@@ -668,6 +664,9 @@ struct BrowserScreen: View {
             // the page rather than as a black band.
             .padding(.bottom, Self.islandLift)
     }
+
+    /// Whether the island leaves the screen or merely draws itself in.
+    private var leaves: Bool { preferences.rowMotion == .leaves }
 
     /// How much of the bottom of the screen the row stands on.
     ///

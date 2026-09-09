@@ -351,6 +351,16 @@
         }
       }
     },
+    "And how it gets out of the way": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Und wie sie ausweicht"
+          }
+        }
+      }
+    },
     "Ask for %@ a day": {
       "localizations": {
         "de": {
@@ -462,6 +472,7 @@
       }
     },
     "Counted across the days Quiet was open. A day you did not open it counts for nothing either way — Quiet cannot see what any other app on this phone did with it.": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -487,6 +498,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Fertig"
+          }
+        }
+      }
+    },
+    "Draws in": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zieht sich ein"
           }
         }
       }
@@ -642,11 +663,22 @@
       }
     },
     "It changes nothing about your limit or your day. It is the number everything above is measured against, so it is worth it being the true one.": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Es ändert nichts an deinem Limit und nichts an deinem Tag. Es ist die Zahl, an der alles hier oben gemessen wird — also lohnt es sich, dass sie stimmt."
+          }
+        }
+      }
+    },
+    "It changes nothing about your limit or your day. It is the number the chart is measured against, so it is worth it being the true one.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es ändert nichts an deinem Limit und nichts an deinem Tag. Es ist die Zahl, an der die Grafik gemessen wird — also lohnt es sich, dass sie stimmt."
           }
         }
       }
@@ -822,6 +854,16 @@
         }
       }
     },
+    "On the chart, the upper dashed line is that day and the lower one is your limit.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In der Grafik ist die obere gestrichelte Linie dieser Tag, die untere ist dein Limit."
+          }
+        }
+      }
+    },
     "One in the morning after a day you used Quiet, one after a week, one after a month. It says how long you were on Instagram and how much less that is than the %@ a day you started from — nothing about the rest of your phone, which Quiet cannot see.": {
       "localizations": {
         "de": {
@@ -838,6 +880,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Eine Erinnerung am Tag, zu einer Uhrzeit, die du wählst — und keine an einem Tag, an dem du schon da warst. Ob auf Instagram etwas passiert ist, kann sie nicht sagen; das kann nichts ausserhalb von Instagrams eigener App. Was sie kann: dem Nachschauen eine Uhrzeit geben, damit der Rest des Tages keine braucht."
+          }
+        }
+      }
+    },
+    "Only time with Instagram on screen counts, and only on days Quiet was open — a day you did not open it counts for nothing either way. Quiet cannot see what any other app on this phone did with it.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es zählt nur Zeit, in der Instagram auf dem Bildschirm ist, und nur an Tagen, an denen Quiet offen war — ein Tag, an dem du es nicht geöffnet hast, zählt in keine Richtung. Quiet sieht nicht, was eine andere App auf diesem Telefon gemacht hat."
           }
         }
       }
@@ -894,11 +946,22 @@
       }
     },
     "Quiet does not know what your day was before this, so there is nothing yet to measure against. Saying so below starts it.": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Quiet weiss nicht, wie dein Tag vor alldem war, es gibt also noch nichts zum Vergleichen. Sag es unten, dann fängt es an."
+          }
+        }
+      }
+    },
+    "Quiet does not know what your day was before this, so there is nothing yet to measure against. The gear above is where to say.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet weiss nicht, wie dein Tag vor alldem war, es gibt also noch nichts zum Vergleichen. Im Zahnrad oben kannst du es sagen."
           }
         }
       }
@@ -1055,7 +1118,18 @@
         }
       }
     },
+    "Resets at %@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurückgesetzt um %@."
+          }
+        }
+      }
+    },
     "Resets at %@. Only time with Instagram on screen counts.": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -1145,6 +1219,26 @@
         }
       }
     },
+    "Slides away": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gleitet weg"
+          }
+        }
+      }
+    },
+    "Sliding away is what Instagram's own bar does: scrolling down takes it off the screen and scrolling up brings it back. Drawing in keeps it there — smaller and fainter while the page moves, out again the moment it stops.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gleiten ist das, was Instagrams eigene Leiste macht: nach unten scrollen nimmt sie vom Bildschirm, nach oben holt sie zurück. Einziehen lässt sie da — kleiner und blasser, solange die Seite sich bewegt, und wieder heraus, sobald sie stillsteht."
+          }
+        }
+      }
+    },
     "Starts %@. Today stays at %@.": {
       "localizations": {
         "de": {
@@ -1206,12 +1300,33 @@
         }
       }
     },
+    "The bar is the shape Instagram uses. The island floats over the page and gets out of the way while you read.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Leiste ist die Form, die Instagram verwendet. Die Insel schwebt über der Seite und weicht aus, während du liest."
+          }
+        }
+      }
+    },
     "The bar is the shape Instagram uses. The island floats over the page, and draws itself in while the page is moving.": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Die Leiste ist die Form, die Instagram benutzt. Die Insel schwebt über der Seite und zieht sich zusammen, während die Seite in Bewegung ist."
+          }
+        }
+      }
+    },
+    "The dashed line on the chart is your limit.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die gestrichelte Linie in der Grafik ist dein Limit."
           }
         }
       }
@@ -1317,6 +1432,7 @@
       }
     },
     "The line is your limit, %@.": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -1357,6 +1473,7 @@
       }
     },
     "The upper line is the %@ a day you started from. The lower one is your limit, %@.": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -1468,6 +1585,7 @@
       }
     },
     "Today: %@ so far, %@ under.": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -1478,6 +1596,7 @@
       }
     },
     "Today: %@ so far.": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -1739,11 +1858,22 @@
       }
     },
     "less on Instagram than the %@ a day you started from.": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "weniger auf Instagram als die %@ am Tag, von denen du losgegangen bist."
+          }
+        }
+      }
+    },
+    "less than the %@ a day you started from.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "weniger als die %@ am Tag, von denen du losgegangen bist."
           }
         }
       }

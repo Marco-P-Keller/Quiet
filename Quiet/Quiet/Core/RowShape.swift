@@ -41,6 +41,37 @@ enum RowShape: String, CaseIterable, Sendable {
     }
 }
 
+/// What the island does while the page moves under it.
+///
+/// Two answers were built and neither turned out to be wrong, which is the same
+/// place `RowShape` ended up and the same reason this is a choice rather than an
+/// argument.
+///
+/// The pill used to draw itself in — smaller and paler, in place — and come back
+/// out after a tenth of a second of stillness. That reads well on one long
+/// scroll and badly on the way a feed is actually read, which is a flick, a
+/// pause to look at a post, a flick: the row shrank and popped back on every one
+/// of those pauses, and the thing meant to get out of the way became the only
+/// moving object on the screen.
+///
+/// So the default is Instagram's rule instead — down hides it, up brings it
+/// back, holding still does nothing — and the older one is kept, because "the
+/// row never actually leaves" is a real preference to hold and the argument for
+/// it was never wrong, only outvoted.
+enum RowMotion: String, CaseIterable, Sendable {
+    /// Off the bottom edge and back. Instagram's own, and the default.
+    case leaves
+    /// Smaller and paler in place, back out when the page holds still.
+    case drawsIn
+
+    var name: String {
+        switch self {
+        case .leaves: return String(localized: "Slides away")
+        case .drawsIn: return String(localized: "Draws in")
+        }
+    }
+}
+
 /// The handful of things that are about how Quiet looks rather than what it
 /// promises.
 ///
@@ -53,6 +84,7 @@ enum RowShape: String, CaseIterable, Sendable {
 /// without stepping onto the main actor to do it.
 private enum Key {
     static let row = "quiet.row.shape"
+    static let rowMotion = "quiet.row.motion"
     static let saysWhatIsLeft = "quiet.says.what.is.left"
     static let showsSuggestions = "quiet.shows.suggestions"
     static let appointmentIsOn = "quiet.appointment.on"
@@ -77,6 +109,18 @@ final class Preferences {
         didSet {
             guard row != oldValue else { return }
             defaults.set(row.rawValue, forKey: Key.row)
+        }
+    }
+
+    /// What the island does while the page moves under it. See `RowMotion`.
+    ///
+    /// Nothing to do with `row` beyond applying only to one of its two values:
+    /// a bar standing on the bottom edge has nothing to float over and nothing
+    /// to get out of the way of, so it never moves whatever this says.
+    var rowMotion: RowMotion {
+        didSet {
+            guard rowMotion != oldValue else { return }
+            defaults.set(rowMotion.rawValue, forKey: Key.rowMotion)
         }
     }
 
@@ -195,6 +239,8 @@ final class Preferences {
         self.defaults = defaults
         self.row = defaults.string(forKey: Key.row)
             .flatMap(RowShape.init(rawValue:)) ?? .standard(on: hardware)
+        self.rowMotion = defaults.string(forKey: Key.rowMotion)
+            .flatMap(RowMotion.init(rawValue:)) ?? .leaves
         // `bool(forKey:)` answers false for a key nobody has written, which is
         // the wrong way round for a thing that is on unless it has been turned
         // off. Asked as an object first, so that "never chosen" and "chosen

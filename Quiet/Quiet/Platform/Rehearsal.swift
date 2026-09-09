@@ -138,7 +138,11 @@ enum Rehearsal {
         // held against the bottom of the viewport has to land above it. On the
         // island the page runs to the bottom edge on purpose, and the same
         // photograph would only ever say zero.
-        Preferences.rehearse(row: scene == .island ? .island : .bar)
+        // The island for the settings screen as well as for the island scene,
+        // because half of what that screen now says about the row — how it gets
+        // out of the way — is drawn only under the island. A photograph taken
+        // on the bar is a photograph of the shorter of the two answers.
+        Preferences.rehearse(row: scene == .island || scene == .settings ? .island : .bar)
         guard scene != .fresh else { return }
 
         let today = DayKey(clock.now, calendar: calendar)
