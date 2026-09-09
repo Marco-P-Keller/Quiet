@@ -178,6 +178,26 @@ enum Phrase {
         String(localized: "\(count) days")
     }
 
+    /// A stretch of time long enough to have hours in it: "40 minutes",
+    /// "1 hour, 20 minutes".
+    ///
+    /// The system's own units formatter rather than a sentence of Quiet's,
+    /// which is not laziness — it is the only way the German build says
+    /// "1 Stunde, 20 Minuten" without somebody having written and translated a
+    /// plural rule for hours as well as minutes. Everywhere the app talks about
+    /// *today* it still says minutes and only minutes, because a daily limit is
+    /// a number of minutes; this is for the week and the month behind you,
+    /// where minutes alone stop being readable.
+    static func span(_ seconds: TimeInterval) -> String {
+        let whole = max(0, Int(seconds.rounded()))
+        guard whole >= 60 else { return String(localized: "under a minute") }
+        // Spelled out rather than folded into a ternary: the `allowed:` set is
+        // generic enough that a conditional inside it loses the contextual type
+        // and the compiler stops being able to name the units at all.
+        let allowed: Set<Duration.UnitsFormatStyle.Unit> = whole >= 3600 ? [.hours, .minutes] : [.minutes]
+        return Duration.seconds(whole).formatted(.units(allowed: allowed, width: .wide))
+    }
+
     static func clockTime(_ date: Date) -> String {
         date.formatted(date: .omitted, time: .shortened)
     }

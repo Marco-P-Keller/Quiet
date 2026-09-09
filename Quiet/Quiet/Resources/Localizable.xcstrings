@@ -41,6 +41,16 @@
         }
       }
     },
+    "%@ a week fewer than the day you just described.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ pro Woche weniger als der Tag, den du gerade beschrieben hast."
+          }
+        }
+      }
+    },
     "%@ from %@.": {
       "localizations": {
         "de": {
@@ -67,6 +77,96 @@
           "stringUnit": {
             "state": "translated",
             "value": "Heute noch %@."
+          }
+        }
+      }
+    },
+    "%@ on Instagram over the month — %@ less than those days used to be.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ auf Instagram im Monat — %@ weniger, als diese Tage früher waren."
+          }
+        }
+      }
+    },
+    "%@ on Instagram over the month.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ auf Instagram im Monat."
+          }
+        }
+      }
+    },
+    "%@ on Instagram over the week — %@ less than those days used to be.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ auf Instagram in der Woche — %@ weniger, als diese Tage früher waren."
+          }
+        }
+      }
+    },
+    "%@ on Instagram over the week.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ auf Instagram in der Woche."
+          }
+        }
+      }
+    },
+    "%@ on Instagram — %@ less than the day you started from.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ auf Instagram — %@ weniger als der Tag, von dem du losgegangen bist."
+          }
+        }
+      }
+    },
+    "%@ on Instagram.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ auf Instagram."
+          }
+        }
+      }
+    },
+    "%@ over %@ — Quiet was open on %lld of them.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ in %@ — an %lld davon war Quiet offen."
+          }
+        }
+      }
+    },
+    "%@: %@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: %@."
+          }
+        }
+      }
+    },
+    "%@: Quiet was not opened.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: Quiet war nicht offen."
           }
         }
       }
@@ -191,12 +291,32 @@
         }
       }
     },
+    "A note about the days behind you": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Notiz über die Tage hinter dir"
+          }
+        }
+      }
+    },
     "A page at %@ was opened in Safari during a sign-in. If signing in did not work, that is the address to report.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Eine Seite auf %@ wurde während einer Anmeldung in Safari geöffnet. Falls die Anmeldung nicht geklappt hat, ist das die Adresse, die man melden sollte."
+          }
+        }
+      }
+    },
+    "A rough answer is fine. Your phone's Screen Time knows, if you would rather look.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine ungefähre Antwort genügt. Die Bildschirmzeit deines Telefons weiss es, falls du lieber nachschaust."
           }
         }
       }
@@ -331,6 +451,16 @@
         }
       }
     },
+    "Counted across the days Quiet was open. A day you did not open it counts for nothing either way — Quiet cannot see what any other app on this phone did with it.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gezählt über die Tage, an denen Quiet offen war. Ein Tag, an dem du es nicht geöffnet hast, zählt in keine Richtung — Quiet sieht nicht, was eine andere App auf diesem Telefon mit ihm gemacht hat."
+          }
+        }
+      }
+    },
     "Daily limit": {
       "localizations": {
         "de": {
@@ -397,6 +527,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Start"
+          }
+        }
+      }
+    },
+    "How much Instagram\ndo you have in a day now?": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wie viel Instagram\nhast du jetzt am Tag?"
           }
         }
       }
@@ -491,12 +631,42 @@
         }
       }
     },
+    "It changes nothing about your limit or your day. It is the number everything above is measured against, so it is worth it being the true one.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es ändert nichts an deinem Limit und nichts an deinem Tag. Es ist die Zahl, an der alles hier oben gemessen wird — also lohnt es sich, dass sie stimmt."
+          }
+        }
+      }
+    },
     "Keep my limit": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Mein Limit behalten"
+          }
+        }
+      }
+    },
+    "Last month": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letzter Monat"
+          }
+        }
+      }
+    },
+    "Last week": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letzte Woche"
           }
         }
       }
@@ -557,6 +727,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Minuten am Tag"
+          }
+        }
+      }
+    },
+    "Minutes a day now": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minuten am Tag jetzt"
           }
         }
       }
@@ -622,11 +802,22 @@
       }
     },
     "Notifications": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Benachrichtigungen"
+          }
+        }
+      }
+    },
+    "One in the morning after a day you used Quiet, one after a week, one after a month. It says how long you were on Instagram and how much less that is than the %@ a day you started from — nothing about the rest of your phone, which Quiet cannot see.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine am Morgen nach einem Tag mit Quiet, eine nach einer Woche, eine nach einem Monat. Sie sagt, wie lange du auf Instagram warst und wie viel weniger das ist als die %@ am Tag, von denen du losgegangen bist — nichts über den Rest deines Telefons, den Quiet nicht sieht."
           }
         }
       }
@@ -671,12 +862,33 @@
         }
       }
     },
+    "Quiet cannot see this for itself. It only ever sees its own screen — not the Instagram app, not any other app on this phone.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet kann das nicht selbst sehen. Es sieht immer nur seinen eigenen Bildschirm — nicht die Instagram-App und keine andere App auf diesem Telefon."
+          }
+        }
+      }
+    },
     "Quiet could not load %@ from its own bundle. This build is broken; reinstall it.": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Quiet konnte %@ nicht aus dem eigenen Bundle laden. Dieser Build ist kaputt; installiere ihn neu."
+          }
+        }
+      }
+    },
+    "Quiet does not know what your day was before this, so there is nothing yet to measure against. Saying so below starts it.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet weiss nicht, wie dein Tag vor alldem war, es gibt also noch nichts zum Vergleichen. Sag es unten, dann fängt es an."
           }
         }
       }
@@ -691,7 +903,18 @@
         }
       }
     },
+    "Quiet has no account, no server of its own and no analytics. It stores eight things on this phone: your limit, today's total, the last time it saw, the day you set it up, whether you have asked it to forget, what your other devices have spent today, the day you said you started from, and how long each day since has been.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet hat kein Konto, keinen eigenen Server und keine Analyse. Es speichert acht Dinge auf diesem Telefon: dein Limit, die heutige Summe, die letzte Zeit, die es gesehen hat, den Tag, an dem du es eingerichtet hast, ob du um Vergessen gebeten hast, was deine anderen Geräte heute verbraucht haben, den Tag, von dem du losgegangen bist, und wie lang jeder Tag seither war."
+          }
+        }
+      }
+    },
     "Quiet has no account, no server of its own and no analytics. It stores six things on this phone: your limit, today's total, the last time it saw, the day you set it up, whether you have asked it to forget, and what your other devices have spent today.": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -702,6 +925,7 @@
       }
     },
     "Quiet has no account, no servers and no analytics. It stores four things on this phone: your limit, today's total, the last time it saw, and the day you set it up.": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -942,6 +1166,7 @@
       }
     },
     "That doesn't look like a username.": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -1041,12 +1266,52 @@
         }
       }
     },
+    "The day you started from": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Tag, von dem du losgegangen bist"
+          }
+        }
+      }
+    },
+    "The days behind you": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Tage hinter dir"
+          }
+        }
+      }
+    },
     "The hour Quiet reminds you": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Die Uhrzeit, zu der Quiet dich erinnert"
+          }
+        }
+      }
+    },
+    "The hour the note arrives": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Stunde, zu der die Notiz kommt"
+          }
+        }
+      }
+    },
+    "The line is your limit, %@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Linie ist dein Limit, %@."
           }
         }
       }
@@ -1081,6 +1346,16 @@
         }
       }
     },
+    "The upper line is the %@ a day you started from. The lower one is your limit, %@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die obere Linie sind die %@ am Tag, von denen du losgegangen bist. Die untere ist dein Limit, %@."
+          }
+        }
+      }
+    },
     "The wait between increases": {
       "localizations": {
         "de": {
@@ -1101,6 +1376,16 @@
         }
       }
     },
+    "There is nothing to compare against yet. Say what your day used to be under The days behind you, and this can start.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es gibt noch nichts zum Vergleichen. Sag unter „Die Tage hinter dir“, wie dein Tag früher war, dann kann das hier anfangen."
+          }
+        }
+      }
+    },
     "This clears the Instagram session from this app. Your daily limit stays as it is.": {
       "localizations": {
         "de": {
@@ -1111,12 +1396,32 @@
         }
       }
     },
+    "This is not a limit and it does not restrict anything. It is the number the days behind you get measured against.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das ist kein Limit und schränkt nichts ein. Es ist die Zahl, an der die Tage hinter dir gemessen werden."
+          }
+        }
+      }
+    },
     "This is your limit.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Das ist dein Limit."
+          }
+        }
+      }
+    },
+    "This phone has notifications turned off for Quiet, so the note has nowhere to arrive. It can be switched on again in Settings.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf diesem Telefon sind Mitteilungen für Quiet ausgeschaltet, die Notiz hat also keinen Ort, an dem sie ankommen kann. In den Einstellungen lässt sich das wieder einschalten."
           }
         }
       }
@@ -1132,6 +1437,7 @@
       }
     },
     "This phone is refusing to let Quiet write anything down. Your limit will not survive closing the app until that changes.": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -1147,6 +1453,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Die sind mit Absicht weg, nicht kaputt. Ein Reel, das dir jemand schickt, sagt beim Antippen genau das, statt sich zu öffnen."
+          }
+        }
+      }
+    },
+    "Today: %@ so far, %@ under.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heute: bisher %@, %@ darunter."
+          }
+        }
+      }
+    },
+    "Today: %@ so far.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heute: bisher %@."
           }
         }
       }
@@ -1227,6 +1553,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Was nicht funktioniert"
+          }
+        }
+      }
+    },
+    "Yesterday": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gestern"
           }
         }
       }
@@ -1382,11 +1718,22 @@
       }
     },
     "Your time today, your daily limit, and finding someone": {
+      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Deine Zeit heute, dein Tageslimit und jemanden finden"
+          }
+        }
+      }
+    },
+    "less on Instagram than the %@ a day you started from.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "weniger auf Instagram als die %@ am Tag, von denen du losgegangen bist."
           }
         }
       }
@@ -1397,6 +1744,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "name"
+          }
+        }
+      }
+    },
+    "not said": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nicht gesagt"
           }
         }
       }
@@ -1427,6 +1784,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "morgen"
+          }
+        }
+      }
+    },
+    "under a minute": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "unter einer Minute"
           }
         }
       }

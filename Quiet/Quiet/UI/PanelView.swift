@@ -45,6 +45,13 @@ struct PanelView: View {
 
     @State private var isConfirmingSignOut = false
     @State private var isChangingLimit = false
+    /// Which stretch of days the chart is showing, and whether the number it
+    /// is all measured against is open for correction.
+    @State private var recordLength = 7
+    @State private var isChangingBaseline = false
+    /// Set when the phone declines notifications for the morning note, so the
+    /// switch can say why it slid back rather than just sliding back.
+    @State private var recapRefused = false
 
     /// Why the last request to change the wait was turned down, if it was.
     /// Cleared by the next tap, so it answers the thing that was just pressed
@@ -62,17 +69,24 @@ struct PanelView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     today
 
+                    Cluster("The days behind you") { theRecord }
+
                     Cluster("The wait between increases") { theWait }
 
                     Cluster("What is in the feed") { suggestions }
 
-                    // Two switches under one head, because they answer the same
-                    // question — does the app speak to you, and when. A rule
-                    // between them, because they are two answers and not one.
+                    // Three switches under one head, because they answer the
+                    // same question — does the app speak to you, and when. A
+                    // rule between them, because they are three answers and not
+                    // one. The morning note sits last on purpose: the other two
+                    // are about the day you are in, and it is about the days
+                    // you are not.
                     Cluster("What Quiet says") {
                         warnings
                         Hairline().padding(.vertical, 4)
                         appointment
+                        Hairline().padding(.vertical, 4)
+                        morningNote
                     }
 
                     Cluster("Your other devices") { otherDevices }
@@ -124,8 +138,9 @@ struct PanelView: View {
         .onAppear(perform: openLimitIfRehearsing)
     }
 
-    /// Nothing at all, except when a screenshot is being taken of the limit
-    /// screen. See `Rehearsal`, which does not exist outside a debug build.
+    /// Nothing at all, except when a screenshot is being taken of one of the two
+    /// screens behind this one. See `Rehearsal`, which does not exist outside a
+    /// debug build.
     private func openLimitIfRehearsing() {
         #if DEBUG
         if Rehearsal.opensLimit { isChangingLimit = true }
@@ -212,6 +227,198 @@ struct PanelView: View {
     private var subhead: String {
         String(localized: "Resets at \(Phrase.clockTime(session.resetsAt)). Only time with Instagram on screen counts.")
     }
+
+    // MARK: - The days behind you
+
+    /// The one place Quiet argues with its own past.
+    ///
+    /// The ledger's note still says why there was never a chart here — *a
+    /// record of how much you scrolled is one more thing to check* — and that
+    /// argument has not stopped being true. What answers it is that the app now
+    /// asks, on its first screen, how much Instagram a day was before any of
+    /// this. A number a person hands over is a promise, and the days behind them
+    /// are the only thing that can answer it.
+    ///
+    /// It sits here, first, in the open. It spent a version behind a row and a
+    /// tap on the argument that a running total of what the app has saved you
+    /// has no business sitting where somebody comes to negotiate their limit —
+    /// which is a real risk and was the wrong call anyway: a screen nobody finds
+    /// answers nobody's promise. There is still no streak and nothing to break;
+    /// the figure is a total, so it only ever goes one way, and no notification
+    /// or badge anywhere points at this.
+    private var theRecord: some View {
+        VStack(alignment: .leading, spacing: Metric.underControl) {
+            if session.baseline > 0 {
+                saved
+            } else {
+                // The upgrade path, and the one state a screenshot found. Setup
+                // asks for this number; anybody who set Quiet up before it did
+                // has never been asked, and hiding the whole comparison leaves
+                // them a chart with no explanation of what the missing half is.
+                Note("Quiet does not know what your day was before this, so there is nothing yet to measure against. Saying so below starts it.")
+            }
+
+            chart
+                // The prose above ends in a full stop and the chart begins with
+                // two pills, and at the spacing everything else in this cluster
+                // uses they read as one paragraph with buttons in it.
+                .padding(.top, 8)
+
+            Hairline().padding(.vertical, 4)
+
+            theDayYouStartedFrom
+        }
+    }
+
+    /// Completed days only, and the note underneath says so.
+    ///
+    /// A total that counted today would fall while somebody watched it, because
+    /// every minute spent is a minute of it unspent. A figure that goes
+    /// backwards as you read it is a scoreboard, which is the one thing this
+    /// must not be. Today gets its own sentence, where it is obviously about
+    /// today and obviously still moving.
+    private var saved: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // A heading rather than the display face this had on a screen of
+            // its own. Here it is a section of a page whose own headline sits
+            // three lines above it, and two serif numbers at the same size
+            // compete for the same job.
+            Text(Phrase.span(session.savedSoFar))
+                .font(.quietHeading)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Text("less on Instagram than the \(Phrase.minutes(session.baseline)) a day you started from.")
+                .font(.quietNote)
+                .foregroundStyle(Paper.inkSoft)
+                .padding(.top, 6)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Text(todayLine)
+                .font(.quietSmall)
+                .foregroundStyle(Paper.inkSoft)
+                .padding(.top, 12)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Note("Counted across the days Quiet was open. A day you did not open it counts for nothing either way — Quiet cannot see what any other app on this phone did with it.")
+                .padding(.top, 8)
+        }
+    }
+
+    private var todayLine: String {
+        let spent = session.ledger.seconds
+        guard session.savedToday > 0 else {
+            return String(localized: "Today: \(Phrase.span(spent)) so far.")
+        }
+        return String(localized: "Today: \(Phrase.span(spent)) so far, \(Phrase.span(session.savedToday)) under.")
+    }
+
+    private var chart: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 10) {
+                ForEach(Self.recordLengths, id: \.self) { days in
+                    span(days)
+                }
+                Spacer()
+            }
+
+            Bars(
+                run: session.record.run(endingOn: session.today, length: recordLength),
+                today: session.today,
+                limitMinutes: session.limit.minutes,
+                baselineMinutes: session.baseline,
+                showsEveryLabel: recordLength <= 7
+            )
+
+            legend
+        }
+    }
+
+    private func span(_ days: Int) -> some View {
+        let chosen = recordLength == days
+        return Button {
+            recordLength = days
+        } label: {
+            Text(Phrase.days(days))
+                .font(.quietBody)
+                .foregroundStyle(chosen ? Paper.page : Paper.ink)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 9)
+                .background(Capsule().fill(chosen ? Paper.ink : Color.clear))
+                .overlay(Capsule().strokeBorder(Paper.rule, lineWidth: chosen ? 0 : 1))
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(chosen ? .isSelected : [])
+    }
+
+    /// What the dashed lines mean, said in words rather than left to a key.
+    ///
+    /// A legend with coloured squares would need colour to carry meaning, and
+    /// this app has one ink. Two sentences cost more room and read on a phone
+    /// held at arm's length by somebody who does not already know the chart.
+    private var legend: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            let window = DayKey(ordinal: session.today.ordinal - recordLength + 1)...session.today
+            Text("\(Phrase.span(session.record.spent(in: window))) over \(Phrase.days(recordLength)) — Quiet was open on \(session.record.days(in: window).count) of them.")
+                .font(.quietSmall)
+                .foregroundStyle(Paper.inkSoft)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if session.baseline > 0 {
+                Note("The upper line is the \(Phrase.minutes(session.baseline)) a day you started from. The lower one is your limit, \(Phrase.minutes(session.limit.minutes)).")
+            } else {
+                Note("The line is your limit, \(Phrase.minutes(session.limit.minutes)).")
+            }
+        }
+    }
+
+    /// The number from the first screen, and a way to correct it.
+    ///
+    /// Free to move, in both directions, which is not a hole in anything: it
+    /// touches no limit, no wait and no minute of today. It is one end of a
+    /// comparison, and a comparison against a figure somebody knows to be wrong
+    /// is worth nothing to them. The cost of leaving it open is that the figure
+    /// above is one you can flatter yourself with; the cost of sealing it would
+    /// be that one mis-spun wheel on the first morning poisons it for good.
+    private var theDayYouStartedFrom: some View {
+        VStack(alignment: .leading, spacing: Metric.underControl) {
+            Step(
+                "The day you started from",
+                value: session.baseline > 0
+                    ? Phrase.minutes(session.baseline)
+                    : String(localized: "not said"),
+                identifier: "panel.theDayYouStartedFrom"
+            ) {
+                isChangingBaseline.toggle()
+            }
+
+            if isChangingBaseline {
+                Picker("The day you started from", selection: Binding(
+                    get: { session.baseline > 0 ? session.baseline : 60 },
+                    set: { session.setBaseline($0) }
+                )) {
+                    ForEach(Self.baselines, id: \.self) { value in
+                        Text(Phrase.minutes(value))
+                            .font(.quietChoice)
+                            .tag(value)
+                    }
+                }
+                .pickerStyle(.wheel)
+                // See LimitView: a wheel's rows are a fixed height, so the
+                // numbers collide past the largest ordinary text size.
+                .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+                .frame(maxWidth: .infinity)
+                .frame(height: 150)
+            }
+
+            Note("It changes nothing about your limit or your day. It is the number everything above is measured against, so it is worth it being the true one.")
+        }
+    }
+
+    /// A week and a month, which are the two lengths anybody thinks in.
+    private static let recordLengths = [7, 30]
+
+    private static let baselines = [10, 15, 20, 30, 45, 60, 75, 90, 120, 150, 180, 240, 300, 360, 420, 480]
 
     // MARK: - How long the wait is
 
@@ -423,6 +630,84 @@ struct PanelView: View {
         )
     }
 
+    // MARK: - The morning note
+
+    /// The account, as against the invitation.
+    ///
+    /// A separate switch from the appointment above, and the separation is the
+    /// point: one says the window is open and arrives *before*, the other says
+    /// what the window came to and arrives *after*. Somebody working to open
+    /// Instagram less may well want the second and want nothing at all to do
+    /// with the first, and bundling them would mean the account could only be
+    /// bought with the invitation.
+    ///
+    /// It says fewer minutes here, against a number the reader gave. It does
+    /// not say time was won back, because Quiet has no idea where the time
+    /// went and cannot see the real Instagram app at all — and a notification
+    /// that overstates what an app did for you is worth less than no
+    /// notification, twice over, because it is also the reason nobody believes
+    /// the next one.
+    private var morningNote: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Toggle(isOn: Binding(
+                get: { session.recap.isOn },
+                set: { wanted in
+                    recapRefused = false
+                    guard wanted else {
+                        session.turnOffRecap()
+                        return
+                    }
+                    Task {
+                        let granted = await session.turnOnRecap()
+                        recapRefused = !granted
+                    }
+                }
+            )) {
+                Text("A note about the days behind you")
+                    .font(.quietBody)
+            }
+            .tint(Paper.ink)
+            .disabled(session.baseline == 0)
+
+            if session.recap.isOn {
+                DatePicker(
+                    "",
+                    selection: recapHour,
+                    displayedComponents: .hourAndMinute
+                )
+                .labelsHidden()
+                .accessibilityLabel(Text("The hour the note arrives"))
+            }
+
+            if recapRefused {
+                Note("This phone has notifications turned off for Quiet, so the note has nowhere to arrive. It can be switched on again in Settings.")
+            } else if session.baseline == 0 {
+                Note("There is nothing to compare against yet. Say what your day used to be under The days behind you, and this can start.")
+            } else {
+                Note("One in the morning after a day you used Quiet, one after a week, one after a month. It says how long you were on Instagram and how much less that is than the \(Phrase.minutes(session.baseline)) a day you started from — nothing about the rest of your phone, which Quiet cannot see.")
+            }
+        }
+    }
+
+    private var recapHour: Binding<Date> {
+        Binding(
+            get: {
+                let calendar = Calendar.current
+                return calendar.date(
+                    bySettingHour: session.recap.hour,
+                    minute: session.recap.minute,
+                    second: 0,
+                    of: calendar.startOfDay(for: Date()),
+                    matchingPolicy: .nextTime
+                ) ?? Date()
+            },
+            set: { chosen in
+                let parts = Calendar.current.dateComponents([.hour, .minute], from: chosen)
+                session.moveRecap(to: (parts.hour ?? 0) * 60 + (parts.minute ?? 0))
+            }
+        )
+    }
+
     // MARK: - Your other devices
 
     /// The only thing in Quiet that sends anything anywhere.
@@ -606,7 +891,7 @@ struct PanelView: View {
 
     private var about: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Note("Quiet has no account, no server of its own and no analytics. It stores six things on this phone: your limit, today's total, the last time it saw, the day you set it up, whether you have asked it to forget, and what your other devices have spent today.")
+            Note("Quiet has no account, no server of its own and no analytics. It stores eight things on this phone: your limit, today's total, the last time it saw, the day you set it up, whether you have asked it to forget, what your other devices have spent today, the day you said you started from, and how long each day since has been.")
             Note("If you carry it between your devices, three of those go into your own iCloud — the limit, the wait, and how much each device has spent today. Nothing else, nowhere else, and only while the switch above is on.")
             Note("Your limit is kept in the keychain, which outlives the app. Deleting Quiet and installing it again does not reset it.")
             Note("Quiet is not affiliated with or endorsed by Instagram or Meta.")

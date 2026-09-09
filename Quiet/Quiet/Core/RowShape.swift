@@ -58,6 +58,8 @@ private enum Key {
     static let appointmentIsOn = "quiet.appointment.on"
     static let appointmentAt = "quiet.appointment.at"
     static let carriesBetweenDevices = "quiet.carries.between.devices"
+    static let recapIsOn = "quiet.recap.on"
+    static let recapAt = "quiet.recap.at"
 }
 
 @MainActor
@@ -131,6 +133,23 @@ final class Preferences {
         }
     }
 
+    /// The morning note about the days behind you: whether it arrives, and at
+    /// what hour.
+    ///
+    /// A separate switch from the appointment, and not for tidiness. The two
+    /// are opposite errands — one is an invitation to a window that is open,
+    /// the other is an account of a window that has closed — and somebody who
+    /// wants to be told what a week came to may want nothing at all telling
+    /// them Instagram is available. Bundled together, the account could only
+    /// be had by also buying the invitation.
+    var recap: Recap {
+        didSet {
+            guard recap != oldValue else { return }
+            defaults.set(recap.isOn, forKey: Key.recapIsOn)
+            defaults.set(recap.minutesAfterMidnight, forKey: Key.recapAt)
+        }
+    }
+
     /// Whether the limit, the wait and today's total follow you to your other
     /// devices through iCloud.
     ///
@@ -175,6 +194,13 @@ final class Preferences {
             // be told apart. Asked as an object first.
             minutesAfterMidnight: defaults.object(forKey: Key.appointmentAt) as? Int
                 ?? Appointment.standard.minutesAfterMidnight
+        )
+        self.recap = Recap(
+            isOn: defaults.bool(forKey: Key.recapIsOn),
+            // Asked as an object first, for the same reason the appointment is:
+            // zero is a legitimate hour and also what an unwritten key answers.
+            minutesAfterMidnight: defaults.object(forKey: Key.recapAt) as? Int
+                ?? Recap.standard.minutesAfterMidnight
         )
     }
 }

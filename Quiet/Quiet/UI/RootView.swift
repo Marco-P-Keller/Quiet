@@ -170,8 +170,8 @@ struct RootView: View {
     private var content: some View {
         switch session.screen {
         case .setup:
-            SetupView { minutes in
-                session.completeSetup(minutes: minutes)
+            SetupView { baseline, minutes in
+                session.completeSetup(baseline: baseline, limit: minutes)
             }
 
         case .browsing:

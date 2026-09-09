@@ -122,7 +122,7 @@ final class QuietSessionTests: XCTestCase {
     func testSetupAppliesImmediatelyAndSurvivesARelaunch() {
         let world = makeWorld()
         world.session.start()
-        world.session.completeSetup(minutes: 30)
+        world.session.completeSetup(baseline: 60, limit: 30)
         XCTAssertEqual(world.session.screen, .browsing)
         XCTAssertEqual(world.session.limit.minutes, 30)
 
@@ -223,7 +223,7 @@ final class QuietSessionTests: XCTestCase {
     func testRaisingIsRefusedWhileTheClockIsBehind() {
         let world = makeWorld()
         world.session.start()
-        world.session.completeSetup(minutes: 20)
+        world.session.completeSetup(baseline: 60, limit: 20)
 
         world.time.now = noon.addingTimeInterval(-7 * 24 * 3600)
         XCTAssertTrue(world.session.isClockRewound)
@@ -233,7 +233,7 @@ final class QuietSessionTests: XCTestCase {
     func testLoweringIsStillAllowedWhileTheClockIsBehind() {
         let world = makeWorld()
         world.session.start()
-        world.session.completeSetup(minutes: 60)
+        world.session.completeSetup(baseline: 90, limit: 60)
 
         world.time.now = noon.addingTimeInterval(-7 * 24 * 3600)
         XCTAssertEqual(world.session.requestLimit(15), .success(.now(15)))

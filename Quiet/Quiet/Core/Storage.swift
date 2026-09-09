@@ -1,6 +1,6 @@
 import Foundation
 
-/// The six things Quiet remembers, and there is no seventh.
+/// The eight things Quiet remembers, and there is no ninth.
 ///
 /// Four of them are the app's memory of the promise. The fifth is a memory of
 /// having been asked to let go of it, which has to live here for the same
@@ -8,6 +8,14 @@ import Foundation
 /// deleting the app would be a request that means nothing. The sixth is what
 /// the reader's *other* phones have said, which belongs here for a third
 /// reason: forgetting it would forget time they have already spent.
+///
+/// The last two are the account the app now has to be able to give. Somebody
+/// is asked, on the first screen, how much Instagram a day was before any of
+/// this; a number a person hands over is a promise, and the days behind them
+/// are the only thing that can answer it. Both live here rather than with the
+/// preferences because a record that a reinstall wiped would quietly reset the
+/// answer to that promise, which is the same failure the limit lives here to
+/// avoid.
 enum StoreKey: String, CaseIterable, Sendable {
     /// The daily limit, plus any queued change and the wait in force.
     case limit
@@ -23,6 +31,11 @@ enum StoreKey: String, CaseIterable, Sendable {
     /// The last agreement reconciled with the reader's other phones, including
     /// what each of them has spent today. See `Carried`.
     case carried
+    /// The day somebody said they were having before Quiet, in minutes. What
+    /// every figure on the record screen is measured against.
+    case baseline
+    /// The completed days behind you. See `History`.
+    case history
 }
 
 /// Somewhere to keep a handful of small values.

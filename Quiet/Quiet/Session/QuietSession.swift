@@ -29,6 +29,18 @@ final class QuietSession {
     /// The day the limit was first chosen. `nil` on a fresh install.
     private(set) var setupDay: DayKey?
 
+    /// The day somebody said they were having before Quiet, in minutes.
+    ///
+    /// Zero until it has been said, which is what a store written by a version
+    /// before this question existed answers with — and zero is the right answer
+    /// to "how much is this saving you" when nobody has said what it is being
+    /// measured against. Every figure on the record screen and every recap
+    /// stays silent until there is a number here.
+    private(set) var baseline = 0
+
+    /// The completed days behind you, and nothing about today. See `History`.
+    private(set) var history = History()
+
     /// The day everything is to be thrown away, if somebody has asked.
     ///
     /// `nil` almost always, which is the whole point: this is not a feature
@@ -138,6 +150,8 @@ final class QuietSession {
         setupDay = store.load(DayKey.self, for: .setupDay)
         forgetOn = store.load(DayKey.self, for: .forgetOn)
         carried = store.load(Carried.self, for: .carried)
+        baseline = store.load(Int.self, for: .baseline) ?? 0
+        history = store.load(History.self, for: .history) ?? History()
         if let saved = store.load(LimitState.self, for: .limit) {
             limit = saved
         }
@@ -157,18 +171,29 @@ final class QuietSession {
         evaluateScreen()
         syncCounting()
         mindTheAppointment()
+        mindTheRecap()
         Task { await catchUp() }
     }
 
-    /// Finish first run with the chosen limit. This one applies immediately: the
-    /// waiting rules exist to protect a decision already made, and there is
-    /// nothing yet to protect.
-    func completeSetup(minutes: Int) {
-        let clamped = min(max(minutes, LimitPolicy.allowed.lowerBound), LimitPolicy.allowed.upperBound)
+    /// Finish first run with the day somebody is having and the day they want.
+    ///
+    /// The limit applies immediately: the waiting rules exist to protect a
+    /// decision already made, and there is nothing yet to protect.
+    ///
+    /// The baseline is not a second limit and does not restrict anything. It is
+    /// the only number the app cannot measure — Quiet can see its own screen
+    /// and nothing else on the phone, least of all the real Instagram app — so
+    /// it is asked for once, plainly, and treated as what it is: something the
+    /// reader said, which the record screen then measures against.
+    func completeSetup(baseline minutes: Int, limit wanted: Int) {
+        let clamped = min(max(wanted, LimitPolicy.allowed.lowerBound), LimitPolicy.allowed.upperBound)
         limit = LimitState(minutes: clamped)
         ledger = UsageLedger(day: today, endsAt: today.end(calendar: calendar))
         setupDay = today
+        baseline = min(max(minutes, 0), Self.baselineCeiling)
+        history = History()
         store.save(today, for: .setupDay)
+        store.save(baseline, for: .baseline)
         persist()
         noteLocalChange()
         screen = .browsing
@@ -198,6 +223,11 @@ final class QuietSession {
         // After the checkpoint, so that a day which has just been spent is
         // spent as far as the reminder is concerned too.
         mindTheAppointment()
+        // And so the recaps waiting on the phone are written against the total
+        // this session has just finished adding to. This is the moment that
+        // matters for them: a recap is a sentence fixed when it is scheduled,
+        // and the last time the app was closed is the last chance to fix it.
+        mindTheRecap()
     }
 
     // MARK: - The day
@@ -213,6 +243,67 @@ final class QuietSession {
     /// the curtain would promise a reset that changes the moment somebody
     /// crosses a border.
     var resetsAt: Date { ledger.endsAt ?? today.end(calendar: calendar) }
+
+    // MARK: - The days behind you
+
+    /// Every day there is anything to say about, today included.
+    ///
+    /// The stored history holds completed days only; today is still running and
+    /// still moving, and it lives in the ledger where the rest of the app
+    /// already looks for it. Folding the two together here means there is one
+    /// answer to "what did the last fortnight look like" rather than two halves
+    /// every caller has to remember to add up.
+    var record: History {
+        var merged = history
+        guard hasSomethingToRemember else { return merged }
+        merged.record(ledger.day, seconds: ledger.seconds)
+        return merged
+    }
+
+    /// Time not spent on Instagram, across every completed day.
+    ///
+    /// Completed days only, and that is a decision rather than an oversight: a
+    /// total that included today would fall while somebody watched it, because
+    /// every minute spent is a minute of it being spent. A headline figure that
+    /// goes backwards as you read it is a scoreboard, and this app has spent
+    /// its whole life not being one. Today gets its own line, which is allowed
+    /// to move because it is obviously about today.
+    var savedSoFar: TimeInterval {
+        history.saved(against: baseline)
+    }
+
+    /// How far under the old day today is, so far.
+    var savedToday: TimeInterval {
+        guard baseline > 0 else { return 0 }
+        return max(0, TimeInterval(baseline) * 60 - ledger.seconds)
+    }
+
+    /// Change what the saving is measured against.
+    ///
+    /// Free, in both directions, and it is worth saying why that does not
+    /// belong to the family of decisions this app deliberately slows down.
+    /// Nothing here touches the limit, the wait, or how much time there is
+    /// today: it is the number on the other side of a comparison, and a
+    /// comparison against a figure somebody knows to be wrong is worth nothing
+    /// to them. The cost of leaving it editable is that the saving is a figure
+    /// you can flatter yourself with; the cost of fixing it forever is that one
+    /// mis-spun wheel on the first screen poisons it for good.
+    func setBaseline(_ minutes: Int) {
+        let clamped = min(max(minutes, 0), Self.baselineCeiling)
+        guard clamped != baseline else { return }
+        baseline = clamped
+        store.save(clamped, for: .baseline)
+        checkMemory()
+        mindTheRecap()
+    }
+
+    /// The largest day anybody may claim to have been having.
+    ///
+    /// Eight hours. Past that the number stops being a day on Instagram and
+    /// starts being a number chosen to make the saving look good, and the whole
+    /// record screen is only worth having if its figures are ones the reader
+    /// still believes six months later.
+    static let baselineCeiling = 480
 
     /// True when the device clock sits behind time the app has already seen.
     var isClockRewound: Bool { clock.isRewound }
@@ -364,12 +455,15 @@ final class QuietSession {
         setupDay = nil
         limit = LimitState(minutes: 20)
         ledger = UsageLedger(day: today, endsAt: today.end(calendar: calendar))
+        baseline = 0
+        history = History()
         announced.removeAll()
         graceUsed = false
         graceEnds = nil
         notice = nil
         screen = .setup
         preferences.appointment.isOn = false
+        preferences.recap.isOn = false
         ringer.silence()
         carried = nil
         ThePlace.forgetEverything()
@@ -485,6 +579,7 @@ final class QuietSession {
         evaluateScreen()
         syncCounting()
         mindTheAppointment()
+        mindTheRecap()
     }
 
     /// Say that something on this phone has changed, so the other phones can
@@ -567,6 +662,59 @@ final class QuietSession {
         ringer.ring(at: preferences.appointment.rings(
             after: clock.now,
             openedToday: hasOpenedToday,
+            calendar: calendar
+        ))
+    }
+
+    // MARK: - The morning note
+
+    /// The recap, as it stands.
+    var recap: Recap { preferences.recap }
+
+    /// Switch the morning note on, at the hour already chosen.
+    ///
+    /// Asks the phone first and stays off if the phone says no, exactly as the
+    /// appointment does and for exactly the same reason: a switch that slides
+    /// across while nothing was granted promises something that will never
+    /// arrive.
+    @discardableResult
+    func turnOnRecap() async -> Bool {
+        guard await ringer.ask() else { return false }
+        preferences.recap.isOn = true
+        mindTheRecap()
+        return true
+    }
+
+    func turnOffRecap() {
+        preferences.recap.isOn = false
+        mindTheRecap()
+    }
+
+    /// Move it to another hour. Free, in both directions, at any time — nothing
+    /// about when an account arrives changes what it says.
+    func moveRecap(to minutesAfterMidnight: Int) {
+        let wrapped = ((minutesAfterMidnight % 1440) + 1440) % 1440
+        guard wrapped != preferences.recap.minutesAfterMidnight else { return }
+        preferences.recap.minutesAfterMidnight = wrapped
+        mindTheRecap()
+    }
+
+    /// Put the coming week's recaps on the phone, or take them off.
+    ///
+    /// Recomputed from scratch every time, like the appointment, so there is
+    /// one answer to what is pending and it is this function's. Nothing before
+    /// setup, nothing after being forgotten, and nothing at all until somebody
+    /// has said what their day used to be — a recap with no baseline has no
+    /// sentence to say.
+    private func mindTheRecap() {
+        guard hasSomethingToRemember, baseline > 0 else {
+            ringer.chime([])
+            return
+        }
+        ringer.chime(preferences.recap.chimes(
+            after: clock.now,
+            record: record,
+            baselineMinutes: baseline,
             calendar: calendar
         ))
     }
@@ -714,12 +862,21 @@ final class QuietSession {
         // date changes the instant a time zone does, and a time zone is two taps
         // away; the ending this day was given when it began does not move.
         guard ledger.hasEnded(by: clock.now) else { return }
+        // The last chance to write down what the closing day came to. After the
+        // roll the ledger holds a fresh zero and the day that has just ended is
+        // gone — which was the right shape for as long as Quiet kept today's
+        // total and nothing else, and is the one thing the record screen cannot
+        // live with. See `History`.
+        history.record(ledger.day, seconds: ledger.seconds)
         ledger.roll(to: day, endingAt: day.end(calendar: calendar))
         limit = LimitPolicy.rolled(limit, to: day)
         announced.removeAll()
         graceUsed = false
         graceEnds = nil
         persist()
+        // A day has turned, so every recap on the phone is written against a
+        // window that has moved. Cheap, and it happens once a day.
+        mindTheRecap()
     }
 
     private func evaluateScreen() {
@@ -790,11 +947,20 @@ final class QuietSession {
         checkMemory()
     }
 
+    /// The days behind you, written down.
+    ///
+    /// Only from `persist`, which is the handful of moments something other
+    /// than the running second has changed — not from `flush`, which happens
+    /// every five seconds the app is on screen. The distinction is the reason
+    /// `History` holds completed days only: today moves constantly and lives in
+    /// the ledger, so this is a write that happens about once a day rather than
+    /// twelve times a minute, against a keychain that is not a database.
     private func persist() {
         unsavedSeconds = 0
         guard hasSomethingToRemember else { return }
         store.save(limit, for: .limit)
         store.save(ledger, for: .usage)
+        store.save(history, for: .history)
         checkMemory()
     }
 

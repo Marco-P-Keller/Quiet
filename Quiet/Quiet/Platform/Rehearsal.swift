@@ -32,6 +32,16 @@ enum Rehearsal {
         case panel
         /// Browsing, with the limit screen open.
         case limit
+        /// The panel, over a fortnight of invented days, so that the chart at
+        /// the top of it has something to draw.
+        ///
+        /// Invented, and it has to be: its whole subject is time that has
+        /// already passed, so there is nothing to photograph on a phone that
+        /// was set up ten seconds ago. The days below are a plausible fortnight
+        /// rather than a flattering one — there is a day over the limit in
+        /// there, because a chart where every column obeys is a chart nobody
+        /// would believe.
+        case record
         /// Browsing, with the search screen open.
         case search
         /// The search screen with the field already answered to, so a keyboard
@@ -137,13 +147,29 @@ enum Rehearsal {
             UsageLedger(day: today, seconds: scene == .spent ? 20 * 60 : 0),
             for: .usage
         )
+        guard scene == .record else { return }
+
+        store.save(75, for: .baseline)
+        var history = History()
+        // Minutes, most recent last, with two days Quiet was not opened at all
+        // and one that went over.
+        let minutes: [Int?] = [18, 22, nil, 14, 26, 31, 12, 19, nil, 24, 16, 28, 9, 21]
+        for (offset, spent) in minutes.enumerated() {
+            guard let spent else { continue }
+            history.record(
+                DayKey(ordinal: today.ordinal - minutes.count + offset),
+                seconds: TimeInterval(spent) * 60
+            )
+        }
+        store.save(history, for: .history)
+        store.save(UsageLedger(day: today, seconds: 11 * 60), for: .usage)
     }
 
     /// The scenes that are places in the app rather than states of the day.
     @MainActor
     static func open(_ session: QuietSession) {
         switch scene {
-        case .panel, .limit: session.isPanelShowing = true
+        case .panel, .limit, .record: session.isPanelShowing = true
         case .search, .typing: session.isSearchShowing = true
         default: break
         }
