@@ -144,9 +144,13 @@ struct RootView: View {
     /// is the one moment in Quiet that is meant to be felt, and a five-star
     /// sheet arriving on top of it would be the app asking to be praised for
     /// the thing it just took away.
+    ///
+    /// The day goes in here because here is where it is known. `Applause` wants
+    /// the day Quiet means — the one that turns at four in the morning and does
+    /// not restart because a plane landed — and the session already holds it.
     private func countTowardsAsking() async {
         guard scenePhase == .active, !applause.asked else { return }
-        applause.enter()
+        applause.enter(on: session.today.ordinal)
         defer { applause.leave() }
 
         while !applause.isDue {
