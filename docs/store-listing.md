@@ -10,13 +10,46 @@ The counts in brackets are Apple's limits. Nothing below exceeds them.
 
 ## Name and subtitle
 
-**Name** (30) — `Quiet: Scroll Less`
+**Name** (30) — `Quiet: Stop Doomscrolling`
 
 `Quiet` alone is almost certainly taken; App Store names are unique and it is an
-ordinary English word. The suffix is what makes it available and it says what
-the app is for.
+ordinary English word. The suffix is what makes it available — and which suffix
+is a strategic choice rather than a matter of taste, so it is written down.
+
+The name is the highest-weighted field the App Store searches, which leaves two
+ways to spend it. **Head terms** — "screen time", "app blocker", "digital
+detox" — carry the volume and are already held by Opal, one sec, Freedom and
+ScreenZen, every one of them with years of ranking history and thousands of
+ratings. A 1.0 with no reviews does not land on page one of those; it lands on
+page eight, and page eight is nobody. **A narrow term can be owned outright.**
+"Doomscrolling" has a fraction of the volume and perfect intent: somebody
+typing it is describing this app's exact problem in this app's exact words, and
+there is nearly nothing else there to rank above. First on a small word beats
+eightieth on a large one.
+
+Two earlier candidates and why they lost:
+
+* `Quiet: Scroll Less` — generic. It says neither what the app does nor to
+  what, it contains no word anybody types into a search field, and it spends
+  only 18 of 30 characters in the most valuable field on the page. It is a
+  pleasant phrase that does the name's one job — being found — not at all.
+* `Quiet: No More Doomscrolling` — the right word, three characters of it
+  wasted. "No" and "More" are filler that index for nothing, and the phrase is
+  a complaint. `Stop` is one word instead of two, carries meaning, and is the
+  register the rest of the app is written in: the opening screen says
+  "Instagram, minus the parts that keep you there", not "no more Instagram".
+
+The risk taken knowingly is that "doomscrolling" is a coinage of 2020 and will
+date. That is a cost to be paid in a later version, when there is ranking worth
+protecting; today the app has no users, no reviews and nothing to lose by
+choosing, which is precisely why the choice is being made now rather than after
+launch.
 
 **Subtitle** (30) — `Your feed, on a daily limit`
+
+Second-highest weighted field, and it earns its place: `feed`, `daily` and
+`limit` are all indexed here, which is why none of the three appears in the
+keywords below.
 
 Neither the name nor the subtitle contains "Instagram", deliberately.
 Referencing another company's trademark factually *in the description* is
@@ -94,11 +127,35 @@ connected to, or supported by them.
 ## Keywords (100, comma separated, no spaces)
 
 ```
-limit,screen,time,focus,minutes,daily,habit,less,scroll,feed,reels,off,attention,wellbeing,digital
+screen,time,detox,blocker,social,focus,habit,addiction,distraction,scroll,digital,wellbeing,mindful
 ```
 
-Keywords are matched individually, so the name and subtitle words are left out —
-Apple already indexes those, and repeating them wastes the field.
+Keywords are matched individually and combined into phrases, so `screen` and
+`time` buy "screen time" as well as each on its own, and `digital` pairs with
+both `detox` and `wellbeing`.
+
+**`reels` came out, and it should never have gone in.** It is Meta's trademark,
+and the field it sat in is metadata — the same category as the name, the
+subtitle and the icon, all three of which this page already refuses to put it
+in for exactly that reason. Factual reference in the *description* is allowed
+and stays. A trademark in the keyword field is the same guideline 5.2.1 risk
+in a less visible place, taken for one word of search volume, on the one point
+this listing had already decided was not worth arguing about.
+
+Five more came out because they were paid for twice or worth nothing:
+
+* `limit`, `daily`, `feed` — all three are in the subtitle, which Apple indexes
+  anyway. A word bought in two fields is a word bought once and a slot wasted.
+* `off` — a preposition with no search behind it.
+* `minutes` — nobody looks for an app by its unit.
+
+What the freed thirty-odd characters bought instead is the vocabulary this
+category is actually searched in: `detox` (with `digital`, the biggest phrase
+in the sector), `blocker`, `social`, `addiction`, `distraction`, `mindful`.
+
+`scroll` stays even though the name now contains "Doomscrolling", and that is
+deliberate: whether Apple splits a compound into its parts is not documented,
+and six characters is a cheap way not to find out the expensive way.
 
 ## URLs
 
