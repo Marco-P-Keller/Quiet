@@ -3,16 +3,29 @@ name: Quiet
 # Builds the iOS app and runs its tests on a real macOS machine with a real
 # Xcode, because a project that has only ever been read is not a project that
 # works. Only runs when something under the app actually changes.
+#
+# `docs/store-listing.md` is in the list and is not documentation for this
+# purpose. `read-the-site.py` reads the keychain count out of `StoreKey` and
+# checks it against the privacy page *and* the store description, and a check
+# whose input the workflow cannot see is a check that passes on the last thing
+# it happened to read. It was added to the script and not to this list on the
+# same day, so for one commit the store text could have gone back to saying
+# four things and nothing anywhere would have gone red.
+#
+# The cost is that a prose edit to that one file runs a full iOS build. It is
+# edited rarely, and the alternative is a guard that does not guard.
 on:
   push:
     paths:
       - 'Quiet/**'
       - 'site/**'
+      - 'docs/store-listing.md'
       - '.github/workflows/quiet.yml'
   pull_request:
     paths:
       - 'Quiet/**'
       - 'site/**'
+      - 'docs/store-listing.md'
       - '.github/workflows/quiet.yml'
   workflow_dispatch:
 
