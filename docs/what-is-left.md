@@ -17,7 +17,9 @@ Those run on every push and are green.
 
 A companion to this page — [verbesserungen.md](verbesserungen.md) — tracks the
 thirty-eight improvements found in a read-through of the whole project, with
-what has been done and what has not.
+what has been done and what has not. A second one — [aso.md](aso.md) — is about
+the listing rather than the app: whether anybody will ever find it, which is a
+different question from whether it can ship and is not answered anywhere else.
 
 ---
 

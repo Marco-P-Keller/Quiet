@@ -6,6 +6,10 @@ where a listing gets rejected.
 
 The counts in brackets are Apple's limits. Nothing below exceeds them.
 
+Why these words rather than other words — the strategy behind the name, the
+keywords and the categories, and the two things that would move installs more
+than any of them — is in [being found](aso.md).
+
 ---
 
 ## Name and subtitle
@@ -127,7 +131,7 @@ connected to, or supported by them.
 ## Keywords (100, comma separated, no spaces)
 
 ```
-screen,time,detox,blocker,social,focus,habit,addiction,distraction,scroll,digital,wellbeing,mindful
+screen,time,detox,blocker,social,media,focus,habit,addiction,distraction,scroll,digital,phone
 ```
 
 Keywords are matched individually and combined into phrases, so `screen` and
@@ -156,6 +160,75 @@ in the sector), `blocker`, `social`, `addiction`, `distraction`, `mindful`.
 `scroll` stays even though the name now contains "Doomscrolling", and that is
 deliberate: whether Apple splits a compound into its parts is not documented,
 and six characters is a cheap way not to find out the expensive way.
+
+**`media` was the expensive omission.** `social` was in the list and `media` was
+not, and Apple builds phrases out of the keywords it is given — so "social media
+detox", "social media blocker" and "social media addiction", three of the
+commonest shapes of query in this category, were all unreachable for the want of
+five characters. `mindful` paid for them: it pulls meditation traffic, which is
+somebody else's app. `phone` went in with the room left over, because "phone
+addiction" is among the most-typed phrases here and `addiction` was already
+sitting there unable to pair with anything.
+
+## The other localisations
+
+Apple searches three fields and no others — name, subtitle, keywords — and it
+searches them **once per localisation**. One localisation is therefore 25 + 27 +
+99 characters of indexed text for the entire world, which is what this listing
+was until it had this section. Every localisation added is another 30 + 30 + 100
+in a market with less competition in it, and the app is already bilingual: the
+German screenshots are rendered and waiting in `Tools/shots/out/v2/de/`.
+
+There is a second reason for the German one that has nothing to do with search.
+The publisher is Swiss and the app speaks German; without this, somebody in
+Zurich sees an English product page over a German app.
+
+### German (Germany) — `de-DE`
+
+| Field | Value | |
+| --- | --- | --- |
+| Name | `Quiet: Weniger Doomscrolling` | 28/30 |
+| Subtitle | `Dein Feed, mit Tageslimit` | 25/30 |
+
+```
+bildschirmzeit,handysucht,digital,detox,fokus,ablenkung,konzentration,sucht,pause,social,media,zeit
+```
+
+`Schluss mit Doomscrolling` is the better line and does not fit: with `Quiet: `
+in front of it, it is 32. `Weniger` keeps the meaning and the register — and it
+is closer than the English is to what the app actually does, which is not
+abolition.
+
+`bildschirmzeit` is one word in German, so unlike the English pair it cannot be
+assembled from parts and has to be spent whole. `handysucht` and `sucht` are
+there because the German for this problem is a compound far more often than the
+English is.
+
+**These are drafts and want a native ear before they go in.** Nothing here has
+been checked against how Swiss and German readers actually search, and the
+listing is the wrong place to find that out by accident.
+
+### English (U.K.) — `en-GB`
+
+Worth adding even though not a word of it needs translating, and this is the
+least obvious lever on the page: a separate localisation is a **separate keyword
+field**, and `en-GB` serves the United Kingdom, Australia, Ireland, New Zealand
+and more. Give it the terms the U.S. field had no room for rather than a copy of
+the U.S. field, and the same app covers twice the vocabulary.
+
+| Field | Value | |
+| --- | --- | --- |
+| Name | `Quiet: Stop Doomscrolling` | 25/30 |
+| Subtitle | `Your feed, on a daily limit` | 27/30 |
+
+```
+wellbeing,mindful,break,usage,timer,control,reduce,less,minimal,quit,dopamine,brain,rot,attention
+```
+
+Everything in there is a word the U.S. field could not afford, `wellbeing` and
+`mindful` among them — which is where they went when `media` and `phone` took
+their place. `brain,rot` is the pair that assembles into the phrase somebody
+under twenty-five would actually type.
 
 ## URLs
 
@@ -191,12 +264,37 @@ absent long after they had become a setting that is on by default.
 
 ## Category
 
-Primary **Utilities**, secondary **Health & Fitness**.
+Primary **Productivity**, secondary **Health & Fitness**.
 
-Health & Fitness is where digital-wellbeing apps usually sit, but this one shows
-somebody else's social network, and a reviewer opening a Health & Fitness app
-onto an Instagram feed has a question before they have read a word. Utilities is
-the honest shelf: it is a tool that constrains something else.
+**What was actually set was Productivity and *Photo & Video*, and the second of
+those was doing harm.** Quiet neither takes nor edits a picture. Standing in
+that category puts it beside photo editors, where the people browsing want
+something else — which does not produce bad downloads, it produces impressions
+without downloads, and a listing that is shown and not tapped is a listing the
+store learns to stop showing. It also files the app on the shelf where
+Instagram-adjacent tools live, which is the one association the review notes
+exist to argue against: a reviewer opening a Photo & Video app onto somebody
+else's feed has 4.2 and 5.2.1 in mind before reading a word.
+
+Three shelves were arguable and the reasoning is worth keeping, because the
+right answer changes as the app grows:
+
+* **Productivity** is where the apps this one competes with actually are —
+  Opal, Freedom, Forest. Apple's "You Might Also Like" and its category browse
+  run on that adjacency, so standing next to them is real visibility. It is
+  also the most crowded category on the store, and the charts are unreachable.
+* **Utilities** is the least contested of the three and therefore the only one
+  where charting is realistic, and a chart position is downloads. But nobody
+  browses Utilities looking for this; they go there for VPNs and scanners.
+* **Health & Fitness** is where somebody looking for digital wellbeing browses.
+  As a *primary* it revives the old objection — a reviewer opening a Health &
+  Fitness app onto an Instagram feed has a question — which is much weaker for
+  a secondary, where it is a shelf and not a claim.
+
+Productivity primary, because being visible beside the competition beats a
+chart position in a category whose audience is not this app's. Health & Fitness
+secondary, because it costs nothing and catches the browse intent Photo & Video
+was catching wrongly.
 
 ## Age rating
 
