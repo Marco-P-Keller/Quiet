@@ -173,6 +173,7 @@ final class QuietSession {
         mindTheAppointment()
         mindTheRecap()
         Task { await catchUp() }
+        Task { await askAboutTheMorningNote() }
     }
 
     /// Finish first run with the day somebody is having and the day they want.
@@ -198,6 +199,9 @@ final class QuietSession {
         noteLocalChange()
         screen = .browsing
         syncCounting()
+        // The end of setup, which is the moment somebody has just committed to
+        // the thing the morning note reports on.
+        Task { await askAboutTheMorningNote() }
     }
 
     /// Called from the scene phase.
@@ -463,7 +467,8 @@ final class QuietSession {
         notice = nil
         screen = .setup
         preferences.appointment.isOn = false
-        preferences.recap.isOn = false
+        preferences.recap.isOn = Recap.standard.isOn
+        preferences.hasAskedAboutRecap = false
         ringer.silence()
         carried = nil
         ThePlace.forgetEverything()
@@ -688,6 +693,45 @@ final class QuietSession {
     func turnOffRecap() {
         preferences.recap.isOn = false
         mindTheRecap()
+    }
+
+    /// Put the permission question once, because the morning note is on to
+    /// begin with and cannot arrive without an answer to it.
+    ///
+    /// The awkwardness this is managing is worth naming. Every other switch in
+    /// Quiet is off until pressed, so the prompt is attached to a press and
+    /// arrives at the only moment a person can answer it meaningfully. This one
+    /// is on, so there is no press — and iOS will not deliver anything until
+    /// somebody has said yes. The two honest ways to spend that are a prompt
+    /// with nothing attached to it, or a switch standing at "on" over a
+    /// notification that will never come. The second is the app lying, so it is
+    /// the first.
+    ///
+    /// Once, and tracked as *asked* rather than as *granted*: the grant lives
+    /// with iOS, can be changed in Settings without this app running, and a
+    /// copy of it here would be a copy that goes stale. A refusal turns the
+    /// switch off, so what is on screen is what is true.
+    ///
+    /// Not at launch on a fresh install — there is nothing to be reminded about
+    /// yet and a permission prompt in front of an app nobody has decided to use
+    /// is a toll gate. `completeSetup` calls it, and `start` catches the reader
+    /// who set Quiet up before any of this existed.
+    func askAboutTheMorningNote() async {
+        guard hasSomethingToRemember,
+              preferences.recap.isOn,
+              !preferences.hasAskedAboutRecap else { return }
+        preferences.hasAskedAboutRecap = true
+        if await ringer.ask() {
+            mindTheRecap()
+        } else {
+            // Through `turnOffRecap`, not by setting the flag: the mornings
+            // were put on the phone at launch, before anybody had been asked,
+            // and a refusal that only moved a switch would leave them
+            // registered. iOS declines to deliver them today — and would
+            // deliver every one of them the day somebody turned notifications
+            // on in Settings for some other reason entirely.
+            turnOffRecap()
+        }
     }
 
     /// Move it to another hour. Free, in both directions, at any time — nothing

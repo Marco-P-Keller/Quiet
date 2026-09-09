@@ -24,7 +24,22 @@ struct Chime: Equatable, Sendable {
 /// invitation, and arrives before; the other is an account, and arrives after.
 /// Somebody may well want the second and not the first.
 struct Recap: Codable, Equatable, Sendable {
-    /// Off until somebody asks for it. Nothing in Quiet is opt-out.
+    /// On, and this is the one preference in Quiet that is.
+    ///
+    /// Everything else here is off until somebody asks, and that rule is worth
+    /// more than any single feature — an app that opts you into things is an
+    /// app you have to audit. The argument for making this the exception is
+    /// that it is the only setting whose *whole* value is arriving unprompted:
+    /// a note about the days behind you, which you have to remember to go and
+    /// switch on before it can ever tell you anything, is a note that reaches
+    /// the people who least need it.
+    ///
+    /// It costs a permission prompt, and iOS will not let it cost anything
+    /// less — a notification nobody has authorised is not a quiet notification,
+    /// it is no notification, and a switch standing at "on" over that would be
+    /// this app lying about the one thing it is careful about. So the prompt is
+    /// asked once, at the end of setup rather than at launch, and a "no" turns
+    /// this straight back off. See `QuietSession.askAboutTheMorningNote`.
     var isOn: Bool
 
     /// Minutes after midnight, local time. One number for the same reason the
@@ -33,7 +48,7 @@ struct Recap: Codable, Equatable, Sendable {
 
     /// Mid-morning: after the day it is reporting on has properly ended, and
     /// before the day it is reporting to has got going.
-    static let standard = Recap(isOn: false, minutesAfterMidnight: 9 * 60)
+    static let standard = Recap(isOn: true, minutesAfterMidnight: 9 * 60)
 
     var hour: Int { minutesAfterMidnight / 60 }
     var minute: Int { minutesAfterMidnight % 60 }

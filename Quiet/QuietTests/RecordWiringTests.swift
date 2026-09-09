@@ -17,7 +17,14 @@ final class RecordWiringTests: XCTestCase {
     @MainActor
     private final class SpyRinger: Ringer {
         var recaps: [Chime] = []
-        func ask() async -> Bool { true }
+        var grants = true
+        var asked = 0
+
+        func ask() async -> Bool {
+            asked += 1
+            return grants
+        }
+
         func ring(at times: [Date]) {}
         func chime(_ chimes: [Chime]) { recaps = chimes }
         func silence() { recaps = [] }
@@ -187,12 +194,45 @@ final class RecordWiringTests: XCTestCase {
 
     // MARK: - The morning note
 
-    func testNothingIsScheduledUntilTheNoteIsSwitchedOn() async {
+    /// The one preference in Quiet that is on to begin with, so the mornings
+    /// are on the phone without anybody having gone looking for a switch.
+    func testTheNoteIsOnWithoutBeingAskedFor() async {
         let (store, time) = setUp(used: 12 * 60)
         let ringer = SpyRinger()
         let session = makeSession(store: store, time: time, ringer: ringer)
         session.start()
+
+        XCTAssertTrue(session.recap.isOn)
+        XCTAssertFalse(ringer.recaps.isEmpty)
+    }
+
+    /// Being on is not the same as being allowed, and the difference is the
+    /// whole reason the question gets put at all.
+    func testAPhoneThatSaysNoTurnsTheSwitchBackOff() async {
+        let (store, time) = setUp(used: 12 * 60)
+        let ringer = SpyRinger()
+        ringer.grants = false
+        let preferences = makePreferences()
+        let session = makeSession(store: store, time: time, ringer: ringer, preferences: preferences)
+        session.start()
+        await session.askAboutTheMorningNote()
+
+        XCTAssertFalse(session.recap.isOn, "a switch standing over nothing would be a lie")
         XCTAssertEqual(ringer.recaps, [])
+        XCTAssertTrue(preferences.hasAskedAboutRecap)
+    }
+
+    func testThePhoneIsOnlyEverAskedOnce() async {
+        let (store, time) = setUp(used: 12 * 60)
+        let ringer = SpyRinger()
+        let preferences = makePreferences()
+        let session = makeSession(store: store, time: time, ringer: ringer, preferences: preferences)
+        session.start()
+        await session.askAboutTheMorningNote()
+        let asked = ringer.asked
+        await session.askAboutTheMorningNote()
+
+        XCTAssertEqual(ringer.asked, asked, "the grant lives with iOS, not here")
     }
 
     func testSwitchingTheNoteOnSchedulesTheMorningsItCanSpeakFor() async {
@@ -200,6 +240,7 @@ final class RecordWiringTests: XCTestCase {
         let ringer = SpyRinger()
         let session = makeSession(store: store, time: time, ringer: ringer)
         session.start()
+        session.turnOffRecap()
         await session.turnOnRecap()
 
         // Tomorrow's, which reports today, and then only the mornings whose
@@ -215,7 +256,6 @@ final class RecordWiringTests: XCTestCase {
         let ringer = SpyRinger()
         let session = makeSession(store: store, time: time, ringer: ringer)
         session.start()
-        await session.turnOnRecap()
         XCTAssertFalse(ringer.recaps.isEmpty)
 
         session.turnOffRecap()
@@ -228,7 +268,6 @@ final class RecordWiringTests: XCTestCase {
         let ringer = SpyRinger()
         let session = makeSession(store: store, time: time, ringer: ringer)
         session.start()
-        await session.turnOnRecap()
 
         XCTAssertEqual(ringer.recaps, [])
     }
@@ -239,7 +278,6 @@ final class RecordWiringTests: XCTestCase {
         let ringer = SpyRinger()
         let session = makeSession(store: store, time: time, ringer: ringer)
         session.start()
-        await session.turnOnRecap()
         let before = ringer.recaps
 
         // A longer session, and then away.
@@ -278,6 +316,9 @@ final class RecordWiringTests: XCTestCase {
         XCTAssertEqual(after.history.days, [])
         XCTAssertNil(store.load(History.self, for: .history))
         XCTAssertNil(store.load(Int.self, for: .baseline))
-        XCTAssertFalse(preferences.recap.isOn)
+        // Back to the state a phone that has never run this app is in, which
+        // includes the morning note being on and the question not yet put.
+        XCTAssertTrue(preferences.recap.isOn)
+        XCTAssertFalse(preferences.hasAskedAboutRecap)
     }
 }

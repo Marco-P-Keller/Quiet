@@ -1167,7 +1167,6 @@ struct InstagramWebView: UIViewRepresentable {
             // At the top of the page there is nothing to get out of the way of.
             let atTop = offset <= -scrollView.contentInset.top + 4
             collapse(atTop ? false : delta > 0)
-            comeBackWhenItStops()
 
             // And how long the page being read has become, which is the only
             // signal the app has that its three panes are about to cost more
@@ -1193,43 +1192,23 @@ struct InstagramWebView: UIViewRepresentable {
             state.isBarCollapsed = collapsed
         }
 
-        /// The row is documented to draw itself in while the page moves under a
-        /// thumb and to come back out the moment it stops. It did the first
-        /// half.
+        /// Which way a thumb was going is the whole rule, and stopping is not
+        /// an answer to it.
         ///
-        /// Nothing was watching for the stopping — the observer above only
-        /// fires while the page is moving — so a flick downward left the pill
-        /// small and faded, and it stayed that way until somebody scrolled
-        /// back up. What the file said and what the app did had disagreed since
-        /// the row was written.
+        /// This used to bring the row back after a tenth of a second of
+        /// stillness, on the reading that the row "comes back out the moment
+        /// the page stops". Reading a feed is not one long scroll; it is a
+        /// flick, a pause to look at a post, a flick. So the row drew itself
+        /// in and popped back out on every one of those pauses — several times
+        /// down a single feed — and the thing that was meant to get out of the
+        /// way became the only moving object on the screen.
         ///
-        /// One task per flick rather than one per frame: cancelling and
-        /// building a task sixty times a second, to answer a question about a
-        /// timestamp, is the shape of the thing this whole pass is removing.
-        private func comeBackWhenItStops() {
-            lastMoved = ProcessInfo.processInfo.systemUptime
-            guard stillness == nil else { return }
-            stillness = Task { @MainActor [weak self] in
-                while let self,
-                      !Task.isCancelled,
-                      ProcessInfo.processInfo.systemUptime - self.lastMoved < Self.still {
-                    try? await Task.sleep(for: .seconds(Self.still))
-                }
-                guard let self, !Task.isCancelled else { return }
-                self.stillness = nil
-                self.collapse(false)
-            }
-        }
-
-        private var stillness: Task<Void, Never>?
-        private var lastMoved: TimeInterval = 0
-
-        /// How long the page has to hold still before the row comes back.
-        ///
-        /// The same tenth of a second and a bit the page uses to decide it is
-        /// still, for the same reason: longer than the gap between two frames
-        /// of one flick, shorter than anybody notices. See `STILL` in trim.js.
-        private static let still: TimeInterval = 0.14
+        /// Instagram's own bar has the answer and has had it for years: down
+        /// hides it, up brings it back, and holding still does nothing at all.
+        /// A state that only changes when the reader changes direction is a
+        /// state the hand is already steering, which is why it goes unnoticed.
+        /// The top of the page brings it back too, because there is nothing up
+        /// there to be out of the way of.
 
         var session: QuietSession
         let surface: WebSurface
@@ -1517,8 +1496,6 @@ struct InstagramWebView: UIViewRepresentable {
 
         /// Give the page back to the system.
         func dismantle() {
-            stillness?.cancel()
-            stillness = nil
             scrolling?.invalidate()
             scrolling = nil
             webView.navigationDelegate = nil
@@ -1670,6 +1647,20 @@ struct InstagramWebView: UIViewRepresentable {
             state.isSheetUp = false
             if state.isTyping { state.isTyping = false }
             session.setTyping(false)
+            // And the row is out, whatever the last document's thumb was doing.
+            //
+            // This became load-bearing the moment the row stopped coming back
+            // by itself after a pause: a reader who flicked down the feed and
+            // then opened a post would have arrived on the new page with the
+            // row already gone, and nothing on that page would have brought it
+            // back until they scrolled up on it. The same argument as the two
+            // lines above — the row is the only way to Quiet's own settings,
+            // and where it is must never depend on a document that no longer
+            // exists.
+            state.isBarCollapsed = false
+            // A new document starts at its own top, so the last one's offset is
+            // not a distance any thumb travelled.
+            lastOffset = 0
             // A page has arrived, so whatever the account was changing into, it
             // has changed. See `startingOver`.
             surface.aPageArrived()

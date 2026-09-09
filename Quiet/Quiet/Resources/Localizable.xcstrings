@@ -151,6 +151,16 @@
         }
       }
     },
+    "%@: %@ so far.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: bisher %@."
+          }
+        }
+      }
+    },
     "%@: %@.": {
       "localizations": {
         "de": {

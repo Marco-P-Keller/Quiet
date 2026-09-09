@@ -14,6 +14,15 @@ struct Bars: View {
     let baselineMinutes: Int
     let showsEveryLabel: Bool
 
+    /// The day being asked about, if one is.
+    ///
+    /// Held by whoever draws the chart rather than in here, because the answer
+    /// is a sentence and the sentence belongs under the chart with the other
+    /// sentences — not floating over a column in a callout of its own. Every
+    /// other figure on this screen is prose in the same ink; a tooltip would be
+    /// the one piece of chart furniture in an app that has none.
+    @Binding var selected: DayKey?
+
     /// Tall enough that a difference of ten minutes is visible on a day of
     /// forty, short enough that the whole screen still fits on a small phone.
     private static let height: CGFloat = 150
@@ -36,28 +45,61 @@ struct Bars: View {
     private var columns: some View {
         HStack(alignment: .bottom, spacing: run.count > 14 ? 2 : 6) {
             ForEach(run, id: \.day.ordinal) { entry in
-                // A rounded rectangle rather than a capsule, and the first
-                // draft got that wrong in a way a photograph made obvious: a
-                // capsule shorter than it is wide is a circle, so every quiet
-                // day came out as a fat blob taller than the minutes it stood
-                // for, and the chart overstated exactly the days it should have
-                // been calmest about.
-                RoundedRectangle(cornerRadius: 4, style: .continuous)
-                    .fill(entry.day == today ? Paper.ink.opacity(0.35) : Paper.ink.opacity(0.75))
-                    // Nothing at all for a day Quiet was not opened on, and a
-                    // hairline for a day it was opened on and barely used. The
-                    // first draft drew both as a faint hairline, and on the
-                    // month a fortnight of them lined up into what looked
-                    // exactly like a second dashed rule — one visual language
-                    // saying two different things a few pixels apart. An empty
-                    // slot cannot be misread: it is the one mark that means
-                    // *nothing was recorded*, and the sentence underneath says
-                    // how many of them there were.
-                    .frame(height: height(of: entry.seconds))
-                    .frame(maxWidth: .infinity)
-                    .accessibilityLabel(label(for: entry))
+                // The whole column takes the tap, not the bar.
+                //
+                // A quiet day is two points tall and a day Quiet never saw is
+                // nothing at all, so a target the shape of the drawing would be
+                // untappable exactly where somebody most wants to ask — and on
+                // the month there are thirty of them, ten points wide. The
+                // clear rectangle behind each bar is the full height of the
+                // chart, which is a target the size of a fingertip in the only
+                // direction that is scarce.
+                ZStack(alignment: .bottom) {
+                    Color.clear
+                    column(entry)
+                }
+                .frame(maxWidth: .infinity)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    // Tapping the day already being asked about puts the
+                    // question away, so there is a way out that is not "find
+                    // some other part of the screen to press".
+                    selected = selected == entry.day ? nil : entry.day
+                }
+                .accessibilityElement()
+                .accessibilityLabel(label(for: entry))
+                .accessibilityAddTraits(selected == entry.day ? [.isButton, .isSelected] : .isButton)
             }
         }
+    }
+
+    private func column(_ entry: (day: DayKey, seconds: TimeInterval?)) -> some View {
+        // A rounded rectangle rather than a capsule, and the first draft got
+        // that wrong in a way a photograph made obvious: a capsule shorter than
+        // it is wide is a circle, so every quiet day came out as a fat blob
+        // taller than the minutes it stood for, and the chart overstated
+        // exactly the days it should have been calmest about.
+        RoundedRectangle(cornerRadius: 4, style: .continuous)
+            .fill(shade(of: entry.day))
+            // Nothing at all for a day Quiet was not opened on, and a hairline
+            // for a day it was opened on and barely used. The first draft drew
+            // both as a faint hairline, and on the month a fortnight of them
+            // lined up into what looked exactly like a second dashed rule — one
+            // visual language saying two different things a few pixels apart.
+            // An empty slot cannot be misread: it is the one mark that means
+            // *nothing was recorded*, and the sentence underneath says how many
+            // of them there were.
+            .frame(height: height(of: entry.seconds))
+            .frame(maxWidth: .infinity)
+    }
+
+    /// Today is paler because it is not finished; the day being asked about is
+    /// the darkest thing on the chart, because that is the whole of what
+    /// selection has to say and this app has one ink to say it in.
+    private func shade(of day: DayKey) -> Color {
+        if selected == day { return Paper.ink }
+        if day == today { return Paper.ink.opacity(0.35) }
+        return Paper.ink.opacity(selected == nil ? 0.75 : 0.4)
     }
 
     /// A dashed rule across the chart at a given number of seconds.
@@ -80,9 +122,9 @@ struct Bars: View {
     private var labels: some View {
         HStack(alignment: .top, spacing: run.count > 14 ? 2 : 6) {
             ForEach(run, id: \.day.ordinal) { entry in
-                Text(shows(entry.day) ? name(of: entry.day) : " ")
+                Text(shows(entry.day) || selected == entry.day ? name(of: entry.day) : " ")
                     .font(.quietFine)
-                    .foregroundStyle(Paper.inkSoft)
+                    .foregroundStyle(selected == entry.day ? Paper.ink : Paper.inkSoft)
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
                     .frame(maxWidth: .infinity)

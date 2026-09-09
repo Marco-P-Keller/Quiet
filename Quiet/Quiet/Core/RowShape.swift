@@ -60,6 +60,10 @@ private enum Key {
     static let carriesBetweenDevices = "quiet.carries.between.devices"
     static let recapIsOn = "quiet.recap.on"
     static let recapAt = "quiet.recap.at"
+    /// Whether the phone has been asked about the morning note yet. Not the
+    /// answer — iOS keeps that — only whether the question has been put, so it
+    /// is put once and never again.
+    static let recapAsked = "quiet.recap.asked"
 }
 
 @MainActor
@@ -168,6 +172,20 @@ final class Preferences {
         }
     }
 
+    /// Whether the morning note's permission prompt has already been put.
+    ///
+    /// Deliberately not "was it granted". That answer lives with iOS, it can
+    /// change in Settings without this app running, and a second copy of it
+    /// here would be a copy that goes stale. All this remembers is that the
+    /// question has been asked, which is the only thing that must not happen
+    /// twice.
+    var hasAskedAboutRecap: Bool {
+        didSet {
+            guard hasAskedAboutRecap != oldValue else { return }
+            defaults.set(hasAskedAboutRecap, forKey: Key.recapAsked)
+        }
+    }
+
     /// For a rehearsal, so that a machine can photograph either shape.
     nonisolated static func rehearse(row: RowShape, in defaults: UserDefaults = .standard) {
         defaults.set(row.rawValue, forKey: Key.row)
@@ -187,6 +205,7 @@ final class Preferences {
         // tell "never asked" from "asked and answered no".
         self.showsSuggestions = defaults.object(forKey: Key.showsSuggestions) as? Bool ?? true
         self.carriesBetweenDevices = defaults.bool(forKey: Key.carriesBetweenDevices)
+        self.hasAskedAboutRecap = defaults.bool(forKey: Key.recapAsked)
         self.appointment = Appointment(
             isOn: defaults.bool(forKey: Key.appointmentIsOn),
             // `integer(forKey:)` answers zero for a key nobody has written,
@@ -196,7 +215,10 @@ final class Preferences {
                 ?? Appointment.standard.minutesAfterMidnight
         )
         self.recap = Recap(
-            isOn: defaults.bool(forKey: Key.recapIsOn),
+            // Asked as an object, because this is the one preference that is on
+            // unless it has been turned off, and `bool(forKey:)` answers false
+            // for a key nobody has written — which is the wrong way round.
+            isOn: defaults.object(forKey: Key.recapIsOn) as? Bool ?? Recap.standard.isOn,
             // Asked as an object first, for the same reason the appointment is:
             // zero is a legitimate hour and also what an unwritten key answers.
             minutesAfterMidnight: defaults.object(forKey: Key.recapAt) as? Int

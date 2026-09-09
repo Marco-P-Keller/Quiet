@@ -643,10 +643,24 @@ struct BrowserScreen: View {
             .background(.regularMaterial, in: Capsule())
             .shadow(color: .black.opacity(0.22), radius: 16, y: 6)
             .padding(.horizontal, 22)
-            .scaleEffect(surface.isBarCollapsed ? 0.86 : 1, anchor: .bottom)
-            .opacity(surface.isBarCollapsed ? 0.62 : 1)
+            // Off the bottom edge and back, rather than smaller and paler in
+            // place.
+            //
+            // Shrinking was the wrong verb for it. A pill at seven eighths of
+            // its size, two thirds opaque, is not out of the way of anything —
+            // it is the same object, still over the same post, drawing
+            // attention to itself by having changed. Instagram's bar leaves,
+            // and leaving is what makes the gesture legible: the page you are
+            // reading gets the whole glass, and the way back is one flick
+            // upward, which is the direction your thumb was going anyway.
+            //
+            // Far enough to clear the lift underneath it as well as its own
+            // height, or a sliver of blurred capsule sits on the bottom edge
+            // and reads as a drawing error rather than as a bar that has gone.
+            .offset(y: surface.isBarCollapsed ? Self.islandHeight + Self.islandLift : 0)
+            .opacity(surface.isBarCollapsed ? 0 : 1)
             .animation(
-                reduceMotion ? nil : .spring(response: 0.34, dampingFraction: 0.86),
+                reduceMotion ? nil : .spring(response: 0.32, dampingFraction: 0.9),
                 value: surface.isBarCollapsed
             )
             // Off the bottom edge, with the app's own strip beneath it in the

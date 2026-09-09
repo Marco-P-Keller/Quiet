@@ -32,6 +32,9 @@ enum Rehearsal {
         case panel
         /// Browsing, with the limit screen open.
         case limit
+        /// Browsing, with everything that is not the day itself: the screen a
+        /// door further in from the panel.
+        case settings
         /// The panel, over a fortnight of invented days, so that the chart at
         /// the top of it has something to draw.
         ///
@@ -169,13 +172,15 @@ enum Rehearsal {
     @MainActor
     static func open(_ session: QuietSession) {
         switch scene {
-        case .panel, .limit, .record: session.isPanelShowing = true
+        case .panel, .limit, .record, .settings: session.isPanelShowing = true
         case .search, .typing: session.isSearchShowing = true
         default: break
         }
     }
 
     static var opensLimit: Bool { scene == .limit }
+
+    static var opensSettings: Bool { scene == .settings }
 
     /// Whether the search field should take the keyboard on its own.
     static var opensKeyboard: Bool { scene == .typing }
