@@ -30,9 +30,12 @@ struct Bars: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             ZStack(alignment: .bottom) {
-                mark(at: TimeInterval(limitMinutes) * 60)
-                if baselineMinutes > 0 {
-                    mark(at: TimeInterval(baselineMinutes) * 60)
+                // Only the lines that are on the scale. One that is not would
+                // have to be drawn pressed against the top edge, which says
+                // "just above your busiest day" about a number that may be
+                // twenty times it — a chart lying to keep a line.
+                ForEach(references.filter(isOnScale), id: \.self) { reference in
+                    mark(at: reference)
                 }
                 columns
             }
@@ -140,20 +143,24 @@ struct Bars: View {
         return (today.ordinal - day.ordinal) % 7 == 0
     }
 
-    /// The tallest thing on the chart, which is whichever is larger: the
-    /// busiest day, or the old day being compared against.
-    ///
-    /// Including the baseline in the scale is the whole visual argument. Scaled
-    /// to the busiest day alone, a good week fills the frame and looks like a
-    /// lot; scaled against the day somebody started from, the same week is a row
-    /// of short columns under a line, which is what it is.
+    /// The two numbers the days are read against, tallest last.
+    private var references: [TimeInterval] {
+        [TimeInterval(limitMinutes), TimeInterval(baselineMinutes)]
+            .filter { $0 > 0 }
+            .map { $0 * 60 }
+            .sorted()
+    }
+
+    private var busiest: TimeInterval {
+        ChartScale.busiest(run.compactMap(\.seconds))
+    }
+
+    private func isOnScale(_ reference: TimeInterval) -> Bool {
+        ChartScale.shows(reference, whenBusiestIs: busiest)
+    }
+
     private var ceiling: TimeInterval {
-        let busiest = run.compactMap(\.seconds).max() ?? 0
-        let lines = max(TimeInterval(limitMinutes), TimeInterval(baselineMinutes)) * 60
-        // A twelfth of headroom, so that whichever of the three is tallest is a
-        // line inside the chart rather than one pressed flat against its top
-        // edge, where it stops reading as a mark on a scale.
-        return max(60, busiest, lines) * 13 / 12
+        ChartScale.ceiling(busiest: busiest, references: references)
     }
 
     private func fraction(of seconds: TimeInterval) -> CGFloat {

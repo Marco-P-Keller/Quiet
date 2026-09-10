@@ -233,6 +233,13 @@ final class Preferences {
     /// For a rehearsal, so that a machine can photograph either shape.
     nonisolated static func rehearse(row: RowShape, in defaults: UserDefaults = .standard) {
         defaults.set(row.rawValue, forKey: Key.row)
+        // And so nothing asks for permission over the screen being
+        // photographed. The morning note is on to begin with, so it puts its
+        // one prompt on the first launch that has anything to remember — which
+        // on a rehearsal is every launch, and a system alert in the middle of
+        // the frame is a photograph of the alert. `Applause.forget` suppresses
+        // the review sheet a few lines away for exactly this reason.
+        defaults.set(true, forKey: Key.recapAsked)
     }
 
     init(defaults: UserDefaults = .standard, hardware: Hardware = .current) {

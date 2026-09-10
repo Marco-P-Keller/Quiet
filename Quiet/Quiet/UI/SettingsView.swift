@@ -140,9 +140,9 @@ struct SettingsView: View {
             Note("Only time with Instagram on screen counts, and only on days Quiet was open — a day you did not open it counts for nothing either way. Quiet cannot see what any other app on this phone did with it.")
 
             if session.baseline > 0 {
-                Note("On the chart, the upper dashed line is that day and the lower one is your limit.")
+                Note("On the chart, the dashed lines mark your limit and the day you started from. Either is left off when it sits so far above your days that drawing it would flatten them.")
             } else {
-                Note("The dashed line on the chart is your limit.")
+                Note("The dashed line on the chart is your limit. It is left off when it sits so far above your days that drawing it would flatten them.")
             }
         }
     }
