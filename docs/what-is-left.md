@@ -12,7 +12,7 @@ screen.
 What is *not* on this list is anything the runner can already answer: the build,
 the unit tests, the UI test that walks from an empty install to Instagram and
 back through a relaunch, the trim pass asked forty-odd questions on a page that
-is not Instagram's, and every sentence in the app checked in both languages.
+is not Instagram's, and every sentence in the app checked in all six languages.
 Those run on every push and are green.
 
 A companion to this page — [verbesserungen.md](verbesserungen.md) — tracks the
@@ -79,7 +79,7 @@ a login page.
 terminated the app on the spot — no crash report naming the cause, just a
 disappearing app.
 
-Four strings now, in both languages: camera, microphone, photo library, and
+Four strings now, in all six languages: camera, microphone, photo library, and
 adding to the photo library. Quiet uses none of them itself and every sentence
 says so; they exist so that a tap on somebody else's page cannot end the app.
 

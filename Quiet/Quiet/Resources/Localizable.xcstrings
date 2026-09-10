@@ -8,6 +8,30 @@
             "state": "translated",
             "value": " Die Woche kommt dadurch nicht zurück: um mehr bitten kannst du wieder %@."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " It does not give the week back: you can ask for more again %@."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " Eso no devuelve la semana: puedes volver a pedir más %@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " Ça ne rend pas la semaine : tu pourras redemander plus %@."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " Isso não devolve a semana: você pode pedir mais de novo %@."
+          }
         }
       }
     },
@@ -17,6 +41,30 @@
           "stringUnit": {
             "state": "translated",
             "value": " Um mehr kannst du wieder %@ bitten."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " You can ask for more again %@."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " Puedes volver a pedir más %@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " Tu pourras redemander plus %@."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " Você pode pedir mais de novo %@."
           }
         }
       }
@@ -28,6 +76,30 @@
             "state": "translated",
             "value": " Du hast heute schon mehr verbraucht, also endet der Tag hier."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " You have already used more than that today, so today ends here."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " Hoy ya has usado más que eso, así que el día termina aquí."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " Tu as déjà utilisé plus que ça aujourd’hui, donc la journée s’arrête ici."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " Você já usou mais do que isso hoje, então o dia termina aqui."
+          }
         }
       }
     },
@@ -37,6 +109,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ am Tag, ab %@."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ a day, starting %@."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ al día, desde %@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ par jour, à partir de %@."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ por dia, a partir de %@."
           }
         }
       }
@@ -48,6 +144,30 @@
             "state": "translated",
             "value": "%@ pro Woche weniger als der Tag, den du gerade beschrieben hast."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ a week fewer than the day you just described."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ a la semana menos que el día que acabas de describir."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ de moins par semaine que la journée que tu viens de décrire."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ por semana a menos do que o dia que você acabou de descrever."
+          }
         }
       }
     },
@@ -57,6 +177,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ ab %@."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ from %@."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ desde %@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ à partir de %@."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ a partir de %@."
           }
         }
       }
@@ -68,6 +212,30 @@
             "state": "translated",
             "value": "%@ gehört nicht zu Instagram und wurde deshalb in Safari geöffnet. Falls du dich gerade anmelden wolltest: komm zurück und fang noch einmal an."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ is not part of Instagram, so it opened in Safari. If you were signing in, come back and start again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ no forma parte de Instagram, así que se abrió en Safari. Si estabas iniciando sesión, vuelve y empieza de nuevo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ne fait pas partie d’Instagram, la page s’est donc ouverte dans Safari. Si tu étais en train de te connecter, reviens et recommence."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ não faz parte do Instagram, então abriu no Safari. Se você estava entrando na conta, volte e comece de novo."
+          }
         }
       }
     },
@@ -77,6 +245,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Heute noch %@."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ left today."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoy te queda %@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il te reste %@ aujourd’hui."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restam %@ hoje."
           }
         }
       }
@@ -88,6 +280,30 @@
             "state": "translated",
             "value": "%@ auf Instagram im Monat — %@ weniger, als diese Tage früher waren."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ on Instagram over the month — %@ less than those days used to be."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ en Instagram durante el mes — %@ menos de lo que solían ser esos días."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ sur Instagram sur le mois — %@ de moins que ce qu’étaient ces journées."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ no Instagram ao longo do mês — %@ a menos do que esses dias costumavam ser."
+          }
         }
       }
     },
@@ -97,6 +313,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ auf Instagram im Monat."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ on Instagram over the month."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ en Instagram durante el mes."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ sur Instagram sur le mois."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ no Instagram ao longo do mês."
           }
         }
       }
@@ -108,6 +348,30 @@
             "state": "translated",
             "value": "%@ auf Instagram in der Woche — %@ weniger, als diese Tage früher waren."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ on Instagram over the week — %@ less than those days used to be."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ en Instagram durante la semana — %@ menos de lo que solían ser esos días."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ sur Instagram sur la semaine — %@ de moins que ce qu’étaient ces journées."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ no Instagram ao longo da semana — %@ a menos do que esses dias costumavam ser."
+          }
         }
       }
     },
@@ -117,6 +381,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ auf Instagram in der Woche."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ on Instagram over the week."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ en Instagram durante la semana."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ sur Instagram sur la semaine."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ no Instagram ao longo da semana."
           }
         }
       }
@@ -128,6 +416,30 @@
             "state": "translated",
             "value": "%@ auf Instagram — %@ weniger als der Tag, von dem du losgegangen bist."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ on Instagram — %@ less than the day you started from."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ en Instagram — %@ menos que el día del que partiste."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ sur Instagram — %@ de moins que la journée d’où tu es parti."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ no Instagram — %@ a menos do que o dia de onde você partiu."
+          }
         }
       }
     },
@@ -137,6 +449,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ auf Instagram."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ on Instagram."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ en Instagram."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ sur Instagram."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ no Instagram."
           }
         }
       }
@@ -148,6 +484,30 @@
             "state": "translated",
             "value": "%@ in %@ — an %lld davon war Quiet offen."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ over %@ — Quiet was open on %lld of them."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ en %@ — Quiet estuvo abierto en %lld de ellos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ sur %@ — Quiet était ouvert %lld de ces jours."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ em %@ — o Quiet esteve aberto em %lld deles."
+          }
         }
       }
     },
@@ -158,12 +518,60 @@
             "state": "translated",
             "value": "%@: bisher %@."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: %@ so far."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: %@ hasta ahora."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ : %@ jusqu’ici."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: %@ até agora."
+          }
         }
       }
     },
     "%@: %@.": {
       "localizations": {
         "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: %@."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: %@."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: %@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ : %@."
+          }
+        },
+        "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "%@: %@."
@@ -177,6 +585,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@: Quiet war nicht offen."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: Quiet was not opened."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: Quiet no se abrió."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ : Quiet n’a pas été ouvert."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: o Quiet não foi aberto."
           }
         }
       }
@@ -214,6 +646,78 @@
                 "stringUnit": {
                   "state": "translated",
                   "value": "%lld days"
+                }
+              }
+            }
+          }
+        },
+        "en-GB": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "1 day"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld days"
+                }
+              }
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "1 día"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld días"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld jour"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld jours"
+                }
+              }
+            }
+          }
+        },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld dia"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld dias"
                 }
               }
             }
@@ -258,6 +762,78 @@
               }
             }
           }
+        },
+        "en-GB": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "1 minute"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld minutes"
+                }
+              }
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "1 minuto"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld minutos"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld minute"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld minutes"
+                }
+              }
+            }
+          }
+        },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld minuto"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld minutos"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -298,6 +874,78 @@
               }
             }
           }
+        },
+        "en-GB": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "One minute left."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld minutes left."
+                }
+              }
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Queda un minuto."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Quedan %lld minutos."
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Il reste une minute."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Il reste %lld minutes."
+                }
+              }
+            }
+          }
+        },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Falta um minuto."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Faltam %lld minutos."
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -307,6 +955,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Eine Notiz über die Tage hinter dir"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A note about the days behind you"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una nota sobre los días que dejas atrás"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une note sur les jours derrière toi"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uma nota sobre os dias que ficaram para trás"
           }
         }
       }
@@ -318,6 +990,30 @@
             "state": "translated",
             "value": "Eine Seite auf %@ wurde während einer Anmeldung in Safari geöffnet. Falls die Anmeldung nicht geklappt hat, ist das die Adresse, die man melden sollte."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A page at %@ was opened in Safari during a sign-in. If signing in did not work, that is the address to report."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una página de %@ se abrió en Safari durante un inicio de sesión. Si el inicio de sesión no funcionó, esa es la dirección que conviene informar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une page de %@ s’est ouverte dans Safari pendant une connexion. Si la connexion n’a pas marché, c’est l’adresse à signaler."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uma página de %@ foi aberta no Safari durante um login. Se o login não funcionou, é esse o endereço a relatar."
+          }
         }
       }
     },
@@ -327,6 +1023,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Eine ungefähre Antwort genügt. Die Bildschirmzeit deines Telefons weiss es, falls du lieber nachschaust."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A rough answer is fine. Your phone's Screen Time knows, if you would rather look."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Basta con una respuesta aproximada. El Tiempo de uso de tu teléfono lo sabe, si prefieres mirarlo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une réponse approximative suffit. Le Temps d’écran de ton téléphone le sait, si tu préfères regarder."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uma resposta aproximada basta. O Tempo de Uso do seu telefone sabe, se você preferir olhar."
           }
         }
       }
@@ -338,6 +1058,30 @@
             "state": "translated",
             "value": "Eine Zeit für Instagram"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A time for Instagram"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un tiempo para Instagram"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un temps pour Instagram"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um tempo para o Instagram"
+          }
         }
       }
     },
@@ -347,6 +1091,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Über Quiet"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About Quiet"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acerca de Quiet"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À propos de Quiet"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sobre o Quiet"
           }
         }
       }
@@ -358,6 +1126,30 @@
             "state": "translated",
             "value": "Und wie sie ausweicht"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "And how it gets out of the way"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Y cómo se aparta"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Et comment elle s’efface"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "E como ela sai da frente"
+          }
         }
       }
     },
@@ -367,6 +1159,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Um %@ am Tag bitten"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask for %@ a day"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pedir %@ al día"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander %@ par jour"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pedir %@ por dia"
           }
         }
       }
@@ -378,6 +1194,30 @@
             "state": "translated",
             "value": "Darum bitten, vergessen zu werden"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask to be forgotten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pedir ser olvidado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander à être oublié"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pedir para ser esquecido"
+          }
         }
       }
     },
@@ -387,6 +1227,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Länger warten zu wollen gilt sofort. Weniger warten zu wollen muss warten — sonst wäre das die eine Regel, die du genau in dem Moment lockern könntest, in dem sie anfängt zu wirken."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asking to wait longer takes effect at once. Asking to wait less has to wait — otherwise this would be the one rule you could relax at the moment it started to matter."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pedir esperar más tiempo surte efecto de inmediato. Pedir esperar menos tiene que esperar — si no, esta sería la única regla que podrías aflojar justo en el momento en que empieza a importar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander à attendre plus longtemps prend effet tout de suite. Demander à attendre moins doit attendre — sinon ce serait la seule règle que tu pourrais assouplir au moment même où elle commence à compter."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pedir para esperar mais tempo vale na hora. Pedir para esperar menos tem que esperar — senão essa seria a única regra que você poderia afrouxar no momento exato em que ela começa a pesar."
           }
         }
       }
@@ -398,6 +1262,30 @@
             "state": "translated",
             "value": "Zurück"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atrás"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retour"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voltar"
+          }
         }
       }
     },
@@ -407,6 +1295,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Leiste"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bar"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Barra"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Barre"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Barra"
           }
         }
       }
@@ -418,6 +1330,30 @@
             "state": "translated",
             "value": "Nimmt die Erhöhung zurück, um die du gebeten hast."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancels the increase you asked for."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancela el aumento que pediste."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annule l’augmentation que tu as demandée."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancela o aumento que você pediu."
+          }
         }
       }
     },
@@ -427,6 +1363,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Auf deinen Geräten mitnehmen"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carry this between your devices"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Llevar esto entre tus dispositivos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emporter ceci d’un appareil à l’autre"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Levar isto entre seus aparelhos"
           }
         }
       }
@@ -438,6 +1398,30 @@
             "state": "translated",
             "value": "Leeren"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vaciar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vider"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpar"
+          }
         }
       }
     },
@@ -447,6 +1431,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zwischengespeicherte Seiten löschen"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear cached pages"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vaciar las páginas guardadas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vider les pages en cache"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpar páginas em cache"
           }
         }
       }
@@ -458,6 +1466,30 @@
             "state": "translated",
             "value": "Gelöscht."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cleared."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vaciado."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vidé."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpo."
+          }
         }
       }
     },
@@ -467,6 +1499,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Weiter"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuer"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar"
           }
         }
       }
@@ -479,6 +1535,30 @@
             "state": "translated",
             "value": "Gezählt über die Tage, an denen Quiet offen war. Ein Tag, an dem du es nicht geöffnet hast, zählt in keine Richtung — Quiet sieht nicht, was eine andere App auf diesem Telefon mit ihm gemacht hat."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Counted across the days Quiet was open. A day you did not open it counts for nothing either way — Quiet cannot see what any other app on this phone did with it."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contado a lo largo de los días en que Quiet estuvo abierto. Un día en que no lo abriste no cuenta ni a favor ni en contra — Quiet no ve lo que hizo con él ninguna otra app de este teléfono."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compté sur les jours où Quiet était ouvert. Un jour où tu ne l’as pas ouvert ne compte ni dans un sens ni dans l’autre — Quiet ne voit pas ce qu’une autre app de ce téléphone en a fait."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contado ao longo dos dias em que o Quiet esteve aberto. Um dia em que você não abriu não conta para nenhum lado — o Quiet não vê o que qualquer outro app deste telefone fez com ele."
+          }
         }
       }
     },
@@ -488,6 +1568,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tageslimit"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daily limit"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Límite diario"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limite quotidienne"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limite diário"
           }
         }
       }
@@ -499,6 +1603,30 @@
             "state": "translated",
             "value": "Fertig"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminé"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pronto"
+          }
         }
       }
     },
@@ -508,6 +1636,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zieht sich ein"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draws in"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se recoge"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se rétracte"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se recolhe"
           }
         }
       }
@@ -519,6 +1671,30 @@
             "state": "translated",
             "value": "Explore ist in Quiet aus."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explore is off in Quiet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explorar está desactivado en Quiet."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explorer est désactivé dans Quiet."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Explorar está desligado no Quiet."
+          }
         }
       }
     },
@@ -528,6 +1704,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Jemanden finden"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find someone"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar a alguien"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trouver quelqu’un"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encontrar alguém"
           }
         }
       }
@@ -539,6 +1739,30 @@
             "state": "translated",
             "value": "Vorgeschlagene Beiträge ausblenden"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide suggested posts"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar publicaciones sugeridas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Masquer les publications suggérées"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar publicações sugeridas"
+          }
         }
       }
     },
@@ -548,6 +1772,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Uhr ausblenden"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide the clock"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar el reloj"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Masquer l’horloge"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar o relógio"
           }
         }
       }
@@ -559,6 +1807,30 @@
             "state": "translated",
             "value": "Start"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accueil"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Início"
+          }
         }
       }
     },
@@ -568,6 +1840,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Wie viel Instagram\nhast du jetzt am Tag?"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How much Instagram\ndo you have in a day now?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Cuánto Instagram\ntienes al día ahora?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combien d’Instagram\nas-tu par jour en ce moment ?"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quanto de Instagram\nvocê tem por dia agora?"
           }
         }
       }
@@ -579,6 +1875,30 @@
             "state": "translated",
             "value": "Wie viel Instagram\nwillst du am Tag?"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How much Instagram\ndo you want in a day?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Cuánto Instagram\nquieres al día?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combien d’Instagram\nveux-tu par jour ?"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quanto de Instagram\nvocê quer por dia?"
+          }
         }
       }
     },
@@ -588,6 +1908,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Wenn du es auf deinen Geräten mitnimmst, gehen drei davon in deine eigene iCloud — das Limit, die Wartezeit und wie viel jedes Gerät heute verbraucht hat. Nichts sonst, nirgendwo sonst, und nur solange der Schalter oben an ist."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If you carry it between your devices, three of those go into your own iCloud — the limit, the wait, and how much each device has spent today. Nothing else, nowhere else, and only while the switch above is on."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si lo llevas entre tus dispositivos, tres de ellos van a tu propio iCloud: el límite, la espera y cuánto ha gastado hoy cada dispositivo. Nada más, en ningún otro sitio, y solo mientras el interruptor de arriba esté activado."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si tu l’emportes d’un appareil à l’autre, trois d’entre elles vont dans ton propre iCloud : la limite, l’attente et ce que chaque appareil a dépensé aujourd’hui. Rien d’autre, nulle part ailleurs, et seulement tant que l’interrupteur ci-dessus est activé."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se você levar entre seus aparelhos, três delas vão para o seu próprio iCloud — o limite, a espera e quanto cada aparelho gastou hoje. Nada mais, em nenhum outro lugar, e só enquanto a chave acima estiver ligada."
           }
         }
       }
@@ -599,6 +1943,30 @@
             "state": "translated",
             "value": "Instagram hat nicht geantwortet."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram did not answer."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram no respondió."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram n’a pas répondu."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Instagram não respondeu."
+          }
         }
       }
     },
@@ -608,6 +1976,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Instagram füllt den Feed mit Beiträgen von Leuten, denen du nicht folgst, sobald die von deinen Freunden ausgehen. Aus: Du siehst sie alle. An: Der Feed hört dort auf, wo deine Freunde aufhören."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram fills the feed with posts from people you do not follow once it runs out of the ones you do. Off, you see them all. On, the feed stops where the people you chose stop."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram llena el feed con publicaciones de gente a la que no sigues en cuanto se le acaban las de quienes sí sigues. Desactivado, las ves todas. Activado, el feed termina donde termina la gente que elegiste."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram remplit le fil avec des publications de gens que tu ne suis pas dès qu’il n’a plus celles de ceux que tu suis. Désactivé, tu les vois toutes. Activé, le fil s’arrête là où s’arrêtent les gens que tu as choisis."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Instagram enche o feed com publicações de gente que você não segue assim que acabam as de quem você segue. Desligado, você vê todas. Ligado, o feed para onde param as pessoas que você escolheu."
           }
         }
       }
@@ -619,6 +2011,30 @@
             "state": "translated",
             "value": "Instagram auf diesem Gerät"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram on this phone"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram en este teléfono"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram sur ce téléphone"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram neste telefone"
+          }
         }
       }
     },
@@ -628,6 +2044,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Instagram würde mit Leuten weitermachen, denen du nicht folgst. Zieh oben nach unten für Neues."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram would go on with people you don't. Pull down at the top for new posts."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram seguiría con gente a la que no sigues. Tira hacia abajo desde arriba para ver publicaciones nuevas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram continuerait avec des gens que tu ne suis pas. Tire vers le bas en haut de la page pour du nouveau."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Instagram continuaria com gente que você não segue. Puxe para baixo lá em cima para ver novidades."
           }
         }
       }
@@ -639,6 +2079,30 @@
             "state": "translated",
             "value": "Instagram,\nohne die Teile,\ndie dich festhalten."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram,\nminus the parts\nthat keep you there."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram,\nsin las partes\nque te retienen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram,\nsans les morceaux\nqui te retiennent."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram,\nsem as partes\nque prendem você."
+          }
         }
       }
     },
@@ -649,6 +2113,30 @@
             "state": "translated",
             "value": "Instagram, zu deinen Bedingungen."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram, on your terms."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram, en tus términos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram, à tes conditions."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram, nos seus termos."
+          }
         }
       }
     },
@@ -658,6 +2146,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Insel"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Island"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Isla"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Île"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ilha"
           }
         }
       }
@@ -670,6 +2182,30 @@
             "state": "translated",
             "value": "Es ändert nichts an deinem Limit und nichts an deinem Tag. Es ist die Zahl, an der alles hier oben gemessen wird — also lohnt es sich, dass sie stimmt."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "It changes nothing about your limit or your day. It is the number everything above is measured against, so it is worth it being the true one."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No cambia nada de tu límite ni de tu día. Es la cifra con la que se mide todo lo de arriba, así que vale la pena que sea la verdadera."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ça ne change rien à ta limite ni à ta journée. C’est le chiffre auquel tout ce qui précède est comparé, alors autant qu’il soit le bon."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não muda nada no seu limite nem no seu dia. É o número com que tudo aqui em cima é comparado, então vale a pena que seja o verdadeiro."
+          }
         }
       }
     },
@@ -679,6 +2215,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Es ändert nichts an deinem Limit und nichts an deinem Tag. Es ist die Zahl, an der die Grafik gemessen wird — also lohnt es sich, dass sie stimmt."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "It changes nothing about your limit or your day. It is the number the chart is measured against, so it is worth it being the true one."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No cambia nada de tu límite ni de tu día. Es la cifra con la que se mide el gráfico, así que vale la pena que sea la verdadera."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ça ne change rien à ta limite ni à ta journée. C’est le chiffre auquel le graphique est comparé, alors autant qu’il soit le bon."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não muda nada no seu limite nem no seu dia. É o número com que o gráfico é comparado, então vale a pena que seja o verdadeiro."
           }
         }
       }
@@ -690,6 +2250,30 @@
             "state": "translated",
             "value": "Mein Limit behalten"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep my limit"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantener mi límite"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garder ma limite"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manter meu limite"
+          }
         }
       }
     },
@@ -699,6 +2283,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Letzter Monat"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last month"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El mes pasado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le mois dernier"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mês passado"
           }
         }
       }
@@ -710,6 +2318,30 @@
             "state": "translated",
             "value": "Letzte Woche"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last week"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La semana pasada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La semaine dernière"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semana passada"
+          }
         }
       }
     },
@@ -719,6 +2351,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Weniger gilt sofort. Mehr beginnt am nächsten Tag — und nur einmal pro Woche."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Less takes effect at once. More starts the next day, and only once a week."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menos surte efecto de inmediato. Más empieza al día siguiente, y solo una vez por semana."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moins prend effet tout de suite. Plus commence le lendemain, et seulement une fois par semaine."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menos vale na hora. Mais começa no dia seguinte, e só uma vez por semana."
           }
         }
       }
@@ -730,6 +2386,30 @@
             "state": "translated",
             "value": "Suche …"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Looking…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscando…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recherche…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Procurando…"
+          }
         }
       }
     },
@@ -739,6 +2419,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Quiet alles vergessen lassen"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Make Quiet forget everything"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hacer que Quiet lo olvide todo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Faire tout oublier à Quiet"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fazer o Quiet esquecer tudo"
           }
         }
       }
@@ -750,6 +2454,30 @@
             "state": "translated",
             "value": "Quiet alles vergessen lassen?"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Make Quiet forget everything?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Hacer que Quiet lo olvide todo?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Faire tout oublier à Quiet ?"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fazer o Quiet esquecer tudo?"
+          }
         }
       }
     },
@@ -759,6 +2487,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nachrichten"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Messages"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mensajes"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Messages"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mensagens"
           }
         }
       }
@@ -770,6 +2522,30 @@
             "state": "translated",
             "value": "Minuten am Tag"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minutes a day"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minutos al día"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minutes par jour"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minutos por dia"
+          }
         }
       }
     },
@@ -779,6 +2555,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Minuten am Tag jetzt"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minutes a day now"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minutos al día ahora"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minutes par jour actuellement"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minutos por dia agora"
           }
         }
       }
@@ -790,6 +2590,30 @@
             "state": "translated",
             "value": "Monate an Seiten, Bildern und Antworten werden aufbewahrt, damit die Seite schnell ist. Sie wegzuwerfen kostet ein, zwei langsamere Seiten und meldet dich nicht ab."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Months of pages, pictures and answers are kept so the site is quick. Throwing them away costs a slower page or two and does not sign you out."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se guardan meses de páginas, imágenes y respuestas para que el sitio vaya rápido. Tirarlas cuesta una o dos páginas más lentas y no cierra tu sesión."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Des mois de pages, d’images et de réponses sont gardés pour que le site soit rapide. Les jeter coûte une page ou deux plus lentes et ne te déconnecte pas."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meses de páginas, imagens e respostas ficam guardados para o site ser rápido. Jogar tudo fora custa uma ou duas páginas mais lentas e não desconecta você."
+          }
         }
       }
     },
@@ -799,6 +2623,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Keine Reels. Kein Explore."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Reels. No Explore."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin Reels. Sin Explorar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas de Reels. Pas d’Explorer."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sem Reels. Sem Explorar."
           }
         }
       }
@@ -810,6 +2658,30 @@
             "state": "translated",
             "value": "Keine Verbindung."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No connection."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin conexión."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas de connexion."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sem conexão."
+          }
         }
       }
     },
@@ -819,6 +2691,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Schluss mit Doomscrolling."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No more doomscrolling."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se acabó el doomscrolling."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fini le doomscrolling."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chega de doomscrolling."
           }
         }
       }
@@ -830,6 +2726,30 @@
             "state": "translated",
             "value": "Heute ist die Zeit vorbei."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No time left today."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoy no queda tiempo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il ne reste plus de temps aujourd’hui."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não sobrou tempo hoje."
+          }
         }
       }
     },
@@ -839,6 +2759,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Niemand mit diesem Namen."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nobody by that name."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nadie con ese nombre."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personne de ce nom."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ninguém com esse nome."
           }
         }
       }
@@ -851,6 +2795,64 @@
             "state": "translated",
             "value": "Benachrichtigungen"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notifications"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notificaciones"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notifications"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notificações"
+          }
+        }
+      }
+    },
+    "On the chart, the dashed lines mark your limit and the day you started from. Either is left off when it sits so far above your days that drawing it would flatten them.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In der Grafik markieren die gestrichelten Linien dein Limit und den Tag, von dem du losgegangen bist. Eine davon fehlt, wenn sie so weit über deinen Tagen liegt, dass sie diese platt zeichnen würde."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On the chart, the dashed lines mark your limit and the day you started from. Either is left off when it sits so far above your days that drawing it would flatten them."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En el gráfico, las líneas discontinuas marcan tu límite y el día del que partiste. Cualquiera de las dos se omite cuando queda tan por encima de tus días que dibujarla los aplanaría."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sur le graphique, les lignes pointillées marquent ta limite et la journée d’où tu es parti. L’une ou l’autre est omise quand elle se situe si loin au-dessus de tes journées que la tracer les aplatirait."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No gráfico, as linhas tracejadas marcam o seu limite e o dia de onde você partiu. Qualquer uma delas fica de fora quando está tão acima dos seus dias que desenhá-la os achataria."
+          }
         }
       }
     },
@@ -860,6 +2862,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "In der Grafik ist die obere gestrichelte Linie dieser Tag, die untere ist dein Limit."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On the chart, the upper dashed line is that day and the lower one is your limit."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En el gráfico, la línea discontinua de arriba es ese día y la de abajo es tu límite."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sur le graphique, la ligne pointillée du haut est cette journée et celle du bas est ta limite."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No gráfico, a linha tracejada de cima é esse dia e a de baixo é o seu limite."
           }
         }
       }
@@ -871,6 +2897,30 @@
             "state": "translated",
             "value": "Eine am Morgen nach einem Tag mit Quiet, eine nach einer Woche, eine nach einem Monat. Sie sagt, wie lange du auf Instagram warst und wie viel weniger das ist als die %@ am Tag, von denen du losgegangen bist — nichts über den Rest deines Telefons, den Quiet nicht sieht."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One in the morning after a day you used Quiet, one after a week, one after a month. It says how long you were on Instagram and how much less that is than the %@ a day you started from — nothing about the rest of your phone, which Quiet cannot see."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una por la mañana después de un día con Quiet, una después de una semana, una después de un mes. Dice cuánto tiempo estuviste en Instagram y cuánto menos es eso que los %@ al día de los que partiste — nada sobre el resto de tu teléfono, que Quiet no ve."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une le matin après une journée avec Quiet, une après une semaine, une après un mois. Elle dit combien de temps tu as passé sur Instagram et de combien c’est moins que les %@ par jour d’où tu es parti — rien sur le reste de ton téléphone, que Quiet ne voit pas."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uma de manhã depois de um dia com o Quiet, uma depois de uma semana, uma depois de um mês. Ela diz quanto tempo você passou no Instagram e quanto isso é a menos do que os %@ por dia de onde você partiu — nada sobre o resto do seu telefone, que o Quiet não vê."
+          }
         }
       }
     },
@@ -880,6 +2930,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Eine Erinnerung am Tag, zu einer Uhrzeit, die du wählst — und keine an einem Tag, an dem du schon da warst. Ob auf Instagram etwas passiert ist, kann sie nicht sagen; das kann nichts ausserhalb von Instagrams eigener App. Was sie kann: dem Nachschauen eine Uhrzeit geben, damit der Rest des Tages keine braucht."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One reminder a day, at an hour you choose — and none at all on a day you have already been. It cannot say whether anything happened on Instagram; nothing outside Instagram's own app can. What it can do is give the checking an hour, so the rest of the day does not need one."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un recordatorio al día, a la hora que elijas — y ninguno los días en que ya has estado. No puede decir si ha pasado algo en Instagram; nada fuera de la propia app de Instagram puede. Lo que sí puede hacer es darle una hora a la comprobación, para que el resto del día no necesite ninguna."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un rappel par jour, à une heure que tu choisis — et aucun un jour où tu es déjà venu. Il ne peut pas dire s’il s’est passé quelque chose sur Instagram ; rien en dehors de l’app d’Instagram ne le peut. Ce qu’il peut faire, c’est donner une heure au fait d’aller voir, pour que le reste de la journée n’en ait pas besoin."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um lembrete por dia, na hora que você escolher — e nenhum num dia em que você já esteve. Ele não sabe dizer se aconteceu algo no Instagram; nada fora do próprio app do Instagram sabe. O que ele pode fazer é dar uma hora para a conferida, para que o resto do dia não precise de nenhuma."
           }
         }
       }
@@ -891,6 +2965,30 @@
             "state": "translated",
             "value": "Es zählt nur Zeit, in der Instagram auf dem Bildschirm ist, und nur an Tagen, an denen Quiet offen war — ein Tag, an dem du es nicht geöffnet hast, zählt in keine Richtung. Quiet sieht nicht, was eine andere App auf diesem Telefon gemacht hat."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only time with Instagram on screen counts, and only on days Quiet was open — a day you did not open it counts for nothing either way. Quiet cannot see what any other app on this phone did with it."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo cuenta el tiempo con Instagram en pantalla, y solo los días en que Quiet estuvo abierto — un día en que no lo abriste no cuenta ni a favor ni en contra. Quiet no ve lo que hizo con él ninguna otra app de este teléfono."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seul le temps avec Instagram à l’écran compte, et seulement les jours où Quiet était ouvert — un jour où tu ne l’as pas ouvert ne compte ni dans un sens ni dans l’autre. Quiet ne voit pas ce qu’une autre app de ce téléphone en a fait."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Só conta o tempo com o Instagram na tela, e só nos dias em que o Quiet esteve aberto — um dia em que você não abriu não conta para nenhum lado. O Quiet não vê o que qualquer outro app deste telefone fez com ele."
+          }
         }
       }
     },
@@ -901,12 +2999,60 @@
             "state": "translated",
             "value": "Öffnet dieses Profil"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens this profile"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre este perfil"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvre ce profil"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre este perfil"
+          }
         }
       }
     },
     "Quiet": {
       "localizations": {
         "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet"
+          }
+        },
+        "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "Quiet"
@@ -921,6 +3067,30 @@
             "state": "translated",
             "value": "Quiet kann nicht in den Schlüsselbund dieses Telefons schreiben. Dein Limit überlebt das Schließen der App nicht."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet cannot save to this phone's keychain. Your limit will not survive closing the app."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet no puede guardar en el llavero de este teléfono. Tu límite no sobrevivirá al cierre de la app."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet ne peut pas écrire dans le trousseau de ce téléphone. Ta limite ne survivra pas à la fermeture de l’app."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Quiet não consegue gravar no Chaveiro deste telefone. Seu limite não sobreviverá ao fechar do app."
+          }
         }
       }
     },
@@ -930,6 +3100,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Quiet kann das nicht selbst sehen. Es sieht immer nur seinen eigenen Bildschirm — nicht die Instagram-App und keine andere App auf diesem Telefon."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet cannot see this for itself. It only ever sees its own screen — not the Instagram app, not any other app on this phone."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet no puede verlo por sí mismo. Solo ve su propia pantalla — no la app de Instagram, ni ninguna otra app de este teléfono."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet ne peut pas le voir de lui-même. Il ne voit jamais que son propre écran — pas l’app Instagram, pas une autre app de ce téléphone."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Quiet não consegue ver isso sozinho. Ele só vê a própria tela — não o app do Instagram, nem nenhum outro app deste telefone."
           }
         }
       }
@@ -942,6 +3136,30 @@
             "state": "translated",
             "value": "Quiet konnte %@ nicht aus dem eigenen Bundle laden. Dieser Build ist kaputt; installiere ihn neu."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet could not load %@ from its own bundle. This build is broken; reinstall it."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet no pudo cargar %@ desde su propio paquete. Esta versión está rota; reinstálala."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet n’a pas pu charger %@ depuis son propre bundle. Cette version est cassée ; réinstalle-la."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Quiet não conseguiu carregar %@ do próprio pacote. Esta versão está quebrada; reinstale."
+          }
         }
       }
     },
@@ -953,6 +3171,30 @@
             "state": "translated",
             "value": "Quiet weiss nicht, wie dein Tag vor alldem war, es gibt also noch nichts zum Vergleichen. Sag es unten, dann fängt es an."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet does not know what your day was before this, so there is nothing yet to measure against. Saying so below starts it."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet no sabe cómo era tu día antes de esto, así que todavía no hay nada con lo que compararlo. Decirlo aquí abajo lo pone en marcha."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet ne sait pas ce qu’était ta journée avant tout ça, il n’y a donc encore rien à quoi comparer. Le dire ci-dessous le met en route."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Quiet não sabe como era o seu dia antes disso, então ainda não há nada com que comparar. Dizer aqui embaixo dá o começo."
+          }
         }
       }
     },
@@ -962,6 +3204,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Quiet weiss nicht, wie dein Tag vor alldem war, es gibt also noch nichts zum Vergleichen. Im Zahnrad oben kannst du es sagen."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet does not know what your day was before this, so there is nothing yet to measure against. The gear above is where to say."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet no sabe cómo era tu día antes de esto, así que todavía no hay nada con lo que compararlo. En el engranaje de arriba puedes decirlo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet ne sait pas ce qu’était ta journée avant tout ça, il n’y a donc encore rien à quoi comparer. C’est dans la roue dentée ci-dessus que ça se dit."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Quiet não sabe como era o seu dia antes disso, então ainda não há nada com que comparar. É na engrenagem lá em cima que se diz."
           }
         }
       }
@@ -973,6 +3239,30 @@
             "state": "translated",
             "value": "Quiet vergisst alles %@."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet forgets everything %@."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet lo olvida todo %@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet oublie tout %@."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Quiet esquece tudo %@."
+          }
         }
       }
     },
@@ -982,6 +3272,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Quiet hat kein Konto, keinen eigenen Server und keine Analyse. Es speichert acht Dinge auf diesem Telefon: dein Limit, die heutige Summe, die letzte Zeit, die es gesehen hat, den Tag, an dem du es eingerichtet hast, ob du um Vergessen gebeten hast, was deine anderen Geräte heute verbraucht haben, den Tag, von dem du losgegangen bist, und wie lang jeder Tag seither war."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet has no account, no server of its own and no analytics. It stores eight things on this phone: your limit, today's total, the last time it saw, the day you set it up, whether you have asked it to forget, what your other devices have spent today, the day you said you started from, and how long each day since has been."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet no tiene cuenta, ni servidor propio, ni analítica. Guarda ocho cosas en este teléfono: tu límite, el total de hoy, la última hora que vio, el día en que lo configuraste, si has pedido que olvide, lo que han gastado hoy tus otros dispositivos, el día del que dijiste que partías y cuánto ha durado cada día desde entonces."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet n’a pas de compte, pas de serveur à lui et pas d’analyse. Il garde huit choses sur ce téléphone : ta limite, le total du jour, la dernière heure qu’il a vue, le jour où tu l’as installé, si tu lui as demandé d’oublier, ce que tes autres appareils ont dépensé aujourd’hui, la journée d’où tu as dit être parti, et la durée de chaque journée depuis."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Quiet não tem conta, nem servidor próprio, nem análise. Ele guarda oito coisas neste telefone: seu limite, o total de hoje, a última hora que viu, o dia em que você o configurou, se você pediu para esquecer, o que seus outros aparelhos gastaram hoje, o dia de onde você disse ter partido, e quanto durou cada dia desde então."
           }
         }
       }
@@ -994,6 +3308,30 @@
             "state": "translated",
             "value": "Quiet hat kein Konto, keinen eigenen Server und keine Analyse. Es speichert sechs Dinge auf diesem Telefon: dein Limit, das heutige Total, die zuletzt gesehene Zeit, den Tag der Einrichtung, ob du ums Vergessen gebeten hast, und was deine anderen Geräte heute verbraucht haben."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet has no account, no server of its own and no analytics. It stores six things on this phone: your limit, today's total, the last time it saw, the day you set it up, whether you have asked it to forget, and what your other devices have spent today."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet no tiene cuenta, ni servidor propio, ni analítica. Guarda seis cosas en este teléfono: tu límite, el total de hoy, la última hora que vio, el día en que lo configuraste, si has pedido que olvide y lo que han gastado hoy tus otros dispositivos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet n’a pas de compte, pas de serveur à lui et pas d’analyse. Il garde six choses sur ce téléphone : ta limite, le total du jour, la dernière heure qu’il a vue, le jour où tu l’as installé, si tu lui as demandé d’oublier, et ce que tes autres appareils ont dépensé aujourd’hui."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Quiet não tem conta, nem servidor próprio, nem análise. Ele guarda seis coisas neste telefone: seu limite, o total de hoje, a última hora que viu, o dia em que você o configurou, se você pediu para esquecer, e o que seus outros aparelhos gastaram hoje."
+          }
         }
       }
     },
@@ -1005,6 +3343,30 @@
             "state": "translated",
             "value": "Quiet hat kein Konto, keine Server und keine Analyse. Es speichert vier Dinge auf diesem Telefon: dein Limit, den heutigen Stand, den spätesten Zeitpunkt, den es gesehen hat, und den Tag, an dem du es eingerichtet hast."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet has no account, no servers and no analytics. It stores four things on this phone: your limit, today's total, the last time it saw, and the day you set it up."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet no tiene cuenta, ni servidores, ni analítica. Guarda cuatro cosas en este teléfono: tu límite, el total de hoy, la última hora que vio y el día en que lo configuraste."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet n’a pas de compte, pas de serveurs et pas d’analyse. Il garde quatre choses sur ce téléphone : ta limite, le total du jour, la dernière heure qu’il a vue, et le jour où tu l’as installé."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Quiet não tem conta, nem servidores, nem análise. Ele guarda quatro coisas neste telefone: seu limite, o total de hoje, a última hora que viu, e o dia em que você o configurou."
+          }
         }
       }
     },
@@ -1014,6 +3376,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Quiet hat auf den letzten Seiten Instagrams eigenes Layout nicht gefunden. Wahrscheinlich hat Instagram etwas geändert. Reels und Explore bleiben zu — die werden nach Adresse abgewiesen — aber das Aufräumen drumherum vielleicht nicht."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet has not been able to find Instagram's own layout on the last few pages. Instagram has probably changed something. Reels and Explore are still closed — those are refused by address — but the tidying up around them may not be."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet no ha encontrado el propio diseño de Instagram en las últimas páginas. Probablemente Instagram ha cambiado algo. Reels y Explorar siguen cerrados — esos se rechazan por dirección — pero puede que el orden a su alrededor no."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet n’a pas retrouvé la mise en page d’Instagram sur les dernières pages. Instagram a probablement changé quelque chose. Reels et Explorer restent fermés — ceux-là sont refusés par adresse — mais le rangement autour, peut-être pas."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Quiet não encontrou o layout do próprio Instagram nas últimas páginas. O Instagram provavelmente mudou alguma coisa. Reels e Explorar continuam fechados — esses são recusados por endereço — mas a arrumação em volta talvez não."
           }
         }
       }
@@ -1025,6 +3411,30 @@
             "state": "translated",
             "value": "Quiet fehlt %@. Neu aus einem sauberen Build installieren."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet is missing %@. Reinstall from a clean build."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Quiet le falta %@. Reinstálalo desde una versión limpia."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il manque %@ à Quiet. Réinstalle-le depuis une version propre."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Falta %@ ao Quiet. Reinstale a partir de uma versão limpa."
+          }
         }
       }
     },
@@ -1034,6 +3444,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Quiet steht in keiner Verbindung zu Instagram oder Meta und wird von ihnen nicht unterstützt."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet is not affiliated with or endorsed by Instagram or Meta."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet no está afiliado a Instagram ni a Meta, ni cuenta con su respaldo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet n’est ni affilié à Instagram ou Meta, ni soutenu par eux."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Quiet não é afiliado ao Instagram nem à Meta, e não é endossado por eles."
           }
         }
       }
@@ -1045,6 +3479,30 @@
             "state": "translated",
             "value": "Quiet ist hier dein Instagram."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet is your Instagram here."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aquí Quiet es tu Instagram."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ici, Quiet est ton Instagram."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aqui o Quiet é o seu Instagram."
+          }
         }
       }
     },
@@ -1054,6 +3512,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Quiet läuft auf Instagrams mobiler Website. Seiten laden einen Takt langsamer, und ein paar Dinge fehlen."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet runs on Instagram's mobile site, so pages load a beat slower and a few things are missing."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet funciona sobre el sitio móvil de Instagram, así que las páginas cargan un poco más lento y faltan algunas cosas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet fonctionne sur le site mobile d’Instagram : les pages chargent un temps plus lentement et quelques choses manquent."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Quiet roda no site móvel do Instagram, então as páginas carregam um tempo mais devagar e algumas coisas faltam."
           }
         }
       }
@@ -1065,6 +3547,30 @@
             "state": "translated",
             "value": "Quiet-Einstellungen"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet settings"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustes de Quiet"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réglages de Quiet"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustes do Quiet"
+          }
         }
       }
     },
@@ -1074,6 +3580,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Quiet zeigt Instagrams eigene Seite und braucht dafür Netz. Verloren ist nichts — dein Tag und dein Limit liegen auf diesem Telefon."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet shows Instagram's own site, so it needs the network to show you anything. Nothing has been lost — your day and your limit are on this phone."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet muestra el propio sitio de Instagram, así que necesita red para mostrarte algo. No se ha perdido nada — tu día y tu límite están en este teléfono."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet affiche le site d’Instagram lui-même, il lui faut donc le réseau pour te montrer quoi que ce soit. Rien n’est perdu — ta journée et ta limite sont sur ce téléphone."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Quiet mostra o próprio site do Instagram, então precisa de rede para te mostrar qualquer coisa. Nada se perdeu — o seu dia e o seu limite estão neste telefone."
           }
         }
       }
@@ -1085,6 +3615,30 @@
             "state": "translated",
             "value": "Quiet arbeitet zwischen %lld und %lld Minuten am Tag."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet works between %lld and %lld minutes a day."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet funciona entre %lld y %lld minutos al día."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet fonctionne entre %lld et %lld minutes par jour."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Quiet funciona entre %lld e %lld minutos por dia."
+          }
         }
       }
     },
@@ -1094,6 +3648,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Quiets zweites Schloss ist diesmal nicht geladen. Reels und Explore werden weiterhin abgewiesen; es tut das gerade eine Ebene statt zwei."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet's second lock did not load this time. Reels and Explore are still refused; there is one layer doing it rather than two."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El segundo cerrojo de Quiet no se cargó esta vez. Reels y Explorar siguen rechazados; lo hace una capa en lugar de dos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le deuxième verrou de Quiet ne s’est pas chargé cette fois. Reels et Explorer restent refusés ; c’est une seule couche qui le fait au lieu de deux."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A segunda tranca do Quiet não carregou desta vez. Reels e Explorar continuam recusados; é uma camada fazendo isso em vez de duas."
           }
         }
       }
@@ -1105,6 +3683,30 @@
             "state": "translated",
             "value": "Zuletzt geöffnet"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recently opened"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abiertos recientemente"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouverts récemment"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abertos recentemente"
+          }
         }
       }
     },
@@ -1115,6 +3717,30 @@
             "state": "translated",
             "value": "Reels sind in Quiet aus."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reels are off in Quiet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los Reels están desactivados en Quiet."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les Reels sont désactivés dans Quiet."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os Reels estão desligados no Quiet."
+          }
         }
       }
     },
@@ -1124,6 +3750,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zurückgesetzt um %@."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resets at %@."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se reinicia a las %@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remise à zéro à %@."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zera às %@."
           }
         }
       }
@@ -1136,6 +3786,30 @@
             "state": "translated",
             "value": "Zurückgesetzt um %@. Es zählt nur Zeit, in der Instagram auf dem Bildschirm ist."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resets at %@. Only time with Instagram on screen counts."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se reinicia a las %@. Solo cuenta el tiempo con Instagram en pantalla."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remise à zéro à %@. Seul le temps avec Instagram à l’écran compte."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zera às %@. Só conta o tempo com o Instagram na tela."
+          }
         }
       }
     },
@@ -1145,6 +3819,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sagen, was übrig ist"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Say what is left"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Decir lo que queda"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dire ce qu’il reste"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dizer o que sobrou"
           }
         }
       }
@@ -1156,6 +3854,30 @@
             "state": "translated",
             "value": "Die Suche antwortet nicht. Ein genauer Name geht trotzdem: eintippen und auf Suchen drücken."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search is not answering. An exact name still works: type it and press search."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La búsqueda no responde. Un nombre exacto sigue funcionando: escríbelo y pulsa buscar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La recherche ne répond pas. Un nom exact marche quand même : tape-le et appuie sur rechercher."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A busca não está respondendo. Um nome exato ainda funciona: digite e aperte buscar."
+          }
         }
       }
     },
@@ -1165,6 +3887,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ am Tag festlegen"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set %@ a day"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fijar %@ al día"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fixer %@ par jour"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Definir %@ por dia"
           }
         }
       }
@@ -1176,6 +3922,30 @@
             "state": "translated",
             "value": "Einstellungen"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustes"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réglages"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustes"
+          }
         }
       }
     },
@@ -1185,6 +3955,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Uhr einblenden"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show the clock"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar el reloj"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher l’horloge"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar o relógio"
           }
         }
       }
@@ -1196,6 +3990,30 @@
             "state": "translated",
             "value": "Abmelden"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign out"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerrar sesión"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se déconnecter"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sair da conta"
+          }
         }
       }
     },
@@ -1205,6 +4023,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Von Instagram abmelden"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign out of Instagram"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerrar sesión en Instagram"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se déconnecter d’Instagram"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sair da conta do Instagram"
           }
         }
       }
@@ -1216,6 +4058,30 @@
             "state": "translated",
             "value": "Von Instagram abmelden?"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign out of Instagram?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Cerrar sesión en Instagram?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se déconnecter d’Instagram ?"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sair da conta do Instagram?"
+          }
         }
       }
     },
@@ -1225,6 +4091,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gleitet weg"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slides away"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se desliza"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glisse"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desliza"
           }
         }
       }
@@ -1236,6 +4126,30 @@
             "state": "translated",
             "value": "Gleiten ist das, was Instagrams eigene Leiste macht: nach unten scrollen nimmt sie vom Bildschirm, nach oben holt sie zurück. Einziehen lässt sie da — kleiner und blasser, solange die Seite sich bewegt, und wieder heraus, sobald sie stillsteht."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sliding away is what Instagram's own bar does: scrolling down takes it off the screen and scrolling up brings it back. Drawing in keeps it there — smaller and fainter while the page moves, out again the moment it stops."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deslizarse es lo que hace la propia barra de Instagram: bajar la quita de la pantalla y subir la devuelve. Recogerse la mantiene ahí — más pequeña y más tenue mientras la página se mueve, y de vuelta en cuanto se detiene."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glisser, c’est ce que fait la barre d’Instagram : défiler vers le bas la retire de l’écran, défiler vers le haut la ramène. Se rétracter la garde là — plus petite et plus pâle tant que la page bouge, ressortie dès qu’elle s’arrête."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deslizar é o que a própria barra do Instagram faz: rolar para baixo tira ela da tela e rolar para cima traz de volta. Recolher mantém ela ali — menor e mais apagada enquanto a página se move, de volta assim que ela para."
+          }
         }
       }
     },
@@ -1245,6 +4159,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Beginnt %@. Heute bleibt bei %@."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starts %@. Today stays at %@."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empieza %@. Hoy se queda en %@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Commence %@. Aujourd’hui reste à %@."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Começa %@. Hoje fica em %@."
           }
         }
       }
@@ -1256,6 +4194,30 @@
             "state": "translated",
             "value": "Konto wechseln"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch account"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar de cuenta"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changer de compte"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trocar de conta"
+          }
         }
       }
     },
@@ -1265,6 +4227,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gilt ab sofort."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Takes effect now."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Surte efecto ahora."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prend effet maintenant."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vale a partir de agora."
           }
         }
       }
@@ -1277,6 +4263,30 @@
             "state": "translated",
             "value": "Das sieht nicht nach einem Benutzernamen aus."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That doesn't look like a username."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eso no parece un nombre de usuario."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ça ne ressemble pas à un nom d’utilisateur."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Isso não parece um nome de usuário."
+          }
         }
       }
     },
@@ -1286,6 +4296,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Das war's\nfür heute."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That's all\nfor today."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esto es todo\npor hoy."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "C’est tout\npour aujourd’hui."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "É isso\npor hoje."
           }
         }
       }
@@ -1297,6 +4331,30 @@
             "state": "translated",
             "value": "Das war's von deinen Freunden."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That's everyone you follow."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se acabaron las personas a las que sigues."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu as vu tous ceux que tu suis."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acabaram as pessoas que você segue."
+          }
         }
       }
     },
@@ -1306,6 +4364,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Die Leiste ist die Form, die Instagram verwendet. Die Insel schwebt über der Seite und weicht aus, während du liest."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The bar is the shape Instagram uses. The island floats over the page and gets out of the way while you read."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La barra es la forma que usa Instagram. La isla flota sobre la página y se aparta mientras lees."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La barre est la forme qu’utilise Instagram. L’île flotte au-dessus de la page et s’efface pendant que tu lis."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A barra é a forma que o Instagram usa. A ilha flutua sobre a página e sai da frente enquanto você lê."
           }
         }
       }
@@ -1318,6 +4400,30 @@
             "state": "translated",
             "value": "Die Leiste ist die Form, die Instagram benutzt. Die Insel schwebt über der Seite und zieht sich zusammen, während die Seite in Bewegung ist."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The bar is the shape Instagram uses. The island floats over the page, and draws itself in while the page is moving."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La barra es la forma que usa Instagram. La isla flota sobre la página y se recoge mientras la página está en movimiento."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La barre est la forme qu’utilise Instagram. L’île flotte au-dessus de la page et se rétracte pendant que la page bouge."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A barra é a forma que o Instagram usa. A ilha flutua sobre a página e se recolhe enquanto a página está em movimento."
+          }
         }
       }
     },
@@ -1327,6 +4433,64 @@
           "stringUnit": {
             "state": "translated",
             "value": "Die gestrichelte Linie in der Grafik ist dein Limit."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The dashed line on the chart is your limit."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La línea discontinua del gráfico es tu límite."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La ligne pointillée du graphique est ta limite."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A linha tracejada do gráfico é o seu limite."
+          }
+        }
+      }
+    },
+    "The dashed line on the chart is your limit. It is left off when it sits so far above your days that drawing it would flatten them.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die gestrichelte Linie in der Grafik ist dein Limit. Sie fehlt, wenn sie so weit über deinen Tagen liegt, dass sie diese platt zeichnen würde."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The dashed line on the chart is your limit. It is left off when it sits so far above your days that drawing it would flatten them."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La línea discontinua del gráfico es tu límite. Se omite cuando queda tan por encima de tus días que dibujarla los aplanaría."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La ligne pointillée du graphique est ta limite. Elle est omise quand elle se situe si loin au-dessus de tes journées que la tracer les aplatirait."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A linha tracejada do gráfico é o seu limite. Ela fica de fora quando está tão acima dos seus dias que desenhá-la os achataria."
           }
         }
       }
@@ -1338,6 +4502,30 @@
             "state": "translated",
             "value": "Das Datum auf diesem Telefon geht Instagram voraus, also richtet Quiet sich nach Instagram. Das Limit kann gesenkt, aber nicht erhöht werden, bis beide übereinstimmen."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The date on this phone is ahead of Instagram's, so Quiet is going by Instagram's. The limit can be lowered, but not raised, until the two agree."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La fecha de este teléfono va por delante de la de Instagram, así que Quiet se guía por la de Instagram. El límite se puede bajar, pero no subir, hasta que las dos coincidan."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La date de ce téléphone est en avance sur celle d’Instagram, Quiet s’en tient donc à celle d’Instagram. La limite peut être baissée, mais pas relevée, tant que les deux ne concordent pas."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A data deste telefone está à frente da do Instagram, então o Quiet segue a do Instagram. O limite pode ser baixado, mas não aumentado, até que as duas concordem."
+          }
         }
       }
     },
@@ -1347,6 +4535,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Das Datum auf diesem Telefon geht Instagram voraus. Die Wartezeit kann verlängert, aber nicht verkürzt werden, bis beide übereinstimmen."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The date on this phone is ahead of Instagram's. The wait can be made longer, but not shorter, until the two agree."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La fecha de este teléfono va por delante de la de Instagram. La espera se puede alargar, pero no acortar, hasta que las dos coincidan."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La date de ce téléphone est en avance sur celle d’Instagram. L’attente peut être allongée, mais pas raccourcie, tant que les deux ne concordent pas."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A data deste telefone está à frente da do Instagram. A espera pode ser alongada, mas não encurtada, até que as duas concordem."
           }
         }
       }
@@ -1358,6 +4570,30 @@
             "state": "translated",
             "value": "Das Datum auf diesem Telefon geht Instagram voraus. Bis beide übereinstimmen, kann das Limit sinken, aber nicht steigen."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The date on this phone is ahead of Instagram's. Until the two agree, the limit can go down but not up."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La fecha de este teléfono va por delante de la de Instagram. Hasta que las dos coincidan, el límite puede bajar pero no subir."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La date de ce téléphone est en avance sur celle d’Instagram. Tant que les deux ne concordent pas, la limite peut descendre mais pas monter."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A data deste telefone está à frente da do Instagram. Até que as duas concordem, o limite pode descer mas não subir."
+          }
         }
       }
     },
@@ -1367,6 +4603,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Das Datum auf diesem Telefon liegt hinter dem, was Quiet zuletzt gesehen hat. Das Limit kann gesenkt werden, aber nicht erhöht, bis es aufgeholt hat."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The date on this phone is behind where Quiet last saw it. The limit can be lowered, but not raised, until it catches up."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La fecha de este teléfono va por detrás de la última que vio Quiet. El límite se puede bajar, pero no subir, hasta que se ponga al día."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La date de ce téléphone est en retard sur la dernière que Quiet a vue. La limite peut être baissée, mais pas relevée, tant qu’elle n’a pas rattrapé."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A data deste telefone está atrás da última que o Quiet viu. O limite pode ser baixado, mas não aumentado, até que ela alcance."
           }
         }
       }
@@ -1378,6 +4638,30 @@
             "state": "translated",
             "value": "Das Datum auf diesem Telefon liegt hinter dem, was Quiet zuletzt gesehen hat. Die Wartezeit kann verlängert, aber nicht verkürzt werden, bis es aufgeholt hat."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The date on this phone is behind where Quiet last saw it. The wait can be made longer, but not shorter, until it catches up."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La fecha de este teléfono va por detrás de la última que vio Quiet. La espera se puede alargar, pero no acortar, hasta que se ponga al día."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La date de ce téléphone est en retard sur la dernière que Quiet a vue. L’attente peut être allongée, mais pas raccourcie, tant qu’elle n’a pas rattrapé."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A data deste telefone está atrás da última que o Quiet viu. A espera pode ser alongada, mas não encurtada, até que ela alcance."
+          }
         }
       }
     },
@@ -1387,6 +4671,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Das Datum auf diesem Telefon liegt hinter dem, was Quiet zuletzt gesehen hat. Bis es aufgeholt hat, kann das Limit sinken, aber nicht steigen."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The date on this phone is behind where Quiet last saw it. Until it catches up, the limit can go down but not up."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La fecha de este teléfono va por detrás de la última que vio Quiet. Hasta que se ponga al día, el límite puede bajar pero no subir."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La date de ce téléphone est en retard sur la dernière que Quiet a vue. Tant qu’elle n’a pas rattrapé, la limite peut descendre mais pas monter."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A data deste telefone está atrás da última que o Quiet viu. Até que ela alcance, o limite pode descer mas não subir."
           }
         }
       }
@@ -1398,6 +4706,30 @@
             "state": "translated",
             "value": "Der Tag, von dem du losgegangen bist"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The day you started from"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El día del que partiste"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La journée d’où tu es parti"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O dia de onde você partiu"
+          }
         }
       }
     },
@@ -1407,6 +4739,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Die Tage hinter dir"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The days behind you"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los días que dejas atrás"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les jours derrière toi"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os dias que ficaram para trás"
           }
         }
       }
@@ -1418,6 +4774,30 @@
             "state": "translated",
             "value": "Die Uhrzeit, zu der Quiet dich erinnert"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The hour Quiet reminds you"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La hora a la que Quiet te avisa"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’heure à laquelle Quiet te le rappelle"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A hora em que o Quiet te lembra"
+          }
         }
       }
     },
@@ -1427,6 +4807,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Die Stunde, zu der die Notiz kommt"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The hour the note arrives"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La hora a la que llega la nota"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’heure à laquelle la note arrive"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A hora em que a nota chega"
           }
         }
       }
@@ -1439,6 +4843,30 @@
             "state": "translated",
             "value": "Die Linie ist dein Limit, %@."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The line is your limit, %@."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La línea es tu límite, %@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La ligne est ta limite, %@."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A linha é o seu limite, %@."
+          }
         }
       }
     },
@@ -1448,6 +4876,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Die Seite ist nicht angekommen. Das ist meistens ein Moment und kein Problem."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The page did not arrive. That is usually a moment rather than a problem."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La página no llegó. Suele ser un momento más que un problema."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La page n’est pas arrivée. C’est en général un moment plutôt qu’un problème."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A página não chegou. Isso costuma ser um momento, não um problema."
           }
         }
       }
@@ -1459,6 +4911,30 @@
             "state": "translated",
             "value": "Die Beiträge, die Instagram zwischen deine Freunde schiebt, sind da. Ein Schalter in den Quiet-Einstellungen nimmt sie weg."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The posts Instagram suggests between your friends are still there. A switch in Quiet's settings takes them out."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las publicaciones que Instagram sugiere entre las de tus amigos siguen ahí. Un interruptor en los ajustes de Quiet las quita."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les publications qu’Instagram glisse entre celles de tes amis sont toujours là. Un interrupteur dans les réglages de Quiet les enlève."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As publicações que o Instagram enfia entre as dos seus amigos continuam ali. Uma chave nos ajustes do Quiet tira elas."
+          }
         }
       }
     },
@@ -1468,6 +4944,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Die Reihe am unteren Rand"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The row along the bottom"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La fila de abajo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La rangée en bas"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A fileira embaixo"
           }
         }
       }
@@ -1480,6 +4980,30 @@
             "state": "translated",
             "value": "Die obere Linie sind die %@ am Tag, von denen du losgegangen bist. Die untere ist dein Limit, %@."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The upper line is the %@ a day you started from. The lower one is your limit, %@."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La línea de arriba son los %@ al día de los que partiste. La de abajo es tu límite, %@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La ligne du haut, ce sont les %@ par jour d’où tu es parti. Celle du bas est ta limite, %@."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A linha de cima são os %@ por dia de onde você partiu. A de baixo é o seu limite, %@."
+          }
         }
       }
     },
@@ -1489,6 +5013,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Die Wartezeit zwischen Erhöhungen"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The wait between increases"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La espera entre aumentos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’attente entre deux augmentations"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A espera entre aumentos"
           }
         }
       }
@@ -1500,6 +5048,30 @@
             "state": "translated",
             "value": "Der Ausstieg"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The way out"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La salida"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La sortie"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A saída"
+          }
         }
       }
     },
@@ -1509,6 +5081,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Es gibt noch nichts zum Vergleichen. Sag unter „Die Tage hinter dir“, wie dein Tag früher war, dann kann das hier anfangen."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There is nothing to compare against yet. Say what your day used to be under The days behind you, and this can start."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todavía no hay nada con lo que comparar. Di cómo era tu día en «Los días que dejas atrás» y esto podrá empezar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il n’y a encore rien à quoi comparer. Dis ce qu’était ta journée sous « Les jours derrière toi », et ça pourra commencer."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ainda não há nada com que comparar. Diga como era o seu dia em “Os dias que ficaram para trás”, e isto pode começar."
           }
         }
       }
@@ -1520,6 +5116,30 @@
             "state": "translated",
             "value": "Das löscht die Instagram-Sitzung aus dieser App. Dein Tageslimit bleibt, wie es ist."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This clears the Instagram session from this app. Your daily limit stays as it is."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esto borra la sesión de Instagram de esta app. Tu límite diario se queda como está."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ceci efface la session Instagram de cette app. Ta limite quotidienne reste telle quelle."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Isto apaga a sessão do Instagram deste app. O seu limite diário continua como está."
+          }
         }
       }
     },
@@ -1529,6 +5149,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Das ist kein Limit und schränkt nichts ein. Es ist die Zahl, an der die Tage hinter dir gemessen werden."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is not a limit and it does not restrict anything. It is the number the days behind you get measured against."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esto no es un límite y no restringe nada. Es la cifra con la que se miden los días que dejas atrás."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce n’est pas une limite et ça ne restreint rien. C’est le chiffre auquel les jours derrière toi sont comparés."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Isto não é um limite e não restringe nada. É o número com que os dias que ficaram para trás são comparados."
           }
         }
       }
@@ -1540,6 +5184,30 @@
             "state": "translated",
             "value": "Das ist dein Limit."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is your limit."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este es tu límite."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voici ta limite."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este é o seu limite."
+          }
         }
       }
     },
@@ -1550,6 +5218,30 @@
             "state": "translated",
             "value": "Auf diesem Telefon sind Mitteilungen für Quiet ausgeschaltet, die Notiz hat also keinen Ort, an dem sie ankommen kann. In den Einstellungen lässt sich das wieder einschalten."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This phone has notifications turned off for Quiet, so the note has nowhere to arrive. It can be switched on again in Settings."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este teléfono tiene las notificaciones de Quiet desactivadas, así que la nota no tiene dónde llegar. Se pueden volver a activar en Ajustes."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce téléphone a les notifications désactivées pour Quiet, la note n’a donc nulle part où arriver. Ça se réactive dans Réglages."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este telefone está com as notificações do Quiet desligadas, então a nota não tem onde chegar. Dá para ligar de novo nos Ajustes."
+          }
         }
       }
     },
@@ -1559,6 +5251,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dieses Telefon hat Mitteilungen für Quiet ausgeschaltet, die Erinnerung hätte also nirgendwo anzukommen. In den Einstellungen lässt sie sich wieder einschalten."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This phone has notifications turned off for Quiet, so the reminder has nowhere to arrive. It can be switched on again in Settings."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este teléfono tiene las notificaciones de Quiet desactivadas, así que el recordatorio no tiene dónde llegar. Se pueden volver a activar en Ajustes."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce téléphone a les notifications désactivées pour Quiet, le rappel n’a donc nulle part où arriver. Ça se réactive dans Réglages."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este telefone está com as notificações do Quiet desligadas, então o lembrete não tem onde chegar. Dá para ligar de novo nos Ajustes."
           }
         }
       }
@@ -1571,6 +5287,30 @@
             "state": "translated",
             "value": "Dieses Telefon lässt Quiet nichts aufschreiben. Bis sich das ändert, überlebt dein Limit das Schließen der App nicht."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This phone is refusing to let Quiet write anything down. Your limit will not survive closing the app until that changes."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este teléfono no deja que Quiet anote nada. Hasta que eso cambie, tu límite no sobrevivirá al cierre de la app."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce téléphone refuse que Quiet note quoi que ce soit. Tant que ça ne change pas, ta limite ne survivra pas à la fermeture de l’app."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este telefone está impedindo o Quiet de anotar qualquer coisa. Até isso mudar, o seu limite não sobreviverá ao fechar do app."
+          }
         }
       }
     },
@@ -1580,6 +5320,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Die sind mit Absicht weg, nicht kaputt. Ein Reel, das dir jemand schickt, sagt beim Antippen genau das, statt sich zu öffnen."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Those are gone on purpose, not missing. Tapping a Reel a friend sends you will say so rather than open it."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No faltan: no están a propósito. Tocar un Reel que te envíe alguien lo dirá en vez de abrirlo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ils sont partis exprès, ils ne manquent pas. Appuyer sur un Reel qu’un ami t’envoie le dira au lieu de l’ouvrir."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eles sumiram de propósito, não estão faltando. Tocar num Reel que um amigo te mandar vai dizer isso em vez de abrir."
           }
         }
       }
@@ -1592,6 +5356,30 @@
             "state": "translated",
             "value": "Heute: bisher %@, %@ darunter."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today: %@ so far, %@ under."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoy: %@ hasta ahora, %@ por debajo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aujourd’hui : %@ jusqu’ici, %@ en dessous."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoje: %@ até agora, %@ abaixo."
+          }
         }
       }
     },
@@ -1603,6 +5391,30 @@
             "state": "translated",
             "value": "Heute: bisher %@."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today: %@ so far."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoy: %@ hasta ahora."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aujourd’hui : %@ jusqu’ici."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoje: %@ até agora."
+          }
         }
       }
     },
@@ -1612,6 +5424,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Noch einmal versuchen"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try again"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volver a intentarlo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réessayer"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tentar de novo"
           }
         }
       }
@@ -1623,6 +5459,30 @@
             "state": "translated",
             "value": "Zwei leise Hinweise, bei fünf Minuten und bei einer. Sie auszuschalten bringt keine Zeit — der Tag endet so oder so im selben Moment."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Two quiet notices, at five minutes and at one. Turning them off does not add any time — the day ends at the same moment either way."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dos avisos discretos, a los cinco minutos y a uno. Desactivarlos no añade tiempo — el día termina en el mismo momento de todos modos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deux avis discrets, à cinq minutes et à une. Les couper n’ajoute pas de temps — la journée se termine au même moment dans les deux cas."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dois avisos discretos, aos cinco minutos e ao um. Desligar não acrescenta tempo — o dia termina no mesmo momento de qualquer jeito."
+          }
         }
       }
     },
@@ -1632,6 +5492,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tippe einen Namen. Quiet sucht nach Menschen und sonst nichts — kein Explore, keine Hashtags, keine Orte."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type a name. Quiet searches for people and nothing else — no Explore, no hashtags, no places."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escribe un nombre. Quiet busca personas y nada más — sin Explorar, sin hashtags, sin lugares."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tape un nom. Quiet cherche des gens et rien d’autre — pas d’Explorer, pas de hashtags, pas de lieux."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Digite um nome. O Quiet procura pessoas e nada mais — sem Explorar, sem hashtags, sem lugares."
           }
         }
       }
@@ -1643,6 +5527,30 @@
             "state": "translated",
             "value": "Bis dahin ändert sich nichts. Es sich anders zu überlegen kostet nichts und geht jederzeit."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Until that day nothing changes. Changing your mind costs nothing and can be done at any time."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hasta ese día no cambia nada. Cambiar de opinión no cuesta nada y se puede hacer en cualquier momento."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jusqu’à ce jour-là, rien ne change. Changer d’avis ne coûte rien et se fait à tout moment."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Até esse dia nada muda. Mudar de ideia não custa nada e pode ser feito a qualquer momento."
+          }
         }
       }
     },
@@ -1652,6 +5560,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Version %@ (%@)"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %@ (%@)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versión %@ (%@)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %@ (%@)"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versão %@ (%@)"
           }
         }
       }
@@ -1663,6 +5595,30 @@
             "state": "translated",
             "value": "Was Quiet sagt"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What Quiet says"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lo que dice Quiet"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce que Quiet dit"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O que o Quiet diz"
+          }
         }
       }
     },
@@ -1672,6 +5628,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Was im Feed steht"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What is in the feed"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lo que hay en el feed"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce qu’il y a dans le fil"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O que tem no feed"
           }
         }
       }
@@ -1683,6 +5663,30 @@
             "state": "translated",
             "value": "Was nicht funktioniert"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What is not working"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lo que no funciona"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce qui ne marche pas"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O que não está funcionando"
+          }
         }
       }
     },
@@ -1692,6 +5696,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gestern"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yesterday"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ayer"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hier"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ontem"
           }
         }
       }
@@ -1703,6 +5731,30 @@
             "state": "translated",
             "value": "Du hast dir %@ am Tag vorgenommen. Quiet öffnet wieder um %@."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You asked for %@ a day. Quiet opens again at %@."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Te propusiste %@ al día. Quiet vuelve a abrirse a las %@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu as demandé %@ par jour. Quiet rouvre à %@."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Você pediu %@ por dia. O Quiet abre de novo às %@."
+          }
         }
       }
     },
@@ -1712,6 +5764,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Um weniger kannst du jederzeit bitten. Es gilt sofort."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can ask for less whenever you like. It takes effect at once."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puedes pedir menos cuando quieras. Surte efecto de inmediato."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu peux demander moins quand tu veux. Ça prend effet tout de suite."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Você pode pedir menos quando quiser. Vale na hora."
           }
         }
       }
@@ -1723,6 +5799,30 @@
             "state": "translated",
             "value": "Um mehr kannst du einmal pro Woche bitten, und es beginnt am nächsten Tag — nie in dem Moment, in dem du fünf Minuten mehr willst."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can ask for more once a week, and it starts the next day — never in the moment you want five more minutes."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puedes pedir más una vez por semana, y empieza al día siguiente — nunca en el momento en que quieres cinco minutos más."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu peux demander plus une fois par semaine, et ça commence le lendemain — jamais au moment où tu veux cinq minutes de plus."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Você pode pedir mais uma vez por semana, e começa no dia seguinte — nunca no momento em que você quer mais cinco minutos."
+          }
         }
       }
     },
@@ -1732,6 +5832,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Die Wartezeit kannst du verkürzen, wenn die Wartezeit vorbei ist, %@."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can shorten the wait once the wait is over, %@."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puedes acortar la espera cuando la espera termine, %@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu pourras raccourcir l’attente une fois l’attente finie, %@."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dá para encurtar a espera quando a espera acabar, %@."
           }
         }
       }
@@ -1743,6 +5867,30 @@
             "state": "translated",
             "value": "Du hast dein Limit vor weniger als einer Woche erhöht. Um mehr kannst du wieder %@ bitten."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You raised your limit less than a week ago. You can ask for more again %@."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subiste tu límite hace menos de una semana. Puedes volver a pedir más %@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu as relevé ta limite il y a moins d’une semaine. Tu pourras redemander plus %@."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Você aumentou seu limite há menos de uma semana. Pode pedir mais de novo %@."
+          }
         }
       }
     },
@@ -1752,6 +5900,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Du meldest dich auf Instagrams eigener Seite an. Dein Passwort berührt Quiet nie."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You sign in on Instagram's own page. Your password never touches Quiet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicias sesión en la propia página de Instagram. Tu contraseña nunca toca Quiet."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu te connectes sur la page d’Instagram elle-même. Ton mot de passe ne touche jamais Quiet."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Você entra na conta na própria página do Instagram. Sua senha nunca toca o Quiet."
           }
         }
       }
@@ -1763,6 +5935,30 @@
             "state": "translated",
             "value": "Dein Instagram-Fenster ist offen."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Instagram window is open."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu ventana a Instagram está abierta."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta fenêtre sur Instagram est ouverte."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sua janela para o Instagram está aberta."
+          }
         }
       }
     },
@@ -1772,6 +5968,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dein Feed, deine Stories, deine Nachrichten, dein Profil. Alles andere funktioniert wie immer."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your feed, your stories, your messages, your profile. Everything else works the way it always did."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu feed, tus historias, tus mensajes, tu perfil. Todo lo demás funciona como siempre."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ton fil, tes stories, tes messages, ton profil. Tout le reste marche comme avant."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu feed, seus stories, suas mensagens, seu perfil. Todo o resto funciona como sempre funcionou."
           }
         }
       }
@@ -1783,6 +6003,30 @@
             "state": "translated",
             "value": "Dein Limit liegt im Schlüsselbund, der die App überlebt. Quiet zu löschen und neu zu installieren setzt es nicht zurück."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your limit is kept in the keychain, which outlives the app. Deleting Quiet and installing it again does not reset it."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu límite se guarda en el llavero, que sobrevive a la app. Borrar Quiet y volver a instalarlo no lo reinicia."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta limite est gardée dans le trousseau, qui survit à l’app. Supprimer Quiet et le réinstaller ne la remet pas à zéro."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu limite fica no Chaveiro, que sobrevive ao app. Apagar o Quiet e instalar de novo não zera."
+          }
         }
       }
     },
@@ -1792,6 +6036,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dein Limit liegt außerhalb der App. Quiet zu löschen und neu zu installieren setzt es nicht zurück."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your limit is kept outside the app. Deleting Quiet and installing it again does not reset it."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu límite se guarda fuera de la app. Borrar Quiet y volver a instalarlo no lo reinicia."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta limite est gardée en dehors de l’app. Supprimer Quiet et le réinstaller ne la remet pas à zéro."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu limite fica fora do app. Apagar o Quiet e instalar de novo não zera."
           }
         }
       }
@@ -1803,6 +6071,30 @@
             "state": "translated",
             "value": "Dein Limit ist jetzt %@ am Tag."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your limit is now %@ a day."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu límite es ahora %@ al día."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta limite est maintenant de %@ par jour."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu limite agora é de %@ por dia."
+          }
         }
       }
     },
@@ -1812,6 +6104,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dein Limit, dein Tag und die Wartezeit werden weggeworfen — nach %@, nicht jetzt. Bis dahin kannst du es jederzeit abblasen. Deine Instagram-Anmeldung ist etwas anderes und bleibt unberührt."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your limit, your day and the wait are thrown away — after %@, not now. You can call it off at any time before then. Your Instagram sign-in is a separate thing and is not touched."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu límite, tu día y la espera se tiran — después de %@, no ahora. Puedes cancelarlo en cualquier momento antes. Tu sesión de Instagram es otra cosa y no se toca."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta limite, ta journée et l’attente sont jetées — après %@, pas maintenant. Tu peux annuler à tout moment d’ici là. Ta connexion Instagram est autre chose et n’est pas touchée."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu limite, seu dia e a espera são jogados fora — depois de %@, não agora. Você pode cancelar a qualquer momento antes disso. Seu login do Instagram é outra coisa e não é tocado."
           }
         }
       }
@@ -1823,6 +6139,30 @@
             "state": "translated",
             "value": "Dein Limit, deine Wartezeit und das heutige Total, abgelegt in deiner eigenen iCloud — damit ein zweites Gerät nicht ein zweites Kontingent ist. Mehr wird nicht gesendet, und niemand ausser dir kann es lesen: nicht einmal wir, denn es gibt kein wir. Quiet hat keinen Server und kein Konto. Ausschalten nimmt die Kopie wieder herunter."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your limit, your wait and today's total, kept in your own iCloud so a second device is not a second allowance. Nothing else is sent, and nobody but you can read it — not even us, because there is no us: Quiet has no server and no account. Switching this off takes the copy down again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu límite, tu espera y el total de hoy, guardados en tu propio iCloud para que un segundo dispositivo no sea una segunda ración. No se envía nada más, y nadie salvo tú puede leerlo — ni siquiera nosotros, porque no hay nosotros: Quiet no tiene servidor ni cuenta. Desactivarlo retira la copia."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta limite, ton attente et le total du jour, gardés dans ton propre iCloud pour qu’un deuxième appareil ne soit pas une deuxième ration. Rien d’autre n’est envoyé, et personne d’autre que toi ne peut le lire — pas même nous, parce qu’il n’y a pas de nous : Quiet n’a ni serveur ni compte. Désactiver ceci retire la copie."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu limite, sua espera e o total de hoje, guardados no seu próprio iCloud para que um segundo aparelho não seja uma segunda cota. Nada mais é enviado, e ninguém além de você pode ler — nem nós, porque não existe nós: o Quiet não tem servidor nem conta. Desligar isto retira a cópia."
+          }
         }
       }
     },
@@ -1833,6 +6173,30 @@
             "state": "translated",
             "value": "Deine anderen Geräte"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your other devices"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tus otros dispositivos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tes autres appareils"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seus outros aparelhos"
+          }
         }
       }
     },
@@ -1842,6 +6206,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dein Profil"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your profile"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu perfil"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ton profil"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu perfil"
           }
         }
       }
@@ -1854,6 +6242,30 @@
             "state": "translated",
             "value": "Deine Zeit heute, dein Tageslimit und jemanden finden"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your time today, your daily limit, and finding someone"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu tiempo de hoy, tu límite diario y buscar a alguien"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ton temps aujourd’hui, ta limite quotidienne, et trouver quelqu’un"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu tempo hoje, seu limite diário e encontrar alguém"
+          }
         }
       }
     },
@@ -1865,6 +6277,30 @@
             "state": "translated",
             "value": "weniger auf Instagram als die %@ am Tag, von denen du losgegangen bist."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "less on Instagram than the %@ a day you started from."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "menos en Instagram que los %@ al día de los que partiste."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "de moins sur Instagram que les %@ par jour d’où tu es parti."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "a menos no Instagram do que os %@ por dia de onde você partiu."
+          }
         }
       }
     },
@@ -1874,6 +6310,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "weniger als die %@ am Tag, von denen du losgegangen bist."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "less than the %@ a day you started from."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "menos que los %@ al día de los que partiste."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "de moins que les %@ par jour d’où tu es parti."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "a menos do que os %@ por dia de onde você partiu."
           }
         }
       }
@@ -1885,6 +6345,30 @@
             "state": "translated",
             "value": "name"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "name"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nombre"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nom"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nome"
+          }
         }
       }
     },
@@ -1894,6 +6378,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "nicht gesagt"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "not said"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sin decir"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "non dit"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "não dito"
           }
         }
       }
@@ -1905,6 +6413,30 @@
             "state": "translated",
             "value": "am %@"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "on %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "el %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "le %@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "em %@"
+          }
         }
       }
     },
@@ -1914,6 +6446,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "heute"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "today"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hoy"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "aujourd’hui"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hoje"
           }
         }
       }
@@ -1925,6 +6481,30 @@
             "state": "translated",
             "value": "morgen"
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "tomorrow"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mañana"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "demain"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "amanhã"
+          }
         }
       }
     },
@@ -1934,6 +6514,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "unter einer Minute"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "under a minute"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "menos de un minuto"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "moins d’une minute"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "menos de um minuto"
           }
         }
       }

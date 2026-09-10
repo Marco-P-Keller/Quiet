@@ -123,8 +123,11 @@ the right apps beats being ranked among the wrong ones.
 
 The listing existed in English (U.S.) only: **151 characters of indexed text,
 for the whole world.** Each additional localisation is another 30 + 30 + 100, in
-markets with less competition, and this app is bilingual already — the German
-screenshots have been rendering in CI for weeks.
+markets with less competition, and the app now speaks six — English, English
+(U.K.), German, Spanish, French and Brazilian Portuguese — so a store page in
+any of them leads to a product page in the same language rather than to an
+English app. The usual objection to localising a listing past the app does not
+apply here any more.
 
 German matters twice over. Search is one; the other is that the publisher is
 Swiss and the app speaks German, so without it somebody in Zurich reads an
@@ -180,7 +183,7 @@ concrete for a 1.0:
   text size iOS offers;
 * no data collection of any kind, and a privacy page that names what is kept and
   where;
-* two languages, in the app and in the store;
+* six languages in the app;
 * a subject Apple has an institutional interest in.
 
 It is a lottery. The ticket costs half an hour and the odds are better than they

@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
-"""Every sentence in the app, in both languages.
+"""Every sentence in the app, in every language it claims.
 
     python3 Tools/read-the-strings.py
 
-The app decided to be English and German, and that decision has a failure mode
-nothing catches: a new sentence is written in Swift, Xcode adds it to the
-catalogue with no German beside it, and it ships — in English, inside a German
-app, on a screen nobody who wrote it ever reads in German. That has already
-happened once in this project's history; the note in what-is-left describing
-the fix is about exactly that class of bug.
+The app speaks six languages, and that has a failure mode nothing catches: a new
+sentence is written in Swift, Xcode adds it to the catalogue with nothing beside
+it, and it ships — in English, inside a French app, on a screen nobody who wrote
+it ever reads in French. That has already happened once in this project's
+history, when there were two languages; the note in what-is-left describing the
+fix is about exactly that class of bug. Five languages behind the source make it
+likelier rather than less, which is why this script reads the language list off
+the catalogue instead of holding its own.
 
 So this asks four questions, and every one of them is a thing that has gone
 wrong somewhere:
@@ -16,10 +18,10 @@ wrong somewhere:
   1. Is every key translated into every language the catalogue claims?
   2. Is any entry marked as needing work — `new`, `needs_review`, or a stale
      `translated` with no value at all?
-  3. Do the two languages agree about the format specifiers they carry? A
-     German string that has lost its `%@` does not read oddly; it crashes, or
-     silently prints the wrong thing.
-  4. Does every entry with a plural rule carry that rule in both languages?
+  3. Do the languages agree about the format specifiers they carry? A French
+     string that has lost its `%@` does not read oddly; it crashes, or silently
+     prints the wrong thing.
+  4. Does every entry with a plural rule carry that rule in every language?
      Languages do not agree about how many plurals there are, and half a rule
      is worse than none.
 

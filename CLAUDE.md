@@ -53,7 +53,7 @@ and should be, takes seconds:
     node Tools/read-the-header.js     # the trim pass, asked questions
     node Tools/read-the-trim.js
     node Tools/read-the-cost.js       # and what that pass costs a loading page
-    python3 Tools/read-the-strings.py # every sentence, in both languages
+    python3 Tools/read-the-strings.py # every sentence, in all six languages
 
 ## The one habit that matters
 

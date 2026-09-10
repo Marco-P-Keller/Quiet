@@ -14,6 +14,30 @@
             "state": "translated",
             "value": "Instagram asks for the camera when you add a photo or a story. Quiet never uses it on its own."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram asks for the camera when you add a photo or a story. Quiet never uses it on its own."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram pide la cámara cuando añades una foto o una historia. Quiet nunca la usa por su cuenta."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram demande l’appareil photo quand tu ajoutes une photo ou une story. Quiet ne s’en sert jamais de lui-même."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Instagram pede a câmera quando você adiciona uma foto ou um story. O Quiet nunca usa por conta própria."
+          }
         }
       }
     },
@@ -29,6 +53,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Instagram asks for the microphone when you record a video or a voice message. Quiet never uses it on its own."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram asks for the microphone when you record a video or a voice message. Quiet never uses it on its own."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram pide el micrófono cuando grabas un video o un mensaje de voz. Quiet nunca lo usa por su cuenta."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram demande le microphone quand tu enregistres une vidéo ou un message vocal. Quiet ne s’en sert jamais de lui-même."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Instagram pede o microfone quando você grava um vídeo ou uma mensagem de voz. O Quiet nunca usa por conta própria."
           }
         }
       }
@@ -46,6 +94,30 @@
             "state": "translated",
             "value": "Saving a picture from Instagram puts it in your photo library. Quiet adds nothing else."
           }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving a picture from Instagram puts it in your photo library. Quiet adds nothing else."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar una imagen de Instagram la coloca en tu fototeca. Quiet no añade nada más."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrer une image d’Instagram la met dans ta photothèque. Quiet n’y ajoute rien d’autre."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvar uma imagem do Instagram coloca ela na sua fototeca. O Quiet não adiciona mais nada."
+          }
         }
       }
     },
@@ -61,6 +133,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Instagram asks for your photos when you choose one to post or to send. Quiet never looks at them itself."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram asks for your photos when you choose one to post or to send. Quiet never looks at them itself."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram pide tus fotos cuando eliges una para publicar o enviar. Quiet nunca las mira por su cuenta."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instagram demande tes photos quand tu en choisis une à publier ou à envoyer. Quiet ne les regarde jamais lui-même."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Instagram pede suas fotos quando você escolhe uma para publicar ou enviar. O Quiet nunca olha para elas."
           }
         }
       }
