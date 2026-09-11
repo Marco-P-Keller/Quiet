@@ -1445,6 +1445,18 @@ struct InstagramWebView: UIViewRepresentable {
             // The indicator is the one thing that should still respect the app's
             // furniture: a scroll bar running under the row reads as a fault.
             webView.scrollView.verticalScrollIndicatorInsets = inset
+
+            // The one strip of the glass none of the above reaches: the bar iOS
+            // lays over the page while a field on it has the keyboard. Every
+            // box you write into on Instagram is pinned to the bottom of the
+            // page, which is exactly where that bar floats — so it comes down
+            // on the message being typed, with its own tick where Instagram's
+            // send button is. Taken away here, once, at the point the view is
+            // made, because the view that owns it is already there by then.
+            // See `FormBar` for what that costs, and `FormBarTests` for the two
+            // facts about WebKit it stands on.
+            FormBar.take(from: webView)
+
             return (webView, payload.missing)
         }
 
