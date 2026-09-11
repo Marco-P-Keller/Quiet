@@ -82,6 +82,27 @@ div[role="button"]:has(> svg[aria-label="Reels"]):not(article div) {
   display: none !important;
 }
 
+/* ── The arrow out of the inbox ─────────────────────────────────────────── */
+/*
+ * Set by trim.js on the back arrow at the left of the inbox's own bar, and on
+ * nothing else. In Quiet the inbox is not a page somebody arrived at — it is
+ * one of five things on the row along the bottom, the way it is a tab in
+ * Instagram's own app, and a tab has nothing to go back from. A conversation's
+ * arrow is left alone: that one goes to the list of conversations, and it is
+ * the way out of a thread.
+ *
+ * Blank rather than gone. The bar is a flex row with the name centred between
+ * its two ends, so `display: none` on the left end slides the name across —
+ * a second change nobody asked for, in a bar somebody is looking at. This
+ * leaves the space exactly as it was and takes away only the drawing and the
+ * tap.
+ */
+
+[data-quiet-blank] {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 /* ── Room for the clock ─────────────────────────────────────────────────── */
 /*
  * The app hands the page the entire screen, so the first thing in the feed
@@ -173,10 +194,24 @@ body {
  * Set by trim.js on the pinned element itself, which is usually a wrapper
  * rather than the row of controls, and which is asked of the browser rather
  * than of a stylesheet.
+ *
+ * `--quiet-lift` is the second half of the same sentence, and it is the
+ * conversation header vanishing the moment somebody answers a message. An iOS
+ * keyboard does not shorten the box that `fixed` and `sticky` are measured
+ * against — it leaves that box the height of the glass and slides the visible
+ * part down inside it, so a bar pinned to the top of the page is pinned to a
+ * top that is now off the screen. Measured at 249 points on a page shaped like
+ * a conversation, which put a header whose own top is 62 at minus 187.
+ *
+ * The number comes from `watchTheGlass` in trim.js, which reads it off
+ * `visualViewport`, and it is zero for as long as nothing is pushing the page
+ * about. Added to `top` rather than applied as a transform because the
+ * transform on this same selector belongs to the header that gets out of the
+ * way on the feed, and it is animated.
  */
 
 [data-quiet-pinned] {
-  top: var(--quiet-clock, 0px) !important;
+  top: calc(var(--quiet-clock, 0px) + var(--quiet-lift, 0px)) !important;
 }
 
 /* ── The floor under a bar that is no longer there ──────────────────────── */

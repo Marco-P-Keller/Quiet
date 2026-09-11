@@ -1768,6 +1768,61 @@
     }
   }
 
+  /* ── The bar a keyboard takes off the top ─────────────────────────────── */
+
+  /**
+   * How far down the screen the page's own top has been pushed, said to the
+   * stylesheet so that whatever is pinned up there goes with it.
+   *
+   * This is the conversation header disappearing the moment you answer
+   * somebody, and it is not Instagram's doing or Quiet's. It is what an iOS
+   * keyboard does to a page. The keyboard does not resize the box that
+   * `position: fixed` and `position: sticky` are measured against; it leaves
+   * that box the height of the glass and slides the part you can *see* down
+   * inside it. So a header pinned to the top of the page is pinned to a top
+   * that is now above the screen.
+   *
+   * Measured, on a page built to the same shape as a conversation — a bar at
+   * the top, a box at the foot, and enough said in between to scroll:
+   *
+   *     visualViewport.offsetTop   header's own top
+   *     no keyboard    0            62
+   *     keyboard up  249          −187
+   *
+   * Which is the same number twice: 62 − 249. The header is exactly one
+   * offset above the glass, and it is the same for `fixed` and for `sticky`,
+   * so nothing here has to know which of the two Instagram is using this week.
+   *
+   * The correction is that number, handed to trim.css as a variable and added
+   * to the `top` the pinned rule already sets. `top` rather than a transform
+   * on purpose: the transform on `[data-quiet-pinned]` belongs to the header
+   * that gets out of the way on the feed, it is animated over 220ms, and a
+   * header easing into place a fifth of a second after the keyboard is a
+   * header that looks broken in a different way.
+   *
+   * Zero whenever nothing is pushing the page about, so the variable costs
+   * nothing on every page where this never happens.
+   */
+  function watchTheGlass() {
+    var glass = window.visualViewport;
+    if (!glass) return;
+
+    var said = -1;
+    function sayHowFar() {
+      // Clamped at nothing. A page pulled past its own top reports a negative
+      // offset for the length of the rubber band, and a header pushed *up* by
+      // it is the bug this function exists to answer, in the other direction.
+      var lift = Math.max(0, Math.round(glass.offsetTop));
+      if (lift === said) return;
+      said = lift;
+      document.documentElement.style.setProperty("--quiet-lift", lift + "px");
+    }
+
+    glass.addEventListener("resize", sayHowFar);
+    glass.addEventListener("scroll", sayHowFar);
+    sayHowFar();
+  }
+
   /** Leaving the feed brings it back, wherever the last page was scrolled to. */
   function headerComesBack() {
     if (isFeed()) return;
@@ -2138,6 +2193,100 @@
     var bar = headerBar();
     if (bar) liftPinned(bar);
     liftWhateverIsUpThere();
+    blankTheArrowOutOfTheInbox();
+  }
+
+  /* ── The arrow out of the inbox ───────────────────────────────────────── */
+
+  /**
+   * The inbox, and not a conversation inside it.
+   *
+   * The distinction is the whole of the rule below. A conversation's back
+   * arrow goes to the list of conversations and is the way out of a thread;
+   * the inbox's goes nowhere anybody asked for, because in Quiet the inbox is
+   * not a page you arrived at from somewhere — it is one of five things on the
+   * row along the bottom, the way it is a tab in Instagram's own app, and a
+   * tab does not have a back arrow.
+   */
+  function inTheInbox() {
+    var path = location.pathname;
+    return path === "/direct" ||
+           path === "/direct/" ||
+           path.indexOf("/direct/inbox") === 0;
+  }
+
+  /**
+   * That arrow, left in the layout and drawn as nothing.
+   *
+   * Found by shape, like everything else that has to survive next Tuesday:
+   * there is no address on it — it goes back rather than anywhere — and its
+   * label is a word, which is "Back" on this phone and something else on the
+   * next one. What it is instead is a small control at the left-hand end of
+   * the bar over the clock, made of a drawing and no text at all. The name
+   * beside it is text, which is what keeps this off the account switcher; the
+   * pencil is at the other end, which is what keeps it off that.
+   *
+   * Blanked rather than hidden, and the distinction is worth the extra rule.
+   * `display: none` takes it out of the row, and the row is a flex one with
+   * the name centred between its ends — take the left end away and the name
+   * slides into where the arrow was. `visibility: hidden` leaves the space it
+   * held, so the only thing that changes on the screen is that the arrow is
+   * not drawn and cannot be pressed.
+   */
+  function blankTheArrowOutOfTheInbox() {
+    if (!document.elementsFromPoint) return;
+    if (!inTheInbox()) return;
+
+    var width = window.innerWidth || 390;
+    // Where the page's own top is, which is where the app put it: the clock's
+    // height, handed down as a variable and paid by the body's padding. Asked
+    // of the document rather than assumed, because it is a different number on
+    // every phone.
+    var clock = parseFloat(
+      window.getComputedStyle(document.body).paddingTop
+    ) || 0;
+
+    // Two columns in from the left edge and three heights down the bar. A
+    // thing that small is missed by a single point more often than it is hit.
+    var columns = [Math.round(width * 0.05), Math.round(width * 0.09)];
+    var rows = [clock + 10, clock + 22, clock + 34];
+
+    for (var r = 0; r < rows.length; r++) {
+      for (var c = 0; c < columns.length; c++) {
+        var stack = document.elementsFromPoint(columns[c], rows[r]);
+        if (!stack) continue;
+        for (var i = 0; i < stack.length; i++) {
+          if (isTheArrowOut(stack[i])) note(stack[i], "data-quiet-blank", "");
+        }
+      }
+    }
+  }
+
+  /** Whether this one is that arrow. */
+  function isTheArrowOut(node) {
+    if (!node || !node.getAttribute) return false;
+    if (node === document.body || node === document.documentElement) return false;
+    if (node.id && node.id.indexOf("quiet-") === 0) return false;
+
+    // A control, rather than the box one sits in.
+    var tag = (node.tagName || "").toLowerCase();
+    var role = node.getAttribute("role");
+    if (tag !== "a" && tag !== "button" &&
+        role !== "button" && role !== "link") return false;
+
+    // A drawing and nothing said. The account switcher next to it is a name,
+    // and a name is text.
+    if (!node.querySelector("svg")) return false;
+    if ((node.textContent || "").trim() !== "") return false;
+
+    // The size of an icon, at the left-hand end of the bar.
+    var width = window.innerWidth || 390;
+    var box = node.getBoundingClientRect();
+    if (box.width < 16 || box.height < 16) return false;
+    if (box.width > 80 || box.height > 80) return false;
+    if (box.left > width * 0.2) return false;
+
+    return true;
   }
 
   /**
@@ -3118,6 +3267,7 @@
   window.addEventListener("popstate", schedule);
 
   watchTheHeader();
+  watchTheGlass();
 
   /* A change of scheme rewrites every colour in the page and touches nothing in
    * the document, so the observer below never hears about it and the band would

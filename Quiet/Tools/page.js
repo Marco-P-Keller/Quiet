@@ -137,6 +137,21 @@ function dress(win) {
     await new Promise((go) => setTimeout(go, 200));
     win.drain();
   };
+  // The part of the page a keyboard leaves visible.
+  //
+  // jsdom has no keyboard and no viewport, so the fixture says how far down
+  // the visible part now starts and tells the window it moved — which is
+  // exactly what a browser does, and `offsetTop` is all the listener reads.
+  const glassMoved = [];
+  win.visualViewport = {
+    offsetTop: 0,
+    addEventListener: (name, fn) => glassMoved.push(fn),
+  };
+  win.pushTheGlassDown = (by) => {
+    win.visualViewport.offsetTop = by;
+    glassMoved.forEach((fn) => fn());
+  };
+
   // The script asks Instagram who is signed in. There is nobody here to ask.
   win.fetch = () => new win.Promise(() => {});
   win.__quietTop = 59;
