@@ -68,11 +68,131 @@ enum Pane: String, CaseIterable, Sendable {
 /// pass after a rotation, and including the pane added three taps from now that
 /// was not there when the container was laid out.
 final class PaneContainer: UIView {
+    /// How much of the bottom of this view a keyboard is covering, and the
+    /// whole of why a conversation header used to disappear when you answered
+    /// somebody.
+    ///
+    /// An iOS keyboard does not shorten the box a web page is laid out
+    /// against. It leaves that box the height of the glass, and slides the
+    /// part you can *see* down inside it — so everything at the top of the
+    /// page goes above the screen. Measured on a page built the way a
+    /// conversation is, a bar at the top and a box at the foot:
+    ///
+    ///                            visualViewport.offsetTop   the bar's own top
+    ///     no keyboard                          0                     62
+    ///     keyboard up                        249                   −187
+    ///     keyboard up, this view shortened     0                     62
+    ///
+    /// The third row is this property. Take the keyboard's height off the view
+    /// the page is drawn in and there is nothing obscuring the page, so there
+    /// is nothing for WebKit to slide out of the way: the page's own viewport
+    /// *is* what you can see, the bar stays at the top of it, and the message
+    /// box sits on the keyboard.
+    ///
+    /// Which is the answer that needed no opinion about Instagram's markup,
+    /// and that is why it is the one that ships. An earlier attempt moved the
+    /// bar from the stylesheet, by adding the same offset to the `top` of
+    /// whatever trim.js had found pinned up there. It was measured, and it
+    /// worked, and it did nothing at all on the real site — because a `top` is
+    /// only worth anything to an element that is `fixed` or `sticky`, and a
+    /// conversation's bar is neither. It is the first row of an app shell, and
+    /// `position: static` has no `top`.
+    private var coveredByTheKeyboard: CGFloat = 0
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        watchForTheKeyboard()
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("PaneContainer is not made from a nib")
+    }
+
+    /// The room left for a page, which is this view minus whatever a keyboard
+    /// is standing on.
+    private var room: CGRect {
+        var room = bounds
+        room.size.height = max(0, room.height - coveredByTheKeyboard)
+        return room
+    }
+
     override func layoutSubviews() {
         super.layoutSubviews()
-        for view in subviews where view.frame != bounds {
-            view.frame = bounds
+        let room = self.room
+        for view in subviews where view.frame != room {
+            view.frame = room
         }
+    }
+
+    private func watchForTheKeyboard() {
+        // One notification rather than three. `willChangeFrame` is posted for a
+        // keyboard arriving, for one leaving, and for one that merely changed
+        // height — the predictive row appearing, a switch to emoji — and the
+        // arithmetic below is the same answer to all three. A keyboard on its
+        // way out reports a frame below the bottom of the screen, which comes
+        // out of that arithmetic as nothing covered.
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(theKeyboardMoved),
+            name: UIResponder.keyboardWillChangeFrameNotification,
+            object: nil
+        )
+    }
+
+    @objc private func theKeyboardMoved(_ note: Notification) {
+        guard let window else { return }
+        guard let end = note.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue
+        else { return }
+
+        // The frame arrives in the screen's own space, which is not this
+        // view's — this one starts below the clock and stops above the row.
+        let arriving = convert(end.cgRectValue, from: window.screen.coordinateSpace)
+        let covered = somethingHereHasTheKeyboard
+            ? max(0, bounds.maxY - arriving.minY)
+            : 0
+
+        guard abs(covered - coveredByTheKeyboard) > 0.5 else { return }
+        coveredByTheKeyboard = covered
+        setNeedsLayout()
+
+        // In step with the keyboard, in its own curve. The number and the
+        // curve both come from the notification rather than from a constant
+        // here, because they are the system's to change and it has.
+        let seconds = note.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey]
+            as? Double ?? 0
+        guard seconds > 0 else {
+            layoutIfNeeded()
+            return
+        }
+        let curve = note.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey]
+            as? Int ?? 7
+        UIView.animate(
+            withDuration: seconds,
+            delay: 0,
+            options: UIView.AnimationOptions(rawValue: UInt(curve) << 16)
+        ) {
+            self.layoutIfNeeded()
+        }
+    }
+
+    /// Whether the keyboard belongs to a field on the page, rather than to one
+    /// of Quiet's own screens.
+    ///
+    /// Asked because the app has fields of its own — the one that finds
+    /// somebody, most of all — and they are drawn *over* the page rather than
+    /// in it. Shortening a page nobody can see costs a relayout of Instagram
+    /// for nothing, and gives the feed back at a different scroll position than
+    /// the one it was left at.
+    ///
+    /// A keyboard on its way out has already had the field resign, so this
+    /// answers false and the room comes back. That is the same sentence as the
+    /// one above rather than a second rule.
+    private var somethingHereHasTheKeyboard: Bool {
+        func asks(_ view: UIView) -> Bool {
+            view.isFirstResponder || view.subviews.contains(where: asks)
+        }
+        return asks(self)
     }
 }
 
