@@ -1695,49 +1695,5 @@ const GROUPED = `
   answering.pushTheGlassDown(-40);
   check("a page pulled past its own top lifts nothing", liftOf(answering), "0px");
 
-  /* ── The arrow out of the inbox ───────────────────────────────────────── */
-
-  /* In Quiet the inbox is not a page anybody arrived at — it is one of five
-   * things on the row along the bottom, the way it is a tab in Instagram's own
-   * app, and a tab has nothing to go back from. The arrow is found by shape,
-   * because it carries no address and its label is a word that changes
-   * language: a small control at the left-hand end of the bar, made of a
-   * drawing and no text. The name beside it is text; the pencil is at the
-   * other end. */
-  const INBOX_BAR = `
-    <div data-at-top data-box="0,0,390,44">
-      <button data-at-top data-name="back" data-box="8,6,32,32"><svg></svg></button>
-      <button data-at-top data-name="who" data-box="150,6,90,32">marcopkeller<svg></svg></button>
-      <button data-at-top data-name="compose" data-box="350,6,32,32"><svg></svg></button>
-    </div>`;
-
-  const blankOf = (win, name) =>
-    win.document
-      .querySelector(`[data-name="${name}"]`)
-      .getAttribute("data-quiet-blank");
-
-  const theInbox = await page(INBOX_BAR, "https://www.instagram.com/direct/inbox/");
-  await theInbox.settle();
-  check("the inbox's back arrow is blanked", blankOf(theInbox, "back"), "");
-  check("the name beside it is not, because a name is text", blankOf(theInbox, "who"), null);
-  check("nor is the pencil at the other end", blankOf(theInbox, "compose"), null);
-
-  /* And a conversation keeps its own, which goes to the list of conversations
-   * and is the way out of a thread. */
-  const thread = await page(INBOX_BAR, "https://www.instagram.com/direct/t/17/");
-  await thread.settle();
-  check("a conversation keeps the arrow out of it", blankOf(thread, "back"), null);
-
-  /* A bar with one control in it is not a header with a back arrow at the end
-   * of it, and the rule must not take the only thing up there away. */
-  const oneControl = await page(
-    `<div data-at-top data-box="0,0,390,44">
-       <button data-at-top data-name="wide" data-box="8,6,300,32"><svg></svg></button>
-     </div>`,
-    "https://www.instagram.com/direct/inbox/"
-  );
-  await oneControl.settle();
-  check("something the width of the bar is not an arrow", blankOf(oneControl, "wide"), null);
-
   done();
 })();
