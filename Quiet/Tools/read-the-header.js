@@ -1670,30 +1670,78 @@ const GROUPED = `
     false
   );
 
-  /* ── The bar a keyboard takes off the top ─────────────────────────────── */
+  /* ── The arrow out of the inbox ───────────────────────────────────────── */
 
-  /* Which is the conversation header disappearing the moment somebody answers
-   * a message, and it is nobody's doing here: an iOS keyboard does not shorten
-   * the box `fixed` and `sticky` are measured against. It leaves that box the
-   * height of the glass and slides the part you can see down inside it, so a
-   * bar pinned to the top of the page is pinned to a top that is now above the
-   * screen. Measured at 249 points on a page shaped like a conversation, which
-   * put a header whose own top is 62 at minus 187. */
-  const liftOf = (win) =>
-    win.document.documentElement.style.getPropertyValue("--quiet-lift");
+  /* Found by shape, because there is nothing else to find it by: it carries no
+   * address, and its label is a word that changes language. What it is instead
+   * is a small control at the left-hand end of the bar over the clock, made of
+   * a drawing and no text. The name beside it is text; the pencil is at the
+   * other end.
+   *
+   * The first version of this rule broke opening messages altogether, so the
+   * cases below are mostly about what it must *not* touch. */
+  const arrowOf = (win, name) =>
+    win.document
+      .querySelector(`[data-name="${name}"]`)
+      .getAttribute("data-quiet-arrow");
 
-  const answering = await page(GROUPED, "https://www.instagram.com/direct/t/17/");
-  check("with nothing pushing the page about, nothing is lifted", liftOf(answering), "0px");
-  answering.pushTheGlassDown(249);
-  check("a keyboard moves the pinned bar down by what it took", liftOf(answering), "249px");
-  answering.pushTheGlassDown(0);
-  check("and putting the keyboard away puts the bar back", liftOf(answering), "0px");
+  const inboxBar = (first) => `
+    <div data-box="0,0,390,44">
+      ${first}
+      <button data-name="who" data-box="150,6,90,32">marcopkeller<svg></svg></button>
+      <button data-name="compose" data-box="350,6,32,32"><svg></svg></button>
+    </div>`;
 
-  /* A page pulled past its own top reports a negative offset for the length of
-   * the rubber band. A bar pushed *up* by that is this same bug in the other
-   * direction, so the number is clamped at nothing. */
-  answering.pushTheGlassDown(-40);
-  check("a page pulled past its own top lifts nothing", liftOf(answering), "0px");
+  const ARROW = '<button data-at-top data-name="back" data-box="8,6,32,32"><svg></svg></button>';
+
+  const theInbox = await page(inboxBar(ARROW), "https://www.instagram.com/direct/inbox/");
+  await theInbox.settle();
+  check("the inbox's back arrow is blanked", arrowOf(theInbox, "back"), "");
+  check("the name beside it is not, because a name is text", arrowOf(theInbox, "who"), null);
+  check("nor is the pencil at the other end", arrowOf(theInbox, "compose"), null);
+
+  /* A conversation keeps its own, which is the way out of a thread. */
+  const thread = await page(inboxBar(ARROW), "https://www.instagram.com/direct/t/17/");
+  await thread.settle();
+  check("a conversation keeps the arrow out of it", arrowOf(thread, "back"), null);
+
+  /* The name, if the point happens to land on it. Text is what tells the two
+   * apart, and it is the only thing that does. */
+  const named = await page(
+    `<div data-box="0,0,390,44">
+       <button data-at-top data-name="who" data-box="8,6,90,32">marcopkeller<svg></svg></button>
+     </div>`,
+    "https://www.instagram.com/direct/inbox/"
+  );
+  await named.settle();
+  check("a name at the left-hand end is still a name", arrowOf(named, "who"), null);
+
+  /* And the guard that matters most: a wrapper holding the whole bar is not a
+   * button on it, and `visibility` is inherited — blanking that would blank
+   * every conversation in the list. */
+  const aGroup = await page(
+    `<div data-at-top data-name="whole" data-box="0,0,60,44" role="button">
+       <svg></svg>
+       <button data-name="inner" data-box="8,6,32,32"><svg></svg></button>
+     </div>`,
+    "https://www.instagram.com/direct/inbox/"
+  );
+  await aGroup.settle();
+  check(
+    "something with another control inside it is never blanked",
+    arrowOf(aGroup, "whole"),
+    null
+  );
+
+  /* Something the width of the bar is not an arrow either. */
+  const wide = await page(
+    `<div data-box="0,0,390,44">
+       <button data-at-top data-name="wide" data-box="8,6,300,32"><svg></svg></button>
+     </div>`,
+    "https://www.instagram.com/direct/inbox/"
+  );
+  await wide.settle();
+  check("nor is something the width of the bar", arrowOf(wide, "wide"), null);
 
   done();
 })();
