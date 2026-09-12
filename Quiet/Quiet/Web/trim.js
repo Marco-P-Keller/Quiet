@@ -2161,33 +2161,45 @@
   /**
    * That arrow, left in the layout and drawn as nothing.
    *
-   * **This is a second attempt, and the first one broke opening messages
-   * altogether.** Which mechanism it was was never pinned down — `pass` has no
-   * `try`, so anything thrown in here takes `sayBare` down with it and the app
-   * is never told the page arrived, and a cover that stays down over the inbox
-   * is exactly "I can't open messages". So this one is built so that the worst
-   * it can do is nothing:
+   * **Third attempt.** The first broke opening messages altogether. The second
+   * was safe and found nothing, and the photograph of it not working is what
+   * says why: the arrow sits at x 36, y 81 on that phone, and the points this
+   * asks about are x 24 and 39 at the clock's height plus 22, which is 81. The
+   * geometry was never the problem. What rejected it were the tests about the
+   * element itself, and two of those are now gone:
    *
-   *   * everything is inside a `try`, and a throw leaves the pass alone;
-   *   * two hit tests rather than twelve, and none at all once it has found
-   *     what it is looking for;
-   *   * nothing with another control inside it is ever touched, so it cannot
-   *     take a piece of the bar and everything in it;
-   *   * and what it sets is `visibility`, which changes what is drawn and
-   *     nothing about what is laid out.
+   *   * **that it is an `a` or a `button` or carries a role.** Instagram draws
+   *     controls as plain elements with a handler on them as often as not, and
+   *     there is nothing in the markup that says "this is pressable".
+   *   * **that it says nothing.** An Instagram icon is an `<svg>` with a
+   *     `<title>` inside it, for the screen reader — so the text of the thing
+   *     holding it is "Back", or whatever that is in the language the account
+   *     is in, and never the empty string this was looking for.
    *
-   * It is still found by shape, because there is nothing else to find it by:
-   * it carries no address — it goes back rather than anywhere — and its label
-   * is a word, which is "Back" on one phone and something else on the next. So
-   * what it is instead is a small control at the left-hand end of the bar over
-   * the clock, made of a drawing and no text at all. The name beside it is
-   * text, which is what keeps this off the account switcher; the pencil is at
-   * the other end, which is what keeps it off that.
+   * What is left is what can be relied on. It is a drawing; it is the size of
+   * an icon; it is at the left-hand end of the bar over the clock; and it is
+   * not a group with other controls in it. The name beside it is at a third of
+   * the way across, which is what keeps this off the account switcher, and the
+   * pencil is at the other end.
    *
-   * Blanked rather than hidden, and the distinction is the reason for the
-   * extra rule in trim.css. The bar is a row with the name centred between its
-   * ends; `display: none` on the left end slides the name across, which is a
-   * second change nobody asked for in a bar somebody is looking at.
+   * The outermost of those rather than the innermost, so that what is blanked
+   * is as much of the thing you would press as can be had safely. Never the
+   * drawing itself: blank an `<svg>` and whatever holds it goes on taking the
+   * tap, and an arrow you cannot see but can still press is worse than one you
+   * can see.
+   *
+   * The safety of the second attempt is all still here, because that part was
+   * right. `pass()` has no `try` of its own and `sayBare` is near the end of
+   * it: anything thrown in here and the app is never told the page arrived,
+   * and a cover that stays down over the inbox is exactly "I can't open
+   * messages". So everything is inside a `try`; there are no hit tests at all
+   * once it has found what it is looking for; nothing bigger than an icon is
+   * ever touched, so it cannot take a piece of the bar and everything standing
+   * in it; and what is set is `visibility`, which changes what is drawn and
+   * nothing about what is laid out, so the name stays centred where it was.
+   *
+   * The worst this can now do is draw nothing in a space the size of a
+   * fingertip in the top-left corner of the inbox.
    */
   function blankTheArrowOutOfTheInbox() {
     try {
@@ -2204,14 +2216,16 @@
       var clock = parseFloat(
         window.getComputedStyle(document.body).paddingTop
       ) || 0;
-      var middle = clock + 22;
 
       var columns = [Math.round(width * 0.06), Math.round(width * 0.10)];
-      for (var c = 0; c < columns.length; c++) {
-        var found = theControlAt(columns[c], middle);
-        if (found) {
-          note(found, "data-quiet-arrow", "");
-          return;
+      var rows = [clock + 10, clock + 22, clock + 34];
+      for (var r = 0; r < rows.length; r++) {
+        for (var c = 0; c < columns.length; c++) {
+          var found = theArrowAt(columns[c], rows[r]);
+          if (found) {
+            note(found, "data-quiet-arrow", "");
+            return;
+          }
         }
       }
     } catch (error) {
@@ -2220,47 +2234,48 @@
     }
   }
 
-  /** The control drawn at a point, or the nearest one above it. */
-  function theControlAt(x, y) {
+  /**
+   * The largest thing at a point that is still only an icon.
+   *
+   * Outermost rather than first, because the first is usually a piece of the
+   * drawing and what should go is the whole of what you would press.
+   */
+  function theArrowAt(x, y) {
     var node = document.elementFromPoint(x, y);
+    var best = null;
     var depth = 0;
-    while (node && depth < 4) {
-      if (isTheArrowOut(node)) return node;
+    while (node && depth < 8) {
+      if (isTheArrowOut(node)) best = node;
       node = node.parentElement;
       depth += 1;
     }
-    return null;
+    return best;
   }
 
-  /** Whether this one is that arrow. */
+  /** Whether this one could be that arrow. */
   function isTheArrowOut(node) {
     if (!node || !node.getAttribute || !node.querySelector) return false;
     if (node === document.body || node === document.documentElement) return false;
     if (node.id && node.id.indexOf("quiet-") === 0) return false;
 
-    var tag = (node.tagName || "").toLowerCase();
-    var role = node.getAttribute("role");
-    if (tag !== "a" && tag !== "button" &&
-        role !== "button" && role !== "link") return false;
-
-    // A drawing, and nothing said. The name in that bar is a name.
+    // Something holding a drawing, and never the drawing itself.
     if (!node.querySelector("svg")) return false;
-    if ((node.textContent || "").trim() !== "") return false;
 
-    // A button, not a group of them. This is the guard that matters: something
-    // with another control inside it is a piece of the bar rather than a
-    // control on it, and `visibility` is inherited — blanking a piece of the
-    // bar blanks everything standing in it.
+    // One control, not a group of them. This is the guard that matters:
+    // `visibility` is inherited, so blanking a piece of the bar would blank
+    // everything standing in it.
     if (node.querySelectorAll('a, button, [role="button"], input, textarea').length) {
       return false;
     }
 
-    // The size of an icon, at the left-hand end of the bar.
+    // The size of an icon, at the left-hand end of the bar. The name in that
+    // bar begins a third of the way across, which is what these two numbers
+    // are keeping this away from.
     var width = window.innerWidth || 390;
     var box = node.getBoundingClientRect();
     if (box.width < 16 || box.height < 16) return false;
     if (box.width > 80 || box.height > 80) return false;
-    if (box.left > width * 0.2) return false;
+    if (box.left > width * 0.22) return false;
 
     return true;
   }
