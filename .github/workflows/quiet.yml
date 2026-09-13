@@ -93,6 +93,16 @@ jobs:
       - name: When it says the feed has ended
         run: node Tools/read-the-end.js
 
+      # What two fingers on a photograph lift.
+      #
+      # The arithmetic of a pinch is not the part that can be wrong. What it
+      # decides to lift is: the face beside somebody's name is an `img` in a
+      # post too, and so is a picture in a suggestion the trim pass has already
+      # taken out. Every one of those is a gesture that would be found by
+      # somebody on a phone pinching the wrong thing and watching it grow.
+      - name: What two fingers lift
+        run: node Tools/read-the-zoom.js
+
       # Every sentence in the app, in all six languages.
       #
       # The failure this catches is not a crash and does not look like one: a
