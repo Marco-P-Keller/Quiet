@@ -721,6 +721,12 @@ final class WebSurface {
                 myFace = nil
                 startAgainAsSomebodyElse()
             }
+            // A name is the one thing a profile pane cannot be opened without,
+            // so learning one is a reason to look again at what is worth
+            // opening behind the glass. Nothing happens if the page in front
+            // has not finished yet: this only un-blocks the profile, it does
+            // not bring the waiting forward.
+            stack?.warmTheNextOne()
         }
         let data = picture.flatMap { Data(base64Encoded: $0) }
         if let data, let face = UIImage(data: data) { myFace = face }
@@ -1718,6 +1724,12 @@ struct InstagramWebView: UIViewRepresentable {
             tellThisPage(webView)
             endPull()
             keepPullAlive(webView.scrollView)
+            // And, if this was the page somebody is actually looking at, the
+            // other two may now be opened behind it. Said from every pane
+            // rather than only the one in front, because the pane that just
+            // finished may *be* one of the other two — and then it is the third
+            // one's turn. See `Warming`.
+            stack?.aPaneFinished(pane)
         }
 
         /// Give the fast path back, now that the page is painting its own

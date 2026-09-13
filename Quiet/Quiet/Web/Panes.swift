@@ -111,7 +111,11 @@ final class PaneContainer: UIView {
 
     /// The room left for a page, which is this view minus whatever a keyboard
     /// is standing on.
-    private var room: CGRect {
+    ///
+    /// Readable, because `layoutSubviews` is not the only thing that needs it:
+    /// a pane built while somebody is writing is a pane that must arrive the
+    /// size of the room rather than the size of the view.
+    var room: CGRect {
         var room = bounds
         room.size.height = max(0, room.height - coveredByTheKeyboard)
         return room
@@ -193,6 +197,60 @@ final class PaneContainer: UIView {
             view.isFirstResponder || view.subviews.contains(where: asks)
         }
         return asks(self)
+    }
+}
+
+/// Which page to open behind the glass next, and whether to open one at all.
+///
+/// The panes are built lazily, and the reason is written down where they are
+/// built: an app that opened three copies of Instagram at launch would spend a
+/// cold start fetching two pages nobody has asked to see. That reasoning is
+/// still right about *launch*. It is wrong about the ten seconds after it —
+/// the feed is up by then, the network is idle, and the first tap on messages
+/// pays for a whole page load while somebody watches.
+///
+/// So the other two are opened anyway, only later and never at once. This is
+/// the part that decides; `PaneStack` is the part that waits.
+///
+/// Every one of these is a way of not being the thing the comment warned
+/// about:
+///
+///   * **Nothing until the page in front has finished.** That is the whole of
+///     the original objection, and the answer to it is a wait rather than a
+///     refusal.
+///   * **Nothing for somebody who is not signed in.** Instagram answers both
+///     of those addresses with a login form, and fetching two of those is two
+///     pages nobody will ever see.
+///   * **Nothing twice.** A pane iOS took back is not asked for again — see
+///     `PaneStack.died`, which drops a background pane rather than rebuilding
+///     it, for the same reason.
+///   * **Nothing at all, ever again, once the phone has said it is short of
+///     memory.** Warming is a luxury and a memory warning is not a suggestion.
+///   * **Nothing for a profile with no name on it.** A profile pane has no
+///     address until the app knows whose it is, and an empty one is worse than
+///     none: `goToMyProfile` would show a blank instead of falling back.
+struct Warming {
+    /// True once the page somebody is actually looking at has finished.
+    var theFrontIsUp = false
+
+    /// Set when the phone asks for memory back, and never unset.
+    var stopped = false
+
+    /// The ones already asked for, so that none is asked for twice.
+    var asked: Set<Pane> = []
+
+    /// The next page worth opening behind the glass, or nothing.
+    ///
+    /// In `Pane`'s own order, which puts messages before the profile — the two
+    /// are both warmed in the end, and the one people reach for on the way past
+    /// may as well be the one that is ready first.
+    func next(built: Set<Pane>, me: String?, signedIn: Bool) -> Pane? {
+        guard theFrontIsUp, !stopped, signedIn else { return nil }
+        return Pane.allCases.first { pane in
+            !built.contains(pane)
+                && !asked.contains(pane)
+                && pane.opening(me: me, signedIn: signedIn) != nil
+        }
     }
 }
 
@@ -308,10 +366,65 @@ final class PaneStack {
         )
         panes[pane] = made
         container.addSubview(made.webView)
-        made.webView.frame = container.bounds
+        made.webView.frame = container.room
         made.webView.isHidden = pane != current
         made.openTheFirstPage()
         return made
+    }
+
+    // MARK: - Opening the other two behind the glass
+
+    /// How long after one page settles before the next is asked for.
+    ///
+    /// A page is not finished when `didFinish` says so — its photographs are
+    /// still arriving — and the whole point of waiting is to not be in the way
+    /// of them. Long enough that the feed has the line to itself, short enough
+    /// that somebody reading the first two posts finds the inbox already there.
+    private static let afterTheOneInFront: TimeInterval = 2
+
+    private var warming = Warming()
+
+    /// One at a time, always. Two pages opening behind the glass at once is
+    /// the thing the lazy building was avoiding, arriving two seconds late.
+    private var warmingOne = false
+
+    /// A page finished loading. If it was the one in front, the others may
+    /// start; if it was one of theirs, the one after it may.
+    func aPaneFinished(_ pane: Pane) {
+        if pane == current { warming.theFrontIsUp = true }
+        warmTheNextOne()
+    }
+
+    /// Ask for the next page worth having, after a pause.
+    ///
+    /// Also called when the app learns whose account this is, because that is
+    /// the moment a profile stops being an address nobody knows.
+    func warmTheNextOne() {
+        guard !warmingOne else { return }
+        guard let next = warming.next(
+            built: Set(panes.keys),
+            me: surface.me,
+            signedIn: TheLastLook.foundSomebody()
+        ) else { return }
+
+        warming.asked.insert(next)
+        warmingOne = true
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(Self.afterTheOneInFront))
+            guard let self else { return }
+            self.warmingOne = false
+            // Asked again rather than assumed. Two seconds is long enough for
+            // the phone to have asked for its memory back, for somebody to
+            // have tapped that entry themselves, or for the app to have been
+            // signed out from under it.
+            guard !self.warming.stopped, self.panes[next] == nil else { return }
+            _ = self.webPane(for: next)
+            // And on to the one after it, by the clock rather than by waiting
+            // for this page to finish: a page that never finishes — no
+            // network, a refusal — would otherwise stop the third from ever
+            // being asked for.
+            self.warmTheNextOne()
+        }
     }
 
     /// Whether this pane is the one being read, which is what every delegate
@@ -408,6 +521,11 @@ final class PaneStack {
     /// without the warning — and by a feed that has grown long enough to be
     /// the reason one of them is about to.
     func trim() {
+        // And no more warming, ever. Whatever asked for this — a warning, a
+        // process iOS took, a feed grown long — said the same thing: there is
+        // not room for three. Opening one again afterwards would be answering
+        // that by doing it again.
+        warming.stopped = true
         for (pane, webPane) in panes where pane != current {
             webPane.keepThePlace()
             drop(pane, webPane)
@@ -452,6 +570,11 @@ final class PaneStack {
             drop(pane, webPane)
         }
         current = .home
+        // A different account is a different three pages, and none of them has
+        // been asked for yet. Not `stopped`, though: that one is about the
+        // phone rather than about who is signed in to it.
+        warming.theFrontIsUp = false
+        warming.asked = []
         // Through `show` rather than by building one, so the surface is pointed
         // at the new web view and told what it is doing. Built by hand, the app
         // would go on holding a handle to the page it just threw away — and the
