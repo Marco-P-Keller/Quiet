@@ -6,17 +6,54 @@ where a listing gets rejected.
 
 The counts in brackets are Apple's limits. Nothing below exceeds them.
 
+Why these words rather than other words — the strategy behind the name, the
+keywords and the categories, and the two things that would move installs more
+than any of them — is in [being found](aso.md).
+
 ---
 
 ## Name and subtitle
 
-**Name** (30) — `Quiet: Scroll Less`
+**Name** (30) — `Quiet: Stop Doomscrolling`
 
 `Quiet` alone is almost certainly taken; App Store names are unique and it is an
-ordinary English word. The suffix is what makes it available and it says what
-the app is for.
+ordinary English word. The suffix is what makes it available — and which suffix
+is a strategic choice rather than a matter of taste, so it is written down.
+
+The name is the highest-weighted field the App Store searches, which leaves two
+ways to spend it. **Head terms** — "screen time", "app blocker", "digital
+detox" — carry the volume and are already held by Opal, one sec, Freedom and
+ScreenZen, every one of them with years of ranking history and thousands of
+ratings. A 1.0 with no reviews does not land on page one of those; it lands on
+page eight, and page eight is nobody. **A narrow term can be owned outright.**
+"Doomscrolling" has a fraction of the volume and perfect intent: somebody
+typing it is describing this app's exact problem in this app's exact words, and
+there is nearly nothing else there to rank above. First on a small word beats
+eightieth on a large one.
+
+Two earlier candidates and why they lost:
+
+* `Quiet: Scroll Less` — generic. It says neither what the app does nor to
+  what, it contains no word anybody types into a search field, and it spends
+  only 18 of 30 characters in the most valuable field on the page. It is a
+  pleasant phrase that does the name's one job — being found — not at all.
+* `Quiet: No More Doomscrolling` — the right word, three characters of it
+  wasted. "No" and "More" are filler that index for nothing, and the phrase is
+  a complaint. `Stop` is one word instead of two, carries meaning, and is the
+  register the rest of the app is written in: the opening screen says
+  "Instagram, minus the parts that keep you there", not "no more Instagram".
+
+The risk taken knowingly is that "doomscrolling" is a coinage of 2020 and will
+date. That is a cost to be paid in a later version, when there is ranking worth
+protecting; today the app has no users, no reviews and nothing to lose by
+choosing, which is precisely why the choice is being made now rather than after
+launch.
 
 **Subtitle** (30) — `Your feed, on a daily limit`
+
+Second-highest weighted field, and it earns its place: `feed`, `daily` and
+`limit` are all indexed here, which is why none of the three appears in the
+keywords below.
 
 Neither the name nor the subtitle contains "Instagram", deliberately.
 Referencing another company's trademark factually *in the description* is
@@ -64,12 +101,24 @@ WHAT QUIET DOES NOT DO
   which stays quiet on any day you have already been.
 • No countdown on the screen. A timer you can watch is a timer you do watch;
   what is left is in the panel, for the moments you actually want to know.
-• No permission prompt unless you ask for the daily reminder.
+• Quiet asks you for nothing of its own. The one prompt it can raise is for the
+  daily reminder, and only after you turn it on. Instagram's own pages can
+  still ask for the camera, the microphone or your photos when you attach
+  something to a post or a message — that is iOS asking on Instagram's behalf,
+  and Quiet uses none of the three itself.
 
-Four things are kept, on your phone, in the keychain: your limit, today's total,
-the furthest point in time the app has seen, and the day you set it up. They
-survive deleting the app, on purpose. A limit you can lift by reinstalling is
-not a limit.
+Six things are kept, on your phone, in the keychain: your limit and any change
+you have queued for a later day, today's total, the furthest point in time the
+app has seen, the day you set it up, the day you have asked it to forget
+everything, and what your other devices have spent if you are carrying the
+limit between them. They survive deleting the app, on purpose. A limit you can
+lift by reinstalling is not a limit.
+
+Which is why there is a way out that is not the App Store. "Make Quiet forget
+everything", at the foot of the panel, throws all six away and the copy in
+iCloud with them — after the same wait that stands between you and a bigger
+number. An app with no way out at all would be a trap; one you can leave in the
+moment you want five more minutes would not be a limit.
 
 The day turns at four in the morning rather than at midnight, so a late evening
 belongs to the evening it feels like.
@@ -82,33 +131,170 @@ connected to, or supported by them.
 ## Keywords (100, comma separated, no spaces)
 
 ```
-limit,screen,time,focus,minutes,daily,habit,less,scroll,feed,reels,off,attention,wellbeing,digital
+screen,time,detox,blocker,social,media,focus,habit,addiction,distraction,scroll,digital,phone
 ```
 
-Keywords are matched individually, so the name and subtitle words are left out —
-Apple already indexes those, and repeating them wastes the field.
+Keywords are matched individually and combined into phrases, so `screen` and
+`time` buy "screen time" as well as each on its own, and `digital` pairs with
+both `detox` and `wellbeing`.
+
+**`reels` came out, and it should never have gone in.** It is Meta's trademark,
+and the field it sat in is metadata — the same category as the name, the
+subtitle and the icon, all three of which this page already refuses to put it
+in for exactly that reason. Factual reference in the *description* is allowed
+and stays. A trademark in the keyword field is the same guideline 5.2.1 risk
+in a less visible place, taken for one word of search volume, on the one point
+this listing had already decided was not worth arguing about.
+
+Five more came out because they were paid for twice or worth nothing:
+
+* `limit`, `daily`, `feed` — all three are in the subtitle, which Apple indexes
+  anyway. A word bought in two fields is a word bought once and a slot wasted.
+* `off` — a preposition with no search behind it.
+* `minutes` — nobody looks for an app by its unit.
+
+What the freed thirty-odd characters bought instead is the vocabulary this
+category is actually searched in: `detox` (with `digital`, the biggest phrase
+in the sector), `blocker`, `social`, `addiction`, `distraction`, `mindful`.
+
+`scroll` stays even though the name now contains "Doomscrolling", and that is
+deliberate: whether Apple splits a compound into its parts is not documented,
+and six characters is a cheap way not to find out the expensive way.
+
+**`media` was the expensive omission.** `social` was in the list and `media` was
+not, and Apple builds phrases out of the keywords it is given — so "social media
+detox", "social media blocker" and "social media addiction", three of the
+commonest shapes of query in this category, were all unreachable for the want of
+five characters. `mindful` paid for them: it pulls meditation traffic, which is
+somebody else's app. `phone` went in with the room left over, because "phone
+addiction" is among the most-typed phrases here and `addiction` was already
+sitting there unable to pair with anything.
+
+## The other localisations
+
+Apple searches three fields and no others — name, subtitle, keywords — and it
+searches them **once per localisation**. One localisation is therefore 25 + 27 +
+99 characters of indexed text for the entire world, which is what this listing
+was until it had this section. Every localisation added is another 30 + 30 + 100
+in a market with less competition in it, and the app is already bilingual: the
+German screenshots are rendered and waiting in `Tools/shots/out/v2/de/`.
+
+There is a second reason for the German one that has nothing to do with search.
+The publisher is Swiss and the app speaks German; without this, somebody in
+Zurich sees an English product page over a German app.
+
+### German (Germany) — `de-DE`
+
+| Field | Value | |
+| --- | --- | --- |
+| Name | `Quiet: Weniger Doomscrolling` | 28/30 |
+| Subtitle | `Dein Feed, mit Tageslimit` | 25/30 |
+
+```
+bildschirmzeit,handysucht,digital,detox,fokus,ablenkung,konzentration,sucht,pause,social,media,zeit
+```
+
+`Schluss mit Doomscrolling` is the better line and does not fit: with `Quiet: `
+in front of it, it is 32. `Weniger` keeps the meaning and the register — and it
+is closer than the English is to what the app actually does, which is not
+abolition.
+
+`bildschirmzeit` is one word in German, so unlike the English pair it cannot be
+assembled from parts and has to be spent whole. `handysucht` and `sucht` are
+there because the German for this problem is a compound far more often than the
+English is.
+
+**These are drafts and want a native ear before they go in.** Nothing here has
+been checked against how Swiss and German readers actually search, and the
+listing is the wrong place to find that out by accident.
+
+### English (U.K.) — `en-GB`
+
+Worth adding even though not a word of it needs translating, and this is the
+least obvious lever on the page: a separate localisation is a **separate keyword
+field**, and `en-GB` serves the United Kingdom, Australia, Ireland, New Zealand
+and more. Give it the terms the U.S. field had no room for rather than a copy of
+the U.S. field, and the same app covers twice the vocabulary.
+
+| Field | Value | |
+| --- | --- | --- |
+| Name | `Quiet: Stop Doomscrolling` | 25/30 |
+| Subtitle | `Your feed, on a daily limit` | 27/30 |
+
+```
+wellbeing,mindful,break,usage,timer,control,reduce,less,minimal,quit,dopamine,brain,rot,attention
+```
+
+Everything in there is a word the U.S. field could not afford, `wellbeing` and
+`mindful` among them — which is where they went when `media` and `phone` took
+their place. `brain,rot` is the pair that assembles into the phrase somebody
+under twenty-five would actually type.
 
 ## URLs
 
 | Field | Value |
 | --- | --- |
 | Privacy Policy URL | `https://marco-p-keller.github.io/Quiet/privacy.html` |
-| Support URL | `https://marco-p-keller.github.io/Quiet/support.html` |
+| Support URL | `https://connexa-gmbh.ch/support` |
 | Marketing URL | `https://marco-p-keller.github.io/Quiet/` |
 
-Both required pages are in [`site/`](../site) and published to the `gh-pages`
-branch by a workflow, so what is served is what is in the repository. They need
-GitHub Pages switched on once: **Settings → Pages → Source: Deploy from a
-branch → `gh-pages` → `/ (root)`**.
+**The support URL is the publisher's, and the privacy URL is the app's, and
+that split is deliberate.** Quiet is published by Connexa GmbH, whose support
+desk answers for every app it ships — a real address, a stated response time,
+and a person rather than an issue tracker. That is a better support page than
+this project could write for itself, and App Store Connect is asking who
+answers when something breaks.
+
+Privacy is the other way round. `connexa-gmbh.ch/datenschutz` is a *website*
+policy: its third section is headed "Erhobene Daten auf dieser Website" and it
+covers server logs, the contact form and cookies. It does not mention the
+keychain, the iCloud key-value store, or the four permission strings — because
+it is not about an app. Apple asks for a policy that describes *this* app's
+data handling, and a reviewer who follows the link and finds a cookie notice
+has found a listing that does not match its binary. So the app keeps its own
+page, and that page now names Connexa GmbH as the responsible party, gives the
+privacy address, and says in as many words which of the two documents governs
+Quiet.
+
+The Quiet pages are in [`site/`](../site) and published to the `gh-pages`
+branch by a workflow that watches **`dev`** — the branch the app ships from.
+It watched `main` until the day this was written, which is why the published
+front page went on claiming the suggested accounts between your friends were
+absent long after they had become a setting that is on by default.
 
 ## Category
 
-Primary **Utilities**, secondary **Health & Fitness**.
+Primary **Productivity**, secondary **Health & Fitness**.
 
-Health & Fitness is where digital-wellbeing apps usually sit, but this one shows
-somebody else's social network, and a reviewer opening a Health & Fitness app
-onto an Instagram feed has a question before they have read a word. Utilities is
-the honest shelf: it is a tool that constrains something else.
+**What was actually set was Productivity and *Photo & Video*, and the second of
+those was doing harm.** Quiet neither takes nor edits a picture. Standing in
+that category puts it beside photo editors, where the people browsing want
+something else — which does not produce bad downloads, it produces impressions
+without downloads, and a listing that is shown and not tapped is a listing the
+store learns to stop showing. It also files the app on the shelf where
+Instagram-adjacent tools live, which is the one association the review notes
+exist to argue against: a reviewer opening a Photo & Video app onto somebody
+else's feed has 4.2 and 5.2.1 in mind before reading a word.
+
+Three shelves were arguable and the reasoning is worth keeping, because the
+right answer changes as the app grows:
+
+* **Productivity** is where the apps this one competes with actually are —
+  Opal, Freedom, Forest. Apple's "You Might Also Like" and its category browse
+  run on that adjacency, so standing next to them is real visibility. It is
+  also the most crowded category on the store, and the charts are unreachable.
+* **Utilities** is the least contested of the three and therefore the only one
+  where charting is realistic, and a chart position is downloads. But nobody
+  browses Utilities looking for this; they go there for VPNs and scanners.
+* **Health & Fitness** is where somebody looking for digital wellbeing browses.
+  As a *primary* it revives the old objection — a reviewer opening a Health &
+  Fitness app onto an Instagram feed has a question — which is much weaker for
+  a secondary, where it is a shelf and not a claim.
+
+Productivity primary, because being visible beside the competition beats a
+chart position in a category whose audience is not this app's. Health & Fitness
+secondary, because it costs nothing and catches the browse intent Photo & Video
+was catching wrongly.
 
 ## Age rating
 

@@ -12,12 +12,14 @@ screen.
 What is *not* on this list is anything the runner can already answer: the build,
 the unit tests, the UI test that walks from an empty install to Instagram and
 back through a relaunch, the trim pass asked forty-odd questions on a page that
-is not Instagram's, and every sentence in the app checked in both languages.
+is not Instagram's, and every sentence in the app checked in all six languages.
 Those run on every push and are green.
 
 A companion to this page — [verbesserungen.md](verbesserungen.md) — tracks the
 thirty-eight improvements found in a read-through of the whole project, with
-what has been done and what has not.
+what has been done and what has not. A second one — [aso.md](aso.md) — is about
+the listing rather than the app: whether anybody will ever find it, which is a
+different question from whether it can ship and is not answered anywhere else.
 
 ---
 
@@ -77,7 +79,7 @@ a login page.
 terminated the app on the spot — no crash report naming the cause, just a
 disappearing app.
 
-Four strings now, in both languages: camera, microphone, photo library, and
+Four strings now, in all six languages: camera, microphone, photo library, and
 adding to the photo library. Quiet uses none of them itself and every sentence
 says so; they exist so that a tap on somebody else's page cannot end the app.
 
@@ -147,27 +149,52 @@ third-party trademark, deliberately.
 Expect a conversation, not a rubber stamp. That part is not a task anybody can
 finish in advance.
 
-### 2.2 A privacy policy and a support page that exist — *written; one switch left*
+### 2.2 A privacy policy and a support page that resolve — *done, and the switch was not the only thing wrong*
 
-Both are in [`site/`](../site) and published to the `gh-pages` branch by a
-workflow, so what is served is what is in the repository rather than a copy that
-drifts. They need GitHub Pages turned on once, by hand:
+The pages were written. The URL was not: `Settings → Pages` had never been
+switched on, so every address in the listing answered **404**, and had done
+since the listing was written. A privacy policy that does not load is, to App
+Store Connect, a privacy policy that does not exist, and the section above this
+one said "one switch left" for long enough that the switch stopped being read as
+a task. It is on now — `gh-pages`, `/ (root)` — and the three addresses were
+checked by fetching them rather than by looking at the setting.
 
-> **Settings → Pages → Source: Deploy from a branch → `gh-pages` → `/ (root)`**
-
-Then `https://marco-p-keller.github.io/Quiet/privacy.html` and `/support.html`
-resolve, which is what App Store Connect demands.
+**The support URL in the listing is no longer one of them.** It is
+`connexa-gmbh.ch/support`, the publisher's own desk, which answers for every
+Connexa app with a real address and a stated response time. The privacy URL
+stays with the app, because the company's `/datenschutz` is a website policy —
+server logs, contact form, cookies — and says nothing about a keychain or an
+iCloud key-value store. See [the listing](store-listing.md#urls) for the whole
+of that reasoning.
 
 Both pages are relative to the standalone repository, which is where the app
 ships from. Reading them from the copy inside the monorepo — where `site/` sits
 a directory further out — is what once made this section look like a claim that
 had not been kept. It had been kept.
 
-**One line of it is now out of date, and this work is why.** The privacy page
-says Quiet keeps *four* things in the keychain. It keeps five: the day, if any,
-on which it has been asked to forget everything. That sentence needs the fifth
-entry and a line about the way out, in `site/privacy.html` and in the German
-half of `site/support.html`.
+**They now say who wrote them.** The privacy page named no controller and gave
+no address, and the support page's one route out was a GitHub issue tracker —
+which asks somebody who installed an app from the App Store to open an account
+somewhere else before they can report that it crashed. Both now carry Connexa
+GmbH, the Sirnach address, the company number, and `privacy@` and `support@`.
+A privacy policy with nobody responsible on it is not a privacy policy.
+
+**The keychain count is current again.** It said four, then the day the app can
+be asked to forget everything made it five, and what the reader's other phones
+have spent made it six. `site/privacy.html` lists six and `Storage.swift` says
+"the six things Quiet remembers, and there is no seventh" — one number in two
+places, which is the arrangement that lets it go wrong quietly. If a seventh
+key is ever added, both say so.
+
+**What was actually broken was the pipe, not the page.** The workflow published
+on a push to `main`, and nothing is pushed to `main` — the app ships from `dev`
+and this project's own instructions say to push there always. So every
+correction to these pages sat on `dev` where the workflow could not see it. What
+the world was being served was `main`'s copy, and it claimed the suggested
+accounts between your friends were absent from the feed. They are not: they are
+shown by default and there is a switch. A false sentence about the app, on the
+developer's own site, at the Marketing URL a reviewer is given. The workflow now
+watches `dev`, which is the branch these pages have to agree with.
 
 ### 2.3 The listing — *written*
 
@@ -180,15 +207,27 @@ The screenshots themselves come out of the `Screenshots` workflow at 1320 ×
 2868 — the 6.9-inch size App Store Connect requires — as a downloadable
 artifact.
 
-### 2.4 The first build on a real phone — *the one thing still blocked*
+### 2.4 The first build on a real phone — *done: build 102 is in TestFlight*
 
-The three secrets go into the repository, then **Actions → TestFlight → Run
-workflow**. Everything after the guard in that workflow — archive, export,
-upload — has never run, and cannot run until the secrets exist.
+This was the section that said nothing after the guard in that workflow had
+ever run. It has. The three secrets are in the repository, and on 8 September
+2026 the TestFlight workflow archived, exported and uploaded **build 102** from
+commit `3c67616` — the tip of `dev` — in two minutes and twenty-two seconds. It
+had already done the same thing an hour earlier. So every step that could only
+be proved by running it is now proved: the key has Admin, the agreement is
+signed, the app record exists in App Store Connect, and the certificate the run
+borrows is handed back at the end.
+
+**Run it from Actions → TestFlight → Run workflow.** The build number comes
+from the run number, so it never has to be typed and never repeats.
 
 The `.p8` private key belongs in **Settings → Secrets and variables → Actions**
 and nowhere else. Not in the repository, not in a message, not pasted into a
 chat.
+
+What is *not* proved by an upload is anything in part 1 of this page. A build
+in TestFlight is a build somebody can install; it is not evidence that signing
+in works, and the two are easy to confuse in a sentence like "it shipped".
 
 ### 2.5 English, or not — *decided: both*
 
@@ -208,17 +247,31 @@ workflow's run number and only ever climbs, so it never has to be typed.
 
 ---
 
-### 2.7 What the store listing now has to say
+### 2.7 What the store listing had to say — *said, and one of them was a false claim*
 
-Three things arrived after the listing was written and belong in it:
+Three things arrived after the listing was written and belonged in it. All
+three are in the description now, and writing them in turned up a fourth that
+was worse than an omission.
 
-* the app asks for camera, microphone and photo permissions — it does not use
-  any of them itself, and the strings say so, but the reviewer's questionnaire
-  asks;
-* there is a way to have the app forget everything, which answers the obvious
-  question about a limit kept in the keychain;
-* Reels and Explore being deliberately absent is now said on the first screen
-  rather than only in the listing.
+* **Camera, microphone and photos.** The description said "No permission prompt
+  unless you ask for the daily reminder." That was not merely incomplete, it was
+  wrong: attaching a photo on Instagram's own page raises an iOS prompt nobody
+  asked Quiet for, and a person who read that line and then saw one has been
+  told something untrue by the App Store page. It now says which prompts can
+  appear, who is asking, and that Quiet uses none of the three itself.
+* **The way out.** A limit kept in the keychain raises one obvious question —
+  how do I stop? — and the answer was on the privacy page and nowhere a buyer
+  would look. It is in the description now, with the wait, and with the reason
+  the wait is there.
+* **Reels and Explore.** Said on the first screen as well as in the listing.
+
+**And the number was stale in the place that matters most.** The description
+said four things are kept in the keychain. It is six, and has been since the
+way out and the other devices arrived — the exact drift `read-the-site.py` was
+written to catch, in the one document it did not read. The App Store product
+page is the sentence somebody reads *before* installing; the privacy page is
+the one they read after. The checker reads both now, and going back to four in
+either goes red.
 
 ---
 

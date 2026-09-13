@@ -1,21 +1,56 @@
 import SwiftUI
 
-/// First run. Two screens: what this is, and how much time you want.
+/// First run. Three screens: what this is, the day you are having, and the day
+/// you want.
 ///
 /// Nothing is asked for that Quiet does not need. No account, no email, no
-/// notifications, no permission prompts of any kind. The only question is the
-/// one the app exists to ask.
+/// notifications, no permission prompts of any kind.
+///
+/// The middle screen is the one that had to justify itself, because for a long
+/// time there was only one question here and that was the point. What earns it
+/// is that it is the only figure in this app that cannot be measured: Quiet can
+/// see its own screen and nothing else on the phone — not the real Instagram
+/// app, not Screen Time, nothing. So either somebody says what their day used
+/// to be, once, on the one screen where they are already thinking about it, or
+/// every sentence the app might later say about what it has done for them is
+/// unavailable. It restricts nothing. It is one end of a comparison.
+///
+/// It is also asked *before* the limit rather than after, which is the whole of
+/// its usefulness: a number typed in ignorance of your own day is a guess, and
+/// the second wheel opens at half of the first.
 struct SetupView: View {
-    var onFinish: (Int) -> Void
+    /// The day being had, and the day wanted.
+    var onFinish: (Int, Int) -> Void
 
     @State private var step = Step.what
+    @State private var baseline = 60
     @State private var minutes = 20
+    /// Whether the limit wheel has been opened at half the baseline yet. Once
+    /// only: going back to change the old day should not throw away a limit
+    /// that has since been chosen deliberately.
+    @State private var suggested = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private enum Step { case what, howMuch }
+    private enum Step { case what, now, howMuch }
 
     /// Round numbers a person would actually say out loud.
     private static let choices = [5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 240]
+
+    /// The same, carried further up. A limit above four hours is not a limit,
+    /// but a *day* above four hours is just somebody's Tuesday, and a wheel
+    /// that stops short of the truth collects a wrong answer rather than no
+    /// answer.
+    private static let daysHad = [10, 15, 20, 30, 45, 60, 75, 90, 120, 150, 180, 240, 300, 360, 420, 480]
+
+    /// Where the limit wheel opens, given the day somebody says they have.
+    ///
+    /// Half, rounded down to a number on the wheel. Not a target and not
+    /// advice — the wheel moves freely in both directions — but a starting
+    /// point that is about *their* day rather than about twenty minutes, which
+    /// is a number that means nothing to somebody who has just said four hours.
+    static func suggestion(halfOf baseline: Int) -> Int {
+        choices.last { $0 <= baseline / 2 } ?? choices[0]
+    }
 
     var body: some View {
         // A scroll view rather than a fixed layout, so that the screen still
@@ -32,6 +67,7 @@ struct SetupView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     switch step {
                     case .what: what
+                    case .now: dayYouHave
                     case .howMuch: howMuch
                     }
                 }
@@ -81,17 +117,38 @@ struct SetupView: View {
         }
     }
 
+    private var dayYouHave: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            back(to: .what)
+
+            Text("How much Instagram\ndo you have in a day now?")
+                .font(.quietHeading)
+                .lineSpacing(5)
+
+            Picker("Minutes a day now", selection: $baseline) {
+                ForEach(Self.daysHad, id: \.self) { value in
+                    Text(Phrase.minutes(value))
+                        .font(.quietChoice)
+                        .tag(value)
+                }
+            }
+            .pickerStyle(.wheel)
+            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+            .frame(maxWidth: .infinity)
+            .frame(height: 170)
+            .padding(.vertical, 4)
+
+            VStack(alignment: .leading, spacing: 12) {
+                Line("A rough answer is fine. Your phone's Screen Time knows, if you would rather look.")
+                Line("This is not a limit and it does not restrict anything. It is the number the days behind you get measured against.")
+                Line("Quiet cannot see this for itself. It only ever sees its own screen — not the Instagram app, not any other app on this phone.")
+            }
+        }
+    }
+
     private var howMuch: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Button {
-                step = .what
-            } label: {
-                Label("Back", systemImage: "chevron.left")
-                    .font(.quietSmall)
-                    .foregroundStyle(Paper.inkSoft)
-            }
-            .buttonStyle(.plain)
-            .padding(.bottom, 20)
+            back(to: .now)
 
             Text("How much Instagram\ndo you want in a day?")
                 .font(.quietHeading)
@@ -114,6 +171,13 @@ struct SetupView: View {
             .padding(.vertical, 4)
 
             VStack(alignment: .leading, spacing: 12) {
+                // Said as arithmetic rather than as a promise. "A week" is the
+                // unit the difference first becomes legible in, and it is a
+                // subtraction of two numbers on this screen rather than a claim
+                // about anybody's willpower.
+                if baseline > minutes {
+                    Line("\(Phrase.span(TimeInterval(baseline - minutes) * 60 * 7)) a week fewer than the day you just described.")
+                }
                 Line("You can ask for less whenever you like. It takes effect at once.")
                 Line("You can ask for more once a week, and it starts the next day — never in the moment you want five more minutes.")
                 Line("Your limit is kept outside the app. Deleting Quiet and installing it again does not reset it.")
@@ -121,17 +185,38 @@ struct SetupView: View {
         }
     }
 
+    private func back(to destination: Step) -> some View {
+        Button {
+            step = destination
+        } label: {
+            Label("Back", systemImage: "chevron.left")
+                .font(.quietSmall)
+                .foregroundStyle(Paper.inkSoft)
+        }
+        .buttonStyle(.plain)
+        .padding(.bottom, 20)
+    }
+
     private var actionTitle: String {
         switch step {
         case .what: return String(localized: "Continue")
+        case .now: return String(localized: "Continue")
         case .howMuch: return String(localized: "Set \(Phrase.minutes(minutes)) a day")
         }
     }
 
     private func advance() {
         switch step {
-        case .what: step = .howMuch
-        case .howMuch: onFinish(minutes)
+        case .what:
+            step = .now
+        case .now:
+            if !suggested {
+                minutes = Self.suggestion(halfOf: baseline)
+                suggested = true
+            }
+            step = .howMuch
+        case .howMuch:
+            onFinish(baseline, minutes)
         }
     }
 
@@ -153,5 +238,5 @@ struct SetupView: View {
 }
 
 #Preview {
-    SetupView { _ in }
+    SetupView { _, _ in }
 }

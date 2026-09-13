@@ -244,12 +244,24 @@ final class WebSurface {
             ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
             modifiedSince: .distantPast
         ) { [weak self] in
-            // Every pane torn down and the home one built again from nothing,
-            // rather than the current page reloaded: the other two are still
-            // holding a signed-in document, and a reload of one of them would
-            // put it straight back on the glass.
-            self?.stack?.startOver()
-            completion()
+            // WebKit answers on the main thread, said out loud the same way
+            // `BlockList` says it two files away rather than hopped to: the
+            // handler is `@Sendable`, the pane stack is not, and a `Task` here
+            // would put the rebuild a turn of the run loop later — a turn in
+            // which the panes standing on the glass are a signed-out person's.
+            //
+            // That WebKit answers where this claims it does is not taken on
+            // trust: `testTheSessionIsForgottenOnTheMainThread` calls the same
+            // method and fails if the answer ever arrives anywhere else, which
+            // is the difference between an assumption and a trap.
+            MainActor.assumeIsolated {
+                // Every pane torn down and the home one built again from
+                // nothing, rather than the current page reloaded: the other two
+                // are still holding a signed-in document, and a reload of one
+                // of them would put it straight back on the glass.
+                self?.stack?.startOver()
+                completion()
+            }
         }
     }
 
@@ -709,6 +721,12 @@ final class WebSurface {
                 myFace = nil
                 startAgainAsSomebodyElse()
             }
+            // A name is the one thing a profile pane cannot be opened without,
+            // so learning one is a reason to look again at what is worth
+            // opening behind the glass. Nothing happens if the page in front
+            // has not finished yet: this only un-blocks the profile, it does
+            // not bring the waiting forward.
+            stack?.warmTheNextOne()
         }
         let data = picture.flatMap { Data(base64Encoded: $0) }
         if let data, let face = UIImage(data: data) { myFace = face }
@@ -1155,7 +1173,7 @@ struct InstagramWebView: UIViewRepresentable {
             // At the top of the page there is nothing to get out of the way of.
             let atTop = offset <= -scrollView.contentInset.top + 4
             collapse(atTop ? false : delta > 0)
-            comeBackWhenItStops()
+            if session.preferences.rowMotion == .drawsIn { comeBackWhenItStops() }
 
             // And how long the page being read has become, which is the only
             // signal the app has that its three panes are about to cost more
@@ -1181,19 +1199,27 @@ struct InstagramWebView: UIViewRepresentable {
             state.isBarCollapsed = collapsed
         }
 
-        /// The row is documented to draw itself in while the page moves under a
-        /// thumb and to come back out the moment it stops. It did the first
-        /// half.
+        /// Which way a thumb was going is the whole rule under `RowMotion.leaves`,
+        /// and stopping is not an answer to it.
         ///
-        /// Nothing was watching for the stopping — the observer above only
-        /// fires while the page is moving — so a flick downward left the pill
-        /// small and faded, and it stayed that way until somebody scrolled
-        /// back up. What the file said and what the app did had disagreed since
-        /// the row was written.
+        /// The row used to come back after a tenth of a second of stillness
+        /// whatever the setting, on the reading that it "comes back out the
+        /// moment the page stops". Reading a feed is not one long scroll; it is
+        /// a flick, a pause to look at a post, a flick. So the row drew itself
+        /// in and popped back out on every one of those pauses — several times
+        /// down a single feed — and the thing that was meant to get out of the
+        /// way became the only moving object on the screen.
         ///
-        /// One task per flick rather than one per frame: cancelling and
-        /// building a task sixty times a second, to answer a question about a
-        /// timestamp, is the shape of the thing this whole pass is removing.
+        /// Instagram's own bar has the other answer and has had it for years:
+        /// down hides it, up brings it back, and holding still does nothing at
+        /// all. A state that only changes when the reader changes direction is
+        /// a state the hand is already steering, which is why it goes
+        /// unnoticed. The top of the page brings it back too, because there is
+        /// nothing up there to be out of the way of.
+        ///
+        /// Both are kept. "The row never actually leaves" is a real preference
+        /// to hold and the argument for it was never wrong, only outvoted — so
+        /// this runs for `RowMotion.drawsIn` and nothing else.
         private func comeBackWhenItStops() {
             lastMoved = ProcessInfo.processInfo.systemUptime
             guard stillness == nil else { return }
@@ -1425,6 +1451,18 @@ struct InstagramWebView: UIViewRepresentable {
             // The indicator is the one thing that should still respect the app's
             // furniture: a scroll bar running under the row reads as a fault.
             webView.scrollView.verticalScrollIndicatorInsets = inset
+
+            // The one strip of the glass none of the above reaches: the bar iOS
+            // lays over the page while a field on it has the keyboard. Every
+            // box you write into on Instagram is pinned to the bottom of the
+            // page, which is exactly where that bar floats — so it comes down
+            // on the message being typed, with its own tick where Instagram's
+            // send button is. Taken away here, once, at the point the view is
+            // made, because the view that owns it is already there by then.
+            // See `FormBar` for what that costs, and `FormBarTests` for the two
+            // facts about WebKit it stands on.
+            FormBar.take(from: webView)
+
             return (webView, payload.missing)
         }
 
@@ -1658,6 +1696,20 @@ struct InstagramWebView: UIViewRepresentable {
             state.isSheetUp = false
             if state.isTyping { state.isTyping = false }
             session.setTyping(false)
+            // And the row is out, whatever the last document's thumb was doing.
+            //
+            // This became load-bearing the moment the row stopped coming back
+            // by itself after a pause: a reader who flicked down the feed and
+            // then opened a post would have arrived on the new page with the
+            // row already gone, and nothing on that page would have brought it
+            // back until they scrolled up on it. The same argument as the two
+            // lines above — the row is the only way to Quiet's own settings,
+            // and where it is must never depend on a document that no longer
+            // exists.
+            state.isBarCollapsed = false
+            // A new document starts at its own top, so the last one's offset is
+            // not a distance any thumb travelled.
+            lastOffset = 0
             // A page has arrived, so whatever the account was changing into, it
             // has changed. See `startingOver`.
             surface.aPageArrived()
@@ -1672,6 +1724,12 @@ struct InstagramWebView: UIViewRepresentable {
             tellThisPage(webView)
             endPull()
             keepPullAlive(webView.scrollView)
+            // And, if this was the page somebody is actually looking at, the
+            // other two may now be opened behind it. Said from every pane
+            // rather than only the one in front, because the pane that just
+            // finished may *be* one of the other two — and then it is the third
+            // one's turn. See `Warming`.
+            stack?.aPaneFinished(pane)
         }
 
         /// Give the fast path back, now that the page is painting its own

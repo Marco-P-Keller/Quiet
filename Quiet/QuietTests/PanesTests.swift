@@ -9,6 +9,88 @@ import XCTest
 /// is where they actually live: where a pane starts, and which drawer each
 /// pane's place is kept in.
 final class PanesTests: XCTestCase {
+    // MARK: - Opening the other two behind the glass
+
+    /// The panes are built lazily, and the comment where they are built says
+    /// why: an app that opened three copies of Instagram at launch would spend
+    /// a cold start fetching two pages nobody has asked to see. Still true
+    /// about launch, and not true about the ten seconds after it — so the other
+    /// two are opened anyway, later. Every check below is one of the ways of
+    /// not being the thing that comment warned about.
+    private func warming(
+        front: Bool = true,
+        stopped: Bool = false,
+        asked: Set<Pane> = []
+    ) -> Warming {
+        Warming(theFrontIsUp: front, stopped: stopped, asked: asked)
+    }
+
+    private func next(
+        _ warming: Warming,
+        built: Set<Pane> = [.home],
+        me: String? = "marco",
+        signedIn: Bool = true
+    ) -> Pane? {
+        warming.next(built: built, me: me, signedIn: signedIn)
+    }
+
+    /// The whole of the original objection, answered with a wait.
+    func testNothingIsOpenedUntilThePageInFrontHasFinished() {
+        XCTAssertNil(next(warming(front: false)))
+        XCTAssertEqual(next(warming(front: true)), .messages)
+    }
+
+    /// Messages first, then the profile, then nothing.
+    func testTheOtherTwoAreOpenedOneAfterTheOther() {
+        XCTAssertEqual(next(warming()), .messages)
+        XCTAssertEqual(next(warming(asked: [.messages])), .profile)
+        XCTAssertNil(next(warming(asked: [.messages, .profile])))
+    }
+
+    /// And never one that is already open — a pane that was tapped before the
+    /// waiting was over is a pane that does not want opening again.
+    func testAPaneSomebodyOpenedThemselvesIsNotOpenedAgain() {
+        XCTAssertEqual(next(warming(), built: [.home, .messages]), .profile)
+        XCTAssertNil(next(warming(), built: [.home, .messages, .profile]))
+    }
+
+    /// Nothing twice, which is what keeps this from fighting `PaneStack.died`:
+    /// a pane iOS took back is dropped rather than rebuilt, and asking for it
+    /// again would be rebuilding it by another road.
+    func testAPaneTheAppHasGivenUpIsNotAskedForAgain() {
+        // Asked for, then lost — so it is no longer built, and still not to be
+        // asked for.
+        XCTAssertNil(next(warming(asked: [.messages, .profile]), built: [.home]))
+    }
+
+    /// A memory warning is not a suggestion.
+    func testNothingIsOpenedOnceThePhoneHasAskedForMemoryBack() {
+        XCTAssertNil(next(warming(stopped: true)))
+        XCTAssertNil(next(warming(stopped: true, asked: [.messages])))
+    }
+
+    /// Instagram answers both of those addresses with a login form for
+    /// somebody who is not signed in, and fetching two of those is two pages
+    /// nobody will ever see.
+    func testNothingIsOpenedForSomebodyWhoIsNotSignedIn() {
+        XCTAssertNil(next(warming(), me: nil, signedIn: false))
+        XCTAssertNil(next(warming(), me: "marco", signedIn: false))
+    }
+
+    /// A profile pane has no address until the app knows whose it is, and an
+    /// empty one is worse than none: `goToMyProfile` falls back to Instagram's
+    /// own entry when there is no name, but it cannot fall back past a pane
+    /// that exists and is blank.
+    func testAProfileIsNotOpenedUntilThereIsAName() {
+        XCTAssertEqual(next(warming(asked: [.messages]), me: nil), nil)
+        XCTAssertEqual(next(warming(asked: [.messages]), me: "marco"), .profile)
+    }
+
+    /// And the inbox does not wait for one, because it never needed a name.
+    func testTheInboxDoesNotWaitForAName() {
+        XCTAssertEqual(next(warming(), me: nil), .messages)
+    }
+
     // MARK: - Where a pane starts
 
     func testEachPaneKnowsItsOwnOpening() {

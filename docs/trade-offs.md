@@ -114,10 +114,18 @@ It does not get you:
 * **No widget, no Shortcuts, no Siri.** "How much have I got left" can only be
   answered by opening the app — which, as with notifications above, is a reason
   to open it. Both are possible and neither is built.
-* **English and German only.** Every sentence in the app is in both, checked on
-  every push. A third language is a person per language rather than a script:
-  the app is mostly its sentences, and a machine translation nobody reads would
-  make it worse in four languages rather than available in four.
+* **Six languages, and three of them have not been read by a native speaker
+  yet.** Every sentence in the app is in English, German, Spanish, French and
+  Brazilian Portuguese, checked level on every push. English (U.K.) is carried
+  as a sixth and is a copy of the source, because the source turned out to have
+  no American spelling in it to change.
+
+  The rule here used to be English and German only, on the argument that a
+  language is a person rather than a script: the app is mostly its sentences,
+  and a translation nobody reads would make it worse in four languages rather
+  than available in four. **That argument has not been answered, it has been
+  deferred.** The three new languages are written out and want a native ear
+  before a build carrying them goes to anybody who reads them.
 
 ## Because iOS is iOS
 

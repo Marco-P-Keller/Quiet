@@ -15,6 +15,7 @@ final class AppointmentWiringTests: XCTestCase {
         var grants = true
         var asked = 0
         var pending: [Date] = []
+        var recaps: [Chime] = []
         var silenced = 0
 
         func ask() async -> Bool {
@@ -26,9 +27,14 @@ final class AppointmentWiringTests: XCTestCase {
             pending = times
         }
 
+        func chime(_ chimes: [Chime]) {
+            recaps = chimes
+        }
+
         func silence() {
             silenced += 1
             pending = []
+            recaps = []
         }
     }
 

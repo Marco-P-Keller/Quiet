@@ -34,5 +34,10 @@ Tools/shots/out/
 # Left by running anything in Tools/.
 __pycache__/
 
+# jsdom, which the trim checks in Tools/ need and CI installs with --no-save on
+# every run. It is a dependency of the checks rather than of the app: nothing
+# in the built binary has ever seen it.
+/node_modules/
+
 # Written by Tools/look-at-icon.py, for looking at rather than keeping.
 Tools/icon-in-place.png

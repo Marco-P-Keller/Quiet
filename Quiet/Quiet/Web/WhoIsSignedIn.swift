@@ -125,10 +125,19 @@ final class WhoIsSignedIn: NSObject, WKHTTPCookieStoreObserver {
     private var hasLooked = false
     private var settling: Task<Void, Never>?
 
+    /// The store is worked out in here rather than in a default argument, and
+    /// the difference is not style. A default argument is evaluated in the
+    /// *caller's* context, which is not this class's actor however plainly the
+    /// class is marked `@MainActor` — so `WKWebsiteDataStore.default()`, which
+    /// is main-actor-only, was being reached for from wherever the call
+    /// happened to stand. There is one call, on the main actor, so nothing was
+    /// ever wrong on the glass; what was wrong is that nothing said so, and the
+    /// compiler said so every time it built the file from scratch.
     init(
-        store: WKHTTPCookieStore = WKWebsiteDataStore.default().httpCookieStore,
+        store: WKHTTPCookieStore? = nil,
         switched: @escaping () -> Void
     ) {
+        let store = store ?? WKWebsiteDataStore.default().httpCookieStore
         self.store = store
         self.switched = switched
         super.init()

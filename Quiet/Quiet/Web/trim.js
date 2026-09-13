@@ -1778,6 +1778,300 @@
     showOrHideHeader(false);
   }
 
+  /* ── Two fingers on a photograph ──────────────────────────────────────── */
+
+  /**
+   * The gesture Instagram's own app has, which its website does not: pinch a
+   * photograph and it lifts off the feed, follows your fingers, and springs
+   * back when you let go.
+   *
+   * It is a *peek* rather than a zoom, and that is the whole of the design.
+   * Nothing stays zoomed, there is nothing to undo, and a photograph you have
+   * finished looking at puts itself away — which is the same bargain the rest
+   * of this app makes: look at the thing you came to look at, and be handed
+   * back to where you were.
+   *
+   * ## What it costs the feed, which is nothing
+   *
+   * There is one listener standing here at all times and it is **passive**:
+   * the browser never waits for it, and scrolling goes on being the compositor's
+   * business. The two that can stop a scroll are added when a pinch begins and
+   * taken off again when it ends, so for all the time nobody is pinching there
+   * is nothing here for the page to wait on. That mattered enough to design
+   * around: a non-passive touch listener standing on the document of a feed is
+   * a page whose every flick has to go through JavaScript first.
+   *
+   * ## What it does not depend on
+   *
+   * Whether `preventDefault` actually stops the page moving under the gesture.
+   * It is asked for, because a feed sliding about under a photograph you are
+   * holding is untidy — but if the browser has already given the gesture to
+   * the compositor and moves anyway, nothing breaks: the photograph is put
+   * back to wherever its original *is when you let go*, read at that moment
+   * rather than remembered from the start. A page that moved is answered by
+   * the same line that answers a page that did not.
+   *
+   * ## What is Instagram's, and what is not
+   *
+   * A copy of the photograph is what moves — an `<img>` Quiet makes, with the
+   * source the page had already fetched and decoded, so it arrives in the same
+   * frame rather than over the network. The original is asked for one thing
+   * only, `visibility`, for as long as the copy is standing in front of it, and
+   * that is given back. Nothing of Instagram's is moved, resized or reparented;
+   * a photograph inside a post is inside a box that clips it, and that is why
+   * the copy is a thing of ours on top of the page rather than their element
+   * made bigger.
+   */
+
+  /** How far it goes. Past about this much a feed photograph is only pixels. */
+  var CLOSEST = 4;
+
+  /** Smaller than this on a side is a face beside a name, not a photograph. */
+  var A_PHOTOGRAPH = 150;
+
+  /** The listener options, kept as constants so that taking one off matches. */
+  var WATCHING = { passive: true, capture: true };
+  var ANSWERING = { passive: false, capture: true };
+
+  /** The pinch in progress, and nothing at all the rest of the time. */
+  var peek = null;
+
+  function watchForAPinch() {
+    document.addEventListener("touchstart", pinchBegan, WATCHING);
+  }
+
+  function pinchBegan(event) {
+    try {
+      if (peek) return;
+      if (!event.touches || event.touches.length !== 2) return;
+
+      var first = event.touches[0];
+      var second = event.touches[1];
+      var middle = {
+        x: (first.clientX + second.clientX) / 2,
+        y: (first.clientY + second.clientY) / 2
+      };
+
+      var photo = thePhotographAt(middle.x, middle.y);
+      if (!photo) return;
+
+      peek = lift(photo);
+      peek.photo = photo;
+      peek.apart = apart(first, second);
+      peek.middle = middle;
+
+      document.addEventListener("touchmove", pinchMoved, ANSWERING);
+      document.addEventListener("touchend", pinchEnded, ANSWERING);
+      document.addEventListener("touchcancel", pinchEnded, ANSWERING);
+    } catch (error) {
+      // A gesture that does not start is a gesture nobody notices. A throw out
+      // of a touch handler is a page that stops answering fingers.
+      peek = null;
+    }
+  }
+
+  function pinchMoved(event) {
+    try {
+      if (!peek || !event.touches || event.touches.length < 2) return;
+      // Asked for, not relied on. See the note above.
+      if (event.cancelable) event.preventDefault();
+      // And kept from the page while Quiet has the gesture. A post listens for
+      // the same fingers, to carry its carousel to the next picture, and a
+      // photograph that slid sideways while you were looking at it would be
+      // this feature taking something away rather than adding one.
+      event.stopPropagation();
+
+      var first = event.touches[0];
+      var second = event.touches[1];
+      var closer = Math.max(1, Math.min(CLOSEST, apart(first, second) / peek.apart));
+      var x = (first.clientX + second.clientX) / 2 - peek.middle.x;
+      var y = (first.clientY + second.clientY) / 2 - peek.middle.y;
+
+      peek.copy.style.transform =
+        "translate(" + Math.round(x) + "px, " + Math.round(y) + "px) scale(" + closer + ")";
+    } catch (error) {
+      putItBack();
+    }
+  }
+
+  function pinchEnded(event) {
+    try {
+      if (!peek) return;
+      // The whole sequence belongs to Quiet, including its end: a touch the
+      // page is allowed to finish is a tap, and a tap on a photograph opens
+      // the post you were only looking at.
+      if (event.cancelable) event.preventDefault();
+      event.stopPropagation();
+
+      // A third finger lifting is not the end of a pinch.
+      if (event.touches && event.touches.length >= 2) return;
+      putItBack();
+    } catch (error) {
+      putItBack();
+    }
+  }
+
+  /**
+   * The photograph under a point, or nothing.
+   *
+   * Asked of the browser rather than of the markup, and then widened: a post
+   * lays a sheet over its picture to catch the double tap that likes it, and a
+   * point answers with the sheet. So when the thing under the fingers is not a
+   * picture, the post it is in is asked which of its pictures the point is
+   * standing on.
+   */
+  function thePhotographAt(x, y) {
+    var node = document.elementFromPoint ? document.elementFromPoint(x, y) : null;
+    if (!node || !node.closest) return null;
+
+    var picture = null;
+    var walk = node;
+    var depth = 0;
+    while (walk && depth < 6 && !picture) {
+      if (isAPicture(walk)) picture = walk;
+      walk = walk.parentElement;
+      depth += 1;
+    }
+
+    if (!picture) {
+      var post = node.closest("article");
+      if (!post) return null;
+      var pictures = post.querySelectorAll("img");
+      for (var i = 0; i < pictures.length; i++) {
+        var box = pictures[i].getBoundingClientRect();
+        if (x < box.left || x > box.right || y < box.top || y > box.bottom) continue;
+        if (!picture || box.width > picture.getBoundingClientRect().width) {
+          picture = pictures[i];
+        }
+      }
+    }
+
+    // Inside a post, and the size of something somebody photographed. The face
+    // beside the name is an `img` in a post too.
+    if (!picture || !picture.closest("article")) return null;
+    var size = picture.getBoundingClientRect();
+    if (size.width < A_PHOTOGRAPH || size.height < A_PHOTOGRAPH) return null;
+    return picture;
+  }
+
+  function isAPicture(node) {
+    return !!node.tagName && node.tagName.toLowerCase() === "img";
+  }
+
+  function apart(first, second) {
+    var x = first.clientX - second.clientX;
+    var y = first.clientY - second.clientY;
+    return Math.max(1, Math.sqrt(x * x + y * y));
+  }
+
+  /**
+   * A copy of the photograph, over the page, exactly where the original is.
+   *
+   * A copy and not the thing itself, because the thing itself lives in a box
+   * that clips it: a post's picture made four times the size inside its own
+   * frame is a picture with its edges cut off. What Quiet adds is its own, on
+   * top of everything, and it goes away again.
+   */
+  function lift(photo) {
+    var box = photo.getBoundingClientRect();
+
+    var shade = document.createElement("div");
+    shade.id = "quiet-zoom";
+
+    var copy = document.createElement("img");
+    copy.id = "quiet-zoom-photo";
+    // What the page already has. `currentSrc` is the one the browser actually
+    // chose out of the set, which is the one already decoded and in memory —
+    // so this arrives in the frame it is asked for rather than over the air.
+    copy.src = photo.currentSrc || photo.src || "";
+    copy.alt = "";
+    place(copy, box);
+    // However the page was cropping it, so the copy is the same photograph and
+    // not a differently squashed one.
+    if (window.getComputedStyle) {
+      copy.style.objectFit = window.getComputedStyle(photo).objectFit || "cover";
+    }
+
+    document.body.appendChild(shade);
+    document.body.appendChild(copy);
+    photo.setAttribute("data-quiet-lifted", "");
+
+    // A frame, so that the shade has somewhere to fade up from.
+    if (window.requestAnimationFrame) {
+      window.requestAnimationFrame(function () {
+        if (shade.parentNode) shade.setAttribute("data-on", "");
+      });
+    }
+
+    return { shade: shade, copy: copy };
+  }
+
+  function place(element, box) {
+    element.style.left = box.left + "px";
+    element.style.top = box.top + "px";
+    element.style.width = box.width + "px";
+    element.style.height = box.height + "px";
+  }
+
+  /**
+   * Home, to wherever the photograph is now.
+   *
+   * Read at this moment rather than remembered from the start of the gesture,
+   * which is what makes a page that scrolled underneath harmless: the copy
+   * lands on the original wherever the original has got to, and if it has gone
+   * from the page altogether it simply fades.
+   *
+   * The re-anchoring and the undoing happen in the same frame and with no
+   * transition, so nothing is seen to jump; the transition is put on
+   * afterwards, and the only thing it animates is the transform falling back
+   * to nothing.
+   */
+  function putItBack() {
+    if (!peek) return;
+    var going = peek;
+    peek = null;
+
+    document.removeEventListener("touchmove", pinchMoved, ANSWERING);
+    document.removeEventListener("touchend", pinchEnded, ANSWERING);
+    document.removeEventListener("touchcancel", pinchEnded, ANSWERING);
+
+    var copy = going.copy;
+    var shade = going.shade;
+    var photo = going.photo;
+
+    shade.removeAttribute("data-on");
+
+    var here = copy.getBoundingClientRect();
+    var home = photo && photo.isConnected ? photo.getBoundingClientRect() : here;
+
+    copy.style.transition = "none";
+    place(copy, home);
+    if (home.width > 0 && here.width > 0) {
+      var x = (here.left + here.width / 2) - (home.left + home.width / 2);
+      var y = (here.top + here.height / 2) - (home.top + home.height / 2);
+      copy.style.transform =
+        "translate(" + Math.round(x) + "px, " + Math.round(y) + "px) scale(" +
+        (here.width / home.width) + ")";
+    }
+
+    function fall() {
+      copy.setAttribute("data-quiet-falling", "");
+      copy.style.transform = "";
+    }
+    if (window.requestAnimationFrame) window.requestAnimationFrame(fall); else fall();
+
+    var done = function () {
+      if (copy.parentNode) copy.parentNode.removeChild(copy);
+      if (shade.parentNode) shade.parentNode.removeChild(shade);
+      if (photo) photo.removeAttribute("data-quiet-lifted");
+    };
+    // The animation's own length, and a timer rather than its end event: an
+    // element taken out of the document mid-transition never fires one, and a
+    // photograph left hidden behind a copy nobody removed is the worst thing
+    // this could leave behind.
+    window.setTimeout(done, 260);
+  }
+
   /* ── The door back into the app ───────────────────────────────────────── */
 
   /**
@@ -2138,6 +2432,146 @@
     var bar = headerBar();
     if (bar) liftPinned(bar);
     liftWhateverIsUpThere();
+  }
+
+  /* ── The arrow out of the inbox ───────────────────────────────────────── */
+
+  /**
+   * The inbox, and not a conversation inside it.
+   *
+   * A conversation's back arrow goes to the list of conversations and is the
+   * way out of a thread. The inbox's goes nowhere anybody asked for: in Quiet
+   * the inbox is not a page you arrived at, it is one of five things on the
+   * row along the bottom, the way it is a tab in Instagram's own app, and a
+   * tab has nothing to go back from.
+   */
+  function inTheInbox() {
+    var path = location.pathname;
+    return path === "/direct" ||
+           path === "/direct/" ||
+           path.indexOf("/direct/inbox") === 0;
+  }
+
+  /**
+   * That arrow, left in the layout and drawn as nothing.
+   *
+   * **Third attempt.** The first broke opening messages altogether. The second
+   * was safe and found nothing, and the photograph of it not working is what
+   * says why: the arrow sits at x 36, y 81 on that phone, and the points this
+   * asks about are x 24 and 39 at the clock's height plus 22, which is 81. The
+   * geometry was never the problem. What rejected it were the tests about the
+   * element itself, and two of those are now gone:
+   *
+   *   * **that it is an `a` or a `button` or carries a role.** Instagram draws
+   *     controls as plain elements with a handler on them as often as not, and
+   *     there is nothing in the markup that says "this is pressable".
+   *   * **that it says nothing.** An Instagram icon is an `<svg>` with a
+   *     `<title>` inside it, for the screen reader — so the text of the thing
+   *     holding it is "Back", or whatever that is in the language the account
+   *     is in, and never the empty string this was looking for.
+   *
+   * What is left is what can be relied on. It is a drawing; it is the size of
+   * an icon; it is at the left-hand end of the bar over the clock; and it is
+   * not a group with other controls in it. The name beside it is at a third of
+   * the way across, which is what keeps this off the account switcher, and the
+   * pencil is at the other end.
+   *
+   * The outermost of those rather than the innermost, so that what is blanked
+   * is as much of the thing you would press as can be had safely. Never the
+   * drawing itself: blank an `<svg>` and whatever holds it goes on taking the
+   * tap, and an arrow you cannot see but can still press is worse than one you
+   * can see.
+   *
+   * The safety of the second attempt is all still here, because that part was
+   * right. `pass()` has no `try` of its own and `sayBare` is near the end of
+   * it: anything thrown in here and the app is never told the page arrived,
+   * and a cover that stays down over the inbox is exactly "I can't open
+   * messages". So everything is inside a `try`; there are no hit tests at all
+   * once it has found what it is looking for; nothing bigger than an icon is
+   * ever touched, so it cannot take a piece of the bar and everything standing
+   * in it; and what is set is `visibility`, which changes what is drawn and
+   * nothing about what is laid out, so the name stays centred where it was.
+   *
+   * The worst this can now do is draw nothing in a space the size of a
+   * fingertip in the top-left corner of the inbox.
+   */
+  function blankTheArrowOutOfTheInbox() {
+    try {
+      if (!inTheInbox()) return;
+      if (!document.elementFromPoint || !document.body) return;
+      // Found already. Nothing below this line is worth doing twice, and the
+      // hit tests are the expensive half of it.
+      if (document.querySelector("[data-quiet-arrow]")) return;
+
+      var width = window.innerWidth || 390;
+      // Where the page's own top is, which is where the app put it: the
+      // clock's height, paid by the body's padding. Asked of the document
+      // rather than assumed, because it is a different number on every phone.
+      var clock = parseFloat(
+        window.getComputedStyle(document.body).paddingTop
+      ) || 0;
+
+      var columns = [Math.round(width * 0.06), Math.round(width * 0.10)];
+      var rows = [clock + 10, clock + 22, clock + 34];
+      for (var r = 0; r < rows.length; r++) {
+        for (var c = 0; c < columns.length; c++) {
+          var found = theArrowAt(columns[c], rows[r]);
+          if (found) {
+            note(found, "data-quiet-arrow", "");
+            return;
+          }
+        }
+      }
+    } catch (error) {
+      // Deliberately silent, and deliberately here. An arrow that stays is a
+      // blemish; a throw out of this function is the inbox not opening.
+    }
+  }
+
+  /**
+   * The largest thing at a point that is still only an icon.
+   *
+   * Outermost rather than first, because the first is usually a piece of the
+   * drawing and what should go is the whole of what you would press.
+   */
+  function theArrowAt(x, y) {
+    var node = document.elementFromPoint(x, y);
+    var best = null;
+    var depth = 0;
+    while (node && depth < 8) {
+      if (isTheArrowOut(node)) best = node;
+      node = node.parentElement;
+      depth += 1;
+    }
+    return best;
+  }
+
+  /** Whether this one could be that arrow. */
+  function isTheArrowOut(node) {
+    if (!node || !node.getAttribute || !node.querySelector) return false;
+    if (node === document.body || node === document.documentElement) return false;
+    if (node.id && node.id.indexOf("quiet-") === 0) return false;
+
+    // Something holding a drawing, and never the drawing itself.
+    if (!node.querySelector("svg")) return false;
+
+    // One control, not a group of them. This is the guard that matters:
+    // `visibility` is inherited, so blanking a piece of the bar would blank
+    // everything standing in it.
+    if (node.querySelectorAll('a, button, [role="button"], input, textarea').length) {
+      return false;
+    }
+
+    // The size of an icon, at the left-hand end of the bar. The name in that
+    // bar begins a third of the way across, which is what these two numbers
+    // are keeping this away from.
+    var width = window.innerWidth || 390;
+    var box = node.getBoundingClientRect();
+    if (box.width < 16 || box.height < 16) return false;
+    if (box.width > 80 || box.height > 80) return false;
+    if (box.left > width * 0.22) return false;
+
+    return true;
   }
 
   /**
@@ -3071,6 +3505,7 @@
     dressHeader();
     liftHeader();
     shapeHeader();
+    blankTheArrowOutOfTheInbox();
     // After everything else has hidden what it hides: the tail below the last
     // post is only *nothing* once the suggestions in it are out.
     endOfTheFeed();
@@ -3118,6 +3553,7 @@
   window.addEventListener("popstate", schedule);
 
   watchTheHeader();
+  watchForAPinch();
 
   /* A change of scheme rewrites every colour in the page and touches nothing in
    * the document, so the observer below never hears about it and the band would

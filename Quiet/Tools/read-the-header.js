@@ -1670,5 +1670,87 @@ const GROUPED = `
     false
   );
 
-  done();
+  /* ── The arrow out of the inbox ───────────────────────────────────────── */
+
+  /* Third attempt at this. The first broke opening messages; the second was
+   * safe and found nothing, because it asked for two things the real arrow
+   * does not have — a tag or a role that says it is pressable, and no text at
+   * all. An Instagram icon is an `<svg>` with a `<title>` in it for the screen
+   * reader, so the thing holding it says "Back", and the thing holding it is
+   * as often a plain element with a handler as a button.
+   *
+   * So the fixtures below are that shape, and the checks are mostly about what
+   * must still not be touched. */
+  const arrowOf = (win, name) =>
+    win.document
+      .querySelector(`[data-name="${name}"]`)
+      .getAttribute("data-quiet-arrow");
+
+  /* A drawing that says its own name, which is what every Instagram icon is. */
+  const ICON = "<svg><title>Back</title></svg>";
+
+  const inboxBar = (first) => `
+    <div data-box="0,0,390,44">
+      ${first}
+      <button data-name="who" data-box="130,6,130,32">marcopkeller${ICON}</button>
+      <button data-name="compose" data-box="350,6,32,32">${ICON}</button>
+    </div>`;
+
+  /* No role, no tag that says anything, and a title inside the drawing: the
+   * shape the last attempt walked straight past. */
+  const ARROW = `<div data-at-top data-name="back" data-box="8,6,44,44">${ICON}</div>`;
+
+  const theInbox = await page(inboxBar(ARROW), "https://www.instagram.com/direct/inbox/");
+  await theInbox.settle();
+  check("a plain element holding an icon is still the arrow", arrowOf(theInbox, "back"), "");
+  check("the name beside it is left alone", arrowOf(theInbox, "who"), null);
+  check("so is the pencil at the other end", arrowOf(theInbox, "compose"), null);
+
+  /* A conversation keeps its own, which is the way out of a thread. */
+  const thread = await page(inboxBar(ARROW), "https://www.instagram.com/direct/t/17/");
+  await thread.settle();
+  check("a conversation keeps the arrow out of it", arrowOf(thread, "back"), null);
+
+  /* The whole of what you would press, rather than the piece of it the point
+   * happened to land on. */
+  const layered = await page(
+    `<div data-box="0,0,390,44">
+       <div data-name="hit" data-box="8,6,44,44">
+         <span data-at-top data-name="inner" data-box="18,16,24,24">${ICON}</span>
+       </div>
+     </div>`,
+    "https://www.instagram.com/direct/inbox/"
+  );
+  await layered.settle();
+  check("the outermost of them is what goes", arrowOf(layered, "hit"), "");
+  check("and not the piece inside it", arrowOf(layered, "inner"), null);
+
+  /* The guard that matters most: a group holding other controls is a piece of
+   * the bar, and `visibility` is inherited — blanking that would blank every
+   * conversation in the list. */
+  const aGroup = await page(
+    `<div data-at-top data-name="whole" data-box="0,0,60,44">
+       ${ICON}
+       <button data-name="innerButton" data-box="8,6,32,32">${ICON}</button>
+     </div>`,
+    "https://www.instagram.com/direct/inbox/"
+  );
+  await aGroup.settle();
+  check(
+    "something with another control inside it is never blanked",
+    arrowOf(aGroup, "whole"),
+    null
+  );
+
+  /* And nothing bigger than an icon, wherever the point lands. */
+  const wide = await page(
+    `<div data-box="0,0,390,44">
+       <div data-at-top data-name="wide" data-box="8,6,300,32">${ICON}</div>
+     </div>`,
+    "https://www.instagram.com/direct/inbox/"
+  );
+  await wide.settle();
+  check("nor is something the width of the bar", arrowOf(wide, "wide"), null);
+
+  done();  done();
 })();

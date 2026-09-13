@@ -41,6 +41,37 @@ enum RowShape: String, CaseIterable, Sendable {
     }
 }
 
+/// What the island does while the page moves under it.
+///
+/// Two answers were built and neither turned out to be wrong, which is the same
+/// place `RowShape` ended up and the same reason this is a choice rather than an
+/// argument.
+///
+/// The pill used to draw itself in — smaller and paler, in place — and come back
+/// out after a tenth of a second of stillness. That reads well on one long
+/// scroll and badly on the way a feed is actually read, which is a flick, a
+/// pause to look at a post, a flick: the row shrank and popped back on every one
+/// of those pauses, and the thing meant to get out of the way became the only
+/// moving object on the screen.
+///
+/// So the default is Instagram's rule instead — down hides it, up brings it
+/// back, holding still does nothing — and the older one is kept, because "the
+/// row never actually leaves" is a real preference to hold and the argument for
+/// it was never wrong, only outvoted.
+enum RowMotion: String, CaseIterable, Sendable {
+    /// Off the bottom edge and back. Instagram's own, and the default.
+    case leaves
+    /// Smaller and paler in place, back out when the page holds still.
+    case drawsIn
+
+    var name: String {
+        switch self {
+        case .leaves: return String(localized: "Slides away")
+        case .drawsIn: return String(localized: "Draws in")
+        }
+    }
+}
+
 /// The handful of things that are about how Quiet looks rather than what it
 /// promises.
 ///
@@ -53,11 +84,18 @@ enum RowShape: String, CaseIterable, Sendable {
 /// without stepping onto the main actor to do it.
 private enum Key {
     static let row = "quiet.row.shape"
+    static let rowMotion = "quiet.row.motion"
     static let saysWhatIsLeft = "quiet.says.what.is.left"
     static let showsSuggestions = "quiet.shows.suggestions"
     static let appointmentIsOn = "quiet.appointment.on"
     static let appointmentAt = "quiet.appointment.at"
     static let carriesBetweenDevices = "quiet.carries.between.devices"
+    static let recapIsOn = "quiet.recap.on"
+    static let recapAt = "quiet.recap.at"
+    /// Whether the phone has been asked about the morning note yet. Not the
+    /// answer — iOS keeps that — only whether the question has been put, so it
+    /// is put once and never again.
+    static let recapAsked = "quiet.recap.asked"
 }
 
 @MainActor
@@ -71,6 +109,18 @@ final class Preferences {
         didSet {
             guard row != oldValue else { return }
             defaults.set(row.rawValue, forKey: Key.row)
+        }
+    }
+
+    /// What the island does while the page moves under it. See `RowMotion`.
+    ///
+    /// Nothing to do with `row` beyond applying only to one of its two values:
+    /// a bar standing on the bottom edge has nothing to float over and nothing
+    /// to get out of the way of, so it never moves whatever this says.
+    var rowMotion: RowMotion {
+        didSet {
+            guard rowMotion != oldValue else { return }
+            defaults.set(rowMotion.rawValue, forKey: Key.rowMotion)
         }
     }
 
@@ -131,6 +181,23 @@ final class Preferences {
         }
     }
 
+    /// The morning note about the days behind you: whether it arrives, and at
+    /// what hour.
+    ///
+    /// A separate switch from the appointment, and not for tidiness. The two
+    /// are opposite errands — one is an invitation to a window that is open,
+    /// the other is an account of a window that has closed — and somebody who
+    /// wants to be told what a week came to may want nothing at all telling
+    /// them Instagram is available. Bundled together, the account could only
+    /// be had by also buying the invitation.
+    var recap: Recap {
+        didSet {
+            guard recap != oldValue else { return }
+            defaults.set(recap.isOn, forKey: Key.recapIsOn)
+            defaults.set(recap.minutesAfterMidnight, forKey: Key.recapAt)
+        }
+    }
+
     /// Whether the limit, the wait and today's total follow you to your other
     /// devices through iCloud.
     ///
@@ -149,15 +216,38 @@ final class Preferences {
         }
     }
 
+    /// Whether the morning note's permission prompt has already been put.
+    ///
+    /// Deliberately not "was it granted". That answer lives with iOS, it can
+    /// change in Settings without this app running, and a second copy of it
+    /// here would be a copy that goes stale. All this remembers is that the
+    /// question has been asked, which is the only thing that must not happen
+    /// twice.
+    var hasAskedAboutRecap: Bool {
+        didSet {
+            guard hasAskedAboutRecap != oldValue else { return }
+            defaults.set(hasAskedAboutRecap, forKey: Key.recapAsked)
+        }
+    }
+
     /// For a rehearsal, so that a machine can photograph either shape.
     nonisolated static func rehearse(row: RowShape, in defaults: UserDefaults = .standard) {
         defaults.set(row.rawValue, forKey: Key.row)
+        // And so nothing asks for permission over the screen being
+        // photographed. The morning note is on to begin with, so it puts its
+        // one prompt on the first launch that has anything to remember — which
+        // on a rehearsal is every launch, and a system alert in the middle of
+        // the frame is a photograph of the alert. `Applause.forget` suppresses
+        // the review sheet a few lines away for exactly this reason.
+        defaults.set(true, forKey: Key.recapAsked)
     }
 
     init(defaults: UserDefaults = .standard, hardware: Hardware = .current) {
         self.defaults = defaults
         self.row = defaults.string(forKey: Key.row)
             .flatMap(RowShape.init(rawValue:)) ?? .standard(on: hardware)
+        self.rowMotion = defaults.string(forKey: Key.rowMotion)
+            .flatMap(RowMotion.init(rawValue:)) ?? .leaves
         // `bool(forKey:)` answers false for a key nobody has written, which is
         // the wrong way round for a thing that is on unless it has been turned
         // off. Asked as an object first, so that "never chosen" and "chosen
@@ -168,6 +258,7 @@ final class Preferences {
         // tell "never asked" from "asked and answered no".
         self.showsSuggestions = defaults.object(forKey: Key.showsSuggestions) as? Bool ?? true
         self.carriesBetweenDevices = defaults.bool(forKey: Key.carriesBetweenDevices)
+        self.hasAskedAboutRecap = defaults.bool(forKey: Key.recapAsked)
         self.appointment = Appointment(
             isOn: defaults.bool(forKey: Key.appointmentIsOn),
             // `integer(forKey:)` answers zero for a key nobody has written,
@@ -175,6 +266,16 @@ final class Preferences {
             // be told apart. Asked as an object first.
             minutesAfterMidnight: defaults.object(forKey: Key.appointmentAt) as? Int
                 ?? Appointment.standard.minutesAfterMidnight
+        )
+        self.recap = Recap(
+            // Asked as an object, because this is the one preference that is on
+            // unless it has been turned off, and `bool(forKey:)` answers false
+            // for a key nobody has written — which is the wrong way round.
+            isOn: defaults.object(forKey: Key.recapIsOn) as? Bool ?? Recap.standard.isOn,
+            // Asked as an object first, for the same reason the appointment is:
+            // zero is a legitimate hour and also what an unwritten key answers.
+            minutesAfterMidnight: defaults.object(forKey: Key.recapAt) as? Int
+                ?? Recap.standard.minutesAfterMidnight
         )
     }
 }

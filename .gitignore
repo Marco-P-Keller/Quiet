@@ -1,0 +1,3 @@
+# Finder leaves one of these in every directory it has been asked to look at,
+# and they are worth nothing to anybody who clones this.
+.DS_Store

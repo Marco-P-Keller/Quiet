@@ -990,7 +990,7 @@ SLIDES_V2 = {
         ("curtain", "dark", "No *five more*\nminutes.",
          "When today’s time is spent, Quiet closes for the day — and there is "
          "nothing on the screen to argue with.", [], None),
-        ("panel-tomorrow", "light", "Less *now*.\nMore *next week*.",
+        ("panel-light", "light", "Less *now*.\nMore *next week*.",
          "Lowering your daily limit takes effect at once. Raising it waits a "
          "week and starts the next day.", [], None),
         (None, "dark", "What *isn’t* here.",
@@ -1032,6 +1032,84 @@ SLIDES_V2 = {
         ("opening", "dark", "Kein Konto.\nKein *Tracking*.",
          "Keine Server von uns, keine Analytics, keine Werbung. Nichts zum "
          "Nachsehen, nichts zu schlagen.", [], None),
+    ],
+    "es": [
+        ("feed-open", "light", "Instagram,\nsin *Reels*.",
+         "El mismo feed, la misma gente, los mismos mensajes. La pestaña que "
+         "no termina nunca simplemente no está.", [],
+         ("Sin Reels", (0.50, 0.951))),
+        ("curtain", "dark", "Ni *cinco*\nminutos más.",
+         "Cuando el tiempo de hoy se acaba, Quiet cierra el día — y en la "
+         "pantalla no queda nada con lo que discutir.", [], None),
+        ("panel-light", "light", "Menos *ahora*.\nMás *en una semana*.",
+         "Bajar tu límite diario surte efecto de inmediato. Subirlo espera "
+         "una semana y empieza al día siguiente.", [], None),
+        (None, "dark", "Lo que *no* está.",
+         "Quitado por dirección, no escondido detrás de un ajuste que podrías "
+         "volver a activar a las once de la noche.",
+         ["Reels", "Explorar", "Cuentas sugeridas", "Autoplay",
+          "Rachas e informes"], None),
+        ("feed", "dark", "Tu feed.\nTu *gente*.",
+         "Historias, mensajes, comentarios, perfiles — todo, exactamente "
+         "donde estaba, en la propia página de Instagram.", [], None),
+        ("setup", "light", "Todo el trato,\n*de entrada*.",
+         "Lo que Quiet quita y lo que deja en paz, en la primera pantalla, "
+         "antes de que elijas nada.", [], None),
+        ("opening", "dark", "Sin cuenta.\nSin *rastreo*.",
+         "Ningún servidor nuestro, ninguna analítica, ninguna publicidad. "
+         "Nada que revisar y nada que superar.", [], None),
+    ],
+    "fr": [
+        ("feed-open", "light", "Instagram,\nsans *Reels*.",
+         "Le même fil, les mêmes gens, les mêmes messages. L’onglet qui ne "
+         "finit jamais a simplement disparu.", [],
+         ("Pas de Reels", (0.50, 0.951))),
+        ("curtain", "dark", "Pas *cinq*\nminutes de plus.",
+         "Quand le temps du jour est passé, Quiet ferme la journée — et il "
+         "n’y a rien à l’écran avec quoi discuter.", [], None),
+        ("panel-light", "light", "Moins *maintenant*.\nPlus *dans huit jours*.",
+         "Baisser ta limite quotidienne prend effet tout de suite. La relever "
+         "attend une semaine et commence le lendemain.", [], None),
+        (None, "dark", "Ce qui *n’est pas* là.",
+         "Retiré par adresse, pas caché derrière un réglage que tu pourrais "
+         "réactiver à onze heures du soir.",
+         ["Reels", "Explorer", "Comptes suggérés", "Autoplay",
+          "Séries et rapports"], None),
+        ("feed", "dark", "Ton fil.\nTes *gens*.",
+         "Stories, messages, commentaires, profils — tout y est, exactement "
+         "où c’était, sur la page d’Instagram elle-même.", [], None),
+        ("setup", "light", "Tout le marché,\n*d’emblée*.",
+         "Ce que Quiet retire et ce qu’il laisse tranquille, sur le premier "
+         "écran, avant que tu choisisses quoi que ce soit.", [], None),
+        ("opening", "dark", "Pas de compte.\nPas de *pistage*.",
+         "Aucun serveur à nous, aucune analyse, aucune publicité. Rien à "
+         "vérifier et rien à battre.", [], None),
+    ],
+    "pt-BR": [
+        ("feed-open", "light", "Instagram,\nsem *Reels*.",
+         "O mesmo feed, as mesmas pessoas, as mesmas mensagens. A aba que não "
+         "acaba nunca simplesmente sumiu.", [],
+         ("Sem Reels", (0.50, 0.951))),
+        ("curtain", "dark", "Nem *mais cinco*\nminutos.",
+         "Quando o tempo de hoje acaba, o Quiet fecha o dia — e não há nada "
+         "na tela com que discutir.", [], None),
+        ("panel-light", "light", "Menos *agora*.\nMais *em uma semana*.",
+         "Baixar seu limite diário vale na hora. Aumentar espera uma semana "
+         "e começa no dia seguinte.", [], None),
+        (None, "dark", "O que *não* está aqui.",
+         "Tirado por endereço, não escondido atrás de um ajuste que você "
+         "poderia religar às onze da noite.",
+         ["Reels", "Explorar", "Contas sugeridas", "Autoplay",
+          "Sequências e relatórios"], None),
+        ("feed", "dark", "Seu feed.\nSuas *pessoas*.",
+         "Stories, mensagens, comentários, perfis — tudo, exatamente onde "
+         "estava, na própria página do Instagram.", [], None),
+        ("setup", "light", "O acordo inteiro,\n*de cara*.",
+         "O que o Quiet tira e o que ele deixa em paz, na primeira tela, "
+         "antes de você escolher qualquer coisa.", [], None),
+        ("opening", "dark", "Sem conta.\nSem *rastreio*.",
+         "Nenhum servidor nosso, nenhuma análise, nenhuma publicidade. Nada "
+         "para conferir e nada para superar.", [], None),
     ],
 }
 

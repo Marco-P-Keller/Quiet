@@ -113,6 +113,16 @@ protocol Ringer: AnyObject {
     /// Replace whatever was pending with exactly these instants.
     func ring(at times: [Date])
 
-    /// Take everything off.
+    /// Replace whatever recaps are pending with exactly these.
+    ///
+    /// A second errand rather than a second protocol, because the two share the
+    /// one permission and the one notification centre — but a *separate* call,
+    /// because each has to be able to be recomputed without disturbing the
+    /// other. Scheduling recaps used to be a matter of clearing everything and
+    /// putting back what was wanted, which is exactly how the appointment would
+    /// have been silently thrown away by a switch it has nothing to do with.
+    func chime(_ chimes: [Chime])
+
+    /// Take everything off, of both kinds.
     func silence()
 }

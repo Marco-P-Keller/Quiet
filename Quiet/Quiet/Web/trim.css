@@ -82,6 +82,26 @@ div[role="button"]:has(> svg[aria-label="Reels"]):not(article div) {
   display: none !important;
 }
 
+/* ── The arrow out of the inbox ─────────────────────────────────────────── */
+/*
+ * Set by trim.js on the back arrow at the left of the inbox's own bar, and on
+ * nothing else. In Quiet the inbox is one of five things on the row along the
+ * bottom, the way it is a tab in Instagram's own app, and a tab has nothing to
+ * go back from. A conversation's arrow is left alone: that one is the way out
+ * of a thread.
+ *
+ * Blank rather than gone, and `visibility` rather than `display` is the whole
+ * of the difference. The bar is a row with the name centred between its two
+ * ends, so taking the left end out of the layout slides the name across. This
+ * leaves the space exactly as it was and takes away only the drawing and the
+ * tap.
+ */
+
+[data-quiet-arrow] {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 /* ── Room for the clock ─────────────────────────────────────────────────── */
 /*
  * The app hands the page the entire screen, so the first thing in the feed
@@ -329,6 +349,64 @@ html[data-quiet-away] [data-quiet-pinned] {
   transform: translateY(-100%) !important;
 }
 
+
+/* ── Two fingers on a photograph ────────────────────────────────────────── */
+/*
+ * The gesture Instagram's own app has and its website does not: pinch a
+ * photograph and it lifts off the feed, follows your fingers, and springs back
+ * when you let go. A peek rather than a zoom — nothing stays big, and there is
+ * nothing to undo.
+ *
+ * Both of these are elements Quiet adds to the page and takes away again, which
+ * is why they can be given a z-index nothing argues with. What moves is a copy:
+ * the photograph itself lives inside a box that clips it, so making *it* four
+ * times the size would only cut its own edges off. See the section of the same
+ * name in trim.js.
+ *
+ * No transition on the copy while a thumb is on it. It is following two fingers
+ * at sixty frames a second, and a transform easing towards where the fingers
+ * were a fifth of a second ago is a photograph that lags behind the hand
+ * holding it. The transition arrives for the way home, and `data-quiet-falling`
+ * is the moment it does.
+ */
+
+#quiet-zoom {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+#quiet-zoom[data-on] {
+  opacity: 0.82;
+}
+
+#quiet-zoom-photo {
+  position: fixed;
+  z-index: 2147483001;
+  pointer-events: none;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+#quiet-zoom-photo[data-quiet-falling] {
+  transition: transform 240ms cubic-bezier(0.2, 0, 0, 1) !important;
+}
+
+/*
+ * And the original, for as long as a copy of it is standing in front of it.
+ *
+ * `visibility` rather than `display`: the post keeps its height, so nothing
+ * below it moves while somebody is looking at the picture above it. Taken off
+ * again the moment the copy goes.
+ */
+
+[data-quiet-lifted] {
+  visibility: hidden !important;
+}
 
 /* ── Where Quiet's feed ends ────────────────────────────────────────────── */
 /*

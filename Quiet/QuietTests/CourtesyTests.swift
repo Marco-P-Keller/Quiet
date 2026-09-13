@@ -30,6 +30,7 @@ final class CourtesyTests: XCTestCase {
     private final class QuietRinger: Ringer {
         func ask() async -> Bool { true }
         func ring(at times: [Date]) {}
+        func chime(_ chimes: [Chime]) {}
         func silence() {}
     }
 
