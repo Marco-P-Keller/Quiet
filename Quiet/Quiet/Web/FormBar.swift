@@ -50,28 +50,35 @@ import WebKit
 /// ## How
 ///
 /// There is no supported way to ask for any of it. `inputAccessoryView` is a
-/// `UIResponder` property, and the responder answering for a page is WebKit's
-/// own `WKContentView` — not a class the app is handed. So a subclass is made
-/// at run time, with one method on it, and the view is moved into it. Nothing
-/// private is called and nothing is swizzled out from under anybody: one
-/// `object_setClass`, on one view, inside a web view this app made and holds
-/// the only reference to.
+/// `UIResponder` property, and the responder answering for a page is a view
+/// WebKit makes and does not hand over. So a subclass is made at run time, with
+/// one method on it, and the view is moved into it. Every call here is public
+/// Objective-C runtime: one `object_setClass`, on one view, inside a web view
+/// this app made and holds the only reference to.
+///
+/// ## Found by what it does, not by what it is called
+///
+/// This used to look for a view whose class name began `WKContentView`, and
+/// that name is WebKit's private business — a string literal naming a private
+/// class, sitting in the shipped binary, in an app whose whole review argument
+/// is that it takes no liberties. It is asked a different way now: **the view
+/// that answers for the page is the one conforming to `UITextInput`**, which is
+/// a public protocol, is the thing that actually matters about it, and is true
+/// of no other subview of a web view's scroll view.
+///
+/// Better on the merits as well as on the paperwork. A class WebKit renames
+/// tomorrow still conforms to the protocol it has to conform to in order to
+/// hold a keyboard at all.
 ///
 /// Everything above is measured rather than believed, in `FormBarTests` —
-/// including the two facts WebKit has never promised, that the view is called
-/// `WKContentView` and that it stands in the scroll view. This is a fix that
-/// would die silently: a renamed class, nothing found, nothing changed, and the
-/// bar back on top of somebody's message box with no line in any log. If a
-/// future SDK renames it, that file goes red on the push which picks it up.
+/// including the fact WebKit has never promised, that the view stands in the
+/// scroll view. This is a fix that would die silently: nothing found, nothing
+/// changed, and the bar back on top of somebody's message box with no line in
+/// any log. If a future SDK moves it, that file goes red on the push which
+/// picks it up.
 enum FormBar {
     /// What the class this makes is called: WebKit's own name, and this.
     private static let mark = "_QuietWithoutAFormBar"
-
-    /// The name of the view that answers the keyboard's questions for a page.
-    ///
-    /// A prefix rather than the whole name, because the quietened class is
-    /// still one of these and has to go on being found as one.
-    private static let ownerName = "WKContentView"
 
     /// Where the nothing is kept, one per view it was asked of.
     ///
@@ -88,11 +95,15 @@ enum FormBar {
     /// It is there from the moment the web view is made — before a page, before
     /// a window — which is what lets this be done once, where the view is
     /// built, instead of watched for.
+    ///
+    /// Asked by conformance rather than by name: whatever WebKit calls the view
+    /// that edits text for a page, it is the one that can be a `UITextInput`,
+    /// and it is the only subview here that can. Renaming the class does not
+    /// move it; dropping the protocol would mean the keyboard had stopped
+    /// working, which is a louder failure than this one.
     @MainActor
     static func owner(of webView: WKWebView) -> UIView? {
-        webView.scrollView.subviews.first {
-            NSStringFromClass(type(of: $0)).hasPrefix(ownerName)
-        }
+        webView.scrollView.subviews.first { $0 is UITextInput }
     }
 
     /// Give every field on this web view's pages a bar that is nothing.

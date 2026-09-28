@@ -130,6 +130,25 @@ enum Rehearsal {
         // photographed.
         Remembered.forget()
         Applause.forget()
+        // And then the one thing the search screen is mostly made of, put back.
+        //
+        // The same argument the `record` scene already makes about a fortnight
+        // of days: its subject is something that has already happened, so a
+        // phone set up ten seconds ago has nothing to draw. The recently-opened
+        // list is that exact case. `Remembered.forget()` two lines up is what
+        // makes every run photograph the same app, and it also emptied the half
+        // of this screen that does the work — so every picture ever taken of it
+        // is a field, a sentence, and nothing else, which is a state that lasts
+        // until somebody opens their first profile and then never returns.
+        //
+        // Eight, because eight is the most the list ever holds, and the most is
+        // the interesting one: it is where the column is longest and where a
+        // reader at the largest text size finds out whether the page scrolls.
+        if scene == .search || scene == .typing {
+            for handle in namesForTheList.reversed() {
+                Remembered.remember(visit: handle)
+            }
+        }
         // The shape of the row is a preference, so it outlives a launch and
         // would otherwise make the next scene photograph whatever the last one
         // chose.
@@ -171,6 +190,18 @@ enum Rehearsal {
         store.save(history, for: .history)
         store.save(UsageLedger(day: today, seconds: 11 * 60), for: .usage)
     }
+
+    /// Who the staged phone has been opening.
+    ///
+    /// Invented, and they have to be: a screenshot carries whatever is written
+    /// on it wherever the screenshot goes, and a real handle on a picture of
+    /// somebody else's app is a person who never agreed to be there. These are
+    /// eight names in the shape handles come in and nothing else — no account
+    /// is looked up, and nothing here is ever asked for over the network.
+    private static let namesForTheList = [
+        "mara.jensen", "theo.l", "annikaruns", "j.okafor",
+        "lenaundfelix", "sofia.moreau", "danielhofer", "no.7.studio",
+    ]
 
     /// The scenes that are places in the app rather than states of the day.
     @MainActor

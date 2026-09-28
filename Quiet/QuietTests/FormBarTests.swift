@@ -44,8 +44,10 @@ final class FormBarTests: XCTestCase {
         XCTAssertNotNil(
             FormBar.owner(of: WKWebView(frame: .zero)),
             """
-            No WKContentView in the web view's scroll view. WebKit has renamed \
-            or moved it, and FormBar now takes nothing away from anything.
+            Nothing in the web view's scroll view conforms to UITextInput. \
+            WebKit has moved the view that edits text for a page, or stopped \
+            declaring the protocol on it, and FormBar now takes nothing away \
+            from anything.
             """
         )
     }

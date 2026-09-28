@@ -28,6 +28,74 @@ different question from whether it can ship and is not answered anywhere else.
 The runner sees Instagram signed out. Everything below is invisible to it, and
 the first five items are the app's central promise.
 
+### 1.0 The user agent keeps Safari's tokens — *decided, and the risk is Meta's, not Apple's*
+
+This section used to be the first thing to check, because the app had stopped
+saying `Safari` and nobody knew what Instagram would serve it. That was reversed
+on 2026-09-28: the string is `Mozilla/5.0 (iPhone; …) … Safari/604.1 Quiet/1.0`
+— the tokens Instagram's sniffing looks for, with the app's own name on the end.
+The reasoning is under *what was deliberately kept* in
+[shipping this](store-and-legal.md), and the short version is that
+`customUserAgent` is a public Apple API, App Review never sees the string, and
+the risk of the honest one was the only risk this app cannot survive: a thinner
+Instagram.
+
+**What was measured while the honest string was in.** The app was launched on a
+simulator against the real site and Instagram served its ordinary German mobile
+page — cookie dialogue, footer, language picker, the layout the app has always
+had. So even the honest string was not refused at the door, signed out. That is
+worth keeping written down: it means going back to it costs less than was
+feared, which matters on the day Meta asks.
+
+**What nobody has seen either way is a signed-in session.** That still needs an
+account.
+
+**Check:** sign in and open the feed. **Pass looks like:** the page that was
+there before. **Fail looks like:** a thinner page, a desktop layout, an
+"unsupported browser" wall, or a login form that will not submit. **If Meta
+objects to the string,** give it back — and short of that, the Family Controls
+version at the foot of [shipping this](store-and-legal.md) is the app that never
+had any of these questions.
+
+### 1.0b The row keeps Instagram's glyphs — *decided, and worth revisiting once*
+
+This section used to ask whether the row still read as a row after SF Symbols
+replaced Instagram's own glyphs in it. It does not have to be asked: on
+2026-09-28 the glyphs were **kept**, deliberately, with the reasoning written
+down under *what was deliberately kept* in
+[shipping this](store-and-legal.md). The row is the row that was photographed
+for the whole store listing, unchanged.
+
+So this is no longer an open question about the app. It is one line on a risk
+list: it is the single thing left in the UI that is Meta's rather than Quiet's,
+the review notes say nothing about it, and if a reviewer raises it the answer is
+to take it out rather than to argue. `Tools/measure-the-row.py` is still the
+thing that would measure what SF Symbols cost, on the day that has to happen.
+
+### 1.0c Faces in the recently-opened list — *done, and it went the good way*
+
+The list had a photograph beside every name and they came from
+`/api/v1/users/web_profile_info/`, which went with the rest of the private API.
+The way back that goes nowhere near an endpoint was already written down here as
+optional: a profile page a reader opens **has that person's picture on it**.
+
+That is what is there now — `faceOnThisProfile` in `trim.js`, read off the
+document, handed over as bytes down the same channel the reader's own face
+already used. It turns out better than the endpoint it replaced rather than
+merely defensible: no round trip when the list appears, nobody who was never
+opened is ever asked about, and the picture is written down at the moment of
+opening, so it is already there the next time the list is looked at.
+
+**What was guessed at, and should be looked at once on a real phone.** The
+selector. It takes the picture only from inside `<header>`, prefers the one
+whose `alt` carries the handle, and falls back to the one square image in there
+— because a profile page is mostly a grid of square photographs the same size as
+a face. `read-the-trim.js` pins all three cases against a fixture, and a fixture
+is not Instagram's markup. **Check:** open two or three profiles, then the
+search screen. **Pass looks like:** their faces beside their names. **Fail looks
+like:** letters (nothing matched — harmless), or, the one that matters, somebody
+else's photograph beside a name.
+
 ### 1.1 The feed, signed in
 
 Instagram does not keep Reels on the Reels tab. It injects them into the feed as
@@ -196,16 +264,39 @@ shown by default and there is a switch. A false sentence about the app, on the
 developer's own site, at the Marketing URL a reviewer is given. The workflow now
 watches `dev`, which is the branch these pages have to agree with.
 
-### 2.3 The listing — *written*
+### 2.3 The listing — *written, in thirty-nine localisations, less two photographs*
 
-Name, subtitle, promotional text, description, keywords, category, age rating,
-privacy answers and the four screenshots with their captions are all in
-[the listing](store-listing.md), inside Apple's character limits, with the
-reasoning for every arguable choice.
+Name, subtitle, promotional text, description and keywords are in
+[`store/`](../store), one file per field per localisation, in every language App
+Store Connect offers — with the category, the age rating, the privacy answers
+and the review notes beside them. Eleven of the thirty-nine are languages the
+app itself speaks; the other twenty-eight say so in their own description, and
+[`store/README.md`](../store/README.md) sets out the order worth shipping them
+in. Every field is inside Apple's limit, and that is checked rather
+than believed:
 
-The screenshots themselves come out of the `Screenshots` workflow at 1320 ×
-2868 — the 6.9-inch size App Store Connect requires — as a downloadable
-artifact.
+    python3 Tools/read-the-listing.py
+
+Why these words rather than others is in [the listing](store-listing.md).
+
+The screenshots are eight slides per language at 1320 × 2868, composed by
+`Tools/make-shots.py` from captures that `Tools/photograph-for-the-store.sh`
+takes off a simulator in three minutes a language. Six of the eight are Quiet's
+own screens and are current.
+
+**The other two are not, and they are the one thing on this page that cannot be
+done from a computer.** Slides 1 and 5 are photographs of a signed-in feed, they
+come from a build nobody can install any more, and what they show in Quiet's own
+bottom row is Instagram's house, magnifier and paper plane — the artwork that
+was taken out of the app for the reason in [shipping
+this](store-and-legal.md#3-instagrams-glyphs-in-quiets-own-row). The row also
+had four icons then and has five now, the middle one being the clock the red
+arrow on slide 1 is pointing at.
+
+**Check:** open the feed on a signed-in phone running the current build.
+**What to do:** two screenshots, nothing of anybody else's in either, into
+`Tools/shots/source/`, then `python3 Tools/make-shots.py v2`. The whole recipe
+is in [`store/README.md`](../store/README.md).
 
 ### 2.4 The first build on a real phone — *done: build 102 is in TestFlight*
 

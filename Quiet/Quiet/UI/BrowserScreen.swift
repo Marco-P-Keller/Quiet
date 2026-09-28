@@ -449,7 +449,6 @@ struct BrowserScreen: View {
                         )
                     } else {
                         SearchView(
-                            surface: surface,
                             onDone: { session.isSearchShowing = false },
                             onOpen: { url in
                                 surface.visit(url)

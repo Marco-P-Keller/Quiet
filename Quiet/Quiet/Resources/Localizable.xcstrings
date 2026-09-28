@@ -2379,40 +2379,6 @@
         }
       }
     },
-    "Looking…": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Suche …"
-          }
-        },
-        "en-GB": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Looking…"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Buscando…"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recherche…"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Procurando…"
-          }
-        }
-      }
-    },
     "Make Quiet forget everything": {
       "localizations": {
         "de": {
@@ -2749,40 +2715,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Não sobrou tempo hoje."
-          }
-        }
-      }
-    },
-    "Nobody by that name.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Niemand mit diesem Namen."
-          }
-        },
-        "en-GB": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nobody by that name."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nadie con ese nombre."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Personne de ce nom."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ninguém com esse nome."
           }
         }
       }
@@ -3843,40 +3775,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dizer o que sobrou"
-          }
-        }
-      }
-    },
-    "Search is not answering. An exact name still works: type it and press search.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die Suche antwortet nicht. Ein genauer Name geht trotzdem: eintippen und auf Suchen drücken."
-          }
-        },
-        "en-GB": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Search is not answering. An exact name still works: type it and press search."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La búsqueda no responde. Un nombre exacto sigue funcionando: escríbelo y pulsa buscar."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La recherche ne répond pas. Un nom exact marche quand même : tape-le et appuie sur rechercher."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A busca não está respondendo. Um nome exato ainda funciona: digite e aperte buscar."
           }
         }
       }
@@ -5486,36 +5384,36 @@
         }
       }
     },
-    "Type a name. Quiet searches for people and nothing else — no Explore, no hashtags, no places.": {
+    "Type a name and press search. Quiet opens that profile and nothing else — no Explore, no hashtags, no places.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tippe einen Namen. Quiet sucht nach Menschen und sonst nichts — kein Explore, keine Hashtags, keine Orte."
+            "value": "Tippe einen Namen und drücke Suchen. Quiet öffnet dieses Profil und sonst nichts — kein Explore, keine Hashtags, keine Orte."
           }
         },
         "en-GB": {
           "stringUnit": {
             "state": "translated",
-            "value": "Type a name. Quiet searches for people and nothing else — no Explore, no hashtags, no places."
+            "value": "Type a name and press search. Quiet opens that profile and nothing else — no Explore, no hashtags, no places."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Escribe un nombre. Quiet busca personas y nada más — sin Explorar, sin hashtags, sin lugares."
+            "value": "Escribe un nombre y pulsa buscar. Quiet abre ese perfil y nada más — sin Explorar, sin hashtags, sin lugares."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tape un nom. Quiet cherche des gens et rien d’autre — pas d’Explorer, pas de hashtags, pas de lieux."
+            "value": "Tape un nom et appuie sur rechercher. Quiet ouvre ce profil et rien d’autre — pas d’Explorer, pas de hashtags, pas de lieux."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Digite um nome. O Quiet procura pessoas e nada mais — sem Explorar, sem hashtags, sem lugares."
+            "value": "Digite um nome e toque em buscar. O Quiet abre esse perfil e nada mais — sem Explorar, sem hashtags, sem lugares."
           }
         }
       }

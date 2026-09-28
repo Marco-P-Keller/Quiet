@@ -466,5 +466,87 @@ function tap(win, selector) {
   check("and off again, they go a second time", why(asked, "theirs"), "suggestion");
   check("with the post either side untouched throughout", why(asked, "mine"), null);
 
+  /* ── The face on a profile somebody opened ───────────────────────────── */
+
+  /* The recently-opened list used to wear photographs fetched from
+   * `/api/v1/users/web_profile_info/`, eight at a time, with Instagram's own
+   * web client identifier in a header. They come off the profile page itself
+   * now — which is the same picture, out of a page the reader asked for.
+   *
+   * What is asked here is not whether the bytes arrive. `page.js` answers every
+   * fetch with a promise that never settles, on purpose, so what a test can see
+   * is the *address the script decided on* — and the address is the whole of the
+   * risk. A profile page is mostly a grid of square pictures the same size as a
+   * face, and one of somebody's photographs filed under their name is worse than
+   * no photograph at all. */
+
+  const PROFILE = `
+    <header data-box="0,60,390,180">
+      <img data-name="hers" alt="ada's profile picture" src="https://cdn/ada.jpg"
+           data-box="16,76,88,88">
+      <h2 data-box="120,76,200,24">ada</h2>
+    </header>
+    <main data-box="0,240,390,3000">
+      <article data-box="0,240,390,390">
+        <img data-name="post" alt="Photo by ada on September 1, 2026."
+             src="https://cdn/post-1.jpg" data-box="0,240,130,130">
+      </article>
+    </main>`;
+
+  const pictures = (win) => win.fetched.filter((one) => String(one).indexOf("cdn/") !== -1);
+
+  const hers = await page(PROFILE, "https://www.instagram.com/ada/");
+  await settle(hers);
+  check(
+    "the picture in the header is the one read off a profile",
+    pictures(hers),
+    ["https://cdn/ada.jpg"]
+  );
+
+  /* The `alt` on a post carries the handle too — "Photo by ada on…" — so a
+   * match on the name alone would take a photograph of Ada's lunch and file it
+   * under Ada. The stop is the header, not the wording. */
+  const GRID_ONLY = `
+    <header data-box="0,60,390,60"><h2 data-box="16,76,200,24">ada</h2></header>
+    <main data-box="0,240,390,3000">
+      <img data-name="post" alt="Photo by ada on September 1, 2026."
+           src="https://cdn/post-1.jpg" data-box="0,240,130,130">
+    </main>`;
+
+  const grid = await page(GRID_ONLY, "https://www.instagram.com/ada/");
+  await settle(grid);
+  check("a photograph out of the grid is never taken for a face", pictures(grid), []);
+
+  /* And the shape answers where the wording does not: a header in a language
+   * whose word for "profile picture" does not contain the handle still has one
+   * square picture in it and nothing else that size. */
+  const UNNAMED = `
+    <header data-box="0,60,390,180">
+      <img data-name="hers" alt="Profilbild" src="https://cdn/ada.jpg" data-box="16,76,88,88">
+      <img data-name="badge" alt="" src="https://cdn/tick.svg" data-box="120,80,14,14">
+    </header>
+    <main data-box="0,240,390,3000"></main>`;
+
+  const unnamed = await page(UNNAMED, "https://www.instagram.com/ada/");
+  await settle(unnamed);
+  check("a header in another language still gives up the square one", pictures(unnamed), [
+    "https://cdn/ada.jpg",
+  ]);
+
+  /* Nobody who was not opened is ever asked about, and that is enforced by
+   * there being nowhere else to ask from: a page that is not somebody's profile
+   * reads no picture at all. `/explore/` is shaped exactly like a handle, which
+   * is the mistake `NOT_PEOPLE` exists to stop. */
+  for (const [what, address] of [
+    ["the feed", FEED],
+    ["a post", "https://www.instagram.com/p/CxYz123/"],
+    ["somebody's followers", "https://www.instagram.com/ada/followers/"],
+    ["Explore, which is shaped like a name", "https://www.instagram.com/explore/"],
+  ]) {
+    const win = await page(PROFILE, address);
+    await settle(win);
+    check(`no face is read off ${what}`, pictures(win), []);
+  }
+
   done();
 })();

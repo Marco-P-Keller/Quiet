@@ -203,7 +203,6 @@ struct RootView: View {
         }
         .sheet(isPresented: $session.isSearchShowing) {
             SearchView(
-                surface: surface,
                 onDone: { session.isSearchShowing = false },
                 onOpen: { url in
                     surface.visit(url)
