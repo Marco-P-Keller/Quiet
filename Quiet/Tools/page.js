@@ -137,8 +137,20 @@ function dress(win) {
     await new Promise((go) => setTimeout(go, 200));
     win.drain();
   };
-  // The script asks Instagram who is signed in. There is nobody here to ask.
-  win.fetch = () => new win.Promise(() => {});
+  // Every address the script asked the network for, in order.
+  //
+  // The pass is meant to ask for **nothing**: who is signed in is read off the
+  // page, and the only fetch left is for a picture the page has already loaded,
+  // which only happens when a row with a face in it is on the document. A tool
+  // that merely stubbed this out could not tell the difference between a pass
+  // that asks for nothing and a pass that asks for a second HTML page and never
+  // gets an answer — which is exactly what used to be here. See
+  // `read-the-header.js`, "the wordmark, left alone".
+  win.fetched = [];
+  win.fetch = (address) => {
+    win.fetched.push(String(address));
+    return new win.Promise(() => {});
+  };
   win.__quietTop = 59;
   // The two sentences the app hands the page, so the end of a feed can be said
   // in whichever language the phone is in. The catalogue owns the real ones.
