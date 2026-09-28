@@ -361,6 +361,11 @@ struct BrowserScreen: View {
     /// a page whose script never ran — which can never say anything — is
     /// uncovered when the request settles, exactly as before.
     private var isCovered: Bool {
+        #if DEBUG
+        // A staged photograph of the row, which has to stand on a flat colour.
+        // See `Rehearsal.holdsTheCover`.
+        if Rehearsal.holdsTheCover { return true }
+        #endif
         if surface.isBare { return true }
         return !surface.hasPainted && !surface.hasLoaded
     }

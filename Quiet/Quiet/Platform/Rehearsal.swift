@@ -227,5 +227,25 @@ enum Rehearsal {
     /// *fault* depends entirely on what the same page reads with no keyboard
     /// up. Three rounds went by without that control being taken.
     static var measuresTheSearchPage: Bool { scene == .search || scene == .typing }
+
+    /// Whether this launch keeps Quiet's own cover over the page, for good.
+    ///
+    /// Only the `island` scene, and it is the whole of what that scene is for.
+    /// `Tools/measure-the-row.py` measures the row against whatever is behind
+    /// it, and the row is translucent — so what is behind it has to be a flat
+    /// colour of Quiet's own rather than a photograph of somebody's dinner.
+    ///
+    /// **This used to be a race, and four seconds of `sleep` in the workflow
+    /// used to win it.** Then the app got faster: two background requests for
+    /// documents nobody asked to see went with the private API, and the first
+    /// paint started arriving inside those four seconds. The measurement began
+    /// reading the bottom edge of the row into the grey of a page that had
+    /// turned up — ground 17 became ground 65, the row's own 54 sat four levels
+    /// from it, and the plateau bled three points downward. The row had not
+    /// moved a point; it stood at 26 to 76 in both photographs.
+    ///
+    /// A check whose precondition is a sleep is a check that goes red the day
+    /// the thing it watches improves. So the precondition is stated instead.
+    static var holdsTheCover: Bool { scene == .island }
 }
 #endif
