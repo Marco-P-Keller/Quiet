@@ -1058,15 +1058,65 @@ struct BrowserScreen: View {
         _ label: Text
     ) -> some View {
         let here = current == entry
+        let waiting = entry == .messages && showsUnread
         return Button { go(to: entry) } label: {
             glyph(entry, here, outline, solid)
                 .foregroundStyle(Color(uiColor: .label))
+                .overlay(alignment: .topTrailing) {
+                    if waiting { unreadBadge }
+                }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(label)
+        .accessibilityValue(Text(waiting ? unreadAloud : ""))
         .accessibilityAddTraits(here ? .isSelected : [])
+    }
+
+    /// Whether the messages entry wears Instagram's badge.
+    ///
+    /// Not while you are standing in the inbox: the page there has no row to
+    /// keep the number honest, and the conversations that are waiting are
+    /// already on the glass, in bold, where you are looking at them. A badge
+    /// that outlived reading them would be the one thing on the screen saying
+    /// something untrue.
+    private var showsUnread: Bool {
+        current != .messages && surface.unread.isWaiting
+    }
+
+    /// Instagram's own red, and its own shape for it: a small disc with the
+    /// number in white, or a bare disc when the page did not give one, sitting
+    /// on the upper right corner of the plane.
+    private var unreadBadge: some View {
+        Group {
+            if let written = surface.unread.written {
+                Text(verbatim: written)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 5)
+                    .frame(minWidth: 17, minHeight: 17)
+                    .background(Capsule().fill(Self.unreadRed))
+            } else {
+                Circle()
+                    .fill(Self.unreadRed)
+                    .frame(width: 9, height: 9)
+            }
+        }
+        .offset(x: 9, y: -6)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    private static let unreadRed = Color(red: 1, green: 0.19, blue: 0.25)
+
+    /// Said as the entry's value, so "Messages" is followed by what is in them.
+    private var unreadAloud: String {
+        switch surface.unread {
+        case .none: return ""
+        case .dot: return String(localized: "Unread")
+        case .count(let number): return String(localized: "\(number) unread")
+        }
     }
 
     /// Instagram's own drawing where the page has handed one over, and Quiet's

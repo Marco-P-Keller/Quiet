@@ -493,6 +493,95 @@
     });
   }
 
+  /* ── The unread badge ─────────────────────────────────────────────────── */
+
+  /** A count as Instagram writes it: "3", or "9+" once it stops counting. */
+  var A_COUNT = /^\s*(\d{1,3})\s*(\+)?\s*$/;
+
+  /**
+   * A small element painted Instagram's red, with nothing written in it.
+   *
+   * Asked of the computed style and of nothing else. The row is hidden by the
+   * time this looks, and a hidden element has no box to measure, but it still
+   * has a colour.
+   */
+  function isARedDot(node) {
+    var paint = /rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+)\s*)?\)/
+      .exec(window.getComputedStyle(node).backgroundColor || "");
+    if (!paint) return false;
+    if (paint[4] !== undefined && parseFloat(paint[4]) < 0.5) return false;
+    return +paint[1] >= 200 && +paint[2] <= 100 && +paint[3] <= 120;
+  }
+
+  /**
+   * What Instagram's own badge on its messages icon says: a number, a dot with
+   * no number, or nothing.
+   *
+   * Read off the entry the app is about to hide, which is the badge Instagram
+   * already drew for somebody who was already looking at its page — the same
+   * row the name, the face and the glyphs are read from, and no request made
+   * to anybody. Class names are generated and change; a number written in a
+   * leaf element inside the messages link, and a red spot in the same place,
+   * do not.
+   *
+   * Leaves only, and never inside the drawing: an `<svg>` carries a `<title>`
+   * with the word for messages in it, and the wrapper around a badge carries
+   * the badge.
+   */
+  function unreadOn(link) {
+    var nodes = link.querySelectorAll("*");
+    var dot = false;
+
+    for (var i = 0; i < nodes.length; i++) {
+      var node = nodes[i];
+      if (node.children.length || node.closest("svg")) continue;
+
+      var written = node.textContent || "";
+      var count = A_COUNT.exec(written);
+      // "9+" is more than nine, so it is sent as ten: what the app draws for
+      // any number past nine is the same "9+" the page wrote.
+      if (count && +count[1] > 0) return { count: +count[1] + (count[2] ? 1 : 0), dot: false };
+      if (!written.trim() && isARedDot(node)) dot = true;
+    }
+    return { count: 0, dot: dot };
+  }
+
+  var lastUnread = null;
+  var badgeWatch = null;
+  var badgeWatched = null;
+
+  /**
+   * Tell the app what the messages entry says it has waiting.
+   *
+   * Only while the row is on the page, and never as a zero because it is not:
+   * a conversation and a story are pages Instagram draws no row on, and "no
+   * row" is no news rather than the news that everything has been read.
+   * Sent when it changes and not otherwise.
+   */
+  function sayUnread() {
+    var row = navRow();
+    if (!row) return;
+
+    // A count changes inside the row without anything being added to the page,
+    // which is all the page-wide observer listens for. This one is on the row
+    // alone, so it costs what the row costs.
+    if (badgeWatched !== row && window.MutationObserver) {
+      if (badgeWatch) badgeWatch.disconnect();
+      badgeWatched = row;
+      badgeWatch = new MutationObserver(sayUnread);
+      badgeWatch.observe(row, { childList: true, characterData: true, subtree: true });
+    }
+
+    var link = row.querySelector('a[href^="/direct"]');
+    if (!link) return;
+
+    var reading = unreadOn(link);
+    var key = reading.count + (reading.dot ? "." : "");
+    if (key === lastUnread) return;
+    lastUnread = key;
+    post({ kind: "unread", count: reading.count, dot: reading.dot });
+  }
+
   /**
    * Quiet's row carries all five entries, so Instagram's is one bar too many.
    *
@@ -643,7 +732,69 @@
 
       sent[key] = true;
       draw(glyph, key);
+
+      // The inbox is the one place this row is not always drawn, so the filled
+      // paper plane may never be seen at all — and what the app puts there
+      // instead is a symbol of its own, which is a differently drawn plane
+      // pointing a different way. Instagram fills the drawing it has; so does
+      // this, from the outline in front of it.
+      if (entry.name === "messages" && !on && !sent["messages.on"]) {
+        sent["messages.on"] = true;
+        draw(filled(glyph), "messages.on");
+      }
     }
+  }
+
+  /**
+   * The same drawing, solid: its shape filled in and the line inside it cut out.
+   *
+   * Instagram's own selected state is that and nothing else — the outline is a
+   * closed shape with a stroke, and the fold in the paper is an open line laid
+   * across it. Filling the first and cutting the second out of it gives the
+   * same silhouette at the same size, which is what stops the plane from
+   * seeming to be swapped for another one when it is pressed.
+   *
+   * The line is cut out rather than painted over, because what the app gets
+   * back is a template: only the shape of it survives, and a white line on a
+   * black plane would come back as one black plane.
+   */
+  function filled(glyph) {
+    var ns = "http://www.w3.org/2000/svg";
+    var copy = glyph.cloneNode(true);
+    var cut = [];
+    var parts = copy.querySelectorAll("path, polygon, polyline, line, circle, ellipse, rect");
+
+    for (var i = 0; i < parts.length; i++) {
+      var name = parts[i].localName;
+      if (name === "line" || name === "polyline") {
+        cut.push(parts[i]);
+      } else {
+        parts[i].setAttribute("fill", "currentColor");
+      }
+    }
+    if (!cut.length) return copy;
+
+    var mask = document.createElementNS(ns, "mask");
+    mask.setAttribute("id", "quiet-fold");
+    var page = document.createElementNS(ns, "rect");
+    page.setAttribute("x", "-50");
+    page.setAttribute("y", "-50");
+    page.setAttribute("width", "200");
+    page.setAttribute("height", "200");
+    page.setAttribute("fill", "white");
+    mask.appendChild(page);
+    for (var j = 0; j < cut.length; j++) {
+      cut[j].setAttribute("stroke", "black");
+      cut[j].setAttribute("fill", "none");
+      mask.appendChild(cut[j]);
+    }
+
+    var body = document.createElementNS(ns, "g");
+    body.setAttribute("mask", "url(#quiet-fold)");
+    while (copy.firstChild) body.appendChild(copy.firstChild);
+    copy.appendChild(mask);
+    copy.appendChild(body);
+    return copy;
   }
 
   /**
@@ -3376,6 +3527,7 @@
     makeRoom();
     sayChrome();
     faceOnThisProfile();
+    sayUnread();
     headerComesBack();
     liftHeader();
     shapeHeader();

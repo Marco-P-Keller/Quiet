@@ -86,6 +86,14 @@ final class WebSurface {
         icons[entry + (on ? ".on" : ".off")]
     }
 
+    /// What Instagram's badge on its own messages icon says is waiting.
+    ///
+    /// Read off the row Quiet hides, by a page the reader opened, and sent only
+    /// while that row is on the page — so a conversation, which has none, leaves
+    /// this where it was rather than saying everything has been read. Never
+    /// kept between runs: a count from yesterday is not news.
+    private(set) var unread: Unread = .none
+
     /// The colour Instagram is drawing its own chrome in, as the page reports it.
     ///
     /// The band behind the clock is painted in this. The app owns those pixels —
@@ -455,6 +463,11 @@ final class WebSurface {
         // carrying Instagram's black into a light appearance.
         icons[entry] = image.withRenderingMode(.alwaysTemplate)
         Remembered.remember(icon: entry, data: data)
+    }
+
+    fileprivate func note(unread reading: Unread) {
+        guard unread != reading else { return }
+        unread = reading
     }
 
     fileprivate func note(typing on: Bool) {
@@ -1670,6 +1683,14 @@ struct InstagramWebView: UIViewRepresentable {
                     surface.note(icon: entry, picture: picture)
                 }
 
+            case "unread":
+                // The badge on Instagram's own messages icon, as the page's
+                // row drew it. Whichever pane has a row may say so, and the
+                // latest word stands.
+                if let reading = Unread(message: body) {
+                    surface.note(unread: reading)
+                }
+
             case "chrome":
                 // The colour of Instagram's own chrome, for the band the clock
                 // stands on. Sent again whenever it changes, which is how the
@@ -1754,6 +1775,46 @@ private final class ScriptRelay: NSObject, WKScriptMessageHandler {
             pane?.receive(message)
         }
     }
+}
+
+/// What is waiting in the inbox, as the page's own badge reports it.
+///
+/// Its own type so that what a page may send can be tested without a web view.
+/// A message that arrives malformed is dropped and the badge stays as it was,
+/// which is the only behaviour that is never wrong: a number Quiet invented is
+/// worse than a number that is a moment old.
+enum Unread: Equatable {
+    case none
+    /// Something is waiting and the page did not say how many.
+    case dot
+    case count(Int)
+
+    /// The most a badge is believed to carry. Instagram stops counting long
+    /// before this; a number past it is the page being something else.
+    private static let ceiling = 999
+
+    init?(message body: [String: Any]) {
+        guard let number = body["count"] as? NSNumber else { return nil }
+        let raw = number.doubleValue
+        guard raw.isFinite, raw == raw.rounded(), (0...Double(Self.ceiling)).contains(raw) else {
+            return nil
+        }
+        if raw > 0 {
+            self = .count(Int(raw))
+        } else {
+            self = (body["dot"] as? Bool ?? false) ? .dot : .none
+        }
+    }
+
+    /// What is written inside the badge, if anything. Instagram's stops at
+    /// nine, and so does this: a red circle with three digits in it is not a
+    /// thing that fits on a row of icons.
+    var written: String? {
+        guard case .count(let number) = self else { return nil }
+        return number > 9 ? "9+" : String(number)
+    }
+
+    var isWaiting: Bool { self != .none }
 }
 
 /// Three numbers from the page, turned into a colour, or nothing.

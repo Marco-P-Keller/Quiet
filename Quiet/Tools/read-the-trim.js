@@ -548,5 +548,136 @@ function tap(win, selector) {
     check(`no face is read off ${what}`, pictures(win), []);
   }
 
+  /* ── The unread badge, and the plane that has to stay the same plane ──── */
+
+  /* Instagram draws a red badge on its messages icon when something is waiting,
+   * and the app draws the same thing on its own copy of that icon. What it can
+   * be told is a number, a dot, or nothing — read out of the row it is about to
+   * hide, in a page the reader opened, with no request made to anybody.
+   *
+   * Nothing here is Instagram's actual markup, which is generated and changes.
+   * What it is is the shape every version of it has had: a link to the inbox
+   * with a drawing in it and, beside the drawing, either a number in a red
+   * spot or a red spot. */
+  const PLANE = `<svg aria-label="Messages" viewBox="0 0 24 24">
+      <title>Messages</title>
+      <path d="M13.9 20 21.8 6.9C22.8 5.2 21.5 3 19.5 3H4.5C2.1 3 1 5.8 2.6 7.5l4.8 4.7 1.7 7.1c.5 2.3 3.6 2.7 4.8.7Z"
+            fill="none" stroke="currentColor" stroke-width="2"></path>
+      <line fill="none" stroke="currentColor" stroke-width="2" x1="7.5" x2="15.5" y1="12.2" y2="7.6"></line>
+    </svg>`;
+  const ROW = (badge) => `
+    <nav data-box="0,800,390,44">
+      <a href="/"><svg><title>Home</title><path d="M0 0h1"></path></svg></a>
+      <a href="/explore/"><svg><title>Search</title><path d="M0 0h1"></path></svg></a>
+      <a href="/direct/inbox/"><div>${PLANE}${badge}</div></a>
+      <a href="/ada/"><img src="https://cdn/ada.jpg"></a>
+    </nav>
+    <main></main>`;
+  const RED = `style="background-color: rgb(255, 48, 64)"`;
+  const unreadOf = (win) => win.sent.filter((m) => m.kind === "unread");
+
+  const three = await page(ROW(`<div ${RED}><span>3</span></div>`), FEED);
+  await settle(three);
+  check("a number on the messages icon is sent as that number", unreadOf(three), [
+    { kind: "unread", count: 3, dot: false },
+  ]);
+
+  const many = await page(ROW(`<div ${RED}><span>9+</span></div>`), FEED);
+  await settle(many);
+  check("nine and more is more than nine", unreadOf(many).map((m) => m.count), [10]);
+
+  const dotted = await page(ROW(`<div ${RED}></div>`), FEED);
+  await settle(dotted);
+  check("a red spot with no number is a dot", unreadOf(dotted), [
+    { kind: "unread", count: 0, dot: true },
+  ]);
+
+  const quiet = await page(ROW(``), FEED);
+  await settle(quiet);
+  check("a row with nothing on the icon says nothing is waiting", unreadOf(quiet), [
+    { kind: "unread", count: 0, dot: false },
+  ]);
+
+  /* The word for messages is inside the drawing, and a page can carry a number
+   * that is not a badge. Neither is one. */
+  const notABadge = await page(
+    ROW(``).replace("<title>Messages</title>", "<title>12</title>"),
+    FEED
+  );
+  await settle(notABadge);
+  check("a number inside the drawing is not a badge", unreadOf(notABadge)[0].count, 0);
+
+  /* Not a zero. A conversation is a page Instagram draws no row on, and an
+   * answer of "none" there would clear a badge nobody had read. */
+  const noRow = await page(`<main></main>`, "https://www.instagram.com/direct/t/1/");
+  await settle(noRow);
+  check("a page with no row says nothing at all", unreadOf(noRow), []);
+
+  /* Sent when it changes. */
+  await settle(three);
+  await settle(three);
+  check("and not again while it stays the same", unreadOf(three).length, 1);
+
+  /* A count changes in place: the text of a span is rewritten and nothing is
+   * added to the page, which is the one thing the page-wide observer listens
+   * for. */
+  const span = three.document.querySelector("span");
+  span.firstChild.nodeValue = "4";
+  await new Promise((go) => setTimeout(go, 20));
+  check("a count rewritten in place is heard", unreadOf(three).map((m) => m.count), [3, 4]);
+
+  span.parentElement.remove();
+  await new Promise((go) => setTimeout(go, 20));
+  check("and so is the badge going away", unreadOf(three).pop(), {
+    kind: "unread", count: 0, dot: false,
+  });
+
+  /* The plane. The app stands a symbol of its own in for the filled one until
+   * Instagram's arrives, and the inbox is a page that may never draw the row,
+   * so it does not arrive. The outline is what there is to work from. */
+  const imagesOf = async (html, address) => {
+    const drawn = [];
+    const win = await page(html, address, "", {
+      Image: function () {
+        const one = {};
+        Object.defineProperty(one, "src", { set: (value) => drawn.push(value) });
+        return one;
+      },
+    });
+    await settle(win);
+    const text = (uri) => Buffer.from(uri.split(",")[1], "base64").toString("utf8");
+    return { win, drawn: drawn.map((uri) => decodeURIComponent(escape(text(uri)))) };
+  };
+
+  const feedRow = await imagesOf(ROW(``), FEED);
+  const solid = feedRow.drawn.filter((svg) => svg.includes("<mask"));
+  check("the outline gets a filled twin, once", solid.length, 1);
+  check(
+    "which is the same drawing with its shape filled",
+    solid[0].includes('d="M13.9 20 21.8') && /<path[^>]*fill="currentColor"/.test(solid[0]),
+    true
+  );
+  check(
+    "and its fold cut out of it rather than drawn over it",
+    /<mask[^>]*>[\s\S]*<line[^>]*stroke="black"[\s\S]*<\/mask>/.test(solid[0]) &&
+      /<g[^>]*mask="url\(#quiet-fold\)"/.test(solid[0]),
+    true
+  );
+  /* jsdom's serializer writes the namespace twice where a browser writes it
+   * once, and a strict parser refuses that. The doubled one is not the subject. */
+  const once = solid[0].replace(/(xmlns="[^"]+")([^>]*?)\sxmlns="[^"]+"/, "$1$2");
+  const parsed = new feedRow.win.DOMParser().parseFromString(once, "image/svg+xml");
+  check("and it is a drawing that parses", parsed.querySelector("parsererror"), null);
+  check(
+    "the outline itself is drawn as it was",
+    feedRow.drawn.filter((svg) => svg.includes("Messages") && !svg.includes("<mask")).length,
+    1
+  );
+
+  /* Where the row is drawn filled, Instagram's own drawing is the one sent. */
+  const inbox = await imagesOf(ROW(``), "https://www.instagram.com/direct/inbox/");
+  check("on the inbox the filled one is left as Instagram drew it",
+    inbox.drawn.filter((svg) => svg.includes("<mask")).length, 0);
+
   done();
 })();

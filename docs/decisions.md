@@ -2892,3 +2892,52 @@ The accessibility screenshot caught the last of it, which is what it is for.
 both wrap and the row becomes two two-line columns fighting over one width.
 Past the ordinary sizes the value goes underneath the name now, where each gets
 the whole of it.
+
+---
+
+## The paper plane stays a paper plane, and says when there is news
+
+Two things on the bottom row were Quiet's rather than Instagram's, and both
+showed.
+
+**The plane changed shape when pressed.** The row is drawn from Instagram's own
+glyphs, read off the page and kept. Home and search each have an outline and a
+filled twin on the page, so both were kept. Messages has an outline on the feed
+and nothing at all on the inbox — the inbox draws no row — so the filled twin
+was never seen, and a press fell back to the system's `paperplane.fill`: a
+different plane, drawn by somebody else, for as long as the finger was down.
+
+The twin is made rather than waited for. The outline is a closed shape with one
+stroke across it; the filled one is the same silhouette with that stroke cut
+out. The cut is an SVG `<mask>` and not a stroke in the background colour,
+because the image is used as a template and only its alpha survives: a
+"background" line would come out in whatever the tint was. It is drawn once, and
+only if the page has not shown a real one — if Instagram ever draws it, the
+real one wins.
+
+Search has the same hole and is left alone: nobody asked, and each of these is a
+pixel measurement that should be looked at, not assumed.
+
+**Nothing said there was a message.** The number is on the page, on the same
+icon, in the same row this app already finds. It is read from there — text that
+is a bare number, or an empty red element for the dot — and nothing else:
+
+* no request. The header check still fails on any fetch, and this adds none;
+* no notification permission, no badge on the home-screen icon, no background
+  work. A count the page shows is a count the page shows while the app is open;
+* no row, no news. If the row is not on the page the script says nothing, which
+  is not the same as saying zero. A badge that clears itself whenever the page
+  is somewhere else would be the app lying in the other direction;
+* the number is refused unless it is a whole number from 0 to 999, and shown as
+  "9+" past nine, like the app it is quoting;
+* it hides while the Messages pane is the one on screen, where the list itself
+  says which conversation is unread.
+
+The selectors are modelled on fixtures, not on the live site. That is the
+weakest part, and it fails by showing nothing rather than something wrong.
+
+**For review.** Both are the same kind of thing the app already does — reading
+its own page and drawing what it finds — and neither adds a network call, a
+permission or a data flow. `store/review-notes.txt` says so in one sentence.
+It changes none of the structural questions the review can raise (4.2 and
+5.2.2 are as open as they were), and nothing here can promise the outcome.

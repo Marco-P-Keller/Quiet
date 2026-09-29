@@ -107,3 +107,66 @@ final class UserAgentTests: XCTestCase {
         }
     }
 }
+
+/// What the page says is waiting in the inbox.
+///
+/// The number goes on a red badge on the row, so the same rule as the band
+/// above applies: a message that does not make sense is dropped, and the badge
+/// stays as it was. A count Quiet made up is worse than a count that is a
+/// moment old.
+final class UnreadTests: XCTestCase {
+    private func reading(_ body: [String: Any]) -> Unread? {
+        Unread(message: body)
+    }
+
+    func testANumberIsThatNumber() {
+        XCTAssertEqual(reading(["count": 3, "dot": false]), .count(3))
+    }
+
+    func testNothingWaitingIsNothing() {
+        XCTAssertEqual(reading(["count": 0, "dot": false]), Unread.none)
+        XCTAssertEqual(reading(["count": 0]), Unread.none)
+    }
+
+    func testASpotWithNoNumberIsADot() {
+        XCTAssertEqual(reading(["count": 0, "dot": true]), .dot)
+    }
+
+    /// The page never sends both, but if it did, the number is the more exact
+    /// thing.
+    func testANumberOutranksADot() {
+        XCTAssertEqual(reading(["count": 2, "dot": true]), .count(2))
+    }
+
+    func testWhatIsNotACountIsRefused() {
+        XCTAssertNil(reading([:]))
+        XCTAssertNil(reading(["count": "3"]))
+        XCTAssertNil(reading(["count": -1]))
+        XCTAssertNil(reading(["count": 2.5]))
+        XCTAssertNil(reading(["count": 1000]))
+        XCTAssertNil(reading(["count": Double.nan]))
+    }
+
+    func testTheEndOfTheRangeIsStillACount() {
+        XCTAssertEqual(reading(["count": 999]), .count(999))
+    }
+
+    /// Instagram's badge stops at nine, and so does the one on the row.
+    func testTheBadgeStopsCountingAtNine() {
+        XCTAssertEqual(Unread.count(1).written, "1")
+        XCTAssertEqual(Unread.count(9).written, "9")
+        XCTAssertEqual(Unread.count(10).written, "9+")
+        XCTAssertEqual(Unread.count(120).written, "9+")
+    }
+
+    func testOnlyANumberWritesAnything() {
+        XCTAssertNil(Unread.dot.written)
+        XCTAssertNil(Unread.none.written)
+    }
+
+    func testAnEmptyInboxIsNotWaiting() {
+        XCTAssertFalse(Unread.none.isWaiting)
+        XCTAssertTrue(Unread.dot.isWaiting)
+        XCTAssertTrue(Unread.count(1).isWaiting)
+    }
+}
