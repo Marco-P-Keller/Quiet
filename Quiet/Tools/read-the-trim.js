@@ -688,8 +688,8 @@ function tap(win, selector) {
   const swipe = await page(
     `<article data-box="0,100,390,500">
        <div data-box="0,100,390,390"><img data-box="0,100,390,390">
-         <button id="next" data-box="340,275,32,32">${SVG}</button>
-         <button id="back" data-box="8,275,32,32">${SVG}</button>
+         <button id="next" data-box="340,265,46,62"></button>
+         <button id="back" data-box="4,265,46,62"></button>
          <button id="mute" data-box="340,440,32,32">${SVG}</button>
          <button id="tag" data-box="8,440,32,32">${SVG}</button>
        </div>

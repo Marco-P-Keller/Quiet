@@ -2567,7 +2567,10 @@
    * Found by where it is rather than by what it says. Its label is translated
    * and its class names are Instagram's to change; what does not change is
    * that it is an icon-only button, the size of a fingertip, at the very edge
-   * of the media and halfway down it. The mute button and the tag are in the
+   * of the media and halfway down it. Measured on the live site: it is a
+   * `<button aria-label="Next">` about 46 by 62 points with **no svg in it** —
+   * the chevron is a background image — so nothing here may ask for a drawing.
+   * The mute button and the tag are in the
    * corners, the like and the bookmark are not inside the media at all — which
    * is the whole of what keeps this from taking those.
    *
@@ -2581,15 +2584,11 @@
       );
       for (var i = 0; i < buttons.length; i++) {
         var button = buttons[i];
-        if (!button.querySelector || !button.querySelector("svg")) {
-          note(button, "data-quiet-looked", "");
-          continue;
-        }
         var box = button.getBoundingClientRect();
         // Not laid out yet: ask again next pass rather than settle on a zero.
         if (!box.width || !box.height) continue;
         note(button, "data-quiet-looked", "");
-        if (box.width < 16 || box.height < 16 || box.width > 64 || box.height > 64) continue;
+        if (box.width < 16 || box.height < 16 || box.width > 80 || box.height > 80) continue;
         if ((button.textContent || "").replace(/\s+/g, "") !== "") continue;
 
         var media = mediaAround(button);
