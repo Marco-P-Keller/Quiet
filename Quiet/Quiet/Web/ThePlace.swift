@@ -50,6 +50,25 @@ enum ThePlace {
     /// How stale a place may be and still be somewhere you were.
     static let fresh: TimeInterval = 20 * 60
 
+    /// How long the home feed may sit untouched before it is no longer "the
+    /// feed" but yesterday's paper.
+    ///
+    /// Shorter than `fresh` on purpose, and only for the home pane: a profile
+    /// or a thread is somewhere you were for as long as `fresh`, but a feed
+    /// that has not been asked for in ten minutes has newer posts waiting, and
+    /// Instagram's own app answers a longer absence the same way — a short
+    /// look away keeps your place, a longer one starts at the top with what is
+    /// new.
+    static let feedGoesStale: TimeInterval = 10 * 60
+
+    /// Whether leaving the app at `left` is long enough ago that the feed
+    /// should be asked for again rather than shown as it was.
+    static func feedIsStale(since left: Date, now: Date = Date()) -> Bool {
+        let age = now.timeIntervalSince(left)
+        // A clock that moved backwards is not an absence.
+        return age > feedGoesStale
+    }
+
     /// Put the page away, if WebKit will hand it over in a form that can be
     /// written down.
     ///
@@ -87,7 +106,8 @@ enum ThePlace {
         in defaults: UserDefaults = .standard
     ) -> Bool {
         guard let data = defaults.data(forKey: key(state, pane)) else { return false }
-        guard isFresh(defaults.double(forKey: key(when, pane)), now: now),
+        let allowed = pane == .home ? feedGoesStale : fresh
+        guard isFresh(defaults.double(forKey: key(when, pane)), now: now, within: allowed),
               isStillShown(defaults.string(forKey: key(address, pane))) else {
             forget(pane, in: defaults)
             return false
@@ -101,11 +121,11 @@ enum ThePlace {
     /// Pure, because it is the judgement rather than the plumbing: twenty
     /// minutes is the difference between a courtesy and an app that has not
     /// noticed the day moved on.
-    static func isFresh(_ saved: TimeInterval, now: Date) -> Bool {
+    static func isFresh(_ saved: TimeInterval, now: Date, within window: TimeInterval = fresh) -> Bool {
         guard saved > 0 else { return false }
         let age = now.timeIntervalSince1970 - saved
         // A place from the future is a clock that moved, not a place.
-        return age >= 0 && age <= fresh
+        return age >= 0 && age <= window
     }
 
     /// Whether the app would still open that address today.

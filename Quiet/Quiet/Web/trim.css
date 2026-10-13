@@ -102,6 +102,18 @@ div[role="button"]:has(> svg[aria-label="Reels"]):not(article div) {
   pointer-events: none !important;
 }
 
+/* ── The swipe arrows on a photograph with several pictures ─────────────── */
+/*
+ * Set by trim.js on the round chevron the website lays over the edge of a
+ * carousel. Instagram's app has none; the dots and the swipe are the whole of
+ * it. `visibility`, so nothing moves.
+ */
+
+[data-quiet-swipearrow] {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 /* ── Room for the clock ─────────────────────────────────────────────────── */
 /*
  * The app hands the page the entire screen, so the first thing in the feed

@@ -204,6 +204,11 @@ final class WebSurface {
         stack?.keepThePlace()
     }
 
+    /// The app came back after long enough that the feed is old news.
+    func freshenTheFeed() {
+        stack?.freshenTheFeed()
+    }
+
     func scrollToTop() {
         guard let scrollView = webView?.scrollView else { return }
         scrollView.setContentOffset(
@@ -1360,6 +1365,15 @@ struct InstagramWebView: UIViewRepresentable {
             } else {
                 webView.reload()
             }
+        }
+
+        /// The pane's own opening address, asked for afresh and not from the
+        /// cache. Nothing is kept of where you were: that is what coming back
+        /// after a long time away means.
+        func startOverAtTheTop() {
+            guard let opening = pane.opening(me: surface.me) else { return }
+            state.stumble = nil
+            webView.load(URLRequest(url: opening, cachePolicy: .reloadIgnoringLocalCacheData))
         }
 
         func apply(inset: UIEdgeInsets) {

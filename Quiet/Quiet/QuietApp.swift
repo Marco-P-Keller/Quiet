@@ -1,4 +1,5 @@
 import SwiftUI
+import AVFoundation
 
 /// Quiet.
 ///
@@ -20,6 +21,14 @@ struct QuietApp: App {
     @State private var preferences: Preferences
 
     init() {
+        // Sound is sound. A reel or a post with music on it is played through
+        // the speaker even with the ring switch on silent, the way it is in
+        // Instagram's own app; the default category for a web view obeys the
+        // switch, which is what made every video here mute. Only the category
+        // is set: WebKit starts and stops the session itself when something
+        // actually plays, so this keeps nothing running in the background.
+        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .moviePlayback)
+
         let store = KeychainStore()
         let clock = MonotonicClock(store: store)
         #if DEBUG

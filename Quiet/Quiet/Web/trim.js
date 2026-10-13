@@ -2556,6 +2556,75 @@
   }
 
   /**
+   * Take down the round arrows Instagram's website draws at the edge of a
+   * photograph with more than one picture in it.
+   *
+   * Instagram's own app has none: you swipe, and the dots underneath say how
+   * many there are. The website adds a chevron at the right-hand edge (and the
+   * left once you are past the first), because on a computer there is nothing
+   * to swipe with. On a phone it is a button sitting on top of the photograph.
+   *
+   * Found by where it is rather than by what it says. Its label is translated
+   * and its class names are Instagram's to change; what does not change is
+   * that it is an icon-only button, the size of a fingertip, at the very edge
+   * of the media and halfway down it. The mute button and the tag are in the
+   * corners, the like and the bookmark are not inside the media at all — which
+   * is the whole of what keeps this from taking those.
+   *
+   * `visibility` rather than `display`: it is laid on top of the picture, so
+   * nothing is lost either way, and this cannot move a layout.
+   */
+  function takeDownTheSwipeArrows() {
+    try {
+      var buttons = document.querySelectorAll(
+        'article button:not([data-quiet-looked]), article [role="button"]:not([data-quiet-looked])'
+      );
+      for (var i = 0; i < buttons.length; i++) {
+        var button = buttons[i];
+        if (!button.querySelector || !button.querySelector("svg")) {
+          note(button, "data-quiet-looked", "");
+          continue;
+        }
+        var box = button.getBoundingClientRect();
+        // Not laid out yet: ask again next pass rather than settle on a zero.
+        if (!box.width || !box.height) continue;
+        note(button, "data-quiet-looked", "");
+        if (box.width < 16 || box.height < 16 || box.width > 64 || box.height > 64) continue;
+        if ((button.textContent || "").replace(/\s+/g, "") !== "") continue;
+
+        var media = mediaAround(button);
+        if (!media) continue;
+        var m = media.getBoundingClientRect();
+        if (!m.width || !m.height) continue;
+        var x = box.left + box.width / 2;
+        var y = box.top + box.height / 2;
+        var halfway = Math.abs(y - (m.top + m.height / 2)) <= m.height * 0.15;
+        var atTheEdge =
+          x - m.left <= m.width * 0.12 || m.left + m.width - x <= m.width * 0.12;
+        if (halfway && atTheEdge) note(button, "data-quiet-swipearrow", "");
+      }
+    } catch (error) {
+      // An arrow that stays is a blemish; a throw out of here would skip
+      // sayBare, and the cover would never lift.
+    }
+  }
+
+  /** The nearest ancestor that holds a picture or a video and is a real size. */
+  function mediaAround(node) {
+    var up = node.parentElement;
+    var depth = 0;
+    while (up && up.tagName !== "ARTICLE" && depth < 12) {
+      if (up.querySelector("img, video")) {
+        var r = up.getBoundingClientRect();
+        if (r.width > 200 && r.height > 200) return up;
+      }
+      up = up.parentElement;
+      depth += 1;
+    }
+    return null;
+  }
+
+  /**
    * The largest thing at a point that is still only an icon.
    *
    * Outermost rather than first, because the first is usually a piece of the
@@ -3532,6 +3601,7 @@
     liftHeader();
     shapeHeader();
     blankTheArrowOutOfTheInbox();
+    takeDownTheSwipeArrows();
     // After everything else has hidden what it hides: the tail below the last
     // post is only *nothing* once the suggestions in it are out.
     endOfTheFeed();

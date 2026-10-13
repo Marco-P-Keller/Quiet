@@ -679,5 +679,33 @@ function tap(win, selector) {
   check("on the inbox the filled one is left as Instagram drew it",
     inbox.drawn.filter((svg) => svg.includes("<mask")).length, 0);
 
+  /* ── The swipe arrows ──────────────────────────────────────────────────── */
+  /* The website lays a round chevron over the edge of a carousel. The app has
+   * none. What must survive is everything that is also an icon-only button
+   * near a picture: the mute button in the corner, the like and the bookmark
+   * under it. */
+  const SVG = "<svg><path d='M0 0'/></svg>";
+  const swipe = await page(
+    `<article data-box="0,100,390,500">
+       <div data-box="0,100,390,390"><img data-box="0,100,390,390">
+         <button id="next" data-box="340,275,32,32">${SVG}</button>
+         <button id="back" data-box="8,275,32,32">${SVG}</button>
+         <button id="mute" data-box="340,440,32,32">${SVG}</button>
+         <button id="tag" data-box="8,440,32,32">${SVG}</button>
+       </div>
+       <div data-box="0,490,390,40"><button id="like" data-box="8,495,32,32">${SVG}</button>
+         <button id="save" data-box="350,495,32,32">${SVG}</button></div>
+     </article>`,
+    FEED
+  );
+  swipe.drain();
+  const gone = (id) => swipe.document.getElementById(id).hasAttribute("data-quiet-swipearrow");
+  check("the arrow at the right edge of a carousel goes", gone("next"), true);
+  check("and the one at the left", gone("back"), true);
+  check("the mute button in the corner stays", gone("mute"), false);
+  check("so does the tag", gone("tag"), false);
+  check("so does the like under the picture", gone("like"), false);
+  check("and the bookmark", gone("save"), false);
+
   done();
 })();

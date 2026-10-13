@@ -43,6 +43,9 @@ struct RootView: View {
     /// first went quietly nowhere is the exact behaviour this is avoiding.
     @Environment(\.requestReview) private var requestReview
     @Environment(\.scenePhase) private var scenePhase
+    /// When the app last went fully to the background, so that a long enough
+    /// absence can start the feed over. See `ThePlace.feedGoesStale`.
+    @State private var wentAwayAt: Date?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -123,6 +126,14 @@ struct RootView: View {
                 // anything not written down now is a feed from the top the next
                 // time somebody opens the app. See `ThePlace`.
                 if phase != .active { surface.keepThePlace() }
+                // Only the background counts as being away: the control centre
+                // and a notification pulled down are `.inactive`, and neither
+                // is a reason to throw away what somebody was reading.
+                if phase == .background { wentAwayAt = Date() }
+                if phase == .active, let left = wentAwayAt {
+                    wentAwayAt = nil
+                    if ThePlace.feedIsStale(since: left) { surface.freshenTheFeed() }
+                }
             }
             // Only this one transition. Opening the app onto a day that was
             // already gone goes from setup to the curtain, and a phone that
