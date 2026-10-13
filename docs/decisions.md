@@ -113,9 +113,9 @@ itself, in the two places Instagram left empty:
 * **A clock in the navigation bar**, at the end, and a second one on your own
   profile beside Instagram's settings. Settings belong both where settings
   already are and somewhere reachable from wherever you happen to be.
-* **The search, back in the slot Instagram's own search used to occupy.** Its
-  search tab is the front door to Explore, so it stays shut; this one opens
-  Quiet's, which returns people and nothing else.
+* **The way to a person, back in the slot Instagram's own search used to
+  occupy.** Its search tab is the front door to Explore, so it stays shut; this
+  one opens Quiet's screen, which takes a name and opens that profile.
 
 Both are found by **where they are on the screen** rather than by what they are
 called: a control in the top-left corner, and the home button in the bar along
@@ -183,10 +183,13 @@ A hole in a sentence is a bigger lie than a refused tap.
 Silence reads as a broken app. An apology reads as an accident. Neither is true,
 so the app states what it did — one sentence, three seconds, nothing to dismiss.
 
-## Autoplay is off
+## Autoplay is on, muted
 
-`mediaTypesRequiringUserActionForPlayback = .all`. Video plays when you ask it
-to. It is the smallest of the hooks and among the easiest to remove.
+`mediaTypesRequiringUserActionForPlayback = []` since 2026-10-13. It was `.all`
+and a feed of stills that wait to be tapped read as broken. Video starts by
+itself, muted, as in Instagram's own app; sound is one tap on the speaker.
+Reels stay refused by address, and a reel sent in a conversation plays but
+cannot be scrolled past (`oneReelOnly` in trim.js).
 
 ## Links off Instagram open in Safari
 

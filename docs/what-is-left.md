@@ -154,7 +154,7 @@ says so; they exist so that a tap on somebody else's page cannot end the app.
 **Check:** tap `+`, and long-press a picture and save it. What happens after the
 prompt is Instagram's business, and whatever it is, the app is still running.
 
-### 1.6 Video that waits to be asked
+### 1.6 Video that waits to be asked (changed 2026-10-13: it now autoplays, muted)
 
 `mediaTypesRequiringUserActionForPlayback = .all`. Autoplay is one of the
 hooks, and removing it was on purpose — but a story that sits still until

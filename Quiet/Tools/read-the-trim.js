@@ -707,5 +707,20 @@ function tap(win, selector) {
   check("so does the like under the picture", gone("like"), false);
   check("and the bookmark", gone("save"), false);
 
+  /* ── One reel ──────────────────────────────────────────────────────────── */
+  const reelHtml = `<main><div id="column" style="overflow-y: scroll; scroll-snap-type: y mandatory">
+      <div><video></video></div><div><video></video></div><div><video></video></div></div>
+      <div id="feed" style="overflow-y: auto"><video></video></div></main>`;
+  const reel = await page(reelHtml, "https://www.instagram.com/reel/abc123/");
+  reel.drain();
+  check("the column the reel player scrolls in is locked",
+    reel.document.getElementById("column").hasAttribute("data-quiet-one-reel"), true);
+  check("and nothing else on the page is",
+    reel.document.querySelectorAll("[data-quiet-one-reel]").length, 1);
+  const notReel = await page(reelHtml, FEED);
+  notReel.drain();
+  check("a page that is not a reel is left to scroll",
+    notReel.document.querySelectorAll("[data-quiet-one-reel]").length, 0);
+
   done();
 })();

@@ -1218,9 +1218,12 @@ struct InstagramWebView: UIViewRepresentable {
             // Persistent, so logging in is something you do once.
             configuration.websiteDataStore = .default()
             configuration.allowsInlineMediaPlayback = true
-            // Nothing plays until someone asks it to. Autoplay is the smallest of
-            // the hooks and among the easiest to remove.
-            configuration.mediaTypesRequiringUserActionForPlayback = .all
+            // Video in the feed and in a story starts by itself, muted, the way it
+            // does in Instagram's own app; sound is one tap on the speaker. This
+            // was `.all` until 2026-10-13 and a feed full of stills that wait to
+            // be tapped read as broken rather than calm. Reels are still refused
+            // by address, so this does not bring them back.
+            configuration.mediaTypesRequiringUserActionForPlayback = []
 
             // The second lock, made of addresses, applied by WebKit before
             // anything of Quiet's is asked. See `BlockList` for what it does and,

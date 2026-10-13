@@ -2608,6 +2608,49 @@
     }
   }
 
+  /**
+   * One reel, and not the ones after it.
+   *
+   * A reel somebody sends you opens in the website's own reel player, and that
+   * player is one tall column of reels with `scroll-snap-type: y mandatory`:
+   * the one you were sent, and under it the next, and the next. Opening it by
+   * address is refused; opening it from a conversation is a client-side move
+   * that never passes the navigation delegate, so it has to be stopped here,
+   * by what the page does rather than where it is.
+   *
+   * Measured on the live site: the column is a single scroller holding every
+   * video, eighteen levels above the first of them — so the walk up is long. Locking *that* one scroller leaves the reel playable and a tap on it
+   * working, takes away the swipe to the next, and leaves the comments and the
+   * rest of the page their own scrolling.
+   */
+  function oneReelOnly() {
+    try {
+      var path = window.location.pathname || "";
+      if (!/^\/(reels?|tv)\//.test(path)) return;
+      var held = document.querySelector("[data-quiet-one-reel]");
+      if (held && document.documentElement.contains(held)) return;
+      var video = document.querySelector("video");
+      var node = video && video.parentElement;
+      var depth = 0;
+      while (node && node !== document.body && depth < 40) {
+        var style = window.getComputedStyle(node);
+        var snaps = /y/.test(style.scrollSnapType || "") ||
+          /scroll-snap-type:\s*y/.test(node.getAttribute("style") || "");
+        var scrolls = /(auto|scroll)/.test(style.overflowY || "") ||
+          /overflow-y:\s*(auto|scroll)/.test(node.getAttribute("style") || "");
+        if (scrolls && (snaps || node.querySelectorAll("video").length > 1)) {
+          note(node, "data-quiet-one-reel", "");
+          node.scrollTop = 0;
+          return;
+        }
+        node = node.parentElement;
+        depth += 1;
+      }
+    } catch (error) {
+      // Silent on purpose: a throw here would skip sayBare.
+    }
+  }
+
   /** The nearest ancestor that holds a picture or a video and is a real size. */
   function mediaAround(node) {
     var up = node.parentElement;
@@ -3601,6 +3644,7 @@
     shapeHeader();
     blankTheArrowOutOfTheInbox();
     takeDownTheSwipeArrows();
+    oneReelOnly();
     // After everything else has hidden what it hides: the tail below the last
     // post is only *nothing* once the suggestions in it are out.
     endOfTheFeed();
