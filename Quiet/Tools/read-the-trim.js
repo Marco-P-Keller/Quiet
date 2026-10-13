@@ -709,17 +709,19 @@ function tap(win, selector) {
 
   /* ── One reel ──────────────────────────────────────────────────────────── */
   const reelHtml = `<main><div id="column" style="overflow-y: scroll; scroll-snap-type: y mandatory">
-      <div><video></video></div><div><video></video></div><div><video></video></div></div>
-      <div id="feed" style="overflow-y: auto"><video></video></div></main>`;
-  const reel = await page(reelHtml, "https://www.instagram.com/reel/abc123/");
+      <div><video data-box="0,0,390,700"></video></div><div><video data-box="0,700,390,700"></video></div></div>
+      <div id="feed" style="overflow-y: auto"><video data-box="0,0,390,400"></video></div></main>`;
+  /* Not by address: the player is opened from a thread and from a suggested
+   * post with the address of the page underneath. */
+  const reel = await page(reelHtml, "https://www.instagram.com/direct/t/123/");
   reel.drain();
   check("the column the reel player scrolls in is locked",
     reel.document.getElementById("column").hasAttribute("data-quiet-one-reel"), true);
   check("and nothing else on the page is",
     reel.document.querySelectorAll("[data-quiet-one-reel]").length, 1);
-  const notReel = await page(reelHtml, FEED);
+  const notReel = await page(reelHtml.replace("scroll-snap-type: y mandatory", ""), FEED);
   notReel.drain();
-  check("a page that is not a reel is left to scroll",
+  check("a column of videos that does not snap is left to scroll",
     notReel.document.querySelectorAll("[data-quiet-one-reel]").length, 0);
 
   done();

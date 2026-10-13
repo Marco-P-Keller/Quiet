@@ -2619,32 +2619,43 @@
    * by what the page does rather than where it is.
    *
    * Measured on the live site: the column is a single scroller holding every
-   * video, eighteen levels above the first of them — so the walk up is long. Locking *that* one scroller leaves the reel playable and a tap on it
+   * video, sixteen levels above the first of them — so the walk up is long. Locking *that* one scroller leaves the reel playable and a tap on it
    * working, takes away the swipe to the next, and leaves the comments and the
    * rest of the page their own scrolling.
    */
   function oneReelOnly() {
     try {
-      var path = window.location.pathname || "";
-      if (!/^\/(reels?|tv)\//.test(path)) return;
-      var held = document.querySelector("[data-quiet-one-reel]");
-      if (held && document.documentElement.contains(held)) return;
-      var video = document.querySelector("video");
-      var node = video && video.parentElement;
-      var depth = 0;
-      while (node && node !== document.body && depth < 40) {
-        var style = window.getComputedStyle(node);
-        var snaps = /y/.test(style.scrollSnapType || "") ||
-          /scroll-snap-type:\s*y/.test(node.getAttribute("style") || "");
-        var scrolls = /(auto|scroll)/.test(style.overflowY || "") ||
-          /overflow-y:\s*(auto|scroll)/.test(node.getAttribute("style") || "");
-        if (scrolls && (snaps || node.querySelectorAll("video").length > 1)) {
-          note(node, "data-quiet-one-reel", "");
-          node.scrollTop = 0;
-          return;
+      // By what the page is made of, not by its address. The player opens from
+      // a conversation and from a suggested post with the address of the page
+      // underneath, and the address is exactly what cannot be relied on here.
+      // What does not change: the reels are one column that snaps a screen at a
+      // time. The feed's videos have no such ancestor — measured — so this
+      // cannot reach a page that is meant to scroll.
+      //
+      // Each video is asked once. Its ancestry does not change under it, and
+      // walking sixty levels of computed style is not a thing to do per frame.
+      var videos = document.querySelectorAll("video:not([data-quiet-asked])");
+      for (var i = 0; i < videos.length; i++) {
+        var video = videos[i];
+        // Not laid out yet is not an answer; ask again on the next pass.
+        if (!video.getBoundingClientRect().width) continue;
+        note(video, "data-quiet-asked", "");
+        var node = video.parentElement;
+        var depth = 0;
+        while (node && depth < 80) {
+          var style = window.getComputedStyle(node);
+          var inline = node.getAttribute("style") || "";
+          var snaps =
+            (/y/.test(style.scrollSnapType || "") && style.scrollSnapType !== "none") ||
+            /scroll-snap-type:\s*y/.test(inline);
+          if (snaps) {
+            note(node, "data-quiet-one-reel", "");
+            node.scrollTop = 0;
+            break;
+          }
+          node = node.parentElement;
+          depth += 1;
         }
-        node = node.parentElement;
-        depth += 1;
       }
     } catch (error) {
       // Silent on purpose: a throw here would skip sayBare.
