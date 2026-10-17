@@ -8,7 +8,8 @@ Source code: https://github.com/Marco-P-Keller/Quiet
 
 ## What it does
 
-- Feed, stories, direct messages and profile work as on Instagram's mobile site.
+- Feed, stories, direct messages, likes, comments and profiles work as on Instagram's mobile site.
+- Not supported: posting photos or stories, push notifications for messages, opening Reels sent in a chat.
 - Reels and Explore are removed. Suggested posts between friends' posts stay by default and can be hidden with one switch.
 - Sign in happens on Instagram's own login page. Quiet never sees the password.
 - The user picks a daily limit in minutes (minimum 5). Time counts only while the app is on screen. Notices at 5 minutes and 1 minute left. When time runs out the app closes until 4:00 in the morning.
