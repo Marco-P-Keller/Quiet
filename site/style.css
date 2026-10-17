@@ -97,3 +97,48 @@ nav a { margin-right: 18px; }
   background: var(--ink);
   margin-bottom: 26px;
 }
+
+/* The front page. Everything above is shared with the privacy and support
+   pages; what follows is only used by index.html and de/index.html. */
+header.wide {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 28px 0 0;
+}
+header.wide nav { margin-top: 0; }
+header.wide nav a { margin: 0 0 0 16px; }
+.brand { display: flex; align-items: center; gap: 12px; font-size: 1.15rem; }
+.icon { border-radius: 10px; display: block; }
+
+.hero { padding: 64px 0 28px; }
+.hero h1 { font-size: clamp(2rem, 6vw, 2.8rem); margin-bottom: 18px; }
+.hero .lede { font-size: 1.1rem; margin-bottom: 26px; }
+.badge { display: inline-block; line-height: 0; }
+.badge img { height: 54px; width: auto; }
+.facts { color: var(--soft); font-size: 0.85rem; margin-top: 14px; }
+
+.shots {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  max-width: 62rem;
+  margin: 8px auto 20px;
+  padding: 4px 0 12px;
+}
+.shots figure { margin: 0; flex: 0 0 auto; scroll-snap-align: start; }
+.shots img { display: block; width: 190px; height: auto; border-radius: 14px; }
+
+table.rule { width: 100%; border-collapse: collapse; margin: 6px 0 20px; font-size: 0.95rem; }
+table.rule th { text-align: left; font-weight: 500; color: var(--soft); }
+table.rule th, table.rule td { padding: 10px 8px 10px 0; border-bottom: 1px solid var(--rule); }
+
+details { border-bottom: 1px solid var(--rule); padding: 12px 0; }
+details summary { cursor: pointer; font-weight: 500; }
+details p { margin: 10px 0 4px; color: var(--soft); }
+
+.cta { margin-top: 40px; }
+footer p { margin-bottom: 8px; }

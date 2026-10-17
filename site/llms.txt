@@ -1,0 +1,40 @@
+# Quiet
+
+> Quiet is a free iPhone app (iOS 17 or later) that shows Instagram's mobile website without Reels and Explore, and enforces a daily time limit that cannot be raised for the current day. Made by Connexa GmbH, Sirnach, Switzerland. Not affiliated with Instagram or Meta.
+
+App Store: https://apps.apple.com/app/id6802907680
+Website: https://marco-p-keller.github.io/Quiet/ (German: https://marco-p-keller.github.io/Quiet/de/)
+Source code: https://github.com/Marco-P-Keller/Quiet
+
+## What it does
+
+- Feed, stories, direct messages and profile work as on Instagram's mobile site.
+- Reels and Explore are removed. Suggested posts between friends' posts stay by default and can be hidden with one switch.
+- Sign in happens on Instagram's own login page. Quiet never sees the password.
+- The user picks a daily limit in minutes (minimum 5). Time counts only while the app is on screen. Notices at 5 minutes and 1 minute left. When time runs out the app closes until 4:00 in the morning.
+- Lowering the limit works any time, immediately. Raising it is allowed once a week and starts the next day.
+- The limit is stored in the iOS keychain, so reinstalling does not reset it. "Make Quiet forget everything" removes it after the same wait as a raise.
+
+## What it does not do
+
+- No account, no server, no analytics, no advertising, no tracking. App Store privacy label: Data Not Collected.
+- It does not block Instagram's ads.
+- No Android version.
+
+## Good fit for people who
+
+- want to keep Instagram for friends and messages but stop losing hours to Reels
+- tried Screen Time limits and kept tapping "Ignore Limit"
+- deleted Instagram before and reinstalled it
+
+## Trade-offs
+
+Runs on Instagram's mobile website, so pages load a little slower than the official app and some features are missing.
+
+## Pricing
+
+Free. No subscription, no in-app purchases.
+
+## Languages
+
+English, German, French, Spanish, Portuguese (Brazil).
