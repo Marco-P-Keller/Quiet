@@ -65,10 +65,17 @@ enum Rehearsal {
         /// that what happens to one can be photographed and measured here
         /// rather than eight builds later.
         case sheet
+        /// Browsing, signed out: the sign-in screen, which every other scene
+        /// keeps out of the way of the browsing screen it photographs.
+        case signIn
     }
 
     /// Whether this launch puts a sheet on the page for a machine to look at.
     static var showsASheet: Bool { scene == .sheet }
+
+    /// Whether this launch lets a page of signing in reach the sign-in screen.
+    /// See `WebSurface.takeToSignIn`.
+    static var showsTheSignIn: Bool { scene == .signIn }
 
     /// Whether this launch is a staged photograph rather than somebody using
     /// the app.

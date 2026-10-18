@@ -449,9 +449,65 @@ final class WebSurface {
     /// report into a one-line fix. Shown in the panel, never sent anywhere.
     private(set) var handedOff: String?
 
-    fileprivate func note(handedOff url: URL) {
+    func note(handedOff url: URL) {
         guard let host = url.host?.lowercased(), handedOff != host else { return }
         handedOff = host
+    }
+
+    /// Where the sign-in screen opens, while there is one.
+    ///
+    /// A pane never shows a page of signing in. When one asks for the login
+    /// form, two-factor, a password or Accounts Center, the navigation is
+    /// cancelled and the address comes here instead, to be opened in
+    /// `SignInWebView` — the web view that carries nothing of Quiet's. So the
+    /// promise that no script of the app's is on the page where a password is
+    /// typed does not depend on `trim.js` keeping its hands to itself. The
+    /// script is simply not there. See `SignInScreen`.
+    private(set) var signIn: URL?
+
+    /// Whether there was a session when the sign-in screen came up, and so a
+    /// pane behind it worth going back to.
+    private(set) var canLeaveSignIn = false
+
+    /// A pane asked for a page of signing in. True when it is to give the
+    /// address up rather than load it.
+    fileprivate func takeToSignIn(_ url: URL) -> Bool {
+        #if DEBUG
+        // A staged photograph is a photograph of the browsing screen, taken on
+        // a simulator nobody has signed in to. See `Rehearsal.isStaged`.
+        if Rehearsal.isStaged, !Rehearsal.showsTheSignIn { return false }
+        #endif
+        if signIn == nil {
+            canLeaveSignIn = TheLastLook.foundSomebody()
+            signIn = url
+        }
+        return true
+    }
+
+    /// Instagram answered with a page that is not part of signing in, and
+    /// there is a session to go with it.
+    ///
+    /// Somebody who was signed out gets three panes built again from nothing,
+    /// opening on the feed. Somebody who was already signed in and came here
+    /// for a password or Accounts Center gets back the pane they left, which
+    /// never moved: its navigation was cancelled, not made. Unless that pane is
+    /// itself standing on a page of signing in, or on nothing, which is a
+    /// session that expired under it — and then it starts again too.
+    func signInIsOver() {
+        let wasSignedIn = canLeaveSignIn
+        signIn = nil
+        canLeaveSignIn = false
+        TheLastLook.found(somebody: true)
+        if !wasSignedIn || address == nil || SignIn.belongsHere(address) {
+            stack?.startOver()
+        }
+    }
+
+    /// Back to the panes without finishing, which only somebody with a session
+    /// is offered.
+    func leaveSignIn() {
+        signIn = nil
+        canLeaveSignIn = false
     }
 
     fileprivate func setBar(collapsed: Bool) {
@@ -1426,6 +1482,13 @@ struct InstagramWebView: UIViewRepresentable {
             // frame for the purposes of every rule below.
             let isMainFrame = navigationAction.targetFrame?.isMainFrame ?? true
 
+            // Signing in happens on a page with none of this pane's scripts on
+            // it. See `WebSurface.signIn`.
+            if isMainFrame, SignIn.belongsHere(url), surface.takeToSignIn(url) {
+                decisionHandler(.cancel)
+                return
+            }
+
             switch ContentRules.routing(for: url) {
             case .allow:
                 decisionHandler(.allow)
@@ -1485,6 +1548,7 @@ struct InstagramWebView: UIViewRepresentable {
         ) -> WKWebView? {
             // Links that ask for a new window get the window they already have.
             if let url = navigationAction.request.url {
+                if SignIn.belongsHere(url), surface.takeToSignIn(url) { return nil }
                 switch ContentRules.routing(for: url) {
                 case .allow:
                     webView.load(URLRequest(url: url))
@@ -1618,6 +1682,11 @@ struct InstagramWebView: UIViewRepresentable {
             let failure = error as NSError
             let code = failure.code
             guard code != NSURLErrorCancelled else { return }
+            // A page given to the sign-in screen is a navigation this pane
+            // cancelled itself, and WebKit reports that as a failure. It is
+            // not one, and the fallback below would answer it by loading
+            // Instagram's signed-out front page behind the sign-in.
+            guard surface.signIn == nil else { return }
             state.hasLoaded = true
 
             let offline = Self.offlineCodes.contains(code)
@@ -1690,7 +1759,14 @@ struct InstagramWebView: UIViewRepresentable {
                 // Instagram's client changes the address without loading
                 // anything, so this is the only way the row learns it moved.
                 if let path = body["path"] as? String {
-                    state.address = URL(string: path, relativeTo: ContentRules.feed)?.absoluteURL
+                    let address = URL(string: path, relativeTo: ContentRules.feed)?.absoluteURL
+                    state.address = address
+                    // And the one move of the client's that must not happen in
+                    // a pane: into a page of signing in, which no navigation
+                    // delegate is asked about. The sign-in screen goes over it.
+                    if let address, SignIn.belongsHere(address) {
+                        _ = surface.takeToSignIn(address)
+                    }
                 }
 
             case "icon":

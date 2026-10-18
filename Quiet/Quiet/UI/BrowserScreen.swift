@@ -219,6 +219,20 @@ struct BrowserScreen: View {
 
             statusBarStrip
 
+            // Signing in, over everything of the app's but its notices: the
+            // row has nothing to offer somebody with no session, and a notice
+            // is how a page handed to Safari mid-sign-in says so.
+            if let start = surface.signIn {
+                SignInScreen(
+                    start: start,
+                    canLeave: surface.canLeaveSignIn,
+                    session: session,
+                    surface: surface,
+                    topInset: topInset
+                )
+                .transition(.opacity)
+            }
+
             overlays
                 .padding(.top, topInset + 8)
         }
@@ -260,6 +274,7 @@ struct BrowserScreen: View {
         .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: surface.isBare)
         .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: surface.hasPainted)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: surface.stumble)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: surface.signIn)
         // The band changing colour: the first answer from a page, and every
         // change of scheme after it. A fade, because a flat area of the screen
         // changing colour in one frame reads as a glitch.

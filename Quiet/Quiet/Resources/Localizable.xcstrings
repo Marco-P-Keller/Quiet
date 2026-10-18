@@ -2831,6 +2831,40 @@
         }
       }
     },
+    "Not a secure connection": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine sichere Verbindung"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not a secure connection"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conexión no segura"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connexion non sécurisée"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conexão não segura"
+          }
+        }
+      }
+    },
     "Notifications": {
       "extractionState": "stale",
       "localizations": {
@@ -3550,6 +3584,40 @@
         }
       }
     },
+    "Quiet runs no code on this page.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet führt auf dieser Seite keinen Code aus."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet runs no code on this page."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet no ejecuta ningún código en esta página."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet n’exécute aucun code sur cette page."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Quiet não executa nenhum código nesta página."
+          }
+        }
+      }
+    },
     "Quiet runs on Instagram's mobile site, so pages load a beat slower and a few things are missing.": {
       "localizations": {
         "de": {
@@ -3887,6 +3955,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dizer o que sobrou"
+          }
+        }
+      }
+    },
+    "Secure connection": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sichere Verbindung"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Secure connection"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conexión segura"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connexion sécurisée"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conexão segura"
           }
         }
       }
