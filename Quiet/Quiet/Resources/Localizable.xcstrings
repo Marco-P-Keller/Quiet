@@ -1231,6 +1231,40 @@
         }
       }
     },
+    "Afterwards, in Instagram: Accounts Center › Password and security › Where you're logged in shows this sign-in, and you can end it there at any time.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Danach in Instagram: Unter Kontenübersicht › Passwort und Sicherheit › Hier bist du aktuell angemeldet siehst du diese Anmeldung und kannst sie jederzeit beenden."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afterwards, in Instagram: Accounts Center › Password and security › Where you're logged in shows this sign-in, and you can end it there at any time."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Después, en Instagram: en Centro de cuentas › Contraseña y seguridad › Dónde has iniciado sesión ves este inicio de sesión y puedes cerrarlo cuando quieras."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ensuite, dans Instagram : Espace Comptes › Mot de passe et sécurité › Lieux de connexion affiche cette connexion, et tu peux y mettre fin à tout moment."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Depois, no Instagram: em Central de Contas › Senha e segurança › Onde você fez login você vê este login e pode encerrá-lo quando quiser."
+          }
+        }
+      }
+    },
     "And how it gets out of the way": {
       "localizations": {
         "de": {
@@ -1503,6 +1537,40 @@
         }
       }
     },
+    "Check it on your iPhone: Settings › Privacy & Security › App Privacy Report lists every address Quiet contacts, once you turn the report on.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prüf es auf deinem iPhone: Unter Einstellungen › Datenschutz & Sicherheit › App-Datenschutzbericht steht jede Adresse, mit der Quiet Verbindung aufnimmt, sobald du den Bericht einschaltest."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check it on your iPhone: Settings › Privacy & Security › App Privacy Report lists every address Quiet contacts, once you turn the report on."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compruébalo en tu iPhone: en Ajustes › Privacidad y seguridad › Informe de privacidad de las apps aparece cada dirección con la que se conecta Quiet, en cuanto activas el informe."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérifie-le sur ton iPhone : dans Réglages › Confidentialité et sécurité › Rapport de confidentialité des apps figure chaque adresse que Quiet contacte, dès que tu actives le rapport."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confira no seu iPhone: em Ajustes › Privacidade e Segurança › Relatório de Privacidade dos Apps aparece cada endereço que o Quiet contata, assim que você ativa o relatório."
+          }
+        }
+      }
+    },
     "Clear": {
       "localizations": {
         "de": {
@@ -1635,6 +1703,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "Continuar"
+          }
+        }
+      }
+    },
+    "Continue to Instagram": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weiter zu Instagram"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue to Instagram"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar a Instagram"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuer vers Instagram"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar para o Instagram"
           }
         }
       }
@@ -3310,6 +3412,40 @@
         }
       }
     },
+    "Quiet does not read your password, does not keep it and sends it nowhere. It runs no code on that page and has no server of its own.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet liest dein Passwort nicht, speichert es nicht und schickt es nirgendwohin. Auf dieser Seite läuft kein Code von Quiet, und Quiet hat keinen eigenen Server."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet does not read your password, does not keep it and sends it nowhere. It runs no code on that page and has no server of its own."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet no lee tu contraseña, no la guarda y no la envía a ningún sitio. No ejecuta ningún código en esa página y no tiene servidor propio."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet ne lit pas ton mot de passe, ne le garde pas et ne l’envoie nulle part. Il n’exécute aucun code sur cette page et n’a pas de serveur à lui."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Quiet não lê sua senha, não a guarda e não a envia para lugar nenhum. Ele não executa nenhum código nessa página e não tem servidor próprio."
+          }
+        }
+      }
+    },
     "Quiet forgets everything %@.": {
       "localizations": {
         "de": {
@@ -3921,6 +4057,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zera às %@. Só conta o tempo com o Instagram na tela."
+          }
+        }
+      }
+    },
+    "Safer still: turn on two-factor authentication in Instagram. Then a password on its own is of no use to anyone.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch sicherer: Schalte bei Instagram die Zwei-Faktor-Authentifizierung ein. Dann nützt ein Passwort allein niemandem etwas."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Safer still: turn on two-factor authentication in Instagram. Then a password on its own is of no use to anyone."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aún más seguro: activa la autenticación en dos pasos en Instagram. Así, una contraseña por sí sola no le sirve a nadie."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encore plus sûr : active l’authentification à deux facteurs dans Instagram. Un mot de passe seul ne sert alors à personne."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mais seguro ainda: ative a autenticação de dois fatores no Instagram. Assim, uma senha sozinha não serve para ninguém."
           }
         }
       }
@@ -4978,6 +5148,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "A linha é o seu limite, %@."
+          }
+        }
+      }
+    },
+    "The next page is Instagram's own sign-in, with its address shown above it.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die nächste Seite ist Instagrams eigene Anmeldeseite, mit ihrer Adresse darüber."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The next page is Instagram's own sign-in, with its address shown above it."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La siguiente página es la propia página de inicio de sesión de Instagram, con su dirección encima."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La page suivante est la page de connexion d’Instagram elle-même, avec son adresse affichée au-dessus."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A próxima página é a própria página de login do Instagram, com o endereço dela em cima."
           }
         }
       }
@@ -6070,6 +6274,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "Você entra na conta na própria página do Instagram. Sua senha nunca toca o Quiet."
+          }
+        }
+      }
+    },
+    "You sign in with Instagram itself.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du meldest dich direkt bei Instagram an."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You sign in with Instagram itself."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicias sesión directamente en Instagram."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu te connectes directement à Instagram."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Você entra direto no Instagram."
           }
         }
       }
