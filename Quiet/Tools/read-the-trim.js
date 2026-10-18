@@ -466,5 +466,263 @@ function tap(win, selector) {
   check("and off again, they go a second time", why(asked, "theirs"), "suggestion");
   check("with the post either side untouched throughout", why(asked, "mine"), null);
 
+  /* ── The face on a profile somebody opened ───────────────────────────── */
+
+  /* The recently-opened list used to wear photographs fetched from
+   * `/api/v1/users/web_profile_info/`, eight at a time, with Instagram's own
+   * web client identifier in a header. They come off the profile page itself
+   * now — which is the same picture, out of a page the reader asked for.
+   *
+   * What is asked here is not whether the bytes arrive. `page.js` answers every
+   * fetch with a promise that never settles, on purpose, so what a test can see
+   * is the *address the script decided on* — and the address is the whole of the
+   * risk. A profile page is mostly a grid of square pictures the same size as a
+   * face, and one of somebody's photographs filed under their name is worse than
+   * no photograph at all. */
+
+  const PROFILE = `
+    <header data-box="0,60,390,180">
+      <img data-name="hers" alt="ada's profile picture" src="https://cdn/ada.jpg"
+           data-box="16,76,88,88">
+      <h2 data-box="120,76,200,24">ada</h2>
+    </header>
+    <main data-box="0,240,390,3000">
+      <article data-box="0,240,390,390">
+        <img data-name="post" alt="Photo by ada on September 1, 2026."
+             src="https://cdn/post-1.jpg" data-box="0,240,130,130">
+      </article>
+    </main>`;
+
+  const pictures = (win) => win.fetched.filter((one) => String(one).indexOf("cdn/") !== -1);
+
+  const hers = await page(PROFILE, "https://www.instagram.com/ada/");
+  await settle(hers);
+  check(
+    "the picture in the header is the one read off a profile",
+    pictures(hers),
+    ["https://cdn/ada.jpg"]
+  );
+
+  /* The `alt` on a post carries the handle too — "Photo by ada on…" — so a
+   * match on the name alone would take a photograph of Ada's lunch and file it
+   * under Ada. The stop is the header, not the wording. */
+  const GRID_ONLY = `
+    <header data-box="0,60,390,60"><h2 data-box="16,76,200,24">ada</h2></header>
+    <main data-box="0,240,390,3000">
+      <img data-name="post" alt="Photo by ada on September 1, 2026."
+           src="https://cdn/post-1.jpg" data-box="0,240,130,130">
+    </main>`;
+
+  const grid = await page(GRID_ONLY, "https://www.instagram.com/ada/");
+  await settle(grid);
+  check("a photograph out of the grid is never taken for a face", pictures(grid), []);
+
+  /* And the shape answers where the wording does not: a header in a language
+   * whose word for "profile picture" does not contain the handle still has one
+   * square picture in it and nothing else that size. */
+  const UNNAMED = `
+    <header data-box="0,60,390,180">
+      <img data-name="hers" alt="Profilbild" src="https://cdn/ada.jpg" data-box="16,76,88,88">
+      <img data-name="badge" alt="" src="https://cdn/tick.svg" data-box="120,80,14,14">
+    </header>
+    <main data-box="0,240,390,3000"></main>`;
+
+  const unnamed = await page(UNNAMED, "https://www.instagram.com/ada/");
+  await settle(unnamed);
+  check("a header in another language still gives up the square one", pictures(unnamed), [
+    "https://cdn/ada.jpg",
+  ]);
+
+  /* Nobody who was not opened is ever asked about, and that is enforced by
+   * there being nowhere else to ask from: a page that is not somebody's profile
+   * reads no picture at all. `/explore/` is shaped exactly like a handle, which
+   * is the mistake `NOT_PEOPLE` exists to stop. */
+  for (const [what, address] of [
+    ["the feed", FEED],
+    ["a post", "https://www.instagram.com/p/CxYz123/"],
+    ["somebody's followers", "https://www.instagram.com/ada/followers/"],
+    ["Explore, which is shaped like a name", "https://www.instagram.com/explore/"],
+  ]) {
+    const win = await page(PROFILE, address);
+    await settle(win);
+    check(`no face is read off ${what}`, pictures(win), []);
+  }
+
+  /* ── The unread badge, and the plane that has to stay the same plane ──── */
+
+  /* Instagram draws a red badge on its messages icon when something is waiting,
+   * and the app draws the same thing on its own copy of that icon. What it can
+   * be told is a number, a dot, or nothing — read out of the row it is about to
+   * hide, in a page the reader opened, with no request made to anybody.
+   *
+   * Nothing here is Instagram's actual markup, which is generated and changes.
+   * What it is is the shape every version of it has had: a link to the inbox
+   * with a drawing in it and, beside the drawing, either a number in a red
+   * spot or a red spot. */
+  const PLANE = `<svg aria-label="Messages" viewBox="0 0 24 24">
+      <title>Messages</title>
+      <path d="M13.9 20 21.8 6.9C22.8 5.2 21.5 3 19.5 3H4.5C2.1 3 1 5.8 2.6 7.5l4.8 4.7 1.7 7.1c.5 2.3 3.6 2.7 4.8.7Z"
+            fill="none" stroke="currentColor" stroke-width="2"></path>
+      <line fill="none" stroke="currentColor" stroke-width="2" x1="7.5" x2="15.5" y1="12.2" y2="7.6"></line>
+    </svg>`;
+  const ROW = (badge) => `
+    <nav data-box="0,800,390,44">
+      <a href="/"><svg><title>Home</title><path d="M0 0h1"></path></svg></a>
+      <a href="/explore/"><svg><title>Search</title><path d="M0 0h1"></path></svg></a>
+      <a href="/direct/inbox/"><div>${PLANE}${badge}</div></a>
+      <a href="/ada/"><img src="https://cdn/ada.jpg"></a>
+    </nav>
+    <main></main>`;
+  const RED = `style="background-color: rgb(255, 48, 64)"`;
+  const unreadOf = (win) => win.sent.filter((m) => m.kind === "unread");
+
+  const three = await page(ROW(`<div ${RED}><span>3</span></div>`), FEED);
+  await settle(three);
+  check("a number on the messages icon is sent as that number", unreadOf(three), [
+    { kind: "unread", count: 3, dot: false },
+  ]);
+
+  const many = await page(ROW(`<div ${RED}><span>9+</span></div>`), FEED);
+  await settle(many);
+  check("nine and more is more than nine", unreadOf(many).map((m) => m.count), [10]);
+
+  const dotted = await page(ROW(`<div ${RED}></div>`), FEED);
+  await settle(dotted);
+  check("a red spot with no number is a dot", unreadOf(dotted), [
+    { kind: "unread", count: 0, dot: true },
+  ]);
+
+  const quiet = await page(ROW(``), FEED);
+  await settle(quiet);
+  check("a row with nothing on the icon says nothing is waiting", unreadOf(quiet), [
+    { kind: "unread", count: 0, dot: false },
+  ]);
+
+  /* The word for messages is inside the drawing, and a page can carry a number
+   * that is not a badge. Neither is one. */
+  const notABadge = await page(
+    ROW(``).replace("<title>Messages</title>", "<title>12</title>"),
+    FEED
+  );
+  await settle(notABadge);
+  check("a number inside the drawing is not a badge", unreadOf(notABadge)[0].count, 0);
+
+  /* Not a zero. A conversation is a page Instagram draws no row on, and an
+   * answer of "none" there would clear a badge nobody had read. */
+  const noRow = await page(`<main></main>`, "https://www.instagram.com/direct/t/1/");
+  await settle(noRow);
+  check("a page with no row says nothing at all", unreadOf(noRow), []);
+
+  /* Sent when it changes. */
+  await settle(three);
+  await settle(three);
+  check("and not again while it stays the same", unreadOf(three).length, 1);
+
+  /* A count changes in place: the text of a span is rewritten and nothing is
+   * added to the page, which is the one thing the page-wide observer listens
+   * for. */
+  const span = three.document.querySelector("span");
+  span.firstChild.nodeValue = "4";
+  await new Promise((go) => setTimeout(go, 20));
+  check("a count rewritten in place is heard", unreadOf(three).map((m) => m.count), [3, 4]);
+
+  span.parentElement.remove();
+  await new Promise((go) => setTimeout(go, 20));
+  check("and so is the badge going away", unreadOf(three).pop(), {
+    kind: "unread", count: 0, dot: false,
+  });
+
+  /* The plane. The app stands a symbol of its own in for the filled one until
+   * Instagram's arrives, and the inbox is a page that may never draw the row,
+   * so it does not arrive. The outline is what there is to work from. */
+  const imagesOf = async (html, address) => {
+    const drawn = [];
+    const win = await page(html, address, "", {
+      Image: function () {
+        const one = {};
+        Object.defineProperty(one, "src", { set: (value) => drawn.push(value) });
+        return one;
+      },
+    });
+    await settle(win);
+    const text = (uri) => Buffer.from(uri.split(",")[1], "base64").toString("utf8");
+    return { win, drawn: drawn.map((uri) => decodeURIComponent(escape(text(uri)))) };
+  };
+
+  const feedRow = await imagesOf(ROW(``), FEED);
+  const solid = feedRow.drawn.filter((svg) => svg.includes("<mask"));
+  check("the outline gets a filled twin, once", solid.length, 1);
+  check(
+    "which is the same drawing with its shape filled",
+    solid[0].includes('d="M13.9 20 21.8') && /<path[^>]*fill="currentColor"/.test(solid[0]),
+    true
+  );
+  check(
+    "and its fold cut out of it rather than drawn over it",
+    /<mask[^>]*>[\s\S]*<line[^>]*stroke="black"[\s\S]*<\/mask>/.test(solid[0]) &&
+      /<g[^>]*mask="url\(#quiet-fold\)"/.test(solid[0]),
+    true
+  );
+  /* jsdom's serializer writes the namespace twice where a browser writes it
+   * once, and a strict parser refuses that. The doubled one is not the subject. */
+  const once = solid[0].replace(/(xmlns="[^"]+")([^>]*?)\sxmlns="[^"]+"/, "$1$2");
+  const parsed = new feedRow.win.DOMParser().parseFromString(once, "image/svg+xml");
+  check("and it is a drawing that parses", parsed.querySelector("parsererror"), null);
+  check(
+    "the outline itself is drawn as it was",
+    feedRow.drawn.filter((svg) => svg.includes("Messages") && !svg.includes("<mask")).length,
+    1
+  );
+
+  /* Where the row is drawn filled, Instagram's own drawing is the one sent. */
+  const inbox = await imagesOf(ROW(``), "https://www.instagram.com/direct/inbox/");
+  check("on the inbox the filled one is left as Instagram drew it",
+    inbox.drawn.filter((svg) => svg.includes("<mask")).length, 0);
+
+  /* ── The swipe arrows ──────────────────────────────────────────────────── */
+  /* The website lays a round chevron over the edge of a carousel. The app has
+   * none. What must survive is everything that is also an icon-only button
+   * near a picture: the mute button in the corner, the like and the bookmark
+   * under it. */
+  const SVG = "<svg><path d='M0 0'/></svg>";
+  const swipe = await page(
+    `<article data-box="0,100,390,500">
+       <div data-box="0,100,390,390"><img data-box="0,100,390,390">
+         <button id="next" data-box="340,265,46,62"></button>
+         <button id="back" data-box="4,265,46,62"></button>
+         <button id="mute" data-box="340,440,32,32">${SVG}</button>
+         <button id="tag" data-box="8,440,32,32">${SVG}</button>
+       </div>
+       <div data-box="0,490,390,40"><button id="like" data-box="8,495,32,32">${SVG}</button>
+         <button id="save" data-box="350,495,32,32">${SVG}</button></div>
+     </article>`,
+    FEED
+  );
+  swipe.drain();
+  const gone = (id) => swipe.document.getElementById(id).hasAttribute("data-quiet-swipearrow");
+  check("the arrow at the right edge of a carousel goes", gone("next"), true);
+  check("and the one at the left", gone("back"), true);
+  check("the mute button in the corner stays", gone("mute"), false);
+  check("so does the tag", gone("tag"), false);
+  check("so does the like under the picture", gone("like"), false);
+  check("and the bookmark", gone("save"), false);
+
+  /* ── One reel ──────────────────────────────────────────────────────────── */
+  const reelHtml = `<main><div id="column" style="overflow-y: scroll; scroll-snap-type: y mandatory">
+      <div><video data-box="0,0,390,700"></video></div><div><video data-box="0,700,390,700"></video></div></div>
+      <div id="feed" style="overflow-y: auto"><video data-box="0,0,390,400"></video></div></main>`;
+  /* Not by address: the player is opened from a thread and from a suggested
+   * post with the address of the page underneath. */
+  const reel = await page(reelHtml, "https://www.instagram.com/direct/t/123/");
+  reel.drain();
+  check("the column the reel player scrolls in is locked",
+    reel.document.getElementById("column").hasAttribute("data-quiet-one-reel"), true);
+  check("and nothing else on the page is",
+    reel.document.querySelectorAll("[data-quiet-one-reel]").length, 1);
+  const notReel = await page(reelHtml.replace("scroll-snap-type: y mandatory", ""), FEED);
+  notReel.drain();
+  check("a column of videos that does not snap is left to scroll",
+    notReel.document.querySelectorAll("[data-quiet-one-reel]").length, 0);
+
   done();
 })();

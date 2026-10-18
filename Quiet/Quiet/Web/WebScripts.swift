@@ -12,10 +12,6 @@ enum WebScripts {
     /// The name the page uses to talk back to the app.
     static let messageHandler = "quiet"
 
-    /// The identifier Instagram's own web client sends with its requests.
-    /// Without it the newer endpoints answer 403 and no explanation.
-    static let appID = "936619743392459"
-
     struct Payload {
         var scripts: [WKUserScript]
         /// Resources that could not be found. Never empty in a broken build, and
@@ -74,7 +70,6 @@ enum WebScripts {
         // row is outside the page's world now, so there is no arithmetic and
         // nothing to tell it.
         scripts.append(userScript(source: """
-        window.__quietAppID = \(quoted(WebScripts.appID));
         window.__quietTop = \(Int(top.rounded()));
         window.__quietShowsSuggestions = \(showsSuggestions);
         window.__quietEnd = \(quoted(String(localized: "That's everyone you follow.")));

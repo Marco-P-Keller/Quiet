@@ -130,6 +130,25 @@ enum Rehearsal {
         // photographed.
         Remembered.forget()
         Applause.forget()
+        // And then the one thing the search screen is mostly made of, put back.
+        //
+        // The same argument the `record` scene already makes about a fortnight
+        // of days: its subject is something that has already happened, so a
+        // phone set up ten seconds ago has nothing to draw. The recently-opened
+        // list is that exact case. `Remembered.forget()` two lines up is what
+        // makes every run photograph the same app, and it also emptied the half
+        // of this screen that does the work — so every picture ever taken of it
+        // is a field, a sentence, and nothing else, which is a state that lasts
+        // until somebody opens their first profile and then never returns.
+        //
+        // Eight, because eight is the most the list ever holds, and the most is
+        // the interesting one: it is where the column is longest and where a
+        // reader at the largest text size finds out whether the page scrolls.
+        if scene == .search || scene == .typing {
+            for handle in namesForTheList.reversed() {
+                Remembered.remember(visit: handle)
+            }
+        }
         // The shape of the row is a preference, so it outlives a launch and
         // would otherwise make the next scene photograph whatever the last one
         // chose.
@@ -172,6 +191,18 @@ enum Rehearsal {
         store.save(UsageLedger(day: today, seconds: 11 * 60), for: .usage)
     }
 
+    /// Who the staged phone has been opening.
+    ///
+    /// Invented, and they have to be: a screenshot carries whatever is written
+    /// on it wherever the screenshot goes, and a real handle on a picture of
+    /// somebody else's app is a person who never agreed to be there. These are
+    /// eight names in the shape handles come in and nothing else — no account
+    /// is looked up, and nothing here is ever asked for over the network.
+    private static let namesForTheList = [
+        "mara.jensen", "theo.l", "annikaruns", "j.okafor",
+        "lenaundfelix", "sofia.moreau", "danielhofer", "no.7.studio",
+    ]
+
     /// The scenes that are places in the app rather than states of the day.
     @MainActor
     static func open(_ session: QuietSession) {
@@ -196,5 +227,25 @@ enum Rehearsal {
     /// *fault* depends entirely on what the same page reads with no keyboard
     /// up. Three rounds went by without that control being taken.
     static var measuresTheSearchPage: Bool { scene == .search || scene == .typing }
+
+    /// Whether this launch keeps Quiet's own cover over the page, for good.
+    ///
+    /// Only the `island` scene, and it is the whole of what that scene is for.
+    /// `Tools/measure-the-row.py` measures the row against whatever is behind
+    /// it, and the row is translucent — so what is behind it has to be a flat
+    /// colour of Quiet's own rather than a photograph of somebody's dinner.
+    ///
+    /// **This used to be a race, and four seconds of `sleep` in the workflow
+    /// used to win it.** Then the app got faster: two background requests for
+    /// documents nobody asked to see went with the private API, and the first
+    /// paint started arriving inside those four seconds. The measurement began
+    /// reading the bottom edge of the row into the grey of a page that had
+    /// turned up — ground 17 became ground 65, the row's own 54 sat four levels
+    /// from it, and the plateau bled three points downward. The row had not
+    /// moved a point; it stood at 26 to 76 in both photographs.
+    ///
+    /// A check whose precondition is a sleep is a check that goes red the day
+    /// the thing it watches improves. So the precondition is stated instead.
+    static var holdsTheCover: Bool { scene == .island }
 }
 #endif

@@ -107,15 +107,16 @@ WHAT QUIET DOES NOT DO
   something to a post or a message — that is iOS asking on Instagram's behalf,
   and Quiet uses none of the three itself.
 
-Six things are kept, on your phone, in the keychain: your limit and any change
+Eight things are kept, on your phone, in the keychain: your limit and any change
 you have queued for a later day, today's total, the furthest point in time the
 app has seen, the day you set it up, the day you have asked it to forget
-everything, and what your other devices have spent if you are carrying the
-limit between them. They survive deleting the app, on purpose. A limit you can
+everything, what your other devices have spent if you are carrying the limit
+between them, the day you said you started from, and how long each day since
+has been. They survive deleting the app, on purpose. A limit you can
 lift by reinstalling is not a limit.
 
 Which is why there is a way out that is not the App Store. "Make Quiet forget
-everything", at the foot of the panel, throws all six away and the copy in
+everything", at the foot of the panel, throws all eight away and the copy in
 iCloud with them — after the same wait that stands between you and a bigger
 number. An app with no way out at all would be a trap; one you can leave in the
 moment you want five more minutes would not be a limit.
@@ -131,7 +132,7 @@ connected to, or supported by them.
 ## Keywords (100, comma separated, no spaces)
 
 ```
-screen,time,detox,blocker,social,media,focus,habit,addiction,distraction,scroll,digital,phone
+screen,time,detox,blocker,social,media,focus,habit,addiction,distraction,scroll,digital,phone,break
 ```
 
 Keywords are matched individually and combined into phrases, so `screen` and
@@ -170,18 +171,75 @@ somebody else's app. `phone` went in with the room left over, because "phone
 addiction" is among the most-typed phrases here and `addiction` was already
 sitting there unable to pair with anything.
 
+`break` went in last, into the seven characters the field still had empty. It is
+the only word left that assembles with three of the ones already there — "social
+media break", "screen break", "phone break" — and an empty seventh of a field is
+worth nothing at all.
+
 ## The other localisations
 
 Apple searches three fields and no others — name, subtitle, keywords — and it
 searches them **once per localisation**. One localisation is therefore 25 + 27 +
 99 characters of indexed text for the entire world, which is what this listing
 was until it had this section. Every localisation added is another 30 + 30 + 100
-in a market with less competition in it, and the app is already bilingual: the
-German screenshots are rendered and waiting in `Tools/shots/out/v2/de/`.
+in a market with less competition in it, and the app speaks all of them already.
 
-There is a second reason for the German one that has nothing to do with search.
-The publisher is Swiss and the app speaks German; without this, somebody in
-Zurich sees an English product page over a German app.
+**The text itself is in [`store/`](../store)**, one file per field, and it is
+measured rather than read over:
+
+    python3 Tools/read-the-listing.py
+
+That catches the two mistakes a browser tab never shows you: a keyword already
+spent in the name or the subtitle, which Apple indexes anyway and which
+therefore buys nothing twice; and a description hard-wrapped at eighty columns,
+which App Store Connect keeps every newline of and the product page then renders
+as a ragged column of short lines, on every phone, for the life of the listing.
+
+**All thirty-nine App Store Connect offers.** The table below is the eleven the app itself also speaks; the rest, and the order worth shipping them in, are in [`store/README.md`](../store/README.md).
+
+| | Name | Subtitle | Screenshots |
+| --- | --- | --- | --- |
+| `en-US` | Quiet: Stop Doomscrolling | Your feed, on a daily limit | `out/v2/en/` |
+| `en-GB` | Quiet: Stop Doomscrolling | Your feed, on a daily limit | `out/v2/en-GB/` |
+| `de-DE` | Quiet: Weniger Doomscrolling | Dein Feed, mit Tageslimit | `out/v2/de/` |
+| `es-ES` | Quiet: Menos scroll infinito | Tu feed, con un límite diario | `out/v2/es/` |
+| `es-MX` | Quiet: Menos scroll infinito | Tu feed, con un límite diario | `out/v2/es/` |
+| `fr-FR` | Quiet : Stop au scroll infini | Ton fil, une limite par jour | `out/v2/fr/` |
+| `pt-BR` | Quiet: Menos scroll infinito | Seu feed, com limite diário | `out/v2/pt-BR/` |
+
+### What a storefront indexes, which decides the rest of this section
+
+A storefront searches the localisation written in its own language — and most
+non-American storefronts search **English (U.K.)** alongside it. The American
+storefront is the exception, and the second field it reads there is **Spanish
+(Mexico)**.
+
+Two things follow, and the second reverses a decision this page used to make.
+
+* **`es-MX` earns its place even if nobody in Mexico ever installs this.** It is
+  a second indexed keyword field in the largest storefront there is, for one
+  word changed — `movil` to `celular` — and the description it carries is the
+  Spanish one unaltered. Latin America is the part of it that is not a trick.
+
+* **`en-GB` cannot be a field of leftovers.** It was drafted here as the terms
+  the U.S. field had no room for, on the reasoning that a second field should
+  not repeat the first. That is right for a field which is *additional* and
+  wrong for one which is a *replacement* — and in the United Kingdom, Australia,
+  Ireland and New Zealand it is the replacement: those storefronts read `en-GB`
+  and not `en-US`. A British field with no `screen`, no `time`, no `detox` and
+  no `blocker` in it would have left the app unfindable in Britain for every
+  phrase this category is actually searched by, in exchange for a bonus in
+  Germany.
+
+  So it now carries the head terms as well, and spends what is left on the four
+  words that are unique to it. The bonus elsewhere is smaller. The hole in
+  Britain is gone.
+
+  **This is the one line in the folder that rests on undocumented behaviour.**
+  Apple publishes which languages a storefront *displays* and not which it
+  *searches*; the pairing above is the best-attested account of it rather than a
+  promise. It is also the asymmetry worth respecting: a repeated keyword costs a
+  slot, and an omitted `screen,time` costs a country.
 
 ### German (Germany) — `de-DE`
 
@@ -204,17 +262,11 @@ assembled from parts and has to be spent whole. `handysucht` and `sucht` are
 there because the German for this problem is a compound far more often than the
 English is.
 
-**These are drafts and want a native ear before they go in.** Nothing here has
-been checked against how Swiss and German readers actually search, and the
-listing is the wrong place to find that out by accident.
+There is a second reason for the German localisation that has nothing to do with
+search: the publisher is Swiss and the app speaks German, so without it somebody
+in Zurich reads an English product page over a German app.
 
 ### English (U.K.) — `en-GB`
-
-Worth adding even though not a word of it needs translating, and this is the
-least obvious lever on the page: a separate localisation is a **separate keyword
-field**, and `en-GB` serves the United Kingdom, Australia, Ireland, New Zealand
-and more. Give it the terms the U.S. field had no room for rather than a copy of
-the U.S. field, and the same app covers twice the vocabulary.
 
 | Field | Value | |
 | --- | --- | --- |
@@ -222,13 +274,89 @@ the U.S. field, and the same app covers twice the vocabulary.
 | Subtitle | `Your feed, on a daily limit` | 27/30 |
 
 ```
-wellbeing,mindful,break,usage,timer,control,reduce,less,minimal,quit,dopamine,brain,rot,attention
+screen,time,detox,digital,blocker,social,media,addiction,scroll,wellbeing,mindful,phone,brain,rot
 ```
 
-Everything in there is a word the U.S. field could not afford, `wellbeing` and
-`mindful` among them — which is where they went when `media` and `phone` took
-their place. `brain,rot` is the pair that assembles into the phrase somebody
-under twenty-five would actually type.
+Not a word of the name, the subtitle or the description needs translating, which
+makes this the cheapest localisation on the page and the one nobody reaches for.
+The first eight keywords are the head terms it cannot do without, for the reason
+above. The last four are what the U.S. field had no room for: `wellbeing` and
+`mindful` are the vocabulary this category is browsed in rather than searched,
+and `brain,rot` is the pair that assembles into the phrase somebody under
+twenty-five would actually type.
+
+What came out to make room: `focus`, `habit`, `distraction` and `break`, all of
+which are in the U.S. field and none of which is a phrase's load-bearing half.
+
+### Spanish — `es-ES` and `es-MX`
+
+| Field | Value | |
+| --- | --- | --- |
+| Name | `Quiet: Menos scroll infinito` | 28/30 |
+| Subtitle | `Tu feed, con un límite diario` | 29/30 |
+
+```
+es-ES  pantalla,tiempo,adiccion,movil,detox,digital,bloqueador,concentracion,doomscrolling,redes,sociales
+es-MX  pantalla,tiempo,adiccion,celular,detox,digital,bloqueador,concentracion,doomscrolling,redes,sociales
+```
+
+**The name buys a phrase rather than the coinage.** "Doomscrolling" is English
+and travels, but what a Spanish speaker types is `scroll infinito`, and that is
+a term with perfect intent and almost nothing standing on it. `doomscrolling`
+then goes in the keyword field, where it costs thirteen characters instead of
+half a name.
+
+`redes,sociales` is the pair that assembles into `redes sociales`, which is the
+Spanish for the whole category and was the expensive thing to leave out.
+Accents are dropped in the keyword field, which is how they are typed.
+
+`movil` is Spain and `celular` is Latin America, and that single word is the
+whole difference between the two.
+
+### French (France) — `fr-FR`
+
+| Field | Value | |
+| --- | --- | --- |
+| Name | `Quiet : Stop au scroll infini` | 29/30 |
+| Subtitle | `Ton fil, une limite par jour` | 28/30 |
+
+```
+ecran,temps,addiction,telephone,detox,numerique,bloqueur,concentration,reseaux,sociaux,doomscrolling
+```
+
+Exactly 100 characters, and every one of them assembles: `temps` + `ecran` is
+`temps d'écran`, `reseaux` + `sociaux` is `réseaux sociaux`, `detox` +
+`numerique` is the sector's own phrase. The space before the colon in the name
+is French typography and costs a character, which the name had.
+
+### Portuguese (Brazil) — `pt-BR`
+
+| Field | Value | |
+| --- | --- | --- |
+| Name | `Quiet: Menos scroll infinito` | 28/30 |
+| Subtitle | `Seu feed, com limite diário` | 27/30 |
+
+```
+tela,tempo,vicio,celular,detox,digital,bloqueador,foco,distracao,redes,sociais,doomscrolling,rolagem
+```
+
+`rolagem` is the correct Portuguese and `scroll` is what Brazilians type, so the
+name has one and the keyword field has the other.
+
+### What these are worth, and what they are not
+
+**Every one of them is a draft that wants a native ear**, the German included,
+and the three Romance ones more than the German. Nothing here has been checked
+against how people in those markets actually search — the keyword fields are
+reasoned guesses, and a listing is an expensive place to find out that a phrase
+nobody types was bought with thirteen characters. It is the first thing worth
+paying a native speaker an hour for, and the app's own translations are a
+separate question from the listing's.
+
+The ones that are a copy and a save, when there is an appetite for more forms:
+**en-AU** and **en-CA** take the `en-GB` text unaltered, **fr-CA** takes the
+French, and **pt-PT** takes the Brazilian text with its pronouns turned around.
+Each is another indexed keyword field and none is another translation.
 
 ## URLs
 
@@ -343,11 +471,26 @@ say.
 
 ## Screenshots
 
-Seven, in English and in German, built by `Tools/make-shots.py` and finished at
+Eight, in six languages, built by `Tools/make-shots.py` and finished at
 1320 × 2868 — the 6.9-inch size App Store Connect requires, a smaller one being
-rejected on upload rather than scaled. Most captures come from the simulator at
-that size; three come from a real phone at 1179 × 2556 and are scaled into the
+rejected on upload rather than scaled. The app is iPhone only, so there is no
+iPad set to make. Six of the eight come from the simulator at that size; the
+two feed frames come from a real phone at 1179 × 2556 and are scaled into the
 device by the same projection as everything else.
+
+**The app's own six are re-photographed by a script rather than by hand**, which
+is what makes a re-shoot cost three minutes instead of an afternoon and is
+therefore what keeps them current:
+
+    Tools/photograph-for-the-store.sh          # all six languages, into shots/fresh
+    Tools/photograph-for-the-store.sh de fr    # or only these
+
+It sets the language on the device and reboots into it, because
+`-AppleLanguages (de)` as a launch argument does nothing here and produces four
+German screenshots that are byte-for-byte the English ones. It writes to
+`shots/fresh/` rather than over `shots/source/`, so a bad run costs a look
+rather than a `git checkout`, and it ends by comparing every frame to every
+other one — identical files mean a language never took.
 
 The untouched phone captures are kept in `Tools/shots/originals`, with an index
 saying where each one goes, which three are not used and why, and exactly what
@@ -355,7 +498,7 @@ was retouched out of the one that was. Keeping them is not sentiment: a slide
 that cannot be re-cut from its own frame has to be re-shot from scratch.
 
     python3 Tools/make-shots.py            # all three
-    python3 Tools/make-shots.py v2        # → Tools/shots/out/v2/{en,de}/
+    python3 Tools/make-shots.py v2        # → Tools/shots/out/v2/{en,en-GB,de,es,fr,pt-BR}/
     python3 Tools/make-shots.py house     # → Tools/shots/out/{en,de}/
     python3 Tools/make-shots.py loud      # → Tools/shots/out/loud/{en,de}/
 
@@ -433,11 +576,27 @@ clock counting today down. The whole app is in one photograph.
 | --- | --- | --- | --- |
 | 1 | feed, light | Instagram, without **Reels**. | **what is it** |
 | 2 | curtain, dark | No **five more** minutes. | and there is a limit |
-| 3 | panel, light | Less **now**. More **next week**. | why does it hold |
+| 3 | settings, light | Less **now**. More **next week**. | why does it hold |
 | 4 | *set in type*, dark | What **isn't** here. | what else is gone |
-| 5 | the feed again, dark | Everything else is **untouched**. | what is still there |
-| 6 | setup, light | The whole trade, **up front**. | what am I giving up |
-| 7 | opening, dark | No account. No **tracking**. | can I trust you |
+| 5 | the feed again, dark | Your feed. Your **people**. | what is still there |
+| 6 | the record, light | The days **behind you**. | what does a month look like |
+| 7 | setup, light | The whole trade, **up front**. | what am I giving up |
+| 8 | opening, dark | No account. No **tracking**. | can I trust you |
+
+**Slide 6 is the newest and the one to argue about.** Seven slides answered what
+the app is, whether it holds and whether you can trust it, and never answered
+what a month of it looks like — which is the last question somebody asks, and
+which every app on this shelf answers with a chart. So: a bar for every day, a
+dashed line at the limit, and the number the days are measured from. The figures
+come from a rehearsal scene the app computes for itself, which is what a chart
+in a listing always is, and it is the one slide in the set carrying a number
+somebody could read as a promise. If that is a trade not worth making it is one
+line in `SLIDES_V2`.
+
+**Slide 3 is named for its scene now.** The capture was called `panel-light` and
+is a photograph of the *settings* screen — which is where the wait between
+increases lives, and the wait is what the caption claims. Re-shooting it from
+the file's old name got the panel, which does not carry the claim at all.
 
 Slides 4 and 5 are a pair and are meant to be swiped as one: the removals set in
 type and struck through, then a photograph of everything that was left alone.
@@ -553,13 +712,37 @@ The rule the rest of the set follows, and the one to keep when re-shooting, is
 at the foot of `Tools/make-shots.py`: *if a person who is not you can be
 recognised in it, it does not go in the listing.*
 
-### The two feed photographs
+### The two feed photographs, which are the one thing still owed
 
-`source/feed.png` is English; `source/de/feed.png` is a German post, so the
-German listing shows a German feed rather than an English one under German
-captions. Any slide can be localised the same way: a file in `source/<lang>/`
-wins over the shared one, and the script prints "(shared capture)" for anything
-still falling back, so a missing translation is visible rather than assumed.
+`source/feed.png` and `source/feed-open.png` are shared by every language: they
+are the developer's own account, and they cannot be taken by a runner or by a
+simulator, neither of which has an Instagram account to sign in to. Any slide
+can be localised by dropping a file in `source/<lang>/`, which wins over the
+shared one; the script prints "(shared capture)" for anything still falling
+back, so a missing translation is visible rather than assumed.
+
+**Both are of a build nobody can install any more, and both have to be taken
+again before the listing goes up.** Two things are wrong with them, and the
+first is not cosmetic:
+
+* They show **Instagram's own house, magnifier and paper plane inside Quiet's
+  bottom row** — artwork the app used to read out of Instagram's navigation bar
+  and re-draw, and which was taken out for the reason in [shipping
+  this](store-and-legal.md#3-instagrams-glyphs-in-quiets-own-row). A listing
+  whose first screenshot advertises the one thing the app was changed to stop
+  doing is worth catching before a reviewer catches it.
+* They show a **hole where the third entry should be**. That build's row had
+  four icons. The row has five now and the middle one is a clock counting today
+  down — which is the whole app in one glyph, and exactly what the red arrow on
+  slide 1 is pointing at. The arrow currently points at nothing.
+
+What to shoot, on a signed-in phone running the current build: a whole post of
+your own with the like count, the caption and the date on the glass and the row
+at the foot of it (`feed-open.png`), and the top of the feed with the story row,
+the header and your own profile picture (`feed.png`). Then
+`python3 Tools/make-shots.py v2`. The rule at the foot of `make-shots.py`
+applies to both and is not a formality: if a person who is not you can be
+recognised in it, it does not go in the listing.
 
 ---
 
@@ -584,6 +767,11 @@ never sees a password. Navigation is restricted by URL to Instagram's domains,
 including the Meta domains a sign-in passes through; anything else opens in
 Safari.
 
+The app calls no Instagram API and identifies itself honestly: the user agent is
+WebKit's own with "Quiet/1.0" appended. Every request is the page's own, in the
+user's own session. What the app adds is a stylesheet and a script that hide
+Reels and Explore, in the way a content blocker does. No advertising is hidden.
+
 We are not affiliated with, endorsed by, or sponsored by Instagram or Meta, and
 the app says so on its own About screen and in the description. The name, icon
 and subtitle use no third-party trademark.
@@ -592,11 +780,94 @@ To see the whole app quickly: the daily limit and the end-of-day screen are
 reachable without waiting — please contact us and we will supply a build with
 the limit pre-spent, or set the limit to its minimum of 5 minutes and leave the
 app open.
+
+Sign-in: Quiet has no account system of its own. The demo account is an
+Instagram account, entered on Instagram's own login page. If Instagram asks for
+a security code, choose "Try another way" -> "Backup code" and use any one of
+these (each works once): <BACKUP CODES>
+If Instagram instead sends a code by SMS or email, please call us at the number
+in App Review Information and we will read it out immediately.
 ```
 
 Add a demo Instagram account under **Sign-in required** as well. A reviewer who
 cannot sign in sees a login page and nothing else, and "it looked like a
 website" is the review this app cannot afford.
+
+### The demo account needs a code Apple can type
+
+Build 118 was stopped (2.1(a), 24 September 2026) because Instagram asked the
+reviewer for a code: a sign-in from Cupertino on an unknown iPad is exactly what
+Instagram's checkpoint exists to catch. **Switching two-factor authentication
+off does not help** — measured on 25 September: with it off, the same sign-in
+got "Check your SMS or email" and a code sent to the account's own phone and
+mailbox, which Apple has neither of. The checkpoint is a separate mechanism
+from 2FA and cannot be switched off. With 2FA *on*, the new-device step becomes
+Instagram's 2FA screen instead, and that one takes **backup codes**: fixed,
+eight digits each, one use each. That is the "fixed authentication code" Apple
+asks for.
+
+The fallback is Apple's own offer: the call. Keep the phone number under App
+Review Information current and answer it — when a code goes to the account's
+SMS or mail during review, it is read out on the call.
+
+1. On the demo account, turn on two-factor authentication **with an
+   authentication app** (not SMS — a text goes to a phone Apple does not have).
+2. *Settings → Accounts Center → Password and security → Two-factor
+   authentication → Additional methods → Backup codes.* Copy all of them.
+3. Sign in once from a second device with one of them, to prove the path works
+   — then that code is spent; do not list it.
+4. Paste the rest into the notes below, and never reuse the account for anything
+   else, so the codes stay unspent.
+
+When Instagram asks for a code on its login page, "Try another way" → "Backup
+code" is where they go. Re-issue the codes before every submission: a reviewer
+who spends them all leaves the next one with none.
+
+### Guideline 4.8 is answered, not coded
+
+The same review asked for Sign in with Apple under 4.8. Adding it would be
+wrong, not just unnecessary: Quiet has no account of its own for it to sign in
+to. 4.8 exempts exactly this case — *"a client for a specific third-party
+service and users are required to sign in directly to their … social media …
+account to access their content"* — and the reply to App Review says so; it is
+in [the reply below](#reply-to-app-review-24-september-2026).
+
+## Reply to App Review, 24 September 2026
+
+Paste into the Resolution Center reply for submission
+`01f40080-b041-4e9a-b73b-dca5ad2b5c54`, after the backup codes are in the notes.
+
+```
+Hello,
+
+Thank you for the review. Both points are addressed below.
+
+Guideline 4.8 – Login Services
+
+Quiet does not use a third-party login service, and it has no accounts or login
+of its own. The only sign-in in the app is Instagram's own login page, which the
+user needs in order to see their own Instagram content, because Quiet is a
+time-limiting tool for that one service. The app never receives the password or
+any account data, and has no backend.
+
+This is the case Guideline 4.8 lists as an exception: "Your app is a client for
+a specific third-party service and users are required to sign in directly to
+their mail, social media, or other third-party account to access their
+content." Sign in with Apple would have no Quiet account to sign in to; it could
+not give the user access to their Instagram content.
+
+Guideline 2.1(a) – Information Needed
+
+The code was requested by Instagram's own security check, which appears when an
+account is signed in from a new device and location; we cannot switch it off
+for a single account. We have therefore enabled two-factor authentication on the
+demo account and added a set of fixed backup codes to the Review Notes. When
+Instagram asks for a code, choose "Try another way" -> "Backup code" and enter
+any one of them; each code works once.
+
+Thank you,
+Connexa GmbH
+```
 
 ## What to expect
 

@@ -142,4 +142,66 @@ final class RecentsTests: XCTestCase {
         Remembered.forgetVisits(defaults: defaults)
         XCTAssertTrue(Remembered.visitFaces(defaults: defaults).isEmpty)
     }
+
+    // MARK: - What the field narrows to
+
+    /// The search field used to ask `/api/v1/web/search/topsearch/` who matched
+    /// what was being typed, with Instagram's own web client identifier in a
+    /// header. What stands there now is this list, narrowed — so this is the
+    /// half of the screen that has to carry the weight, and it is worth asking
+    /// rather than assuming.
+
+    private let list = ["ada", "grace", "edsger", "adaline"]
+
+    func testAnEmptyFieldNarrowsToEverybody() {
+        XCTAssertEqual(SearchView.narrowing("", among: list), list)
+        XCTAssertEqual(SearchView.narrowing("   ", among: list), list)
+    }
+
+    /// Anywhere in the name rather than at the front of it. People think of
+    /// each other by whichever part of a handle is the name.
+    ///
+    /// The typed letters follow as a row of their own, as they always do — it
+    /// is the one row that is in the same place every time, which is what makes
+    /// it usable at all. `dsg` is a handle somebody could hold.
+    func testItMatchesInsideAName() {
+        XCTAssertEqual(SearchView.narrowing("dsg", among: list), ["edsger", "dsg"])
+    }
+
+    /// The typed name comes last, not first. Three letters are far more often
+    /// somebody you already open than a stranger, and a row that jumps to the
+    /// top on every keystroke is a row you tap by accident.
+    func testTheTypedNameComesAfterThePeopleYouOpen() {
+        XCTAssertEqual(SearchView.narrowing("ada", among: list), ["ada", "adaline"])
+        XCTAssertEqual(
+            SearchView.narrowing("alan", among: list),
+            ["alan"],
+            "A name nobody on this phone has opened is still openable."
+        )
+    }
+
+    /// An `@` and a pasted profile link are the same person as the bare name —
+    /// the same question `ContentRules` answers about every other address here.
+    func testANameIsANameHoweverItIsTyped() {
+        for typed in ["@grace", "instagram.com/grace/", "https://www.instagram.com/grace/"] {
+            XCTAssertEqual(
+                SearchView.narrowing(typed, among: list), ["grace"],
+                "\(typed) is grace"
+            )
+        }
+    }
+
+    /// Nothing is offered for something that could not be a handle, because
+    /// nothing could be opened with it either. A field with rubbish in it shows
+    /// whoever it happens to match and no row promising a profile.
+    func testSomethingThatIsNotAHandleOffersNoRow() {
+        XCTAssertEqual(SearchView.narrowing("two words", among: list), [])
+        XCTAssertEqual(SearchView.narrowing("#hashtag", among: list), [])
+    }
+
+    /// Typed in capitals, matched in lower case: handles have no capitals and
+    /// a keyboard that autocapitalised one should not empty the list.
+    func testCapitalsDoNotHideAnybody() {
+        XCTAssertEqual(SearchView.narrowing("Grace", among: list), ["grace"])
+    }
 }

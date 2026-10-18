@@ -113,9 +113,9 @@ itself, in the two places Instagram left empty:
 * **A clock in the navigation bar**, at the end, and a second one on your own
   profile beside Instagram's settings. Settings belong both where settings
   already are and somewhere reachable from wherever you happen to be.
-* **The search, back in the slot Instagram's own search used to occupy.** Its
-  search tab is the front door to Explore, so it stays shut; this one opens
-  Quiet's, which returns people and nothing else.
+* **The way to a person, back in the slot Instagram's own search used to
+  occupy.** Its search tab is the front door to Explore, so it stays shut; this
+  one opens Quiet's screen, which takes a name and opens that profile.
 
 Both are found by **where they are on the screen** rather than by what they are
 called: a control in the top-left corner, and the home button in the bar along
@@ -183,10 +183,13 @@ A hole in a sentence is a bigger lie than a refused tap.
 Silence reads as a broken app. An apology reads as an accident. Neither is true,
 so the app states what it did — one sentence, three seconds, nothing to dismiss.
 
-## Autoplay is off
+## Autoplay is on, muted
 
-`mediaTypesRequiringUserActionForPlayback = .all`. Video plays when you ask it
-to. It is the smallest of the hooks and among the easiest to remove.
+`mediaTypesRequiringUserActionForPlayback = []` since 2026-10-13. It was `.all`
+and a feed of stills that wait to be tapped read as broken. Video starts by
+itself, muted, as in Instagram's own app; sound is one tap on the speaker.
+Reels stay refused by address, and a reel sent in a conversation plays but
+cannot be scrolled past (`oneReelOnly` in trim.js).
 
 ## Links off Instagram open in Safari
 
@@ -2892,3 +2895,52 @@ The accessibility screenshot caught the last of it, which is what it is for.
 both wrap and the row becomes two two-line columns fighting over one width.
 Past the ordinary sizes the value goes underneath the name now, where each gets
 the whole of it.
+
+---
+
+## The paper plane stays a paper plane, and says when there is news
+
+Two things on the bottom row were Quiet's rather than Instagram's, and both
+showed.
+
+**The plane changed shape when pressed.** The row is drawn from Instagram's own
+glyphs, read off the page and kept. Home and search each have an outline and a
+filled twin on the page, so both were kept. Messages has an outline on the feed
+and nothing at all on the inbox — the inbox draws no row — so the filled twin
+was never seen, and a press fell back to the system's `paperplane.fill`: a
+different plane, drawn by somebody else, for as long as the finger was down.
+
+The twin is made rather than waited for. The outline is a closed shape with one
+stroke across it; the filled one is the same silhouette with that stroke cut
+out. The cut is an SVG `<mask>` and not a stroke in the background colour,
+because the image is used as a template and only its alpha survives: a
+"background" line would come out in whatever the tint was. It is drawn once, and
+only if the page has not shown a real one — if Instagram ever draws it, the
+real one wins.
+
+Search has the same hole and is left alone: nobody asked, and each of these is a
+pixel measurement that should be looked at, not assumed.
+
+**Nothing said there was a message.** The number is on the page, on the same
+icon, in the same row this app already finds. It is read from there — text that
+is a bare number, or an empty red element for the dot — and nothing else:
+
+* no request. The header check still fails on any fetch, and this adds none;
+* no notification permission, no badge on the home-screen icon, no background
+  work. A count the page shows is a count the page shows while the app is open;
+* no row, no news. If the row is not on the page the script says nothing, which
+  is not the same as saying zero. A badge that clears itself whenever the page
+  is somewhere else would be the app lying in the other direction;
+* the number is refused unless it is a whole number from 0 to 999, and shown as
+  "9+" past nine, like the app it is quoting;
+* it hides while the Messages pane is the one on screen, where the list itself
+  says which conversation is unread.
+
+The selectors are modelled on fixtures, not on the live site. That is the
+weakest part, and it fails by showing nothing rather than something wrong.
+
+**For review.** Both are the same kind of thing the app already does — reading
+its own page and drawing what it finds — and neither adds a network call, a
+permission or a data flow. `store/review-notes.txt` says so in one sentence.
+It changes none of the structural questions the review can raise (4.2 and
+5.2.2 are as open as they were), and nothing here can promise the outcome.

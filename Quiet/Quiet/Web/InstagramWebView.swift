@@ -3,27 +3,6 @@ import SwiftUI
 import UIKit
 import WebKit
 
-/// Somebody the search found: a name, a name, and a face.
-///
-/// No follower count — that is a number to measure yourself against and it has
-/// no business in a list of people you already know. The picture is here
-/// because a row of names is a spreadsheet, and finding a friend is something
-/// you do by recognising them.
-struct Person: Identifiable, Decodable, Equatable, Sendable {
-    let username: String
-    let name: String
-    /// The profile picture, base64, fetched by the page. Empty when the image
-    /// could not be had — a monogram stands in, rather than a hole.
-    var picture: String?
-
-    var id: String { username }
-
-    var image: UIImage? {
-        guard let picture, let data = Data(base64Encoded: picture) else { return nil }
-        return UIImage(data: data)
-    }
-}
-
 /// A handle on the live web view, so the rest of the app can send it somewhere
 /// without owning it.
 @MainActor
@@ -106,6 +85,14 @@ final class WebSurface {
     func icon(_ entry: String, on: Bool) -> UIImage? {
         icons[entry + (on ? ".on" : ".off")]
     }
+
+    /// What Instagram's badge on its own messages icon says is waiting.
+    ///
+    /// Read off the row Quiet hides, by a page the reader opened, and sent only
+    /// while that row is on the page — so a conversation, which has none, leaves
+    /// this where it was rather than saying everything has been read. Never
+    /// kept between runs: a count from yesterday is not news.
+    private(set) var unread: Unread = .none
 
     /// The colour Instagram is drawing its own chrome in, as the page reports it.
     ///
@@ -217,6 +204,11 @@ final class WebSurface {
         stack?.keepThePlace()
     }
 
+    /// The app came back after long enough that the feed is old news.
+    func freshenTheFeed() {
+        stack?.freshenTheFeed()
+    }
+
     func scrollToTop() {
         guard let scrollView = webView?.scrollView else { return }
         scrollView.setContentOffset(
@@ -291,185 +283,24 @@ final class WebSurface {
             completionHandler: completion
         )
     }
-
-    /// The face, fetched by the page from the same place the page would fetch
-    /// it, and handed over as bytes.
+    /// The face of somebody whose profile was opened, for the recently-opened
+    /// list.
     ///
-    /// Quiet still asks nobody for anything: this runs inside Instagram's own
-    /// page, with Instagram's own cookies, against a URL Instagram gave it. A
-    /// picture that will not come is not an error worth reporting — a list
-    /// stands in a letter instead.
+    /// Pushed by the page rather than pulled by the app, which is the whole of
+    /// the change. There used to be a `faces(of:)` here that asked
+    /// `/api/v1/users/web_profile_info/` for eight photographs at once, with
+    /// Instagram's own web client identifier in a header because that is the
+    /// only way it answers. `trim.js` reads the picture off the profile page
+    /// instead, at the moment somebody opens it — see `faceOnThisProfile`.
     ///
-    /// Written once and pasted into both questions that need it. It was written
-    /// twice for a while, which is two places for a size limit to be raised in
-    /// one of them.
-    private static let fetchesAFace = """
-        async function face(url) {
-          if (!url) { return ""; }
-          try {
-            const response = await fetch(url, { credentials: "omit" });
-            if (!response.ok) { return ""; }
-            const buffer = await response.arrayBuffer();
-            if (buffer.byteLength > 300000) { return ""; }
-            const bytes = new Uint8Array(buffer);
-            let binary = "";
-            for (let i = 0; i < bytes.length; i++) {
-              binary += String.fromCharCode(bytes[i]);
-            }
-            return btoa(binary);
-          } catch (error) {
-            return "";
-          }
-        }
-        """
-
-    /// Who matches this name.
-    ///
-    /// The request is made by Instagram's own page, with the page's own cookies,
-    /// so it is the same search the site would run — and Quiet still makes no
-    /// request of its own, which is a sentence on the About screen that has to
-    /// stay true.
-    ///
-    /// Only people come back. No hashtags, no places, no posts, no grid of
-    /// strangers: the objection to a search *page* was never the searching, it
-    /// was everything such a page carries along with it.
-    ///
-    /// `nil` means the question could not be asked — offline, signed out, or
-    /// Instagram moved the endpoint — which is a different thing from nobody
-    /// being called that, and the panel says the two differently.
-    func people(matching query: String) async -> [Person]? {
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed.count >= 2, let webView else { return nil }
-
-        let body = """
-        const term = encodeURIComponent(query);
-        const paths = [
-          "/api/v1/web/search/topsearch/?context=blended&query=" + term,
-          "/web/search/topsearch/?context=blended&query=" + term
-        ];
-
-        \(Self.fetchesAFace)
-
-        for (const path of paths) {
-          try {
-            const response = await fetch(path, {
-              credentials: "same-origin",
-              headers: { "X-IG-App-ID": appID }
-            });
-            if (!response.ok) { continue; }
-            const data = await response.json();
-            const found = (data && data.users) || [];
-            const people = found.slice(0, 6)
-              .map(function (entry) { return entry.user || {}; })
-              .filter(function (user) { return (user.username || "").length > 0; });
-            // All six at once. One after another is six round trips of
-            // waiting for a list somebody is watching appear.
-            const faces = await Promise.all(people.map(function (user) {
-              return face(user.profile_pic_url);
-            }));
-            return JSON.stringify(people.map(function (user, index) {
-              return {
-                username: user.username,
-                name: user.full_name || "",
-                picture: faces[index]
-              };
-            }));
-          } catch (error) {
-            // Try the next shape of the same request, then give up quietly.
-          }
-        }
-        return null;
-        """
-
-        let answer = try? await webView.callAsyncJavaScript(
-            body,
-            arguments: ["query": trimmed, "appID": WebScripts.appID],
-            in: nil,
-            contentWorld: .defaultClient
-        )
-        guard let json = answer as? String, let data = json.data(using: .utf8) else { return nil }
-        return try? JSONDecoder().decode([Person].self, from: data)
+    /// Refused for anybody not already on the list, which `Remembered` enforces:
+    /// this is a record of who you go and see, not of every page that went past.
+    fileprivate func note(face picture: String, of handle: String) {
+        guard let data = Data(base64Encoded: picture),
+              let image = UIImage(data: data) else { return }
+        Remembered.remember(face: image, for: handle)
     }
 
-    /// The faces of people already on the recently-opened list.
-    ///
-    /// Somebody who was opened by typing their name and pressing return leaves
-    /// no picture behind, and neither does anybody remembered by a version of
-    /// the app that did not keep one. So the list asks, once, for the ones it
-    /// is missing — and only for those, because a list that re-fetched eight
-    /// photographs every time it appeared would be a list that costs somebody
-    /// their data allowance to look at their own friends.
-    ///
-    /// All of them in one round trip rather than one at a time, for the same
-    /// reason the search's six are: eight waits in a row is a list filling in
-    /// down the screen while somebody watches.
-    ///
-    /// Two shapes of the same question, in order. The profile endpoint is the
-    /// exact answer; search is what is left when Instagram has moved it, and it
-    /// is only trusted when a name comes back matching exactly — a search for
-    /// "ada" that returns somebody else is not a near miss, it is the wrong
-    /// person's face beside the right person's name.
-    func faces(of names: [String]) async -> [String: UIImage] {
-        let wanted = names.map { $0.lowercased() }.filter { !$0.isEmpty }
-        guard !wanted.isEmpty, let webView else { return [:] }
-
-        let body = """
-        \(Self.fetchesAFace)
-
-        async function look(name) {
-          const term = encodeURIComponent(name);
-          const paths = [
-            "/api/v1/users/web_profile_info/?username=" + term,
-            "/api/v1/web/search/topsearch/?context=blended&query=" + term
-          ];
-          for (const path of paths) {
-            try {
-              const response = await fetch(path, {
-                credentials: "same-origin",
-                headers: { "X-IG-App-ID": appID }
-              });
-              if (!response.ok) { continue; }
-              const answer = await response.json();
-              const profile = answer && answer.data && answer.data.user;
-              let picture = (profile && profile.profile_pic_url) || "";
-              if (!picture) {
-                const match = ((answer && answer.users) || [])
-                  .map(function (entry) { return entry.user || {}; })
-                  .find(function (user) {
-                    return (user.username || "").toLowerCase() === name;
-                  });
-                picture = (match && match.profile_pic_url) || "";
-              }
-              if (picture) { return await face(picture); }
-            } catch (error) {
-              // Try the next shape of the same request, then give up quietly.
-            }
-          }
-          return "";
-        }
-
-        const pictures = await Promise.all(names.map(look));
-        const found = {};
-        names.forEach(function (name, index) {
-          if (pictures[index]) { found[name] = pictures[index]; }
-        });
-        return JSON.stringify(found);
-        """
-
-        let answer = try? await webView.callAsyncJavaScript(
-            body,
-            arguments: ["names": Array(wanted.prefix(8)), "appID": WebScripts.appID],
-            in: nil,
-            contentWorld: .defaultClient
-        )
-        guard let json = answer as? String,
-            let data = json.data(using: .utf8),
-            let coded = try? JSONDecoder().decode([String: String].self, from: data)
-        else {
-            return [:]
-        }
-        return coded.compactMapValues { Data(base64Encoded: $0).flatMap(UIImage.init(data:)) }
-    }
 
     /// Watching the cookie that says which account this is. Started with the
     /// first stack and never again — the browsing screen is built and taken
@@ -637,6 +468,11 @@ final class WebSurface {
         // carrying Instagram's black into a light appearance.
         icons[entry] = image.withRenderingMode(.alwaysTemplate)
         Remembered.remember(icon: entry, data: data)
+    }
+
+    fileprivate func note(unread reading: Unread) {
+        guard unread != reading else { return }
+        unread = reading
     }
 
     fileprivate func note(typing on: Bool) {
@@ -1382,9 +1218,12 @@ struct InstagramWebView: UIViewRepresentable {
             // Persistent, so logging in is something you do once.
             configuration.websiteDataStore = .default()
             configuration.allowsInlineMediaPlayback = true
-            // Nothing plays until someone asks it to. Autoplay is the smallest of
-            // the hooks and among the easiest to remove.
-            configuration.mediaTypesRequiringUserActionForPlayback = .all
+            // Video in the feed and in a story starts by itself, muted, the way it
+            // does in Instagram's own app; sound is one tap on the speaker. This
+            // was `.all` until 2026-10-13 and a feed full of stills that wait to
+            // be tapped read as broken rather than calm. Reels are still refused
+            // by address, so this does not bring them back.
+            configuration.mediaTypesRequiringUserActionForPlayback = []
 
             // The second lock, made of addresses, applied by WebKit before
             // anything of Quiet's is asked. See `BlockList` for what it does and,
@@ -1529,6 +1368,15 @@ struct InstagramWebView: UIViewRepresentable {
             } else {
                 webView.reload()
             }
+        }
+
+        /// The pane's own opening address, asked for afresh and not from the
+        /// cache. Nothing is kept of where you were: that is what coming back
+        /// after a long time away means.
+        func startOverAtTheTop() {
+            guard let opening = pane.opening(me: surface.me) else { return }
+            state.stumble = nil
+            webView.load(URLRequest(url: opening, cachePolicy: .reloadIgnoringLocalCacheData))
         }
 
         func apply(inset: UIEdgeInsets) {
@@ -1852,6 +1700,14 @@ struct InstagramWebView: UIViewRepresentable {
                     surface.note(icon: entry, picture: picture)
                 }
 
+            case "unread":
+                // The badge on Instagram's own messages icon, as the page's
+                // row drew it. Whichever pane has a row may say so, and the
+                // latest word stands.
+                if let reading = Unread(message: body) {
+                    surface.note(unread: reading)
+                }
+
             case "chrome":
                 // The colour of Instagram's own chrome, for the band the clock
                 // stands on. Sent again whenever it changes, which is how the
@@ -1903,6 +1759,15 @@ struct InstagramWebView: UIViewRepresentable {
                     surface.note(me: name, picture: body["picture"] as? String)
                 }
 
+            case "face":
+                // The photograph at the top of a profile somebody opened, for
+                // the recently-opened list. Sent once per profile, by the page
+                // that already had it.
+                if let name = body["username"] as? String,
+                   let picture = body["picture"] as? String {
+                    surface.note(face: picture, of: name)
+                }
+
             default:
                 break
             }
@@ -1929,6 +1794,46 @@ private final class ScriptRelay: NSObject, WKScriptMessageHandler {
     }
 }
 
+/// What is waiting in the inbox, as the page's own badge reports it.
+///
+/// Its own type so that what a page may send can be tested without a web view.
+/// A message that arrives malformed is dropped and the badge stays as it was,
+/// which is the only behaviour that is never wrong: a number Quiet invented is
+/// worse than a number that is a moment old.
+enum Unread: Equatable {
+    case none
+    /// Something is waiting and the page did not say how many.
+    case dot
+    case count(Int)
+
+    /// The most a badge is believed to carry. Instagram stops counting long
+    /// before this; a number past it is the page being something else.
+    private static let ceiling = 999
+
+    init?(message body: [String: Any]) {
+        guard let number = body["count"] as? NSNumber else { return nil }
+        let raw = number.doubleValue
+        guard raw.isFinite, raw == raw.rounded(), (0...Double(Self.ceiling)).contains(raw) else {
+            return nil
+        }
+        if raw > 0 {
+            self = .count(Int(raw))
+        } else {
+            self = (body["dot"] as? Bool ?? false) ? .dot : .none
+        }
+    }
+
+    /// What is written inside the badge, if anything. Instagram's stops at
+    /// nine, and so does this: a red circle with three digits in it is not a
+    /// thing that fits on a row of icons.
+    var written: String? {
+        guard case .count(let number) = self else { return nil }
+        return number > 9 ? "9+" : String(number)
+    }
+
+    var isWaiting: Bool { self != .none }
+}
+
 /// Three numbers from the page, turned into a colour, or nothing.
 ///
 /// Its own type so that the refusals can be tested without a web view: a
@@ -1952,14 +1857,43 @@ enum Chrome {
     }
 }
 
-/// Instagram serves a stripped-down page to anything it does not recognise as a
-/// browser. Quiet is a browser, showing the site as Safari would, so it says so.
+/// What Quiet says it is when it asks for a page.
+///
+/// A standard mobile WebKit string **with the app's own name on the end**,
+/// which is how every in-app browser on this platform identifies itself:
+/// Chrome appends `CriOS/…`, Instagram's own appends `Instagram …`, and this
+/// appends `Quiet/1.0`.
+///
+/// ## Why the Safari tokens are here
+///
+/// Instagram serves a stripped-down page to a client it does not recognise, and
+/// what it recognises is `Mobile` and `Safari`. Without them the site is within
+/// its rights to hand back something thinner, and a thinner Instagram is the
+/// one failure this whole app cannot survive — it exists to put a daily limit
+/// on the real site, not on a worse copy of it.
+///
+/// `WKWebView.customUserAgent` is a public Apple API meant for exactly this, so
+/// none of this is an App Store question. **It is a Meta question**: the string
+/// carries Safari's tokens, and what makes that defensible rather than a
+/// disguise is the last token, which is not Safari's and names the app asking.
+///
+/// This is the line to give back first if Meta ever objects — it costs a
+/// possibly thinner page and nothing else. What must not come back with it are
+/// the three requests to `/api/v1/…` carrying `X-IG-App-ID`, which are a
+/// different kind of thing entirely and are gone for good. See
+/// `docs/store-and-legal.md`.
 enum UserAgent {
+    /// What the app calls itself, on the end of the string below.
+    static var name: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        return "Quiet/\(version)"
+    }
+
     static func mobileSafari(systemVersion: String) -> String {
         let underscored = systemVersion.replacingOccurrences(of: ".", with: "_")
         let major = systemVersion.split(separator: ".").first.map(String.init) ?? "17"
         return "Mozilla/5.0 (iPhone; CPU iPhone OS \(underscored) like Mac OS X) "
             + "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/\(major).0 "
-            + "Mobile/15E148 Safari/604.1"
+            + "Mobile/15E148 Safari/604.1 \(name)"
     }
 }

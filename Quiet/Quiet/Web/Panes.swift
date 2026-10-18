@@ -479,6 +479,15 @@ final class PaneStack {
         panes[current]?.startAgain()
     }
 
+    /// Ask for the home feed again, from the top.
+    ///
+    /// What the app does when somebody comes back after a long enough time
+    /// away. The home pane whether or not it is the one in front: a feed
+    /// behind the inbox is the feed they land on next.
+    func freshenTheFeed() {
+        panes[.home]?.startOverAtTheTop()
+    }
+
     /// Every pane, because the app is leaving the screen and any of the three
     /// may be the one iOS decides to discard.
     func keepThePlace() {

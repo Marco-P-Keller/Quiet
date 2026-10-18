@@ -568,12 +568,18 @@ const GROUPED = `
     { answer: false, presses: 0 }
   );
 
-  /* ── The other wordmark ──────────────────────────────────────────────── */
+  /* ── The wordmark, left alone ────────────────────────────────────────── */
 
-  /* Instagram has two, and both are theirs: the script one in the app, the
-   * newer one on the website. This puts theirs where theirs was — it never
-   * sets the word in a substitute typeface, which would be a forgery rather
-   * than a wordmark. */
+  /* There was a pass here that fetched Instagram's sign-in page, cut the script
+   * wordmark out of its markup and drew that one in the header instead of the
+   * one the website carries. It looked better and it was this app re-drawing
+   * another company's mark with its own code, which is the one thing
+   * `docs/store-and-legal.md` says not to do.
+   *
+   * So the check is the opposite of what it used to be: after a full pass, and
+   * after the page has rewritten itself, the wordmark in the header is exactly
+   * the element Instagram put there — not hidden, not replaced, and with
+   * nothing of Quiet's standing next to it. */
   const WORDMARKED = `
     <div data-name="bar">
       <a href="/" data-name="wordmark" data-box="8,10,100,24">
@@ -591,62 +597,25 @@ const GROUPED = `
     await win.settle();
   };
 
-  const dressed = await page(WORDMARKED, FEED);
-  dressed.localStorage.setItem(
-    "quiet.wordmark",
-    'svg <svg aria-label="Instagram" viewBox="0 0 100 30"><path d="M0 0h10v10H0z"/></svg>'
-  );
-  await again(dressed);
-
-  const mine = dressed.document.querySelector("[data-quiet-wordmark]");
-  check("the remembered wordmark is put where the other one was", !!mine, true);
-
-  /* Nothing is hidden until the replacement has been measured and found to
-   * have a size. A header with no wordmark at all is worse than one with the
-   * other wordmark, and this is a nicety — it does not get to break anything. */
-  check(
-    "and Instagram's own is still showing until it has been measured",
-    dressed.document.querySelector('[data-name="theirs"]').getAttribute("data-quiet-hidden"),
-    null
-  );
-
-  mine.setAttribute("data-box", "8,10,100,29");
-  await again(dressed);
-  check(
-    "once it measures something, theirs steps aside",
-    [
-      dressed.document.querySelector("[data-quiet-wordmark]").getAttribute("data-quiet-wordmark"),
-      dressed.document.querySelector('[data-name="theirs"]').getAttribute("data-quiet-hidden"),
-    ],
-    ["kept", "wordmark"]
-  );
-
-  /* One that draws nothing takes itself out again, gives back the original,
-   * and is not tried a second time. */
-  const empty = await page(WORDMARKED, FEED);
-  empty.localStorage.setItem("quiet.wordmark", "svg <svg aria-label=\"Instagram\"></svg>");
-  await again(empty);
-  await again(empty);
-  check(
-    "one that draws nothing puts itself away and gives theirs back",
-    [
-      empty.document.querySelector("[data-quiet-wordmark]"),
-      empty.document.querySelector('[data-name="theirs"]').getAttribute("data-quiet-hidden"),
-      empty.localStorage.getItem("quiet.wordmark"),
-    ],
-    [null, null, null]
-  );
-
-  /* With nothing remembered, the header is exactly as Instagram drew it. */
   const plain = await page(WORDMARKED, FEED);
   await again(plain);
+  await again(plain);
   check(
-    "with nothing remembered, the header is left alone",
+    "Instagram's own wordmark is still showing, untouched",
     [
-      plain.document.querySelector("[data-quiet-wordmark]"),
       plain.document.querySelector('[data-name="theirs"]').getAttribute("data-quiet-hidden"),
+      plain.document.querySelector("[data-quiet-wordmark]"),
     ],
     [null, null]
+  );
+
+  /* And nothing is asked of the network to get one. The pass used to fetch
+   * `/accounts/login/` in the background to read a logo out of it; a page that
+   * has been through the whole pass should have asked for nothing at all. */
+  check(
+    "and no request was made for a page nobody asked to see",
+    (plain.fetched || []).length,
+    0
   );
 
   /* ── The door back into the app ──────────────────────────────────────── */

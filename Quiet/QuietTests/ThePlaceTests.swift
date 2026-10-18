@@ -36,6 +36,26 @@ final class ThePlaceTests: XCTestCase {
         XCTAssertFalse(ThePlace.isFresh(now.timeIntervalSince1970 + 600, now: now))
     }
 
+    // MARK: - The feed goes stale sooner
+
+    func testAShortLookAwayKeepsTheFeed() {
+        let left = now.addingTimeInterval(-3 * 60)
+        XCTAssertFalse(ThePlace.feedIsStale(since: left, now: now))
+    }
+
+    func testALongerAbsenceStartsTheFeedOver() {
+        let left = now.addingTimeInterval(-11 * 60)
+        XCTAssertTrue(ThePlace.feedIsStale(since: left, now: now))
+    }
+
+    func testAClockThatMovedBackwardsIsNotAnAbsence() {
+        XCTAssertFalse(ThePlace.feedIsStale(since: now.addingTimeInterval(600), now: now))
+    }
+
+    func testTheFeedIsStalerThanAProfile() {
+        XCTAssertLessThan(ThePlace.feedGoesStale, ThePlace.fresh)
+    }
+
     // MARK: - What it is allowed to put back
 
     /// A restored state never passes the navigation delegate, so the URL rules

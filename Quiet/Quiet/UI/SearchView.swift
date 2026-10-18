@@ -5,15 +5,32 @@ import UIKit
 ///
 /// Instagram's search tab is the front door to Explore, which is why it is gone.
 /// What a person actually wanted from it — *who is my friend on here* — is this
-/// screen, and nothing else: names, at most six, and no way to fall out of it
-/// into a grid of strangers.
+/// screen, and nothing else: names, and no way to fall out of them into a grid
+/// of strangers.
 ///
-/// The searching is done by Instagram's own page, with the page's own cookies,
-/// so the answers are the site's real answers and Quiet still makes no request
-/// of its own.
+/// ## It asks Instagram nothing, and that is the change
+///
+/// It used to, by calling `/api/v1/web/search/topsearch/` with Instagram's own
+/// web client identifier in a header — the only way that endpoint answers
+/// anybody. It gave results as you typed, and it made this app an unofficial
+/// client of a private API, which is the one thing in the whole project Meta's
+/// terms name outright. See `docs/store-and-legal.md`.
+///
+/// What stands there now is the list of people this phone actually opens,
+/// narrowed as you type, with the typed name itself at the foot of it. Which is
+/// the same screen for the case it was built for: for almost everybody the
+/// answer to *who is my friend on here* is the same three or four people, and
+/// for those it now answers with no request, no waiting and no spinner at all.
+/// A stranger who has never been opened is the one case that lost something —
+/// their name has to be typed exactly, and the last row opens it.
 @MainActor
 struct SearchView: View {
-    let surface: WebSurface
+    /// No `WebSurface`. This screen held one for as long as it did the asking —
+    /// six results and eight faces, both out of Instagram's private web API.
+    /// It asks nothing now, so it holds nothing: what it knows it reads from
+    /// `Remembered`, and the only thing it does to the app is hand an address
+    /// back through `onOpen`.
+    ///
     /// Leaving without opening anybody. Handed in rather than taken from the
     /// environment, because this is a page inside the browsing screen as often
     /// as it is a sheet over the curtain, and a page has no `dismiss` to call.
@@ -21,45 +38,35 @@ struct SearchView: View {
     var onOpen: (URL) -> Void
 
     @State private var query = ""
-    @State private var found: [Person] = []
     /// The handful of people this phone actually opens.
     @State private var recent: [String] = Remembered.visits()
     /// Their faces, as they were known last time. Read before the first frame
     /// rather than fetched after it, so the list does not fill itself in while
     /// somebody is looking at it.
     @State private var faces: [String: UIImage] = Remembered.visitFaces()
-    @State private var outcome = Outcome.idle
-    @State private var asking: Task<Void, Never>?
     @FocusState private var isFocused: Bool
 #if DEBUG
     @State private var whereIAm: CGFloat = -1
     @State private var whereTheFieldIs: CGFloat = -1
 #endif
 
-    private enum Outcome: Equatable {
-        case idle, asking, answered, unavailable
-    }
-
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 0) {
                 field
 
-                if found.isEmpty {
-                    if let sentence = explanation {
-                        Text(sentence)
-                            .font(.quietSmall)
-                            .foregroundStyle(Paper.inkSoft)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .padding(.horizontal, 28)
-                            .padding(.top, 16)
-                    }
-                    if outcome == .idle, !recent.isEmpty {
-                        recents
-                    }
+                if query.isEmpty {
+                    Text(explanation)
+                        .font(.quietSmall)
+                        .foregroundStyle(Paper.inkSoft)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, 28)
+                        .padding(.top, 16)
+
+                    if !recent.isEmpty { recents }
                     Spacer()
                 } else {
-                    results
+                    narrowedRows
                 }
             }
             .quietPage()
@@ -95,8 +102,20 @@ struct SearchView: View {
             }
         )
 #endif
+        .onAppear(perform: refresh)
         .onAppear(perform: rehearse)
-        .onDisappear { asking?.cancel() }
+    }
+
+    /// What the page learned while it was away.
+    ///
+    /// A face is written down at the moment a profile is opened, by the page
+    /// that already had it — so the picture for somebody opened a minute ago
+    /// arrives while this screen is not on the glass. Read again on the way in
+    /// rather than watched for: this is a sheet that is made and thrown away,
+    /// and the one moment it can be wrong is the one it is built in.
+    private func refresh() {
+        recent = Remembered.visits()
+        faces = Remembered.visitFaces()
     }
 
     /// A staged photograph with the keyboard up, and what the app read while
@@ -139,11 +158,9 @@ struct SearchView: View {
                 .submitLabel(.search)
                 .focused($isFocused)
                 .onSubmit(exactly)
-                .onChange(of: query) { look() }
             if !query.isEmpty {
                 Button {
                     query = ""
-                    look()
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(Paper.inkSoft)
@@ -170,24 +187,49 @@ struct SearchView: View {
 #endif
     }
 
-    private var results: some View {
+    /// Whoever is left once the field has narrowed the list, and then the name
+    /// as it was typed.
+    ///
+    /// The typed name is last rather than first on purpose. Somebody typing
+    /// three letters is far more often reaching for a person they already open
+    /// than for a stranger, and a row that jumps to the top on every keystroke
+    /// is a row you tap by accident.
+    ///
+    /// It is put through `ContentRules.profile(forHandle:)` first, so what is
+    /// matched and what is opened are the same string: an `@` in front and a
+    /// pasted profile link both come out as the bare handle, and anything that
+    /// is not a plausible handle comes out as nothing and offers no row.
+    private var narrowed: [String] { Self.narrowing(query, among: recent) }
+
+    /// Written as a function of its two inputs so it can be asked questions
+    /// without a screen — `RecentsTests`. What replaced a request to Instagram
+    /// is worth more than a comment saying it behaves.
+    ///
+    /// `nonisolated` because it is true: it reads no state of this view and
+    /// touches nothing on the glass. A pure function of a string and a list.
+    nonisolated static func narrowing(_ query: String, among recent: [String]) -> [String] {
+        let typed = ContentRules.profile(forHandle: query)
+            .flatMap { ContentRules.pathComponents(of: $0).first }
+        let needle = typed ?? query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !needle.isEmpty else { return recent }
+
+        var found = recent.filter { $0.contains(needle) }
+        if let typed, !found.contains(typed) { found.append(typed) }
+        return found
+    }
+
+    @ViewBuilder
+    private var narrowedRows: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
-                ForEach(found) { person in
+                ForEach(narrowed, id: \.self) { handle in
                     Button {
-                        open(person.username, face: person.image)
+                        open(handle)
                     } label: {
                         HStack(spacing: 13) {
-                            face(person.image, of: person.username, at: 44)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(person.username)
-                                    .font(.quietBody)
-                                if !person.name.isEmpty {
-                                    Text(person.name)
-                                        .font(.quietSmall)
-                                        .foregroundStyle(Paper.inkSoft)
-                                }
-                            }
+                            face(faces[handle], of: handle, at: 44)
+                            Text(handle)
+                                .font(.quietBody)
                             Spacer(minLength: 0)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -231,6 +273,7 @@ struct SearchView: View {
                 Button("Clear") {
                     Remembered.forgetVisits()
                     recent = []
+                    faces = [:]
                 }
                 .font(.quietSmall)
                 .foregroundStyle(Paper.inkSoft)
@@ -259,17 +302,20 @@ struct SearchView: View {
                 .accessibilityHint(Text("Opens this profile"))
             }
         }
-        .task(id: recent) { await collectFaces() }
     }
 
     /// The face, or the letter that stands in for one.
     ///
-    /// A picture that will not load is not worth an error or an empty ring: the
-    /// first letter of the name, set on paper, is a perfectly good way to tell
-    /// six rows apart. It is a stand-in and not a style, which is why the two
-    /// lists on this screen share it rather than each having their own — the
-    /// results had faces and the recently-opened list had letters, and the only
-    /// reason for the difference was that nobody had gone and got the pictures.
+    /// The photographs used to be fetched for eight names at once from
+    /// `/api/v1/users/web_profile_info/`. They come off the profile page itself
+    /// now, at the moment somebody opens it — `faceOnThisProfile` in `trim.js`
+    /// — which is the same picture, from a page the reader asked for, and it
+    /// costs no request of the app's own.
+    ///
+    /// A picture that is not there yet is not worth an error or an empty ring:
+    /// the first letter of the name, set on paper, is a perfectly good way to
+    /// tell six rows apart. It is a stand-in and not a style, which is why the
+    /// two lists on this screen share it rather than each having their own.
     private func face(_ picture: UIImage?, of handle: String, at side: CGFloat) -> some View {
         Group {
             if let picture {
@@ -294,70 +340,15 @@ struct SearchView: View {
         .accessibilityHidden(true)
     }
 
-    /// Go and get the faces this list has not got.
+    /// The one sentence under the field.
     ///
-    /// Only the missing ones, and only while the list is the thing on the
-    /// glass. Somebody opened by typing their name has no picture at the moment
-    /// they are opened, and neither has anybody remembered before this list had
-    /// faces at all; both are filled in here and then kept, so the asking
-    /// happens once per person rather than once per look.
-    ///
-    /// Somebody whose picture cannot be had — no signal, a private account, an
-    /// endpoint Instagram has moved — is asked about again the next time this
-    /// screen opens. That is deliberate rather than an oversight: the common
-    /// reason for a face not arriving is that the first ask happened with no
-    /// signal, and a list that gave up permanently on the strength of that
-    /// would wear a letter beside that name for good.
-    ///
-    /// Nothing is said when it fails. There is no error worth showing for a
-    /// photograph that did not arrive beside a name that is already there.
-    private func collectFaces() async {
-        let missing = recent.filter { faces[$0] == nil }
-        guard !missing.isEmpty else { return }
-        let found = await surface.faces(of: missing)
-        guard !found.isEmpty else { return }
-        for (handle, picture) in found {
-            Remembered.remember(face: picture, for: handle)
-        }
-        // Read back rather than merged in, so what is drawn is what was kept —
-        // which is the cut-down copy, not the three-hundred-kilobyte original.
-        faces = Remembered.visitFaces()
-    }
-
-    /// One sentence, or none when the answer is the list itself.
-    private var explanation: String? {
-        switch outcome {
-        case .idle:
-            return String(localized: "Type a name. Quiet searches for people and nothing else — no Explore, no hashtags, no places.")
-        case .asking:
-            return String(localized: "Looking…")
-        case .answered:
-            return String(localized: "Nobody by that name.")
-        case .unavailable:
-            return String(localized: "Search is not answering. An exact name still works: type it and press search.")
-        }
-    }
-
-    /// Ask a moment after the typing stops, not on every letter. There is a real
-    /// question going to Instagram here, and no reason to ask it six times for
-    /// one name.
-    private func look() {
-        asking?.cancel()
-        let term = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard term.count >= 2 else {
-            found = []
-            outcome = .idle
-            return
-        }
-        outcome = .asking
-        asking = Task {
-            try? await Task.sleep(for: .milliseconds(350))
-            guard !Task.isCancelled else { return }
-            let people = await surface.people(matching: term)
-            guard !Task.isCancelled else { return }
-            found = people ?? []
-            outcome = people == nil ? .unavailable : .answered
-        }
+    /// It used to be four, one per state of a request that no longer happens.
+    /// There is no request, so there is no waiting, no empty answer and no
+    /// endpoint that has stopped replying — which is three fewer things that
+    /// can go wrong in front of somebody and three fewer sentences to keep true
+    /// in six languages.
+    private var explanation: String {
+        String(localized: "Type a name and press search. Quiet opens that profile and nothing else — no Explore, no hashtags, no places.")
     }
 
     /// The return key: go to exactly what was typed, which is what somebody who
@@ -366,16 +357,16 @@ struct SearchView: View {
         open(query)
     }
 
-    /// The face is handed along when there is one — opening somebody out of
-    /// the search results is the one moment the app has their picture in its
-    /// hand, and letting it go there means asking Instagram for it again later.
-    private func open(_ handle: String, face picture: UIImage? = nil) {
+    /// Nothing is opened for something that is not a plausible handle, which is
+    /// the whole of the validation and it belongs in `ContentRules`: a name is
+    /// an address here, and what counts as one is the same question the router
+    /// answers about every other link in the app.
+    private func open(_ handle: String) {
         guard let url = ContentRules.profile(forHandle: handle) else { return }
-        asking?.cancel()
         // The name as the app will use it, rather than as it was typed: a
         // pasted link and an @ in front of it are the same person.
         if let name = ContentRules.pathComponents(of: url).first {
-            Remembered.remember(visit: name, face: picture)
+            Remembered.remember(visit: name)
             recent = Remembered.visits()
             faces = Remembered.visitFaces()
         }

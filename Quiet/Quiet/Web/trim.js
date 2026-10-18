@@ -256,8 +256,6 @@
     return null;
   }
 
-  var asked = false;
-
   /**
    * Whether this document is the page itself rather than a frame inside it.
    *
@@ -277,81 +275,6 @@
       return false;
     }
   })();
-
-  /** The longest anything below waits for the page to be done arriving. */
-  var LATEST = 3000;
-
-  var waiting = [];
-
-  /**
-   * Work that is worth doing, and is not worth doing *now*.
-   *
-   * Both of the requests below are made from inside Instagram's own page with
-   * Instagram's own cookies, at document start — which is to say, in the same
-   * few hundred milliseconds as the feed's own requests, over the same
-   * connections, competing with the thing somebody is waiting to see. One of
-   * them fetches an entire second HTML page to read a logo out of it.
-   *
-   * Neither is on the way to the feed. What they buy is a name and a face in
-   * Quiet's own row and the right wordmark at the top; all three arrive a
-   * second or two later than they used to, on the first launch only, and every
-   * one of them has something sensible to show in the meantime. What it buys
-   * back is the feed.
-   */
-  function afterTheFeed(work) {
-    if (document.readyState === "complete") {
-      work();
-      return;
-    }
-    if (!waiting.length) {
-      var go = function () {
-        var all = waiting;
-        waiting = [];
-        for (var i = 0; i < all.length; i++) all[i]();
-      };
-      window.addEventListener("load", go, { once: true });
-      // A ceiling, because a page that never finishes is a page whose row
-      // would never learn whose it is.
-      setTimeout(go, LATEST);
-    }
-    waiting.push(work);
-  }
-
-  /**
-   * Who is signed in — asked, not deduced.
-   *
-   * Two versions of this read the name off a link in the page, and both got it
-   * wrong: the first found the wordmark at the top of the feed, which is also a
-   * link to "/", and walked up to a container holding half the document; the
-   * second was right in principle and still handed somebody a stranger's
-   * profile under a button marked "your profile".
-   *
-   * This is the request Instagram's own settings page makes, run inside
-   * Instagram's page with Instagram's own cookies. It returns the signed-in
-   * name and nothing else. There is nothing left to guess at.
-   */
-  function whoAmI() {
-    if (!isThePage || asked || window.__quietMe) return;
-    asked = true;
-    afterTheFeed(function () {
-      fetch("/api/v1/web/accounts/edit/web_form_data/", {
-        credentials: "same-origin",
-        headers: { "X-IG-App-ID": window.__quietAppID || "" }
-      })
-        .then(function (response) { return response.ok ? response.json() : null; })
-        .then(function (data) {
-          var name = data && data.form_data && data.form_data.username;
-          if (!name) return;
-          window.__quietMe = name;
-          var form = data.form_data || {};
-          announce(name, form.profile_pic_url || form.profile_pic_url_hd || null);
-        })
-        .catch(function () {
-          // Signed out, or the endpoint moved. The row keeps its four entries.
-          asked = false;
-        });
-    });
-  }
 
   /**
    * The roots Instagram owns.
@@ -395,8 +318,21 @@
   }
 
   /**
-   * The name off the navigation bar, kept only as a second chance for the day
-   * the request above stops answering.
+   * Who is signed in, read off Instagram's own navigation bar.
+   *
+   * This used to be the second of two ways, and the first was a request to
+   * `/api/v1/web/accounts/edit/web_form_data/` carrying Instagram's own web
+   * client identifier in an `X-IG-App-ID` header — which is the only way that
+   * endpoint answers, and which is this app presenting itself as Instagram's
+   * client to get a reply it is not otherwise given. It bought a name a second
+   * earlier and it was the single hardest thing in this repository to defend.
+   * It is gone.
+   *
+   * What is left is reading a link out of a page the reader is already looking
+   * at, which is what every reader mode and every content blocker does. The
+   * name is in the bar on every signed-in page, so it arrives on the first pass
+   * that finds the bar — and until it does, the row shows an outline of a
+   * person, which is the honest thing for "not yet".
    */
   function learnMe(row) {
     // Only ever from inside the bar. A profile link in the feed belongs to
@@ -425,25 +361,225 @@
       post({ kind: "me", username: username });
       return;
     }
+    bytesOf(source, function (picture) {
+      // A face that will not come is not a reason to lose the button.
+      if (!picture) {
+        post({ kind: "me", username: username });
+        return;
+      }
+      window.__quietFace = true;
+      post({ kind: "me", username: username, picture: picture });
+    });
+  }
+
+  /**
+   * A picture the page has already loaded, as bytes.
+   *
+   * Written once because two things want it — the signed-in reader's own face
+   * for Quiet's row, and the face on a profile that was opened, for the
+   * recently-opened list. A second copy of this would be a second place for
+   * the size limit below to be raised in one of them.
+   *
+   * Without credentials on purpose: a photograph on a content delivery network
+   * wants no cookies, and sending them to one would be sending them further
+   * than the page did.
+   */
+  function bytesOf(source, done) {
     fetch(source, { credentials: "omit" })
       .then(function (response) { return response.ok ? response.arrayBuffer() : null; })
       .then(function (buffer) {
-        if (!buffer || buffer.byteLength > 300000) {
-          post({ kind: "me", username: username });
-          return;
-        }
+        if (!buffer || buffer.byteLength > 300000) { done(null); return; }
         var bytes = new Uint8Array(buffer);
         var binary = "";
         for (var i = 0; i < bytes.length; i++) {
           binary += String.fromCharCode(bytes[i]);
         }
-        window.__quietFace = true;
-        post({ kind: "me", username: username, picture: btoa(binary) });
+        done(btoa(binary));
       })
-      .catch(function () {
-        // A face that will not come is not a reason to lose the button.
-        post({ kind: "me", username: username });
-      });
+      .catch(function () { done(null); });
+  }
+
+  /* ── The face on a profile somebody opened ───────────────────────────── */
+
+  /**
+   * Whose profile this page is, if it is anybody's.
+   *
+   * Asked of the address rather than of the markup: `/ada/` is Ada's profile
+   * and nothing else is. Anything with a second path component — a post, a
+   * tagged grid, a list of followers — is still Ada's page and is not the one
+   * carrying her photograph where it can be recognised.
+   */
+  function profileHere() {
+    var match = /^\/([A-Za-z0-9._]{1,30})\/?$/.exec(location.pathname);
+    if (!match || NOT_PEOPLE[match[1].toLowerCase()]) return null;
+    return match[1].toLowerCase();
+  }
+
+  /**
+   * The photograph at the top of a profile page.
+   *
+   * Only ever from inside `header`, which is where Instagram puts it and which
+   * is the stop that matters: a profile page is mostly a grid of square
+   * pictures the same size as a face, and the one thing worse than a letter
+   * beside somebody's name is one of their photographs beside it.
+   *
+   * Inside that, the `alt` text carries the handle — "ada's profile picture",
+   * "Profilbild von ada" — so the handle is the part worth matching and the
+   * sentence around it is not. Where the wording defeats it, the shape does
+   * not: the picture is square, and it is tens of points across.
+   */
+  function profilePicture(who) {
+    var header = document.querySelector("header");
+    if (!header) return null;
+
+    var images = header.querySelectorAll("img[src]");
+    var square = null;
+
+    for (var i = 0; i < images.length; i++) {
+      var image = images[i];
+      var box = image.getBoundingClientRect();
+      if (box.width < 40 || box.width > 220) continue;
+      if (Math.abs(box.width - box.height) > 2) continue;
+      if ((image.getAttribute("alt") || "").toLowerCase().indexOf(who) !== -1) return image;
+      if (!square) square = image;
+    }
+    return square;
+  }
+
+  var lastVisitTry = 0;
+
+  /**
+   * Hand the app the face of whoever this profile belongs to.
+   *
+   * This is what stands where a request to `/api/v1/users/web_profile_info/`
+   * used to. That endpoint answered with a name and a picture, and it answered
+   * only to a request carrying Instagram's own web client identifier — so the
+   * eight faces in the recently-opened list were bought by this app presenting
+   * itself as Instagram's client, for a list nobody needed that badly.
+   *
+   * The page was always the better source. That list is of people this phone
+   * **opened**, and a profile somebody opened has that person's photograph on
+   * it, at the top, already fetched and already decoded. Reading one image out
+   * of a page the reader is looking at is what every reader mode does, and
+   * nobody who was not opened is ever asked about at all.
+   *
+   * Once per profile, and tried again as the page settles: a header is built
+   * before its photograph arrives, so the first look often finds nothing.
+   */
+  function faceOnThisProfile() {
+    if (!isThePage) return;
+
+    var who = profileHere();
+    if (!who || window.__quietVisitFace === who) return;
+
+    var now = Date.now();
+    if (now - lastVisitTry < 5000) return;
+    lastVisitTry = now;
+
+    var picture = profilePicture(who);
+    if (!picture) return;
+
+    var source = picture.getAttribute("src");
+    if (!source) return;
+
+    window.__quietVisitFace = who;
+    bytesOf(source, function (bytes) {
+      // Not had. Worth one more look the next time the page settles.
+      if (!bytes) {
+        window.__quietVisitFace = null;
+        return;
+      }
+      post({ kind: "face", username: who, picture: bytes });
+    });
+  }
+
+  /* ── The unread badge ─────────────────────────────────────────────────── */
+
+  /** A count as Instagram writes it: "3", or "9+" once it stops counting. */
+  var A_COUNT = /^\s*(\d{1,3})\s*(\+)?\s*$/;
+
+  /**
+   * A small element painted Instagram's red, with nothing written in it.
+   *
+   * Asked of the computed style and of nothing else. The row is hidden by the
+   * time this looks, and a hidden element has no box to measure, but it still
+   * has a colour.
+   */
+  function isARedDot(node) {
+    var paint = /rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+)\s*)?\)/
+      .exec(window.getComputedStyle(node).backgroundColor || "");
+    if (!paint) return false;
+    if (paint[4] !== undefined && parseFloat(paint[4]) < 0.5) return false;
+    return +paint[1] >= 200 && +paint[2] <= 100 && +paint[3] <= 120;
+  }
+
+  /**
+   * What Instagram's own badge on its messages icon says: a number, a dot with
+   * no number, or nothing.
+   *
+   * Read off the entry the app is about to hide, which is the badge Instagram
+   * already drew for somebody who was already looking at its page — the same
+   * row the name, the face and the glyphs are read from, and no request made
+   * to anybody. Class names are generated and change; a number written in a
+   * leaf element inside the messages link, and a red spot in the same place,
+   * do not.
+   *
+   * Leaves only, and never inside the drawing: an `<svg>` carries a `<title>`
+   * with the word for messages in it, and the wrapper around a badge carries
+   * the badge.
+   */
+  function unreadOn(link) {
+    var nodes = link.querySelectorAll("*");
+    var dot = false;
+
+    for (var i = 0; i < nodes.length; i++) {
+      var node = nodes[i];
+      if (node.children.length || node.closest("svg")) continue;
+
+      var written = node.textContent || "";
+      var count = A_COUNT.exec(written);
+      // "9+" is more than nine, so it is sent as ten: what the app draws for
+      // any number past nine is the same "9+" the page wrote.
+      if (count && +count[1] > 0) return { count: +count[1] + (count[2] ? 1 : 0), dot: false };
+      if (!written.trim() && isARedDot(node)) dot = true;
+    }
+    return { count: 0, dot: dot };
+  }
+
+  var lastUnread = null;
+  var badgeWatch = null;
+  var badgeWatched = null;
+
+  /**
+   * Tell the app what the messages entry says it has waiting.
+   *
+   * Only while the row is on the page, and never as a zero because it is not:
+   * a conversation and a story are pages Instagram draws no row on, and "no
+   * row" is no news rather than the news that everything has been read.
+   * Sent when it changes and not otherwise.
+   */
+  function sayUnread() {
+    var row = navRow();
+    if (!row) return;
+
+    // A count changes inside the row without anything being added to the page,
+    // which is all the page-wide observer listens for. This one is on the row
+    // alone, so it costs what the row costs.
+    if (badgeWatched !== row && window.MutationObserver) {
+      if (badgeWatch) badgeWatch.disconnect();
+      badgeWatched = row;
+      badgeWatch = new MutationObserver(sayUnread);
+      badgeWatch.observe(row, { childList: true, characterData: true, subtree: true });
+    }
+
+    var link = row.querySelector('a[href^="/direct"]');
+    if (!link) return;
+
+    var reading = unreadOn(link);
+    var key = reading.count + (reading.dot ? "." : "");
+    if (key === lastUnread) return;
+    lastUnread = key;
+    post({ kind: "unread", count: reading.count, dot: reading.dot });
   }
 
   /**
@@ -596,7 +732,69 @@
 
       sent[key] = true;
       draw(glyph, key);
+
+      // The inbox is the one place this row is not always drawn, so the filled
+      // paper plane may never be seen at all — and what the app puts there
+      // instead is a symbol of its own, which is a differently drawn plane
+      // pointing a different way. Instagram fills the drawing it has; so does
+      // this, from the outline in front of it.
+      if (entry.name === "messages" && !on && !sent["messages.on"]) {
+        sent["messages.on"] = true;
+        draw(filled(glyph), "messages.on");
+      }
     }
+  }
+
+  /**
+   * The same drawing, solid: its shape filled in and the line inside it cut out.
+   *
+   * Instagram's own selected state is that and nothing else — the outline is a
+   * closed shape with a stroke, and the fold in the paper is an open line laid
+   * across it. Filling the first and cutting the second out of it gives the
+   * same silhouette at the same size, which is what stops the plane from
+   * seeming to be swapped for another one when it is pressed.
+   *
+   * The line is cut out rather than painted over, because what the app gets
+   * back is a template: only the shape of it survives, and a white line on a
+   * black plane would come back as one black plane.
+   */
+  function filled(glyph) {
+    var ns = "http://www.w3.org/2000/svg";
+    var copy = glyph.cloneNode(true);
+    var cut = [];
+    var parts = copy.querySelectorAll("path, polygon, polyline, line, circle, ellipse, rect");
+
+    for (var i = 0; i < parts.length; i++) {
+      var name = parts[i].localName;
+      if (name === "line" || name === "polyline") {
+        cut.push(parts[i]);
+      } else {
+        parts[i].setAttribute("fill", "currentColor");
+      }
+    }
+    if (!cut.length) return copy;
+
+    var mask = document.createElementNS(ns, "mask");
+    mask.setAttribute("id", "quiet-fold");
+    var page = document.createElementNS(ns, "rect");
+    page.setAttribute("x", "-50");
+    page.setAttribute("y", "-50");
+    page.setAttribute("width", "200");
+    page.setAttribute("height", "200");
+    page.setAttribute("fill", "white");
+    mask.appendChild(page);
+    for (var j = 0; j < cut.length; j++) {
+      cut[j].setAttribute("stroke", "black");
+      cut[j].setAttribute("fill", "none");
+      mask.appendChild(cut[j]);
+    }
+
+    var body = document.createElementNS(ns, "g");
+    body.setAttribute("mask", "url(#quiet-fold)");
+    while (copy.firstChild) body.appendChild(copy.firstChild);
+    copy.appendChild(mask);
+    copy.appendChild(body);
+    return copy;
   }
 
   /**
@@ -652,11 +850,10 @@
   /**
    * Second chance at your own face.
    *
-   * The photograph comes from Instagram's settings endpoint, fetched by the
-   * page — and a fetch to a content delivery network can be refused for
-   * reasons that have nothing to do with being signed in, which leaves the row
-   * ending in an outline of a person instead of a face. The row Quiet hides has
-   * the same photograph already loaded in it.
+   * `learnMe` announces a face along with the name when the link it found has
+   * a picture in it, and sometimes that link has none yet — the row is built
+   * before its photograph arrives. This is the second look, at the same row,
+   * for the same picture the page has already fetched and decoded.
    *
    * Tried again rather than once, because the row is rebuilt as the page moves
    * and the image may not have arrived the first time. Every five seconds at
@@ -911,7 +1108,7 @@
    * is Instagram's to move: the header is theirs, the class names are theirs,
    * and both have changed under this app before. What does not change is that
    * the button carries the name of whoever is signed in — the app already
-   * knows that name, asked of Instagram's own settings endpoint — and that
+   * knows that name, read off Instagram's own navigation bar — and that
    * nothing else on the page is a button saying exactly that.
    *
    * A link is never it. Your name is a link in half a dozen places on a
@@ -2239,186 +2436,16 @@
     return null;
   }
 
-  /* ── The other wordmark ───────────────────────────────────────────────── */
-
-  /**
-   * Instagram has two wordmarks and both are theirs.
-   *
-   * The app draws the script one — the one everybody pictures. The website
-   * draws the newer one, and Quiet shows the website, so Quiet shows that.
-   *
-   * The obvious way to close the gap is to set the word in a script font and
-   * call it done, and that is the one thing this will not do: a wordmark set in
-   * somebody else's typeface is not a wordmark, it is a forgery that holds up
-   * at arm's length and falls apart at reading distance. It would be *less*
-   * faithful than what is there now, not more.
-   *
-   * So this looks for Instagram's own file instead. Their sign-in page has
-   * historically carried the script one, and it is the same origin, so the page
-   * can fetch it, read it out of the markup and put it where the other one was.
-   * Instagram's drawing either way — only the one from the other room of their
-   * own house.
-   *
-   * It may find nothing. Then nothing happens, which is the whole design of it.
+  /* ── The wordmark is Instagram's, and it stays theirs ─────────────────── */
+  /*
+   * There was a pass here that fetched Instagram's sign-in page, cut the script
+   * wordmark out of its markup and drew that one in the header instead of the
+   * one the website carries. It looked better and it was the wrong thing to do:
+   * a mark taken out of somebody's page and re-drawn by this app's code is this
+   * app using their mark, however carefully. What the header shows now is
+   * whatever Instagram drew there, untouched — which is the only wordmark this
+   * app has any business showing. See `docs/store-and-legal.md`.
    */
-
-  var WORDMARK = "quiet.wordmark";
-
-  function rememberedWordmark() {
-    try {
-      return window.localStorage.getItem(WORDMARK);
-    } catch (error) {
-      // A phone with storage turned off is a phone with the other wordmark.
-      return null;
-    }
-  }
-
-  /**
-   * Ask the sign-in page for it, once.
-   *
-   * Without credentials on purpose: a signed-in session is redirected off that
-   * page before it can be read, and this wants the page a stranger sees. It is
-   * a request the page makes to the site it already is, which is the same
-   * arrangement as everything else here.
-   */
-  function learnWordmark() {
-    if (!isThePage || window.__quietWordmarkAsked || rememberedWordmark()) return;
-    window.__quietWordmarkAsked = true;
-
-    afterTheFeed(function () {
-      fetch("/accounts/login/", { credentials: "omit" })
-        .then(function (answer) { return answer.ok ? answer.text() : null; })
-        .then(function (html) {
-          if (!html) return;
-          var found = wordmarkIn(new DOMParser().parseFromString(html, "text/html"));
-          if (!found) return;
-          try { window.localStorage.setItem(WORDMARK, found); } catch (error) { return; }
-          dressHeader();
-        })
-        .catch(function () {
-          // Offline, or the page moved. Worth one more try on the next page.
-          window.__quietWordmarkAsked = false;
-        });
-    });
-  }
-
-  /**
-   * The wordmark out of a document that is not the one on screen.
-   *
-   * An inline drawing is preferred over a picture: it needs no second request,
-   * it takes the colour of the bar it lands in, and it is sharp at every size.
-   * Anything that could run is taken out of it first — this is Instagram's own
-   * markup from Instagram's own origin, and it is still going straight into the
-   * page, so it goes in as a drawing and nothing else.
-   */
-  function wordmarkIn(doc) {
-    var drawing = doc.querySelector('svg[aria-label="Instagram"]');
-    if (drawing) {
-      var copy = drawing.cloneNode(true);
-      // A namespace-wildcard selector is legal CSS and not every engine parses
-      // it, and a wordmark needs none of these anyway. If taking them out
-      // leaves nothing to draw, the measurement below catches it.
-      var risky = copy.querySelectorAll("script, foreignObject, a, use, image");
-      for (var i = 0; i < risky.length; i++) risky[i].remove();
-      strip(copy);
-      return "svg " + copy.outerHTML;
-    }
-
-    var picture = doc.querySelector('img[alt="Instagram"]');
-    var source = picture && picture.getAttribute("src");
-    if (!source) return null;
-    try {
-      var address = new URL(source, location.origin);
-      if (address.protocol !== "https:") return null;
-      return "img " + address.href;
-    } catch (error) {
-      return null;
-    }
-  }
-
-  /** Every `on…` handler, off every node, all the way down. */
-  function strip(node) {
-    var names = node.getAttributeNames ? node.getAttributeNames() : [];
-    for (var i = 0; i < names.length; i++) {
-      if (names[i].toLowerCase().indexOf("on") === 0) node.removeAttribute(names[i]);
-    }
-    var children = node.children || [];
-    for (var c = 0; c < children.length; c++) strip(children[c]);
-  }
-
-  /**
-   * Put it where the other one was.
-   *
-   * The original is never removed and never hidden until the replacement has
-   * been measured and found to have a size. A header with no wordmark in it at
-   * all would be a worse outcome than a header with the wrong one, and this is
-   * a nicety — it does not get to break anything.
-   */
-  function dressHeader() {
-    var remembered = rememberedWordmark();
-    if (!remembered) return;
-
-    var bar = headerBar();
-    if (!bar) return;
-
-    var home = bar.querySelector('a[href="/"]');
-    if (!home) return;
-
-    var mine = home.querySelector("[data-quiet-wordmark]");
-    if (mine) {
-      // Measured on the frame after it was made. Nothing, and it goes away
-      // again and never comes back.
-      if (mine.getAttribute("data-quiet-wordmark") === "new") {
-        var box = mine.getBoundingClientRect();
-        if (box.width < 8 || box.height < 4) {
-          mine.remove();
-          window.__quietWordmarkAsked = true;
-          try { window.localStorage.removeItem(WORDMARK); } catch (error) {}
-          showTheirs(home);
-          return;
-        }
-        note(mine, "data-quiet-wordmark", "kept");
-        hideTheirs(home);
-      }
-      return;
-    }
-
-    var holder = document.createElement("span");
-    holder.setAttribute("data-quiet-wordmark", "new");
-    holder.style.cssText =
-      "display: inline-flex; align-items: center; height: 29px; color: inherit;";
-
-    if (remembered.indexOf("svg ") === 0) {
-      var drawing = new DOMParser()
-        .parseFromString(remembered.slice(4), "image/svg+xml")
-        .documentElement;
-      if (!drawing || drawing.nodeName.toLowerCase() !== "svg") return;
-      drawing.setAttribute("height", "29");
-      drawing.removeAttribute("width");
-      holder.appendChild(document.importNode(drawing, true));
-    } else {
-      var picture = document.createElement("img");
-      picture.src = remembered.slice(4);
-      picture.alt = "Instagram";
-      picture.style.cssText = "height: 29px; width: auto; display: block;";
-      holder.appendChild(picture);
-    }
-
-    home.appendChild(holder);
-  }
-
-  function hideTheirs(home) {
-    var theirs = home.querySelectorAll("svg, img");
-    for (var i = 0; i < theirs.length; i++) {
-      if (theirs[i].closest("[data-quiet-wordmark]")) continue;
-      note(theirs[i], "data-quiet-hidden", "wordmark");
-    }
-  }
-
-  function showTheirs(home) {
-    var theirs = home.querySelectorAll('[data-quiet-hidden="wordmark"]');
-    for (var i = 0; i < theirs.length; i++) theirs[i].removeAttribute("data-quiet-hidden");
-  }
 
   /**
    * The lift, which has to happen whether the arrangement did or not.
@@ -2526,6 +2553,128 @@
       // Deliberately silent, and deliberately here. An arrow that stays is a
       // blemish; a throw out of this function is the inbox not opening.
     }
+  }
+
+  /**
+   * Take down the round arrows Instagram's website draws at the edge of a
+   * photograph with more than one picture in it.
+   *
+   * Instagram's own app has none: you swipe, and the dots underneath say how
+   * many there are. The website adds a chevron at the right-hand edge (and the
+   * left once you are past the first), because on a computer there is nothing
+   * to swipe with. On a phone it is a button sitting on top of the photograph.
+   *
+   * Found by where it is rather than by what it says. Its label is translated
+   * and its class names are Instagram's to change; what does not change is
+   * that it is an icon-only button, the size of a fingertip, at the very edge
+   * of the media and halfway down it. Measured on the live site: it is a
+   * `<button aria-label="Next">` about 46 by 62 points with **no svg in it** —
+   * the chevron is a background image — so nothing here may ask for a drawing.
+   * The mute button and the tag are in the
+   * corners, the like and the bookmark are not inside the media at all — which
+   * is the whole of what keeps this from taking those.
+   *
+   * `visibility` rather than `display`: it is laid on top of the picture, so
+   * nothing is lost either way, and this cannot move a layout.
+   */
+  function takeDownTheSwipeArrows() {
+    try {
+      var buttons = document.querySelectorAll(
+        'article button:not([data-quiet-looked]), article [role="button"]:not([data-quiet-looked])'
+      );
+      for (var i = 0; i < buttons.length; i++) {
+        var button = buttons[i];
+        var box = button.getBoundingClientRect();
+        // Not laid out yet: ask again next pass rather than settle on a zero.
+        if (!box.width || !box.height) continue;
+        note(button, "data-quiet-looked", "");
+        if (box.width < 16 || box.height < 16 || box.width > 80 || box.height > 80) continue;
+        if ((button.textContent || "").replace(/\s+/g, "") !== "") continue;
+
+        var media = mediaAround(button);
+        if (!media) continue;
+        var m = media.getBoundingClientRect();
+        if (!m.width || !m.height) continue;
+        var x = box.left + box.width / 2;
+        var y = box.top + box.height / 2;
+        var halfway = Math.abs(y - (m.top + m.height / 2)) <= m.height * 0.15;
+        var atTheEdge =
+          x - m.left <= m.width * 0.12 || m.left + m.width - x <= m.width * 0.12;
+        if (halfway && atTheEdge) note(button, "data-quiet-swipearrow", "");
+      }
+    } catch (error) {
+      // An arrow that stays is a blemish; a throw out of here would skip
+      // sayBare, and the cover would never lift.
+    }
+  }
+
+  /**
+   * One reel, and not the ones after it.
+   *
+   * A reel somebody sends you opens in the website's own reel player, and that
+   * player is one tall column of reels with `scroll-snap-type: y mandatory`:
+   * the one you were sent, and under it the next, and the next. Opening it by
+   * address is refused; opening it from a conversation is a client-side move
+   * that never passes the navigation delegate, so it has to be stopped here,
+   * by what the page does rather than where it is.
+   *
+   * Measured on the live site: the column is a single scroller holding every
+   * video, sixteen levels above the first of them — so the walk up is long. Locking *that* one scroller leaves the reel playable and a tap on it
+   * working, takes away the swipe to the next, and leaves the comments and the
+   * rest of the page their own scrolling.
+   */
+  function oneReelOnly() {
+    try {
+      // By what the page is made of, not by its address. The player opens from
+      // a conversation and from a suggested post with the address of the page
+      // underneath, and the address is exactly what cannot be relied on here.
+      // What does not change: the reels are one column that snaps a screen at a
+      // time. The feed's videos have no such ancestor — measured — so this
+      // cannot reach a page that is meant to scroll.
+      //
+      // Each video is asked once. Its ancestry does not change under it, and
+      // walking sixty levels of computed style is not a thing to do per frame.
+      var videos = document.querySelectorAll("video:not([data-quiet-asked])");
+      for (var i = 0; i < videos.length; i++) {
+        var video = videos[i];
+        // Not laid out yet is not an answer; ask again on the next pass.
+        if (!video.getBoundingClientRect().width) continue;
+        note(video, "data-quiet-asked", "");
+        var node = video.parentElement;
+        var depth = 0;
+        while (node && depth < 80) {
+          var style = window.getComputedStyle(node);
+          var inline = node.getAttribute("style") || "";
+          var snaps =
+            (/y/.test(style.scrollSnapType || "") && style.scrollSnapType !== "none") ||
+            /scroll-snap-type:\s*y/.test(inline);
+          if (snaps) {
+            note(node, "data-quiet-one-reel", "");
+            node.scrollTop = 0;
+            break;
+          }
+          node = node.parentElement;
+          depth += 1;
+        }
+      }
+    } catch (error) {
+      // Silent on purpose: a throw here would skip sayBare.
+    }
+  }
+
+  /** The nearest ancestor that holds a picture or a video and is a real size. */
+  function mediaAround(node) {
+    var up = node.parentElement;
+    var depth = 0;
+    while (up && up.tagName !== "ARTICLE" && depth < 12) {
+      if (up.querySelector("img, video")) {
+        var r = up.getBoundingClientRect();
+        if (r.width > 200 && r.height > 200) return up;
+      }
+      up = up.parentElement;
+      depth += 1;
+    }
+    return null;
   }
 
   /**
@@ -3499,13 +3648,14 @@
     coverTheGlass();
     makeRoom();
     sayChrome();
-    whoAmI();
+    faceOnThisProfile();
+    sayUnread();
     headerComesBack();
-    learnWordmark();
-    dressHeader();
     liftHeader();
     shapeHeader();
     blankTheArrowOutOfTheInbox();
+    takeDownTheSwipeArrows();
+    oneReelOnly();
     // After everything else has hidden what it hides: the tail below the last
     // post is only *nothing* once the suggestions in it are out.
     endOfTheFeed();
