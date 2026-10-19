@@ -1047,6 +1047,21 @@
     post({ kind: "typing", on: on });
   }
 
+  /**
+   * Ask again who has the keyboard, rather than waiting to be told.
+   *
+   * A field that is taken out of the page while it has focus — which is what
+   * Instagram's client does when somebody swipes back out of a conversation —
+   * fires no `focusout`, so the last thing said was that somebody was typing
+   * and nothing ever says they stopped. The row stayed away over the inbox
+   * until the page was loaded again. Run with every pass, so it is the page's
+   * present state that is believed and not the last event.
+   */
+  function settleTyping() {
+    var here = document.activeElement;
+    sayTyping(!!here && beingTypedIn(here));
+  }
+
   function watchForTyping() {
     document.addEventListener("focusin", function (event) {
       if (beingTypedIn(event.target)) sayTyping(true);
@@ -2888,6 +2903,7 @@
   window.addEventListener("pageshow", function () {
     saidSheet = false;
     saySheet();
+    settleTyping();
   });
 
   function theSheet() {
@@ -3665,6 +3681,7 @@
     // to say, both indistinguishable from a sheet right up until the calls
     // above mark them.
     saySheet();
+    settleTyping();
     // And last of all, whether any of that found anything: the answer has to
     // be read after the calls above have hidden what they hide, or
     // Instagram's own navigation row counts as a page.
