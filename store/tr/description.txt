@@ -1,0 +1,29 @@
+Quiet, Instagram'ın mobil sitesini hiç bitmeyen yüzeyleri çıkarılmış hâlde gösterir.
+
+Akışın, hikâyelerin, mesajların ve profilin bildiğin gibi yüklenir. Reels ve Keşfet yok. Instagram'ın arkadaşlarının gönderileri arasına koyduğu gönderiler var — ve bir anahtar onları da çıkarır, bu da akışa ulaşılabilecek bir son verir. Instagram'ın kendi sayfasında giriş yaparsın, yani şifren Quiet'a hiç değmez.
+
+Sonra bir limit var.
+
+Günde kaç dakika istediğini sen seçersin. Sen okurken o süre azalır — yalnızca uygulama önündeyken, yalnızca sayfa gerçekten ekrandayken. İki sessiz uyarı: beş dakika kala ve bir dakika kala. Süre bittiğinde uygulama günü kapatır ve bunu söyler.
+
+Limitini istediğin zaman düşürebilirsin, ve hemen geçerli olur. Haftada bir kez yükseltebilirsin, ve yeni sayı ertesi gün başlar — asla beş dakika daha istediğin anda değil. Bu asimetri, uygulamanın tamamıdır. Sakin kafayla verdiğin karar, gece on birde verdiğin kararı bağlayabilir.
+
+QUIET'IN YAPMADIKLARI
+
+• Hesap yok, bize ait sunucu yok, analiz yok, reklam yok, izleme yok. Cihazlar arasında taşımayı açarsan limitin ve bugünkü toplamın kendi iCloud'una gider — orada onları yalnızca senin cihazların okuyabilir.
+
+• Seri yok, haftalık rapor yok, kontrol edilecek bir şey yok. Tek bir bildirim var ve sen istemedikçe kapalı: seçtiğin bir saatte günde bir hatırlatma, ve zaten uğradığın günlerde sessiz kalır.
+
+• Ekranda geri sayım yok. Bakılabilen bir saat, bakılan bir saattir; kalan süre panelde durur, gerçekten bilmek istediğin anlar için.
+
+• Quiet senden kendisi için hiçbir şey istemez. Çıkarabildiği tek izin, günlük hatırlatma içindir, o da sen açtıktan sonra. Instagram'ın kendi sayfaları bir gönderiye ya da mesaja bir şey eklerken hâlâ kameranı, mikrofonunu ya da fotoğraflarını isteyebilir — bu, iOS'un Instagram adına sorması; Quiet üçünü de kullanmaz.
+
+Sekiz şey telefonunda, anahtar zincirinde saklanır: limitin ve sonraki bir gün için sıraya koyduğun her değişiklik, bugünkü toplam, uygulamanın gördüğü en ileri zaman noktası, kurduğun gün, her şeyi unutmasını istediğin gün, limiti cihazların arasında taşıyorsan diğer cihazlarının harcadığı süre, Quiet'ten önce günde kaç dakika harcadığını söylediğin rakam ve o günden beri her gün ne kadar harcadığın. Uygulamayı silmekten sağ çıkarlar, bilerek. Yeniden kurarak kaldırabildiğin bir limit, limit değildir.
+
+İşte bu yüzden App Store olmayan bir çıkış yolu var. Panelin altındaki "Make Quiet forget everything" sekizini de ve iCloud'daki kopyayı da atar — seninle daha büyük bir sayı arasında duran aynı bekleyişten sonra. Hiç çıkışı olmayan bir uygulama tuzak olurdu; beş dakika daha istediğin anda terk edilebilen bir uygulama ise limit olmazdı.
+
+Gün, gece yarısı yerine sabahın dördünde döner, böylece geç bir akşam, hissettirdiği akşama ait olur.
+
+Quiet İngilizce, Almanca, İspanyolca, Fransızca ve Portekizce konuşur: Türkçeye ayarlı bir telefonda uygulamanın ekranları İngilizce olur.
+
+Quiet, Instagram veya Meta ile bağlantılı değildir ve onlar tarafından onaylanmamıştır. Zaten kullandığın bir site için bir sınırlayıcıdır, onun yerine geçen bir şey değil — ve onlar tarafından yapılmaz, işletilmez ya da desteklenmez.

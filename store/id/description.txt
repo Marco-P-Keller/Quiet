@@ -1,0 +1,29 @@
+Quiet menampilkan situs mobile Instagram tanpa permukaan-permukaan yang tidak pernah habis.
+
+Feed kamu, cerita kamu, pesan kamu, dan profil kamu dimuat seperti yang kamu kenal. Reels dan Explore tidak ada. Postingan yang Instagram selipkan di antara postingan temanmu masih ada — dan satu sakelar mengeluarkannya, yang sekaligus memberi feed sebuah ujung yang bisa dicapai. Kamu masuk di halaman Instagram sendiri, jadi kata sandimu tidak pernah menyentuh Quiet.
+
+Lalu ada batas.
+
+Kamu memilih berapa menit sehari yang kamu mau. Selama kamu membaca, waktu itu berkurang — hanya selama aplikasi ada di depanmu, hanya selama halaman benar-benar di layar. Dua pemberitahuan tenang, di lima menit dan di satu menit. Ketika waktunya habis, aplikasi menutup hari itu dan mengatakannya.
+
+Kamu bisa menurunkan batasmu kapan saja, dan berlaku seketika. Kamu bisa menaikkannya seminggu sekali, dan angka baru mulai keesokan harinya — tidak pernah pada saat kamu ingin lima menit lagi. Ketidaksimetrisan itulah seluruh aplikasi ini. Keputusan yang kamu ambil dengan tenang boleh mengikat keputusan yang kamu ambil pukul sebelas malam.
+
+YANG TIDAK DILAKUKAN QUIET
+
+• Tanpa akun, tanpa server kami, tanpa analitik, tanpa iklan, tanpa pelacakan. Kalau kamu menyalakan membawa batas antarperangkat, batasmu dan total hari ini masuk ke iCloud milikmu sendiri — di mana hanya perangkatmu yang bisa membacanya.
+
+• Tanpa runtutan, tanpa laporan mingguan, tidak ada yang perlu dicek. Ada satu notifikasi dan ia mati sampai kamu memintanya: satu pengingat harian, pada jam yang kamu pilih, yang diam pada hari-hari kamu sudah sempat masuk.
+
+• Tanpa hitung mundur di layar. Jam yang bisa dilihat adalah jam yang akan dilihat; sisanya ada di panel, untuk saat-saat kamu benar-benar ingin tahu.
+
+• Quiet tidak meminta apa pun untuk dirinya sendiri. Satu-satunya izin yang bisa ia munculkan adalah untuk pengingat harian, dan hanya setelah kamu menyalakannya. Halaman Instagram sendiri masih bisa meminta kamera, mikrofon, atau fotomu ketika kamu melampirkan sesuatu ke postingan atau pesan — itu iOS yang bertanya atas nama Instagram, dan Quiet sendiri tidak memakai satu pun dari ketiganya.
+
+Delapan hal disimpan, di ponselmu, di keychain: batasmu dan setiap perubahan yang kamu antrekan untuk hari berikutnya, total hari ini, titik terjauh dalam waktu yang pernah dilihat aplikasi, hari kamu menyiapkannya, hari kamu memintanya melupakan semuanya, berapa yang dipakai perangkatmu yang lain kalau kamu membawa batas di antara mereka, berapa menit sehari yang kamu bilang kamu pakai sebelum Quiet, dan berapa lama kamu memakainya setiap hari sejak itu. Semuanya bertahan setelah aplikasi dihapus, dengan sengaja. Batas yang bisa dicabut dengan memasang ulang bukan batas.
+
+Karena itu ada jalan keluar yang bukan App Store. "Make Quiet forget everything", di dasar panel, membuang kedelapannya dan salinan di iCloud bersamanya — setelah penantian yang sama yang berdiri antara kamu dan angka yang lebih besar. Aplikasi tanpa jalan keluar sama sekali akan jadi jebakan; yang bisa ditinggalkan pada saat kamu ingin lima menit lagi tidak akan jadi batas.
+
+Hari berganti pukul empat pagi, bukan tengah malam, supaya malam yang larut menjadi milik malam yang terasa seperti itu.
+
+Quiet berbicara bahasa Inggris, Jerman, Spanyol, Prancis, dan Portugis: di ponsel yang disetel ke bahasa Indonesia, layar aplikasinya sendiri berbahasa Inggris.
+
+Quiet tidak berafiliasi dengan Instagram atau Meta dan tidak didukung oleh mereka. Ini adalah pembatas untuk situs yang memang sudah kamu pakai, bukan penggantinya — dan tidak dibuat, dijalankan, atau didukung oleh mereka.

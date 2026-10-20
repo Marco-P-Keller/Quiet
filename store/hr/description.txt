@@ -1,0 +1,29 @@
+Quiet prikazuje mobilnu stranicu Instagrama bez ploha koje nikad ne završavaju.
+
+Tvoj feed, tvoje priče, tvoje poruke i tvoj profil učitavaju se onako kako ih znaš. Reelsa i Istraži nema. Objave koje Instagram ubacuje između objava tvojih prijatelja jesu tu — i jedan prekidač ih miče, što feedu ujedno daje kraj do kojeg se može doći. Prijavljuješ se na vlastitoj stranici Instagrama, pa tvoja lozinka nikad ne dotakne Quiet.
+
+A onda postoji limit.
+
+Biraš koliko minuta dnevno želiš. Dok čitaš, to vrijeme se troši — samo dok je aplikacija pred tobom, samo dok je stranica stvarno na ekranu. Dvije tihe obavijesti, na pet minuta i na jednu. Kad vrijeme prođe, aplikacija zatvara dan i to kaže.
+
+Svoj limit možeš smanjiti kad god želiš i vrijedi odmah. Povećati ga možeš jednom tjedno, a novi broj počinje sljedeći dan — nikad u trenutku kad želiš još pet minuta. Ta asimetrija je cijela aplikacija. Odluka koju doneseš na miru smije vezati onu koju doneseš u jedanaest navečer.
+
+ŠTO QUIET NE RADI
+
+• Bez računa, bez ijednog našeg servera, bez analitike, bez oglasa, bez praćenja. Ako uključiš nošenje limita između uređaja, tvoj limit i današnji zbroj idu u tvoj vlastiti iCloud — gdje ih mogu čitati samo tvoji uređaji.
+
+• Bez nizova, bez tjednog izvještaja, ništa za provjeravati. Postoji jedna jedina obavijest i isključena je dok je ne zatražiš: jedan dnevni podsjetnik, u sat koji odabereš, koji šuti svakog dana kad si već bio.
+
+• Bez odbrojavanja na ekranu. Sat u koji se može gledati je sat u koji se gleda; ono što je ostalo je u panelu — za trenutke kad stvarno želiš znati.
+
+• Quiet od tebe ne traži ništa svoje. Jedina dozvola koju može podići je ona za dnevni podsjetnik, i to tek nakon što ga uključiš. Vlastite stranice Instagrama i dalje mogu tražiti kameru, mikrofon ili tvoje fotografije kad nešto prilažeš objavi ili poruci — to iOS pita u ime Instagrama, a Quiet sam ne koristi nijedno od to troje.
+
+Osam stvari ostaje, na tvom telefonu, u svežnju ključeva: tvoj limit i svaka promjena koju si stavio u red za kasniji dan, današnji zbroj, najdalja točka u vremenu koju je aplikacija vidjela, dan kad si je postavio, dan kad si je zamolio da sve zaboravi, ono što su potrošili tvoji drugi uređaji ako limit nosiš među njima, koliko si minuta dnevno rekao da trošiš prije Quieta, i koliko si potrošio svaki dan od tada. Preživljavaju brisanje aplikacije, namjerno. Limit koji možeš ukinuti ponovnom instalacijom nije limit.
+
+Zato postoji izlaz koji nije App Store. „Make Quiet forget everything", na dnu panela, baca svih osam i kopiju na iCloudu s njima — nakon istog čekanja koje stoji između tebe i većeg broja. Aplikacija bez ikakvog izlaza bila bi zamka; ona iz koje se može izaći u trenutku kad se želi još pet minuta ne bi bila limit.
+
+Dan se okreće u četiri ujutro umjesto u ponoć, da kasna večer pripada onoj večeri na koju se čini.
+
+Quiet govori engleski, njemački, španjolski, francuski i portugalski: na telefonu postavljenom na hrvatski vlastiti zasloni aplikacije su na engleskom.
+
+Quiet nije povezan s tvrtkama Instagram ni Meta niti ga one podržavaju. To je ograničivač za stranicu koju ionako koristiš, a ne njezina zamjena — i nije njihov proizvod, ne održavaju ga niti podržavaju.

@@ -172,10 +172,12 @@ The parts that are easy to skip and obvious once missing:
 * **The row is Instagram's row.** Full width, flush against the bottom edge,
   opaque, the entry you are standing on filled and the rest outlined — the shape
   every bar on an iPhone has, because anything else announces that this is not
-  the app it is standing in front of. The glyphs are Instagram's own, taken out
-  of the bar Quiet hides rather than redrawn. There is no bar at all on a story
-  or inside a conversation, where Instagram draws none either and where a row
-  would cover the reply field.
+  the app it is standing in front of. The glyphs are SF Symbols and one drawing
+  of Quiet's own; they were Instagram's for a while, read out of the bar Quiet
+  hides, and that is another company's artwork inside this app's furniture —
+  see [shipping this](docs/store-and-legal.md). There is no bar at all on a
+  story or inside a conversation, where Instagram draws none either and where a
+  row would cover the reply field.
 * **Quiet's own two screens are pages, not sheets.** The settings behind the
   clock and the search for a person are two of the five entries in that row, so
   they leave it exactly where it is and are left by tapping somewhere else.
@@ -212,8 +214,11 @@ screenshot of the app in whatever state it reached.
 
 What the photographs actually settled, none of which a unit test could:
 
-* **The app launches, and Instagram's real mobile site loads inside it.** The
-  user agent is accepted; no "unsupported browser" wall.
+* **The app launches, and Instagram's real mobile site loads inside it.** This
+  was photographed with a user agent that claimed to be Safari. It no longer
+  claims that — it is WebKit's own with `Quiet/1.0` on the end — and **what
+  Instagram serves that has not been photographed yet.** It is the first thing
+  to look at on the next build; see [what is left](docs/what-is-left.md).
 * **The trim works.** The bottom navigation arrives with three entries — home,
   messages, profile. Search and Reels are gone from the page itself.
 * **The limit outlives the app.** The UI test closes it, opens it again, and
@@ -263,8 +268,10 @@ Quiet runs on Instagram's mobile site, so pages load a beat slower than the
 official app and some things are missing: posting, most of the camera, and
 anything Instagram ships only in its own client. Reels sent to you in a DM will
 not open. Instagram's search tab is where Explore
-lives, so it is gone — the panel searches for people instead, and returns
-people only.
+lives, so it is gone. What is in its place is a field you type a name into: it
+opens that profile, remembers the last eight you opened, and asks Instagram
+nothing. There are no results as you type — that took a private endpoint, and
+[why it went](docs/store-and-legal.md) is worth reading.
 
 If you want every feature Instagram ships, keep using Instagram. This is for
 seeing what your friends posted and then putting the phone down.

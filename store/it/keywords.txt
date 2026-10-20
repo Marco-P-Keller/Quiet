@@ -1,0 +1,1 @@
+schermo,tempo,dipendenza,telefono,detox,digitale,blocco,concentrazione,social,distrazione,abitudine

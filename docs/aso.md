@@ -195,6 +195,41 @@ the icon is the largest conversion lever in a results list — and an **App
 Preview video**, because the product is an *absence* and absence is hard to
 photograph and easy to film.
 
+### Custom product pages
+
+Thirty-five of them, free, and they are the one lever on this page that needs
+no traffic to be worth setting up. A custom page changes the screenshots, the
+app previews and the promotional text; it cannot change the name, the subtitle,
+the description or the keywords. So it buys **no search at all** — and that is
+the point of putting it here rather than above: everything else on this page is
+about being found, and this is about what happens in the four seconds after.
+
+The reason it fits this app unusually well is that the app has several separate
+arguments and one default page has to open with one of them. Somebody who
+cannot stop at eleven at night, somebody who has already deleted two blockers,
+somebody afraid of losing Instagram itself, and somebody who wants to know who
+is watching are four different readers, and the first slide that convinces one
+of them is not the slide that convinces the next.
+
+Four are built, with their screenshot sets and their promotional text in eleven
+languages, in [`store/custom-pages/`](../store/custom-pages). The slides are the
+same eight; only the order changes.
+
+**The URL is issued by App Store Connect, not constructed** — a `ppid` that was
+guessed serves the default page and looks like it worked.
+
+Two things follow that are worth more than the pages themselves:
+
+* **Search Ads ad groups can point at a custom page.** An ad group bidding on
+  "digital detox" can land on the page that leads with the chart while one
+  bidding on "phone addiction" lands on the page that leads with the day
+  ending. That is the budget and the pages compounding rather than running
+  beside each other.
+* **Each page reports its own conversion rate**, against the default page as
+  the control. It is the only number in this document that will be measured
+  rather than reasoned, and when one of the four wins it should become the
+  *default* page's opening frame.
+
 ---
 
 ## In order
@@ -207,7 +242,8 @@ photograph and easy to film.
 | 4 | The rating prompt at three days | done | high |
 | 5 | `media` and `phone` in the keywords | done | medium |
 | 6 | English (U.K.) as a second keyword field | half an hour | medium |
-| 7 | Product Page Optimization | later | needs traffic first |
+| 7 | Custom product pages (built, in `store/custom-pages/`) | an hour in App Store Connect | high — costs nothing, needs no traffic, and measures itself |
+| 8 | Product Page Optimization | later | needs traffic first |
 
 Items 4 and 5 are in the repository. The rest are settings and text in App Store
 Connect, and none of them can be done from here.

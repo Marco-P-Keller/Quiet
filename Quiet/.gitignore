@@ -22,6 +22,12 @@ build.log
 # missing.
 /shots/
 
+# The staging area `Tools/photograph-for-the-store.sh` photographs into. It is
+# deliberately not `source/`: source is what the slides are cut from and is
+# tracked, and a run that came out wrong should cost a look rather than a
+# `git checkout`. Copy across when you have looked at them.
+Tools/shots/fresh/
+
 # The finished slides, which `Tools/make-shots.py` writes and can write again.
 #
 # The frames they are cut from are kept — `Tools/shots/originals` and

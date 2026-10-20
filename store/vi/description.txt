@@ -1,0 +1,29 @@
+Quiet hiển thị trang web di động của Instagram sau khi đã lấy đi những mặt không bao giờ hết.
+
+Bảng tin của bạn, tin của bạn, tin nhắn của bạn và trang cá nhân của bạn tải lên đúng như bạn vẫn biết. Không có Reels, không có Explore. Những bài mà Instagram chèn vào giữa bài của bạn bè thì vẫn còn — và một công tắc gỡ chúng ra, điều đó cũng cho bảng tin một cái kết mà bạn có thể chạm tới. Bạn đăng nhập ngay trên trang của Instagram, nên mật khẩu của bạn không bao giờ chạm vào Quiet.
+
+Rồi có một hạn mức.
+
+Bạn chọn mỗi ngày bao nhiêu phút. Trong lúc bạn đọc, thời gian đó trôi xuống — chỉ khi ứng dụng ở trước mặt bạn, chỉ khi trang thực sự ở trên màn hình. Hai lời nhắc lặng lẽ, ở năm phút và ở một phút. Khi hết giờ, ứng dụng đóng ngày lại và nói ra điều đó.
+
+Bạn có thể hạ hạn mức bất cứ lúc nào, và nó có hiệu lực ngay. Bạn có thể nâng nó mỗi tuần một lần, và con số mới bắt đầu từ hôm sau — không bao giờ ngay vào lúc bạn muốn thêm năm phút. Chính sự bất đối xứng đó là toàn bộ ứng dụng này. Quyết định bạn đưa ra lúc bình tĩnh được phép ràng buộc quyết định bạn đưa ra lúc mười một giờ đêm.
+
+QUIET KHÔNG LÀM GÌ
+
+• Không tài khoản, không máy chủ nào của chúng tôi, không phân tích, không quảng cáo, không theo dõi. Nếu bạn bật mang hạn mức giữa các thiết bị, hạn mức và tổng của hôm nay sẽ đi vào iCloud của chính bạn — nơi chỉ thiết bị của bạn đọc được.
+
+• Không chuỗi ngày, không báo cáo tuần, không có gì để kiểm tra. Chỉ có một thông báo và nó tắt cho tới khi bạn yêu cầu: một lời nhắc mỗi ngày, vào giờ bạn chọn, và nó im lặng vào bất kỳ ngày nào bạn đã vào rồi.
+
+• Không đếm ngược trên màn hình. Một cái đồng hồ có thể nhìn là một cái đồng hồ sẽ bị nhìn; phần còn lại nằm trong bảng, dành cho những lúc bạn thật sự muốn biết.
+
+• Quiet không xin bạn thứ gì của riêng nó. Quyền duy nhất nó có thể hỏi là quyền cho lời nhắc hằng ngày, và chỉ sau khi bạn bật lên. Các trang của chính Instagram vẫn có thể xin máy ảnh, micrô hoặc ảnh của bạn khi bạn đính kèm thứ gì đó vào bài viết hay tin nhắn — đó là iOS hỏi thay cho Instagram, còn Quiet không dùng cái nào trong ba thứ đó.
+
+Tám thứ được giữ lại, trên điện thoại của bạn, trong keychain: hạn mức của bạn và mọi thay đổi bạn đã xếp hàng cho một ngày sau, tổng của hôm nay, điểm xa nhất trong thời gian mà ứng dụng từng thấy, ngày bạn thiết lập nó, ngày bạn bảo nó quên hết, các thiết bị khác của bạn đã dùng bao nhiêu nếu bạn mang hạn mức giữa chúng, số phút mỗi ngày bạn nói mình dùng trước Quiet, và mỗi ngày kể từ đó bạn đã dùng bao lâu. Chúng sống sót qua việc xoá ứng dụng, một cách có chủ ý. Một hạn mức mà bạn gỡ được bằng cách cài lại thì không phải là hạn mức.
+
+Chính vì thế có một lối ra không phải App Store. "Make Quiet forget everything", ở chân bảng, ném cả tám thứ đi cùng bản sao trên iCloud — sau đúng khoảng chờ vẫn đứng giữa bạn và một con số lớn hơn. Một ứng dụng không có lối ra nào sẽ là một cái bẫy; một ứng dụng bạn có thể rời đi ngay lúc muốn thêm năm phút thì sẽ không phải là hạn mức.
+
+Ngày đổi lúc bốn giờ sáng thay vì nửa đêm, để một buổi tối muộn thuộc về buổi tối mà nó mang cảm giác của.
+
+Quiet nói tiếng Anh, Đức, Tây Ban Nha, Pháp và Bồ Đào Nha: trên điện thoại đặt tiếng Việt, các màn hình của chính ứng dụng là tiếng Anh.
+
+Quiet không liên kết với Instagram hay Meta và không được họ chứng thực. Đây là một bộ giới hạn cho một trang web bạn vốn đã dùng, không phải bản thay thế — và nó không do họ làm ra, vận hành hay hỗ trợ.

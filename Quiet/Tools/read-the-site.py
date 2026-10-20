@@ -73,7 +73,7 @@ MUST_SAY = [
     ("privacy.html", r"[Ff]orget everything", "that there is a way out"),
     ("privacy.html", r"notification a day", "the daily reminder"),
     ("privacy.html", r"[Cc]amera", "the camera declaration"),
-    ("support.html", r"[Cc]arry it between my devices", "how to reach the sync"),
+    ("support.html", r"[Cc]arry (?:it|this) between (?:my|your) devices", "how to reach the sync"),
     ("support.html", r"forget everything", "how to leave"),
 ]
 
@@ -154,6 +154,27 @@ def main() -> int:
                 problems.append(
                     'store-listing.md says "%s things are kept"; StoreKey has '
                     "%d: %s." % (said.group(1), len(keys), ", ".join(keys))
+                )
+
+    # The translations of the support page. What is checked is not the prose —
+    # nothing here can read German — but the shape: same number of questions
+    # answered, and a way back to the English page. A section added to
+    # support.html and to none of these is the drift this catches.
+    english = SITE / "support.html"
+    if english.exists():
+        sections = english.read_text(encoding="utf-8").count("<h2>")
+        for page in sorted((SITE / "support").glob("*.html")):
+            html = page.read_text(encoding="utf-8")
+            here = html.count("<h2>")
+            if here != sections:
+                problems.append(
+                    "support/%s answers %d questions; support.html answers %d. "
+                    "A section was added to one and not the other."
+                    % (page.name, here, sections)
+                )
+            if "../support.html" not in html:
+                problems.append(
+                    f"support/{page.name}: no link back to the English page."
                 )
 
     for name, pattern, what in MUST_SAY:

@@ -1,0 +1,533 @@
+<!doctype html>
+<!--
+  Quiet — Sand. 1080 x 1920, 21 seconds, driven entirely by seek(t).
+
+  A line on black. A feed rises under it and runs, flick after flick, faster
+  than anyone reads — and stops dead, mid-flick, with the sound. Then it comes
+  apart from the top down, a burning edge going through it, and every piece of
+  it that is not dust becomes a grain of sand. The grains gather, pour through a
+  waist and settle, and they settle on the icon: each grain lands on a pixel of
+  the icon's own sand, in that pixel's colour. The glass comes into being round
+  them, and the hourglass shrinks into the app it is the icon of.
+
+  The feed is painted, not photographed: nobody's posts are in it.
+  `make-the-sand.py` builds the assets and the sound; `render-page.mjs`
+  photographs this page. Every value below is a function of t.
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+@font-face { font-family: "SF"; src: url("file:///System/Library/Fonts/SFNS.ttf"); font-weight: 1 1000; }
+@font-face { font-family: "NY"; src: url("file:///System/Library/Fonts/NewYork.ttf"); font-weight: 400 1000; }
+@font-face { font-family: "NY"; src: url("file:///System/Library/Fonts/NewYorkItalic.ttf"); font-weight: 400 1000; font-style: italic; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+body { -webkit-font-smoothing: antialiased; font-kerning: normal; text-rendering: geometricPrecision; }
+#stage { position: absolute; inset: 0; overflow: hidden; background: radial-gradient(ellipse 85% 62% at 50% 48%, #1c1b18 0%, #0e0d0c 62%, #050505 100%); }
+.layer { position: absolute; inset: 0; pointer-events: none; }
+canvas { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+
+.glyph { position: absolute; left: -85px; top: 335px; width: 1250px; height: 1250px; transform-origin: 50% 50%; }
+.glyph img { position: absolute; inset: 0; width: 1250px; height: 1250px; }
+#plate { position: absolute; inset: 0; border-radius: 22.4%;
+         background: linear-gradient(165deg, #22211e 0%, #1a1916 55%, #151412 100%);
+         box-shadow: inset 0 0 0 5px rgba(255, 248, 235, 0.08), 0 60px 220px rgba(255, 186, 110, 0.20); }
+
+.line { position: absolute; left: 60px; right: 60px; text-align: center; white-space: pre-line;
+        font-family: "NY"; font-weight: 400; font-size: 76px; line-height: 1.15; letter-spacing: -0.01em; color: #efe9df; }
+#grain { position: absolute; inset: -64px; mix-blend-mode: overlay; pointer-events: none; opacity: 0.07; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="cold" class="layer" style="background: radial-gradient(ellipse 62% 58% at 50% 50%, rgba(120, 150, 255, 0.17), rgba(120, 150, 255, 0) 72%); opacity: 0;"></div>
+  <div id="warm" class="layer" style="background: radial-gradient(ellipse 48% 34% at 50% 52%, rgba(255, 196, 128, 0.22), rgba(255, 196, 128, 0) 72%); opacity: 0;"></div>
+
+  <canvas id="feed"></canvas>
+
+  <div id="back" class="glyph">
+    <div id="plate" style="opacity: 0;"></div>
+    <img id="sandImg" style="opacity: 0;">
+  </div>
+  <canvas id="grains"></canvas>
+  <div id="front" class="glyph">
+    <img id="glassGlow" style="opacity: 0; filter: blur(18px);">
+    <img id="glassImg" style="opacity: 0;">
+  </div>
+
+  <div id="vignette" class="layer" style="background: radial-gradient(ellipse 80% 64% at 50% 50%, rgba(0,0,0,0) 45%, rgba(0,0,0,0.55) 100%);"></div>
+
+  <div id="l1" class="line" style="top: 890px;"></div>
+  <div id="l2" class="line" style="top: 250px;"></div>
+  <div id="l3" class="line" style="top: 1560px;"></div>
+
+  <div id="name" class="line" style="top: 885px; font-weight: 700; font-size: 150px; letter-spacing: -0.02em; line-height: 1.1;
+       background-image: linear-gradient(180deg, #fbf7f0 30%, #b9b0a2 100%); -webkit-background-clip: text; background-clip: text; color: transparent;"></div>
+  <div id="tag" class="line" style="top: 1075px; font-style: italic; font-size: 50px; color: #b3aa9c;"></div>
+  <div style="position: absolute; left: 0; right: 0; top: 1190px; text-align: center;">
+    <span id="store" style="display: inline-block; font-family: SF; font-size: 34px; font-weight: 600; letter-spacing: -0.01em; color: #efe9df;
+          border: 2px solid rgba(239, 233, 223, 0.35); border-radius: 999px; padding: 14px 34px 16px;"></span>
+  </div>
+
+  <div id="grain"></div>
+  <div id="fade" class="layer" style="background: #000; opacity: 0;"></div>
+</div>
+
+<script>
+// ---------------------------------------------------------------- setup
+const LANG = new URLSearchParams(location.search).get("lang") || "de";
+const ASSETS = `../shots/out/sand/assets/${LANG}/`;
+const $ = (id) => document.getElementById(id);
+const W = 1080, H = 1920;
+window.DURATION = 21.0;
+
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const span = (t, a, b) => clamp((t - a) / (b - a));
+const lerp = (a, b, p) => a + (b - a) * p;
+const E = {
+  out: (p) => 1 - Math.pow(1 - p, 3),
+  in: (p) => p * p * p,
+  inOut: (p) => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2),
+  glide: (p) => (p < 0.5 ? 16 * Math.pow(p, 5) : 1 - Math.pow(-2 * p + 2, 5) / 2),
+  outQuart: (p) => 1 - Math.pow(1 - p, 4),
+  spring: (p) => (p >= 1 ? 1 : 1 - Math.exp(-7 * p) * Math.cos(11 * p)),
+  smooth: (p) => p * p * (3 - 2 * p),
+};
+const hash = (n) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+const vis = (el, on) => { el.style.display = on ? "" : "none"; };
+function rng(seed) {
+  return () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let x = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x; return ((x ^ (x >>> 14)) >>> 0) / 4294967296; };
+}
+
+// Type that arrives out of a blur and leaves into one. Settled type carries no
+// filter and no transform: a blur of 0px is still a filter, and Chrome will
+// sometimes photograph a filtered layer before it has painted it.
+function blurIn(el, t, tin, tout, { rise = 26, dur = 1.1, outDur = 0.6 } = {}) {
+  const p = E.outQuart(span(t, tin, tin + dur));
+  const q = E.in(span(t, tout, tout + outDur));
+  const on = p > 0 && q < 1;
+  vis(el, on);
+  if (!on) return;
+  const blur = (1 - p) * 18 + q * 14;
+  const moving = blur > 0.05;
+  el.style.opacity = moving ? p * (1 - q) : "";
+  el.style.filter = moving ? `blur(${blur}px)` : "";
+  el.style.transform = moving ? `translateY(${(1 - p) * rise - q * 14}px)` : "";
+}
+
+// ---------------------------------------------------------------- time
+const T = {
+  line1: 0.8, line1Out: 2.35,
+  feed: 2.3, freeze: 5.4,
+  release: 6.0, releaseSpread: 2.7, releaseNoise: 0.6,
+  line2: 7.1, line2Out: 10.9,
+  glass: [9.3, 11.5],
+  line3: 12.2, line3Out: 14.6,
+  shrink: [15.0, 16.9],
+  name: 16.3, tag: 16.85, store: 17.35,
+  out: [20.3, 21.0],
+};
+
+// ---------------------------------------------------------------- the feed
+const COLX = 150, COLW = 780, CARD = 1020, PITCH = 1096, ENTRY = 1980;
+const FLICKS = (() => {
+  const f = []; let t = 2.55, gap = 0.6, d = 780;
+  while (t < T.freeze - 0.02) { f.push([t, d]); t += gap; gap = Math.max(0.1, gap * 0.82); d = Math.min(2600, d * 1.17); }
+  return f;
+})();
+function scrollAt(t) {
+  t = Math.min(t, T.freeze);
+  let s = 1500 * E.out(span(t, T.feed, T.feed + 0.9)) + 240 * Math.max(0, t - T.feed);
+  for (const [ft, d] of FLICKS) if (t > ft) s += d * (1 - Math.exp(-(t - ft) / 0.17));
+  return s;
+}
+const PINGS = [[3.05, 0.2], [3.7, 0.8], [4.15, 0.35], [4.5, 0.7], [4.78, 0.15], [5.02, 0.9], [5.2, 0.5], [5.31, 0.3]]
+  .map(([t, u], i) => ({ t, x: COLX + COLW - 190 - u * 260, y: [420, 1380, 820, 1620, 300, 1100, 640, 1480][i], n: [1, 3, 12, 7, 24, 48, 99, 99][i] }));
+
+// Eight posts, painted: soft colour where a photograph would be.
+const PHOTOS = [
+  (c) => { sky(c, ["#2a1846", "#b8487a", "#ff8a5c", "#ffc98a"]); glow(c, 390, 500, 170, "rgba(255,236,190,1)");
+           c.fillStyle = grad(c, 0, 540, 0, 780, ["#40285a", "#170d24"]); c.fillRect(0, 540, 780, 240);
+           c.fillStyle = "rgba(255,210,150,0.55)"; c.fillRect(360, 540, 60, 240); },
+  (c) => { sky(c, ["#9cc6ff", "#d9ccff", "#ffe2d2"]);
+           mountain(c, "#8390bf", [[0, 520], [160, 330], [300, 460], [470, 260], [640, 430], [780, 360]]);
+           mountain(c, "#3c4a6c", [[0, 600], [200, 470], [380, 600], [560, 440], [780, 580]]);
+           c.fillStyle = grad(c, 0, 640, 0, 780, ["#6c7fb2", "#2b3656"]); c.fillRect(0, 640, 780, 140); },
+  (c) => { c.fillStyle = "#12092a"; c.fillRect(0, 0, 780, 780); glow(c, 200, 330, 380, "rgba(255,46,151,0.95)");
+           glow(c, 600, 420, 360, "rgba(0,229,255,0.85)"); c.fillStyle = "#07040f";
+           c.beginPath(); c.arc(390, 360, 120, 0, 7); c.fill(); c.beginPath(); c.ellipse(390, 760, 260, 250, 0, 0, 7); c.fill(); },
+  (c) => { c.fillStyle = "#f3e2d4"; c.fillRect(0, 0, 780, 780);
+           c.fillStyle = "rgba(90,60,40,0.18)"; c.beginPath(); c.arc(405, 420, 250, 0, 7); c.fill();
+           c.fillStyle = "#fffaf4"; c.beginPath(); c.arc(390, 400, 250, 0, 7); c.fill();
+           glow(c, 340, 360, 150, "rgba(231,111,81,1)"); glow(c, 460, 450, 120, "rgba(42,157,143,1)"); glow(c, 420, 320, 80, "rgba(244,196,48,1)");
+           [[110, 130, 60, "#e9c46a"], [670, 150, 50, "#e76f51"], [650, 660, 70, "#8ab17d"], [120, 640, 55, "#f4a261"]]
+             .forEach(([x, y, r, col]) => { c.fillStyle = col; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill(); }); },
+  (c) => { c.fillStyle = grad(c, 0, 0, 780, 780, ["#00c2d6", "#0088b8", "#005a8a"]); c.fillRect(0, 0, 780, 780);
+           c.fillStyle = "#f2d8a2"; c.beginPath(); c.moveTo(0, 0); c.lineTo(430, 0); c.bezierCurveTo(300, 260, 200, 420, 0, 560); c.fill();
+           c.strokeStyle = "rgba(255,255,255,0.85)"; c.lineWidth = 26; c.beginPath(); c.moveTo(470, 0); c.bezierCurveTo(340, 280, 220, 440, 0, 610); c.stroke(); },
+  (c) => { c.fillStyle = grad(c, 0, 0, 0, 780, ["#0e1d2c", "#1d3a4a", "#0a1016"]); c.fillRect(0, 0, 780, 780);
+           const r = rng(9);
+           for (let i = 0; i < 9; i++) { const x = i * 90 - 10, h = 260 + r() * 360; c.fillStyle = "#070c12"; c.fillRect(x, 780 - h, 80, h);
+             c.fillStyle = "rgba(255,210,120,0.9)"; for (let w = 0; w < 30; w++) if (r() < 0.45) c.fillRect(x + 8 + (w % 4) * 17, 800 - h + 20 + Math.floor(w / 4) * 30, 9, 14); }
+           for (let i = 0; i < 12; i++) glow(c, r() * 780, r() * 420, 30 + r() * 60, `rgba(255,${150 + r() * 90 | 0},${80 + r() * 120 | 0},0.7)`); },
+  (c) => { sky(c, ["#0f3b3f", "#2e7a64", "#9ccf8a"]);
+           c.fillStyle = "rgba(255,250,210,0.18)"; for (let i = 0; i < 4; i++) { c.beginPath(); c.moveTo(560 + i * 50, 0); c.lineTo(640 + i * 50, 0); c.lineTo(300 + i * 120, 780); c.lineTo(180 + i * 120, 780); c.fill(); }
+           c.fillStyle = "#0b2a26"; for (let i = 0; i < 7; i++) { const x = i * 120 + 20; c.beginPath(); c.moveTo(x, 780); c.lineTo(x + 55, 300 + (i % 3) * 70); c.lineTo(x + 110, 780); c.fill(); } },
+  (c) => { sky(c, ["#ffb2bf", "#ffc9a8", "#ffe6c9"]); c.fillStyle = "#f7e9dd";
+           c.beginPath(); c.moveTo(210, 780); c.lineTo(210, 330); c.arc(390, 330, 180, Math.PI, 0); c.lineTo(570, 780); c.fill();
+           c.fillStyle = "#3a2233"; c.beginPath(); c.arc(390, 380, 50, 0, 7); c.fill();
+           c.beginPath(); c.moveTo(320, 780); c.lineTo(340, 480); c.quadraticCurveTo(390, 440, 440, 480); c.lineTo(460, 780); c.fill(); },
+];
+function grad(c, x0, y0, x1, y1, stops) { const g = c.createLinearGradient(x0, y0, x1, y1); stops.forEach((s, i) => g.addColorStop(i / (stops.length - 1), s)); return g; }
+function sky(c, stops) { c.fillStyle = grad(c, 0, 0, 0, 780, stops); c.fillRect(0, 0, 780, 780); }
+function glow(c, x, y, r, col) { const g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, col); g.addColorStop(1, col.replace(/[\d.]+\)$/, "0)")); c.fillStyle = g; c.fillRect(x - r, y - r, 2 * r, 2 * r); }
+function mountain(c, col, pts) { c.fillStyle = col; c.beginPath(); c.moveTo(0, 780); pts.forEach(([x, y]) => c.lineTo(x, y)); c.lineTo(780, 780); c.fill(); }
+
+function heart(c, x, y, s) {
+  c.beginPath(); c.moveTo(x, y + s * 0.9);
+  c.bezierCurveTo(x - s * 1.25, y + s * 0.05, x - s * 0.85, y - s * 0.95, x, y - s * 0.3);
+  c.bezierCurveTo(x + s * 0.85, y - s * 0.95, x + s * 1.25, y + s * 0.05, x, y + s * 0.9);
+}
+
+function paintCard(k, dpr) {
+  const cv = document.createElement("canvas");
+  cv.width = Math.round(COLW * dpr); cv.height = Math.round(CARD * dpr);
+  const c = cv.getContext("2d");
+  c.scale(dpr, dpr);
+  const r = rng(40 + k);
+  // who posted it
+  const ring = c.createLinearGradient(14, 76, 78, 12); ring.addColorStop(0, "#ffb347"); ring.addColorStop(1, "#ff4f8b");
+  c.fillStyle = ring; c.beginPath(); c.arc(46, 46, 34, 0, 7); c.fill();
+  c.fillStyle = "#0e0d0c"; c.beginPath(); c.arc(46, 46, 29.5, 0, 7); c.fill();
+  c.fillStyle = `hsl(${r() * 360}, 45%, 62%)`; c.beginPath(); c.arc(46, 46, 26, 0, 7); c.fill();
+  c.fillStyle = "rgba(242,242,242,0.9)"; c.beginPath(); c.roundRect(96, 30, 150 + r() * 90, 17, 8.5); c.fill();
+  c.fillStyle = "rgba(242,242,242,0.4)"; c.beginPath(); c.roundRect(96, 56, 90 + r() * 70, 13, 6.5); c.fill();
+  c.fillStyle = "rgba(242,242,242,0.9)"; [736, 752, 768].forEach((x) => { c.beginPath(); c.arc(x - 8, 46, 4.5, 0, 7); c.fill(); });
+  // the photograph, soft
+  const p = document.createElement("canvas"); p.width = Math.round(780 * dpr); p.height = Math.round(780 * dpr);
+  const pc = p.getContext("2d"); pc.scale(dpr, dpr); PHOTOS[k](pc);
+  c.save(); c.beginPath(); c.roundRect(0, 96, 780, 780, 26); c.clip();
+  c.filter = `blur(${2.5 * dpr}px)`; c.drawImage(p, 0, 96, 780, 780); c.filter = "none"; c.restore();
+  // what you do to it
+  c.lineWidth = 4.2; c.strokeStyle = "#f2f2f2"; c.lineJoin = "round";
+  const liked = k % 3 === 1;
+  heart(c, 42, 922, 19); if (liked) { c.fillStyle = "#ff3b4f"; c.fill(); } else c.stroke();
+  c.beginPath(); c.arc(114, 920, 19, 0.3, Math.PI * 2 - 0.1); c.lineTo(94, 944); c.closePath(); c.stroke();
+  c.beginPath(); c.moveTo(166, 902); c.lineTo(210, 902); c.lineTo(186, 942); c.closePath(); c.stroke();
+  c.beginPath(); c.moveTo(740, 900); c.lineTo(740, 944); c.lineTo(756, 932); c.lineTo(772, 944); c.lineTo(772, 900); c.closePath(); c.stroke();
+  c.fillStyle = "rgba(242,242,242,0.85)"; c.beginPath(); c.roundRect(0, 966, 420 + r() * 240, 15, 7.5); c.fill();
+  c.fillStyle = "rgba(242,242,242,0.4)"; c.beginPath(); c.roundRect(0, 996, 220 + r() * 200, 13, 6.5); c.fill();
+  return cv;
+}
+
+let CARDS = [];
+function drawFeed(c, t) {
+  const s = scrollAt(t);
+  const first = Math.max(0, Math.floor((s - ENTRY - CARD) / PITCH));
+  for (let i = first; ; i++) {
+    const y = ENTRY - s + i * PITCH;
+    if (y > H) break;
+    if (y + CARD < 0) continue;
+    c.drawImage(CARDS[i % CARDS.length], COLX, y, COLW, CARD);
+  }
+  // the little red things that ask to be looked at
+  for (const p of PINGS) {
+    if (t < p.t || t > p.t + 1.3) continue;
+    const a = 1 - span(t, p.t + 0.85, p.t + 1.3), sc = E.spring(span(t, p.t, p.t + 0.45));
+    c.save(); c.globalAlpha = a; c.translate(p.x + 80, p.y + 34); c.scale(sc, sc);
+    c.shadowColor = "rgba(0,0,0,0.45)"; c.shadowBlur = 24; c.shadowOffsetY = 6;
+    c.fillStyle = "#ff3b4f"; c.beginPath(); c.roundRect(-80, -34, 160, 68, 34); c.fill();
+    c.shadowColor = "transparent"; c.fillStyle = "#fff"; heart(c, -36, 0, 15); c.fill();
+    c.font = "700 34px SF"; c.textBaseline = "middle"; c.fillText(p.n >= 99 ? "99+" : String(p.n), -8, 2);
+    c.restore();
+  }
+}
+
+// ---------------------------------------------------------------- the grains
+const K = 1250 / 1024;                     // icon pixels to stage pixels
+const toStage = (ix, iy) => [540 + (ix - 512) * K, 960 + (iy - 512) * K];
+const CELL = 3, COLS = Math.ceil(COLW / CELL), ROWS = Math.ceil(H / CELL);
+const G_FALL = 2600, V_NECK = 260, HOT = [255, 196, 128];
+let RELEASE, P, NT = 0, NP = 0, LANDINGS = [], SWAP = 13;
+let dpr = 1, feedCtx, grainCtx, F, maskC, maskCtx, maskImg, edgeC, edgeCtx, edgeImg, buf, u8, u32;
+
+function noise2(x, y) {
+  const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+  const h = (a, b) => hash(a * 57 + b * 131);
+  const u = E.smooth(xf), v = E.smooth(yf);
+  return lerp(lerp(h(xi, yi), h(xi + 1, yi), u), lerp(h(xi, yi + 1), h(xi + 1, yi + 1), u), v);
+}
+const fbm = (x, y) => 0.6 * noise2(x, y) + 0.3 * noise2(x * 2.3, y * 2.3) + 0.1 * noise2(x * 5.1, y * 5.1);
+
+function buildGrains() {
+  const G = window.GLYPH;
+  const rand = rng(77);
+  // when each cell of the frozen feed lets go: top first, a ragged edge
+  RELEASE = new Float32Array(COLS * ROWS);
+  for (let j = 0; j < ROWS; j++) for (let i = 0; i < COLS; i++) {
+    const x = COLX + i * CELL, y = j * CELL;
+    RELEASE[j * COLS + i] = T.release + T.releaseSpread * (y / H) + T.releaseNoise * fbm(x / 90, y / 90) + 0.12 * hash(i * 0.37 + j * 1.91);
+  }
+  // what is there to let go
+  const img = F.getContext("2d").getImageData(0, 0, F.width, F.height).data;
+  const cands = [];
+  for (let j = 0; j < ROWS; j++) for (let i = 0; i < COLS; i++) {
+    const px = Math.round((COLX + i * CELL + CELL / 2) * dpr), py = Math.round((j * CELL + CELL / 2) * dpr);
+    if (px >= F.width || py >= F.height) continue;
+    const o = (py * F.width + px) * 4;
+    if (img[o + 3] > 200) cands.push([i, j, img[o], img[o + 1], img[o + 2]]);
+  }
+  for (let i = cands.length - 1; i > 0; i--) { const k = Math.floor(rand() * (i + 1)); [cands[i], cands[k]] = [cands[k], cands[i]]; }
+
+  const upper = [], lower = [];
+  for (let i = 0; i < G.upper.length; i += 5) upper.push(G.upper.slice(i, i + 5));
+  for (let i = 0; i < G.lower.length; i += 5) lower.push(G.lower.slice(i, i + 5));
+  NT = Math.min(cands.length, upper.length + lower.length);
+  const ND = Math.min(cands.length - NT, 15000);
+  NP = NT + ND;
+  const [NX, NY] = toStage(G.neck[0], G.neck[1]);
+  const TOP = toStage(512, G.top)[1];
+
+  P = [];
+  for (let n = 0; n < NP; n++) {
+    const [i, j, r, g, b] = cands[n];
+    const sx = COLX + i * CELL + CELL / 2, sy = j * CELL + CELL / 2;
+    const p = { sx, sy, r: RELEASE[j * COLS + i], c0: [r, g, b], kind: n < NT ? 1 : 0, ph: rand() * 6.28 };
+    if (p.kind === 0) {
+      p.life = 0.9 + rand() * 1.5; p.vx = (rand() - 0.5) * 140; p.vy = -(50 + rand() * 200); p.size = 1.8 + rand() * 1.4;
+    } else {
+      p.d1 = 2.1 + rand() * 0.9; p.A = 20 + rand() * 90;
+      const side = sx < 540 ? -1 : 1;
+      p.p1 = [sx + side * (120 + rand() * 320), sy - 60 - rand() * 300];
+      p.p2 = [540 + (rand() - 0.5) * 420, TOP - 60 - rand() * 200];
+    }
+    P.push(p);
+  }
+
+  // Grains are handed their places in the order they arrive, and the places in
+  // the order sand fills them — from the bottom up — so the heap grows.
+  const targets = P.slice(0, NT);
+  for (let i = targets.length - 1; i > 0; i--) { const k = Math.floor(rand() * (i + 1)); [targets[i], targets[k]] = [targets[k], targets[i]]; }
+  const up = targets.slice(0, Math.min(upper.length, NT)), down = targets.slice(up.length);
+  const fill = (list) => list.map((e) => ({ e, key: e[1] + rand() * 7 })).sort((a, b) => b.key - a.key).map((o) => o.e);
+  up.sort((a, b) => (a.r + a.d1) - (b.r + b.d1));
+  fill(upper).forEach((e, i) => { if (i >= up.length) return; const p = up[i]; [p.tx, p.ty] = toStage(e[0], e[1]); p.cf = [e[2], e[3], e[4]]; p.kind = 1;
+    p.p3 = [p.tx, p.ty]; p.land = p.r + p.d1; });
+  down.sort((a, b) => (a.r + a.d1) - (b.r + b.d1));
+  fill(lower).forEach((e, i) => { if (i >= down.length) return; const p = down[i]; [p.tx, p.ty] = toStage(e[0], e[1]); p.cf = [e[2], e[3], e[4]]; p.kind = 2;
+    p.p3 = [NX + (rand() - 0.5) * 5, NY];
+    const dy = Math.max(1, p.ty - NY);
+    p.d2 = (-V_NECK + Math.sqrt(V_NECK * V_NECK + 2 * G_FALL * dy)) / G_FALL;
+    p.land = p.r + p.d1 + p.d2; });
+  LANDINGS = P.filter((p) => p.kind > 0).map((p) => p.land).sort((a, b) => a - b);
+  SWAP = LANDINGS[LANDINGS.length - 1] + 0.3;
+}
+
+function bez(a, b, c, d, s) {
+  const u = 1 - s;
+  return u * u * u * a + 3 * u * u * s * b + 3 * u * s * s * c + s * s * s * d;
+}
+const mix3 = (a, b, p) => [lerp(a[0], b[0], p), lerp(a[1], b[1], p), lerp(a[2], b[2], p)];
+
+function dot(x, y, size, col, a) {
+  const sz = size * dpr;
+  const x0 = Math.round(x * dpr - sz / 2), y0 = Math.round(y * dpr - sz / 2);
+  const x1 = Math.min(buf.width, x0 + Math.max(1, Math.round(sz))), y1 = Math.min(buf.height, y0 + Math.max(1, Math.round(sz)));
+  const r = col[0] | 0, g = col[1] | 0, b = col[2] | 0;
+  if (a >= 0.999) {
+    const v = (255 << 24) | (b << 16) | (g << 8) | r;
+    for (let yy = Math.max(0, y0); yy < y1; yy++) u32.fill(v, yy * buf.width + Math.max(0, x0), yy * buf.width + x1);
+    return;
+  }
+  for (let yy = Math.max(0, y0); yy < y1; yy++) for (let xx = Math.max(0, x0); xx < x1; xx++) {
+    const o = (yy * buf.width + xx) * 4, ea = u8[o + 3] / 255, oa = a + ea * (1 - a);
+    if (oa <= 0) continue;
+    const k = ea * (1 - a);
+    u8[o] = (r * a + u8[o] * k) / oa; u8[o + 1] = (g * a + u8[o + 1] * k) / oa; u8[o + 2] = (b * a + u8[o + 2] * k) / oa; u8[o + 3] = oa * 255;
+  }
+}
+
+// where one grain is at t, and what colour; null when it is not in the air or on the heap
+function grainAt(p, t) {
+  const tau = t - p.r;
+  if (tau < 0) return null;
+  if (p.kind === 0) {
+    if (tau > p.life) return null;
+    const k = tau / p.life;
+    return { x: p.sx + p.vx * tau + 16 * Math.sin(p.ph + tau * 2.6), y: p.sy + p.vy * tau - 40 * tau * tau,
+             c: mix3(p.c0, HOT, Math.min(1, tau / 0.2)), a: Math.pow(1 - k, 1.4) * 0.9, s: p.size, flying: true };
+  }
+  if (tau < p.d1) {
+    const k = tau / p.d1, s = 0.5 * E.smooth(k) + 0.5 * k * k;
+    const x = bez(p.sx, p.p1[0], p.p2[0], p.p3[0], s) + p.A * Math.sin(Math.PI * s) * Math.sin(6.9 * s + p.ph);
+    const y = bez(p.sy, p.p1[1], p.p2[1], p.p3[1], s);
+    const c = k < 0.18 ? mix3(p.c0, HOT, k / 0.18) : mix3(HOT, p.cf, E.smooth(span(k, 0.18, 0.9)));
+    return { x, y, c, a: 1, s: 2.6, flying: true };
+  }
+  if (p.kind === 2 && tau < p.d1 + p.d2) {
+    const u = tau - p.d1, q = u / p.d2;
+    return { x: p.p3[0] + (p.tx - p.p3[0]) * E.smooth(span(q, 0.45, 1)), y: p.p3[1] + V_NECK * u + 0.5 * G_FALL * u * u,
+             c: p.cf, a: 1, s: 2.6, flying: true };
+  }
+  return { x: p.tx, y: p.ty, c: p.cf, a: 1, s: 3.0, flying: false };
+}
+
+// ---------------------------------------------------------------- build
+const imgs = [];
+function image(el, file) {
+  imgs.push(new Promise((ok) => { el.onload = () => el.decode().then(ok, ok); el.onerror = () => { console.log("missing " + file); ok(); }; }));
+  el.src = ASSETS + file;
+}
+
+window.ready = new Promise((resolve) => {
+  const s = document.createElement("script");
+  s.src = ASSETS + "data.js";
+  s.onload = () => build().then(resolve);
+  document.head.appendChild(s);
+});
+
+async function build() {
+  const C = window.COPY;
+  dpr = window.devicePixelRatio || 1;
+  await Promise.all(["400 76px NY", "italic 400 50px NY", "700 150px NY", "700 34px SF", "600 34px SF"].map((f) => document.fonts.load(f)));
+  $("l1").textContent = C.lines[0]; $("l2").textContent = C.lines[1]; $("l3").textContent = C.lines[2];
+  $("name").textContent = C.name; $("tag").textContent = C.tagline; $("store").textContent = C.store;
+  $("grain").style.backgroundImage = `url(${ASSETS}grain.png)`;
+  image($("sandImg"), "sand.png"); image($("glassImg"), "glass.png"); image($("glassGlow"), "glass.png");
+  await Promise.all(imgs);
+
+  for (const id of ["feed", "grains"]) { const cv = $(id); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  feedCtx = $("feed").getContext("2d");
+  grainCtx = $("grains").getContext("2d");
+  CARDS = PHOTOS.map((_, k) => paintCard(k, dpr));
+
+  F = document.createElement("canvas"); F.width = Math.round(W * dpr); F.height = Math.round(H * dpr);
+  const fc = F.getContext("2d", { willReadFrequently: true }); fc.scale(dpr, dpr); drawFeed(fc, T.freeze);
+  maskC = document.createElement("canvas"); maskC.width = COLS; maskC.height = ROWS;
+  maskCtx = maskC.getContext("2d"); maskImg = maskCtx.createImageData(COLS, ROWS);
+  edgeC = document.createElement("canvas"); edgeC.width = COLS; edgeC.height = ROWS;
+  edgeCtx = edgeC.getContext("2d"); edgeImg = edgeCtx.createImageData(COLS, ROWS);
+  buf = grainCtx.createImageData(Math.round(W * dpr), Math.round(H * dpr));
+  u8 = buf.data; u32 = new Uint32Array(u8.buffer);
+  buildGrains();
+}
+
+// Twelve moments across a fast frame, one across a still one (see render-page.mjs).
+window.SAMPLES = (t) => {
+  if (t >= 3.4 && t <= T.freeze) return 12;
+  if (t >= T.feed && t < 3.4) return 6;
+  if (t > T.freeze && t < T.release) return 1;
+  if (t >= T.release && t <= SWAP + 0.9) return 4;
+  if (t >= T.shrink[0] && t <= T.shrink[1]) return 4;
+  return 2;
+};
+
+// ---------------------------------------------------------------- the score's cues
+Object.defineProperty(window, "CUES", { get: () => {
+  const c = [];
+  const add = (t, type, extra = {}) => c.push({ t: +t.toFixed(4), type, ...extra });
+  const len = T.freeze - T.feed;
+  for (const [ft] of FLICKS) add(ft, "flick", { p: (ft - T.feed) / len });
+  let last = -1, lastT = -1;
+  for (let t = T.feed; t < T.freeze; t += 0.001) {
+    const n = Math.floor((scrollAt(t) - (ENTRY - 960)) / PITCH);
+    if (n > last && n >= 0) { if (t - lastT > 0.035) { add(t, "card", { p: (t - T.feed) / len, high: n % 2 === 1 }); lastT = t; } last = n; }
+  }
+  for (const p of PINGS) add(p.t, "ping", { p: (p.t - T.feed) / len, pan: (p.x + 80) / W });
+  for (const p of P) if (p.kind > 0) add(p.land, "land", { pan: +(p.tx / W).toFixed(3), g: +(0.5 + hash(p.sx * 7 + p.sy) * 0.8).toFixed(2) });
+  const ft = [], fn = [];
+  for (let t = T.release - 0.2; t < SWAP + 0.5; t += 0.05) {
+    let n = 0; for (const p of P) { const g = grainAt(p, t); if (g && g.flying) n++; }
+    ft.push(+t.toFixed(2)); fn.push(n);
+  }
+  c.push({ t: ft, type: "flight", n: fn });
+  for (const [k, v] of Object.entries({ line1: T.line1, feed: T.feed, freeze: T.freeze, release: T.release, line2: T.line2,
+    swap: SWAP, line3: T.line3, shrink: T.shrink[0], name: T.name, tag: T.tag, stop: DURATION })) add(v, "mark:" + k);
+  return c;
+} });
+
+// ---------------------------------------------------------------- seek
+let feedCleared = false, grainsCleared = false;
+window.seek = function seek(t) {
+  const g = Math.floor(t * 24);
+  $("grain").style.backgroundPosition = `${Math.floor(hash(g) * 512)}px ${Math.floor(hash(g + 9) * 512)}px`;
+  $("fade").style.opacity = E.inOut(span(t, ...T.out));
+
+  blurIn($("l1"), t, T.line1, T.line1Out);
+  blurIn($("l2"), t, T.line2, T.line2Out);
+  blurIn($("l3"), t, T.line3, T.line3Out);
+  blurIn($("name"), t, T.name, 99, { rise: 20, dur: 1.3 });
+  blurIn($("tag"), t, T.tag, 99, { rise: 16, dur: 1.2 });
+  blurIn($("store"), t, T.store, 99, { rise: 12, dur: 1.0 });
+
+  $("cold").style.opacity = t < T.freeze ? E.out(span(t, T.feed, T.feed + 1.2)) * (0.6 + 0.4 * span(t, 3.4, T.freeze))
+                                         : 1 - E.inOut(span(t, T.freeze + 0.3, T.release + 1.2));
+
+  // ---- the feed: running, then frozen, then letting go
+  const endRelease = T.release + T.releaseSpread + T.releaseNoise;
+  if (t >= T.feed && t < endRelease) {
+    feedCleared = false;
+    const c = feedCtx;
+    c.setTransform(1, 0, 0, 1, 0, 0); c.globalCompositeOperation = "source-over";
+    c.clearRect(0, 0, c.canvas.width, c.canvas.height);
+    if (t < T.freeze) {
+      c.setTransform(dpr, 0, 0, dpr, 0, 0); drawFeed(c, t);
+    } else {
+      c.drawImage(F, 0, 0);
+      if (t >= T.release - 0.01) {
+        const m = maskImg.data, e = edgeImg.data;
+        for (let n = 0; n < RELEASE.length; n++) {
+          const left = RELEASE[n] - t;
+          m[n * 4 + 3] = left > 0 ? 255 : 0;
+          const glowing = left > 0 && left < 0.06 ? 1 - left / 0.06 : 0;
+          e[n * 4] = 255; e[n * 4 + 1] = 168; e[n * 4 + 2] = 92; e[n * 4 + 3] = glowing * 230;
+        }
+        maskCtx.putImageData(maskImg, 0, 0); edgeCtx.putImageData(edgeImg, 0, 0);
+        c.imageSmoothingEnabled = true;
+        c.globalCompositeOperation = "destination-in";
+        c.drawImage(maskC, COLX * dpr, 0, COLS * CELL * dpr, ROWS * CELL * dpr);
+        c.globalCompositeOperation = "source-atop";
+        c.drawImage(edgeC, COLX * dpr, 0, COLS * CELL * dpr, ROWS * CELL * dpr);
+        c.globalCompositeOperation = "source-over";
+      }
+    }
+  } else if (!feedCleared) {
+    feedCtx.setTransform(1, 0, 0, 1, 0, 0); feedCtx.clearRect(0, 0, feedCtx.canvas.width, feedCtx.canvas.height); feedCleared = true;
+  }
+
+  // ---- the grains
+  const grainsOn = t >= T.release - 0.01 && t < SWAP + 1.0;
+  if (grainsOn) {
+    grainsCleared = false;
+    u32.fill(0);
+    for (let n = NT; n < NP; n++) { const q = grainAt(P[n], t); if (q) dot(q.x, q.y, q.s, q.c, q.a); }
+    for (let n = 0; n < NT; n++) { const q = grainAt(P[n], t); if (q) dot(q.x, q.y, q.s, q.c, q.a); }
+    grainCtx.putImageData(buf, 0, 0);
+  } else if (!grainsCleared) {
+    grainCtx.clearRect(0, 0, grainCtx.canvas.width, grainCtx.canvas.height); grainsCleared = true;
+  }
+  $("grains").style.opacity = 1 - span(t, SWAP + 0.4, SWAP + 0.9);
+  $("sandImg").style.opacity = span(t, SWAP, SWAP + 0.5);
+
+  let landed = 0, lo = 0, hi = LANDINGS.length;
+  while (lo < hi) { const mid = (lo + hi) >> 1; if (LANDINGS[mid] <= t) lo = mid + 1; else hi = mid; }
+  landed = lo / Math.max(1, LANDINGS.length);
+  $("warm").style.opacity = t < T.release ? 0 : clamp(0.25 * span(t, T.release, T.release + 2) + 0.75 * landed) * (1 - 0.5 * span(t, ...T.shrink));
+
+  // ---- the glass, coming into being round the sand
+  const gp = E.inOut(span(t, ...T.glass));
+  $("glassImg").style.opacity = gp;
+  $("glassGlow").style.opacity = 0.55 * gp * (1 - 0.6 * span(t, T.glass[1], T.glass[1] + 1.5));
+
+  // ---- and the hourglass becomes the icon
+  const sp = E.glide(span(t, ...T.shrink));
+  const tf = sp > 0 ? `translateY(${-250 * sp}px) scale(${lerp(1, 0.232, sp)})` : "";
+  $("back").style.transform = tf; $("front").style.transform = tf;
+  $("plate").style.opacity = E.inOut(span(t, T.shrink[0] + 0.5, T.shrink[1] - 0.1));
+};
+</script>
+</body>
+</html>

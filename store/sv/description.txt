@@ -1,0 +1,29 @@
+Quiet visar Instagrams mobilsajt med de ytor som aldrig tar slut borttagna.
+
+Ditt flöde, dina stories, dina meddelanden och din profil laddas som du känner dem. Reels och Utforska finns inte. Inläggen som Instagram lägger in mellan dina vänners gör det — och en knapp tar bort dem, vilket också ger flödet ett slut som går att nå. Du loggar in på Instagrams egen sida, så ditt lösenord rör aldrig Quiet.
+
+Sedan finns det en gräns.
+
+Du väljer hur många minuter om dagen du vill ha. Medan du läser räknas den tiden ner — bara medan appen är framför dig, bara medan sidan faktiskt syns. Två tysta påminnelser, vid fem minuter och vid en. När tiden är slut stänger appen dagen och säger det.
+
+Du kan sänka din gräns när du vill, och det gäller direkt. Du kan höja den en gång i veckan, och den nya siffran börjar nästa dag — aldrig i det ögonblick du vill ha fem minuter till. Den asymmetrin är hela appen. Beslutet du fattar lugnt får binda beslutet du fattar klockan elva på kvällen.
+
+VAD QUIET INTE GÖR
+
+• Inget konto, ingen server hos oss, ingen analys, ingen reklam, ingen spårning. Slår du på att ta med gränsen mellan enheter hamnar din gräns och dagens summa i ditt eget iCloud — där bara dina enheter kan läsa dem.
+
+• Inga serier, ingen veckorapport, inget att kolla. Det finns en enda notis och den är avstängd tills du ber om den: en daglig påminnelse, på en timme du väljer, som håller tyst de dagar du redan varit där.
+
+• Ingen nedräkning på skärmen. En klocka man kan titta på är en klocka man tittar på; det som är kvar står i panelen, för de stunder då du verkligen vill veta.
+
+• Quiet ber dig inte om något för egen del. Den enda behörighet den kan ta fram är den för den dagliga påminnelsen, och först efter att du slagit på den. Instagrams egna sidor kan fortfarande be om kameran, mikrofonen eller dina bilder när du bifogar något till ett inlägg eller ett meddelande — det är iOS som frågar för Instagrams räkning, och Quiet använder ingen av de tre själv.
+
+Åtta saker sparas, på din telefon, i nyckelringen: din gräns och varje ändring du köat till en senare dag, dagens summa, den längsta punkten i tiden som appen sett, dagen du ställde in den, dagen du bad den glömma allt, vad dina andra enheter gjort av med om du tar med gränsen mellan dem, hur många minuter om dagen du sa att du lade före Quiet, och hur länge du var där varje dag sedan dess. De överlever att appen raderas, med flit. En gräns du kan häva genom att installera om är ingen gräns.
+
+Därför finns det en väg ut som inte är App Store. "Make Quiet forget everything", längst ner i panelen, slänger alla åtta och kopian i iCloud med dem — efter samma väntan som står mellan dig och en större siffra. En app helt utan väg ut vore en fälla; en app du kan lämna i det ögonblick du vill ha fem minuter till vore ingen gräns.
+
+Dygnet vänder klockan fyra på morgonen i stället för vid midnatt, så att en sen kväll hör till den kväll den känns som.
+
+Quiet talar engelska, tyska, spanska, franska och portugisiska: på en telefon inställd på svenska är appens egna skärmar på engelska.
+
+Quiet är inte knutet till Instagram eller Meta och stöds inte av dem. Det är en begränsare för en sajt du redan använder, inte en ersättning — och det är inte gjort, drivet eller understött av dem.

@@ -1,0 +1,729 @@
+<!doctype html>
+<!--
+  Quiet — the TikTok spot. 1080 x 1920, 24.5 seconds, driven entirely by seek(t).
+
+  Nothing here runs on a clock. `render.mjs` calls seek(t) for every sample of
+  every frame and photographs the result, so an animation is a function of
+  time and nothing else — the same t always gives the same picture.
+
+  The idea is the name. Six seconds of the loudest thing a feed can be — a
+  scroll that will not stop, a clock running away, words slammed on the beat —
+  then a hard cut to paper and silence, and the app says what it is in the
+  voice it actually has. Everything after the cut is Quiet's own screens.
+
+  Safe area: TikTok lays its own furniture over the bottom ~420 px and the
+  right ~140 px. Every word here stays inside x 80–900, y 220–1400.
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+@font-face { font-family: "SF"; src: url("file:///System/Library/Fonts/SFNS.ttf"); font-weight: 1 1000; }
+@font-face { font-family: "NY"; src: url("file:///System/Library/Fonts/NewYork.ttf"); font-weight: 400 1000; }
+@font-face { font-family: "NY"; src: url("file:///System/Library/Fonts/NewYorkItalic.ttf"); font-weight: 400 1000; font-style: italic; }
+@font-face { font-family: "Hand"; src: url("file:///System/Library/Fonts/Supplemental/Bradley Hand Bold.ttf"); }
+
+:root {
+  --night: #0A0B0D; --paper: #F2EEE5; --ink: #171614; --paper-ink: #F4F1EA;
+  --muted: #6B665E; --muted-dark: #8E9096; --red: #D8322A;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--night); }
+body { -webkit-font-smoothing: antialiased; font-kerning: normal; text-rendering: geometricPrecision; }
+
+#stage { position: absolute; inset: 0; overflow: hidden; }
+.layer { position: absolute; inset: 0; }
+.hidden { visibility: hidden; }
+
+/* ---- type ---- */
+.display { font-family: "SF"; font-weight: 800; letter-spacing: -0.042em; line-height: 1.0; }
+.serif { font-family: "NY"; font-weight: 400; letter-spacing: -0.01em; }
+.italic { font-style: italic; }
+.m { display: inline-block; overflow: hidden; vertical-align: top;
+     padding: 0.06em 0.04em 0.16em; margin: -0.06em -0.04em -0.16em; }
+.w { display: inline-block; will-change: transform; }
+.line { display: block; white-space: nowrap; }
+.em-red { color: var(--red); position: relative; }
+.strike { position: absolute; left: -0.04em; right: -0.04em; top: 0.53em; height: 0.085em;
+          background: var(--red); transform-origin: left center; transform: scaleX(0); border-radius: 0.05em; }
+
+/* ---- the phone ---- */
+#phoneOuter { position: absolute; inset: 0; perspective: 2600px; perspective-origin: 50% 42%; }
+#phoneShadow { position: absolute; width: 520px; height: 1100px; left: 280px; top: 410px;
+               border-radius: 120px; background: rgba(40, 30, 15, 0.55); filter: blur(60px); }
+#phone { position: absolute; left: 244px; top: 335.5px; width: 592px; height: 1249px;
+         transform-style: preserve-3d; }
+.slab { position: absolute; inset: 0; border-radius: 93px;
+        background: linear-gradient(90deg, #2a2a2d 0%, #9a9aa0 3%, #3b3b3f 9%, #56565b 50%, #3b3b3f 91%, #9a9aa0 97%, #2a2a2d 100%); }
+.front { position: absolute; inset: 0; border-radius: 93px; background: #060607;
+         box-shadow: inset 0 0 0 2.5px #3a3a3f, 0 0 0 1.5px #8c8c92; transform: translateZ(0.5px); }
+.screen { position: absolute; left: 16px; top: 16px; width: 560px; height: 1217px; border-radius: 77px;
+          overflow: hidden; background: #000; }
+.screen img, .screen .fill { position: absolute; left: 0; top: 0; width: 560px; }
+.glare { position: absolute; inset: -40%; pointer-events: none;
+         background: linear-gradient(112deg, rgba(255,255,255,0) 38%, rgba(255,255,255,0.13) 47%, rgba(255,255,255,0.03) 52%, rgba(255,255,255,0) 60%); }
+
+/* ---- scenes ---- */
+.pill { display: inline-block; border-radius: 999px; }
+.slam { position: absolute; inset: -48px; display: flex; align-items: center; justify-content: center;
+        text-align: center; padding: 0 70px 240px; }
+.slam span { display: inline-block; white-space: pre-line; }
+#grain { position: absolute; inset: -64px; background-image: url(); mix-blend-mode: overlay; opacity: 0.07; pointer-events: none; }
+#vignette { position: absolute; inset: 0; pointer-events: none;
+            background: radial-gradient(ellipse 80% 70% at 50% 45%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.55) 100%); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="bg" class="layer" style="inset: -48px;"></div>
+  <div id="vignette"></div>
+
+  <!-- 1 & 2: the scroll and the clock -->
+  <div id="clock" class="layer display" style="top: 600px; height: 330px; text-align: center; font-size: 280px; font-variant-numeric: tabular-nums; color: var(--paper-ink); letter-spacing: -0.02em;"></div>
+  <div id="suddenly" class="layer serif italic" style="top: 1000px; height: 120px; text-align: center; font-size: 66px; color: var(--paper-ink);"></div>
+
+  <!-- the phone, with everything that is ever on it -->
+  <div id="phoneOuter">
+    <div id="phoneShadow"></div>
+    <div id="phone">
+      <div class="front">
+        <div class="screen" id="screen">
+          <div id="feedView" class="fill" style="height: 1217px; background: #fff;">
+            <div id="feedScroll" style="position: absolute; left: 0; top: 152px; width: 560px; height: 945px; overflow: hidden;">
+              <div id="feedStrip" style="position: absolute; left: 0; top: 0; width: 560px;"></div>
+            </div>
+            <img id="feedHead" style="top: 0;">
+            <img id="feedNav" style="top: 1097px;">
+          </div>
+          <img id="feedOpen">
+          <svg id="annot" width="560" height="1217" style="position: absolute; left: 0; top: 0; overflow: visible;">
+            <path id="circle" fill="none" stroke="#D8322A" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div id="gone" style="position: absolute; left: 330px; top: 985px; font-family: Hand; font-size: 64px; color: var(--red); transform: rotate(-9deg); white-space: nowrap;"></div>
+          <img id="panel3"><img id="panel2"><img id="panel1"><img id="panel0">
+          <img id="curtain">
+          <img id="opening">
+          <div class="glare" id="glare"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1: hook -->
+  <div id="hook" class="layer" style="left: 80px; top: 236px; width: 920px;">
+    <div id="pov" class="pill display" style="background: var(--red); color: #fff; font-size: 46px; padding: 10px 22px 12px; letter-spacing: -0.02em;"></div>
+    <div id="hookLines" class="display" style="margin-top: 26px; font-size: 98px; color: var(--paper-ink);"></div>
+  </div>
+
+  <!-- 3: slams -->
+  <div id="slams" class="layer"></div>
+
+  <!-- 4: the quiet -->
+  <div id="quiet" class="layer">
+    <img id="quietIcon" style="position: absolute; left: 430px; top: 560px; width: 220px; height: 220px; border-radius: 49px; box-shadow: 0 30px 60px rgba(60,45,20,0.25);">
+    <div id="quietName" class="serif" style="position: absolute; left: 0; right: 0; top: 830px; text-align: center; font-size: 160px; font-weight: 700; color: var(--ink); letter-spacing: -0.02em;"></div>
+    <div id="quietLine" class="serif italic" style="position: absolute; left: 0; right: 0; top: 1060px; text-align: center; font-size: 52px; line-height: 1.28; color: var(--muted);"></div>
+  </div>
+
+  <!-- 5 -->
+  <div id="without" class="layer display" style="left: 80px; top: 236px; font-size: 108px; color: var(--ink);"></div>
+  <!-- 6 -->
+  <div id="limitText" class="layer display" style="left: 80px; top: 236px; font-size: 100px; color: var(--ink);"></div>
+  <div id="over" class="layer display" style="left: 80px; top: 236px; font-size: 112px; color: var(--paper-ink);"></div>
+  <div id="nomore" class="layer serif italic" style="left: 80px; top: 370px; font-size: 56px; color: var(--muted-dark);"></div>
+
+  <!-- 7: the rule -->
+  <div id="rule" class="layer">
+    <div id="ruleTitle" class="serif" style="position: absolute; left: 80px; top: 330px; font-size: 70px; color: var(--ink);"></div>
+    <div id="lessPill" class="pill display" style="position: absolute; left: 80px; top: 520px; background: var(--ink); color: var(--paper); font-size: 70px; padding: 16px 40px 22px; transform-origin: left center;"></div>
+    <div id="lessWhen" class="display" style="position: absolute; left: 80px; top: 650px; font-size: 84px; color: var(--ink);"></div>
+    <div id="morePill" class="pill display" style="position: absolute; left: 80px; top: 830px; background: var(--red); color: #fff; font-size: 70px; padding: 16px 40px 22px; transform-origin: left center;"></div>
+    <div id="moreWhen" class="display" style="position: absolute; left: 80px; top: 960px; font-size: 84px; color: var(--ink);"></div>
+    <div id="ruleWhy" class="display" style="position: absolute; left: 80px; top: 1170px; font-size: 44px; font-weight: 500; letter-spacing: -0.015em; line-height: 1.28; color: var(--muted);"></div>
+  </div>
+  <div id="riseNight" class="layer" style="background: var(--night);"></div>
+
+  <!-- 8: privacy -->
+  <div id="privacy" class="layer"></div>
+  <div id="password" class="layer display" style="left: 80px; top: 1130px; font-size: 42px; font-weight: 500; letter-spacing: -0.012em; color: var(--muted-dark);"></div>
+
+  <!-- 9: call to action -->
+  <div id="cta" class="layer">
+    <img id="ctaIcon" style="position: absolute; left: 455px; top: 236px; width: 170px; height: 170px; border-radius: 38px; box-shadow: 0 24px 50px rgba(60,45,20,0.28);">
+    <div id="ctaName" class="serif" style="position: absolute; left: 0; right: 0; top: 420px; text-align: center; font-size: 124px; font-weight: 700; color: var(--ink); letter-spacing: -0.02em;"></div>
+    <div id="ctaLine" class="display" style="position: absolute; left: 0; right: 0; top: 585px; text-align: center; font-size: 50px; font-weight: 600; letter-spacing: -0.02em; color: var(--muted);"></div>
+    <div style="position: absolute; left: 0; right: 0; top: 680px; text-align: center;">
+      <div id="ctaButton" class="pill display" style="background: var(--ink); color: var(--paper); font-size: 44px; font-weight: 700; letter-spacing: -0.015em; padding: 22px 50px 26px;"></div>
+    </div>
+  </div>
+
+  <div id="wipe" class="layer" style="background: var(--paper);"></div>
+  <div id="grain"></div>
+</div>
+
+<script>
+// ---------------------------------------------------------------- assets
+const params = new URLSearchParams(location.search);
+const LANG = params.get("lang") || "de";
+const ASSETS = `../shots/out/tiktok/assets/${LANG}/`;
+const $ = (id) => document.getElementById(id);
+
+window.DURATION = 24.5;
+
+window.ready = new Promise((resolve) => {
+  const script = document.createElement("script");
+  script.src = ASSETS + "copy.js";
+  script.onload = () => build().then(resolve);
+  document.head.appendChild(script);
+});
+
+// ---------------------------------------------------------------- time
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const span = (t, a, b) => clamp((t - a) / (b - a));
+const E = {
+  lin: (p) => p,
+  out: (p) => 1 - Math.pow(1 - p, 3),
+  in: (p) => p * p * p,
+  inOut: (p) => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2),
+  outExpo: (p) => (p >= 1 ? 1 : 1 - Math.pow(2, -10 * p)),
+  inExpo: (p) => (p <= 0 ? 0 : Math.pow(2, 10 * p - 10)),
+  outQuint: (p) => 1 - Math.pow(1 - p, 5),
+  outBack: (p) => { const c = 1.45, d = p - 1; return 1 + (c + 1) * d * d * d + c * d * d; },
+  // a damped spring, settled by p = 1
+  spring: (p) => (p >= 1 ? 1 : 1 - Math.exp(-6.5 * p) * Math.cos(10.5 * p)),
+};
+const lerp = (a, b, p) => a + (b - a) * p;
+
+// A track: [[time, value(s), easing into this key], ...]
+function track(t, keys) {
+  if (t <= keys[0][0]) return keys[0][1];
+  for (let i = 1; i < keys.length; i++) {
+    const [t1, v1, ease = "inOut"] = keys[i];
+    const [t0, v0] = keys[i - 1];
+    if (t <= t1) {
+      const p = t1 > t0 ? E[ease]((t - t0) / (t1 - t0)) : 1;
+      if (typeof v0 === "number") return lerp(v0, v1, p);
+      const out = {};
+      for (const k in v1) out[k] = lerp(v0[k] ?? v1[k], v1[k], p);
+      return out;
+    }
+  }
+  return keys[keys.length - 1][1];
+}
+
+const hash = (n) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+const show = (el, on) => { el.style.visibility = on ? "visible" : "hidden"; };
+const between = (t, a, b) => t >= a && t < b;
+
+function hexMix(a, b, p) {
+  const pa = [1, 3, 5].map((i) => parseInt(a.slice(i, i + 2), 16));
+  const pb = [1, 3, 5].map((i) => parseInt(b.slice(i, i + 2), 16));
+  return `rgb(${pa.map((v, i) => Math.round(lerp(v, pb[i], p))).join(",")})`;
+}
+const NIGHT = "#0A0B0D", PAPER = "#F2EEE5", INK = "#171614", PAPER_INK = "#F4F1EA";
+
+// ---------------------------------------------------------------- words
+// Lines of words, each word in a mask so it can rise into place. `*x*` marks
+// the red word, which also gets a strike it can draw.
+function setWords(el, text, { strike = false } = {}) {
+  el.innerHTML = "";
+  const words = [];
+  text.split("\n").forEach((line) => {
+    const row = document.createElement("span");
+    row.className = "line";
+    line.split(" ").forEach((word, i, all) => {
+      const mask = document.createElement("span");
+      mask.className = "m";
+      const w = document.createElement("span");
+      w.className = "w";
+      const red = /^\*.*\*[.,]?$/.test(word) || /^\*.*\*$/.test(word);
+      const clean = word.replace(/\*/g, "");
+      if (red) {
+        const inner = document.createElement("span");
+        inner.className = "em-red";
+        const bare = clean.replace(/[.,]$/, "");
+        inner.textContent = bare;
+        if (strike) {
+          const s = document.createElement("span");
+          s.className = "strike";
+          inner.appendChild(s);
+          w.strike = s;
+        }
+        w.appendChild(inner);
+        if (bare !== clean) w.appendChild(document.createTextNode(clean.slice(bare.length)));
+      } else {
+        w.textContent = clean;
+      }
+      mask.appendChild(w);
+      row.appendChild(mask);
+      if (i < all.length - 1) row.appendChild(document.createTextNode(" "));
+      words.push(w);
+    });
+    el.appendChild(row);
+  });
+  return words;
+}
+
+// In: each word rises out of its mask, one after another. Out: all of them
+// leave upwards together, faster than they came.
+function reveal(words, t, start, { stagger = 0.07, dur = 0.55, out = 1e9, outDur = 0.28 } = {}) {
+  words.forEach((w, i) => {
+    const pin = E.outExpo(span(t, start + i * stagger, start + i * stagger + dur));
+    const pout = E.inExpo(span(t, out + i * 0.02, out + i * 0.02 + outDur));
+    const y = (1 - pin) * 112 - pout * 112;
+    w.style.transform = `translate3d(0, ${y}%, 0)`;
+  });
+}
+
+// Shrink a block's type until its widest line fits. Measured on the text
+// itself, not the box: a layer is as wide as the stage whatever it holds.
+const fits = [];
+function fit(el, width) { fits.push([el, width]); }
+function applyFits() {
+  for (const [el, width] of fits) {
+    let size = parseFloat(getComputedStyle(el).fontSize);
+    const widest = () => Math.max(...[...el.querySelectorAll(".line")].map((l) => {
+      const r = document.createRange();
+      r.selectNodeContents(l);
+      return r.getBoundingClientRect().width;
+    }), 0);
+    while (widest() > width && size > 30) {
+      size -= 2;
+      el.style.fontSize = size + "px";
+    }
+  }
+}
+
+// ---------------------------------------------------------------- build
+const W = {};
+const img = (id, file) => new Promise((ok) => {
+  const el = $(id);
+  el.onload = () => el.decode().then(ok, ok);
+  el.onerror = () => { console.log("missing " + file); ok(); };
+  el.src = ASSETS + file;
+});
+
+async function build() {
+  const C = window.COPY;
+  $("bg").style.background = NIGHT;
+  $("grain").style.backgroundImage = `url(${ASSETS}grain.png)`;
+
+  // the phone's body: a stack of slabs, which is what gives it a side
+  const phone = $("phone");
+  for (let i = 18; i >= 1; i--) {
+    const s = document.createElement("div");
+    s.className = "slab";
+    s.style.transform = `translateZ(${-i * 3.4}px)`;
+    if (i === 18) s.style.background = "#1c1c1f";
+    phone.insertBefore(s, phone.firstChild);
+  }
+
+  // the feed strip, twice, so the scroll can wrap
+  const strip = $("feedStrip");
+  const loads = [];
+  for (let k = 0; k < 2; k++) {
+    const im = document.createElement("img");
+    im.style.cssText = "position: relative; display: block; width: 560px;";
+    loads.push(new Promise((ok) => { im.onload = () => im.decode().then(ok, ok); }));
+    im.src = ASSETS + "feed-strip.jpg";
+    strip.appendChild(im);
+  }
+  loads.push(img("feedHead", "feed-head.png"), img("feedNav", "feed-nav.png"),
+             img("feedOpen", "feed-open.png"), img("panel3", "panel-3.png"),
+             img("panel2", "panel-2.png"), img("panel1", "panel-1.png"),
+             img("panel0", "panel-0.png"), img("curtain", "curtain.png"),
+             img("opening", "opening.png"), img("quietIcon", "icon.png"), img("ctaIcon", "icon.png"));
+
+  // words
+  $("pov").textContent = C.pov;
+  W.hook = setWords($("hookLines"), C.hook.join("\n"));
+  fit($("hookLines"), 910);
+  W.suddenly = setWords($("suddenly"), C.suddenly);
+
+  // the clock: four columns of two cells each, rolled by seek()
+  const clock = $("clock");
+  W.digits = [];
+  ["d", "d", ":", "d", "d"].forEach((kind) => {
+    if (kind === ":") {
+      const c = document.createElement("span");
+      c.textContent = ":";
+      c.style.cssText = "display: inline-block; vertical-align: top; transform: translateY(-0.06em);";
+      clock.appendChild(c);
+      return;
+    }
+    const col = document.createElement("span");
+    col.style.cssText = "display: inline-block; height: 1.0em; line-height: 1.0em; overflow: hidden; vertical-align: top;";
+    const roll = document.createElement("span");
+    roll.style.cssText = "display: block;";
+    const a = document.createElement("span"), b = document.createElement("span");
+    a.style.display = b.style.display = "block";
+    roll.append(a, b);
+    col.appendChild(roll);
+    clock.appendChild(col);
+    W.digits.push({ roll, a, b });
+  });
+
+  // slams
+  W.slams = C.slams.map((text, i) => {
+    const d = document.createElement("div");
+    d.className = "slam display";
+    const colors = [["#D8322A", "#fff"], [PAPER, INK], [NIGHT, PAPER_INK], ["#D8322A", "#fff"]][i];
+    d.style.background = colors[0];
+    d.style.color = colors[1];
+    d.style.fontSize = (i === 3 ? 128 : 190) + "px";
+    d.style.fontWeight = 900;
+    d.style.lineHeight = "1.02";
+    const s = document.createElement("span");
+    s.textContent = text;
+    d.appendChild(s);
+    $("slams").appendChild(d);
+    return { box: d, text: s };
+  });
+
+  // the quiet
+  $("quietName").textContent = C.name;
+  W.quietLine = setWords($("quietLine"), C.opening);
+
+  // five
+  W.without = setWords($("without"), C.without.join("\n"), { strike: true });
+  $("gone").textContent = C.gone;
+  drawCircle();
+
+  // six
+  W.limit = setWords($("limitText"), C.limit.join("\n"));
+  W.over = setWords($("over"), C.over);
+  fit($("over"), 920);
+  W.nomore = setWords($("nomore"), C.nomore);
+  fit($("nomore"), 920);
+
+  // seven
+  W.ruleTitle = setWords($("ruleTitle"), C.ruleTitle);
+  $("lessPill").textContent = "− " + C.less;
+  $("morePill").textContent = "+ " + C.more;
+  W.lessWhen = setWords($("lessWhen"), "→ " + C.lessWhen);
+  W.moreWhen = setWords($("moreWhen"), "→ " + C.moreWhen);
+  fit($("moreWhen"), 920);
+  W.ruleWhy = setWords($("ruleWhy"), C.ruleWhy);
+
+  // eight
+  W.privacy = C.privacy.map((text, i) => {
+    const row = document.createElement("div");
+    row.className = "display";
+    row.style.cssText = `position: absolute; left: 80px; top: ${600 + i * 165}px; font-size: 100px; color: ${PAPER_INK}; display: flex; align-items: center; gap: 34px; white-space: nowrap;`;
+    const tick = document.createElement("div");
+    tick.innerHTML = `<svg width="92" height="92" viewBox="0 0 92 92"><circle cx="46" cy="46" r="46" fill="#D8322A"/><path d="M27 47 L40 60 L66 32" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/></svg>`;
+    const words = document.createElement("div");
+    row.append(tick, words);
+    $("privacy").appendChild(row);
+    return { tick: tick.firstChild, check: tick.querySelector("path"), words: setWords(words, text) };
+  });
+  W.password = setWords($("password"), C.password);
+  fit($("password"), 920);
+
+  // nine
+  $("ctaName").textContent = C.name;
+  W.ctaLine = setWords($("ctaLine"), C.tagline);
+  $("ctaButton").textContent = C.cta;
+
+  await Promise.all(loads);
+  await document.fonts.ready;
+  applyFits();
+  // a slam fills the width it is given, and never more
+  W.slams.forEach(({ text }) => {
+    let size = parseFloat(text.parentNode.style.fontSize);
+    while (text.getBoundingClientRect().width > 900 && size > 60) {
+      size -= 4;
+      text.parentNode.style.fontSize = size + "px";
+    }
+  });
+  seek(0);
+}
+
+// A circle drawn by a hand in a hurry: it starts late, overshoots its own
+// start, and is never quite round.
+function drawCircle() {
+  const cx = 280, cy = 1128, rx = 86, ry = 50;
+  const pts = [];
+  for (let i = 0; i <= 64; i++) {
+    const a = (-150 + (i / 64) * 400) * Math.PI / 180;
+    const wob = 1 + 0.05 * Math.sin(i * 0.9) + 0.06 * (i / 64);
+    pts.push([cx + Math.cos(a) * rx * wob, cy + Math.sin(a) * ry * wob - 6 * (i / 64)]);
+  }
+  const d = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+  const c = $("circle");
+  c.setAttribute("d", d);
+  c.setAttribute("pathLength", "1");
+  c.style.strokeDasharray = "1";
+}
+
+// ---------------------------------------------------------------- the score
+// Every sound the page asks for, on the frame it happens. `mark:` entries are
+// the music's structure, read by the soundtrack.
+window.CUES = [
+  { t: 0.05, type: "pop", pitch: 1.2 },
+  { t: 2.0, type: "whoosh", gain: 0.8 },
+  { t: 2.15, type: "roll", length: 1.25 },
+  { t: 3.4, type: "impact" },
+  { t: 4.0, type: "slam" }, { t: 4.5, type: "slam" }, { t: 5.0, type: "slam" }, { t: 5.5, type: "slam" },
+  { t: 5.0, type: "riser", length: 1.0 },
+  { t: 6.4, type: "bell" },
+  { t: 7.85, type: "whoosh" },
+  { t: 8.95, type: "scribble", length: 0.3 },
+  { t: 9.35, type: "scribble", length: 0.55 },
+  { t: 10.85, type: "whip" },
+  { t: 12.5, type: "tick" }, { t: 13.0, type: "tick" }, { t: 13.5, type: "tick", high: true },
+  { t: 13.8, type: "curtain" },
+  { t: 14.3, type: "thud" },
+  { t: 14.95, type: "swell" },
+  { t: 15.65, type: "pop" }, { t: 16.55, type: "pop", pitch: 1.15 },
+  { t: 18.35, type: "whoosh" },
+  { t: 18.7, type: "pop" }, { t: 19.1, type: "pop", pitch: 1.1 }, { t: 19.5, type: "pop", pitch: 1.2 },
+  { t: 20.45, type: "whoosh" },
+  { t: 20.85, type: "bell" },
+  { t: 21.6, type: "pop", pitch: 0.9 },
+  { t: 6.0, type: "mark:cut" }, { t: 8.0, type: "mark:back" },
+  { t: 13.8, type: "mark:drop0" }, { t: 15.0, type: "mark:drop1" }, { t: 24.5, type: "mark:end" },
+];
+
+// ---------------------------------------------------------------- motion blur
+// How many moments each frame is averaged from (see render-page.mjs). Three
+// is enough for type rising a few pixels a frame; the whips, pushes and slams
+// move a hundred pixels a frame and need twelve, or they strobe.
+const FAST = [[1.95, 2.5], [2.15, 3.45], [3.4, 3.75], [4.0, 4.3], [4.5, 4.8], [5.0, 5.3], [5.5, 6.0],
+              [7.75, 8.65], [10.75, 11.55], [11.85, 12.45], [13.75, 14.4], [14.9, 15.4],
+              [18.25, 18.7], [20.35, 21.25]];
+window.SAMPLES = (t) => (FAST.some(([a, b]) => t >= a && t <= b) ? 12 : 3);
+
+// ---------------------------------------------------------------- the phone's path
+const POSE = [
+  [0.0, { x: 540, y: 1250, s: 1.0, rx: 14, ry: -20, rz: 4, o: 1, b: 0 }],
+  [2.0, { x: 540, y: 1215, s: 1.03, rx: 10, ry: -10, rz: 2, o: 1, b: 0 }, "lin"],
+  [2.45, { x: 540, y: 1330, s: 0.8, rx: 12, ry: -6, rz: 1, o: 0.35, b: 12 }, "out"],
+  [4.0, { x: 540, y: 1330, s: 0.78, rx: 12, ry: -4, rz: 1, o: 0.35, b: 12 }, "lin"],
+  [4.0, { x: 540, y: 2700, s: 0.92, rx: 38, ry: 28, rz: -10, o: 0, b: 0 }, "lin"],
+  [7.8, { x: 540, y: 2700, s: 0.92, rx: 38, ry: 28, rz: -10, o: 1, b: 0 }, "lin"],
+  [8.6, { x: 540, y: 1235, s: 1.0, rx: 8, ry: -12, rz: -2, o: 1, b: 0 }, "outBack"],
+  [10.8, { x: 540, y: 1215, s: 1.0, rx: 6, ry: -3, rz: -1, o: 1, b: 0 }, "lin"],
+  [11.08, { x: -700, y: 1215, s: 1.0, rx: 6, ry: -34, rz: -7, o: 1, b: 0 }, "inExpo"],
+  [11.08, { x: 1820, y: 1215, s: 1.0, rx: 6, ry: 34, rz: 7, o: 1, b: 0 }, "lin"],
+  [11.5, { x: 540, y: 1215, s: 1.0, rx: 6, ry: 9, rz: 1, o: 1, b: 0 }, "outExpo"],
+  [11.95, { x: 540, y: 1210, s: 1.0, rx: 6, ry: 6, rz: 0.5, o: 1, b: 0 }, "lin"],
+  [12.4, { x: 560, y: 1420, s: 1.5, rx: 1, ry: 1, rz: 0, o: 1, b: 0 }, "inOut"],
+  [13.75, { x: 560, y: 1428, s: 1.52, rx: 1, ry: 0, rz: 0, o: 1, b: 0 }, "lin"],
+  [14.35, { x: 540, y: 1260, s: 1.0, rx: 8, ry: -8, rz: -1, o: 1, b: 0 }, "inOut"],
+  [14.95, { x: 540, y: 1250, s: 1.0, rx: 8, ry: -13, rz: -1.5, o: 1, b: 0 }, "lin"],
+  [15.35, { x: 540, y: 2600, s: 1.0, rx: 30, ry: -13, rz: -4, o: 1, b: 0 }, "in"],
+  [20.45, { x: 540, y: 2700, s: 0.78, rx: 34, ry: -26, rz: 8, o: 1, b: 0 }, "lin"],
+  [21.2, { x: 540, y: 1420, s: 0.78, rx: 10, ry: -15, rz: 2, o: 1, b: 0 }, "outBack"],
+  [24.5, { x: 540, y: 1395, s: 0.78, rx: 8, ry: 13, rz: -1, o: 1, b: 0 }, "lin"],
+];
+
+// ---------------------------------------------------------------- seek
+window.seek = function seek(t) {
+  const C = window.COPY;
+
+  // ---- ground
+  let ground = NIGHT;
+  if (t >= 6.0 && t < 13.8) ground = PAPER;
+  else if (t >= 13.8 && t < 14.3) ground = hexMix(PAPER, NIGHT, E.inOut(span(t, 13.8, 14.3)));
+  else if (t >= 15.35 && t < 18.65) ground = PAPER;
+  else if (t >= 20.45) ground = hexMix(NIGHT, PAPER, E.inOut(span(t, 20.45, 20.8)));
+  $("bg").style.background = ground;
+  const dark = (t < 6.0) || (t >= 14.05 && t < 15.35) || (t >= 18.6 && t < 20.6);
+  $("vignette").style.opacity = dark ? 1 : 0;
+
+  // the circle of paper that opens the rule
+  const wp = E.inOut(span(t, 14.95, 15.35));
+  show($("wipe"), between(t, 14.95, 15.36));
+  $("wipe").style.clipPath = `circle(${wp * 1150}px at 540px 1000px)`;
+  // the night rising under the rule
+  const rn = E.inOut(span(t, 18.3, 18.65));
+  show($("riseNight"), between(t, 18.3, 18.66));
+  $("riseNight").style.transform = `translateY(${(1 - rn) * 100}%)`;
+
+  // grain: a new pattern 24 times a second, like film
+  const g = Math.floor(t * 24);
+  $("grain").style.backgroundPosition = `${Math.floor(hash(g) * 512)}px ${Math.floor(hash(g + 99) * 512)}px`;
+  $("grain").style.opacity = dark ? 0.08 : 0.06;
+
+  // camera shake: the clock landing, and the last slam before the cut
+  let shake = 0;
+  if (between(t, 3.4, 3.75)) shake = 16 * (1 - span(t, 3.4, 3.75));
+  if (between(t, 5.5, 6.0)) shake = 3 + 16 * span(t, 5.5, 6.0);
+  const sx = (hash(Math.floor(t * 60)) - 0.5) * 2 * shake, sy = (hash(Math.floor(t * 60) + 7) - 0.5) * 2 * shake;
+  $("stage").style.transform = `translate(${sx}px, ${sy}px)`;
+
+  // ---- phone
+  const p = track(t, POSE);
+  const phoneOn = p.o > 0.001 && !between(t, 4.0, 7.8) && !between(t, 15.36, 20.45);
+  $("phoneOuter").style.display = phoneOn ? "block" : "none";
+  if (phoneOn) {
+    $("phone").style.transform =
+      `translate3d(${p.x - 540}px, ${p.y - 960}px, 0) scale(${p.s}) rotateX(${p.rx}deg) rotateY(${p.ry}deg) rotateZ(${p.rz}deg)`;
+    $("phoneOuter").style.opacity = p.o;
+    $("phoneOuter").style.filter = p.b > 0.2 ? `blur(${p.b}px)` : "none";
+    const lightGround = t >= 6.0 && !(t >= 14.05 && t < 15.35);
+    $("phoneShadow").style.opacity = lightGround ? 1 : 0;
+    $("phoneShadow").style.transform =
+      `translate(${(p.x - 540) + p.ry * 3}px, ${(p.y - 960) + 70}px) scale(${p.s * 0.98}) rotate(${p.rz}deg)`;
+    $("glare").style.transform = `translateX(${-p.ry * 9 - 120}px) translateY(${p.rx * 8}px)`;
+  }
+
+  // what is on the screen
+  show($("feedView"), t < 4.0);
+  if (t < 4.0) {
+    const first = $("feedStrip").firstChild;
+    const stripH = first.naturalHeight * 560 / first.naturalWidth;
+    const scroll = (140 * t + 300 * t * t) % stripH;
+    $("feedStrip").style.transform = `translateY(${-scroll}px)`;
+  }
+  const onFeedOpen = between(t, 7.0, 11.1);
+  show($("feedOpen"), onFeedOpen);
+  show($("annot"), onFeedOpen);
+  show($("gone"), false);
+  $("circle").style.strokeDashoffset = 1 - E.inOut(span(t, 9.3, 9.85));
+  $("gone").style.clipPath = `inset(-20px ${100 - 100 * E.out(span(t, 9.8, 10.2))}% -20px -20px)`;
+
+  const panelOn = between(t, 11.0, 15.4);
+  const which = t < 12.5 ? 3 : t < 13.0 ? 2 : t < 13.5 ? 1 : 0;
+  [3, 2, 1, 0].forEach((n) => show($("panel" + n), panelOn && n === which));
+  show($("curtain"), between(t, 13.8, 15.4));
+  $("curtain").style.transform = `translateY(${-(1 - E.inOut(span(t, 13.8, 14.3))) * 100}%)`;
+  show($("opening"), t >= 20.4);
+
+  // ---- 1: hook
+  show($("hook"), t < 2.3);
+  const pov = E.spring(span(t, 0.0, 0.5));
+  $("pov").style.transform = `scale(${0.4 + 0.6 * pov})`;
+  $("pov").style.opacity = clamp(pov * 3) * (1 - span(t, 1.95, 2.1));
+  reveal(W.hook, t, 0.12, { stagger: 0.09, out: 1.95 });
+
+  // ---- 2: the clock
+  show($("clock"), between(t, 2.05, 4.0));
+  show($("suddenly"), between(t, 2.05, 4.0));
+  if (between(t, 2.05, 4.0)) {
+    const enter = E.outExpo(span(t, 2.05, 2.45));
+    $("clock").style.opacity = enter;
+    const land = span(t, 3.4, 3.8);
+    $("clock").style.color = t >= 3.4 ? hexMix("#D8322A", "#F4F1EA", 0) : PAPER_INK;
+    $("clock").style.transform = `scale(${(0.86 + 0.14 * enter) * (1 + 0.06 * (1 - E.out(land)) * (t >= 3.4))})`;
+    rollClock(1384 + 153 * E.inOut(span(t, 2.15, 3.4)));
+    reveal(W.suddenly, t, 3.05, { stagger: 0.06 });
+  }
+
+  // ---- 3: slams
+  W.slams.forEach((s, i) => {
+    const a = 4.0 + i * 0.5, b = i === 3 ? 6.0 : a + 0.5;
+    const on = between(t, a, b);
+    show(s.box, on);
+    if (on) {
+      const k = E.outExpo(span(t, a, a + 0.22));
+      const creep = i === 3 ? 0.07 * E.in(span(t, a + 0.1, 6.0)) : 0.03 * span(t, a + 0.2, b);
+      s.text.style.transform = `scale(${1.45 - 0.45 * k + creep}) rotate(${(i % 2 ? 3 : -3) * (1 - k)}deg)`;
+    }
+  });
+
+  // ---- 4: the quiet
+  show($("quiet"), between(t, 6.0, 8.3));
+  if (between(t, 6.0, 8.3)) {
+    const leave = E.inOut(span(t, 7.75, 8.25));
+    const icon = E.out(span(t, 6.35, 7.0));
+    $("quietIcon").style.opacity = icon * (1 - leave);
+    $("quietIcon").style.transform = `translateY(${(1 - icon) * 30 - leave * 160}px) scale(${0.9 + 0.1 * icon})`;
+    const name = E.out(span(t, 6.7, 7.3));
+    $("quietName").style.opacity = name * (1 - leave);
+    $("quietName").style.transform = `translateY(${(1 - name) * 40 - leave * 160}px)`;
+    $("quietLine").style.transform = `translateY(${-leave * 160}px)`;
+    $("quietLine").style.opacity = 1 - leave;
+    reveal(W.quietLine, t, 7.05, { stagger: 0.035, dur: 0.7 });
+  }
+
+  // ---- 5: without reels
+  show($("without"), between(t, 8.1, 11.2));
+  reveal(W.without, t, 8.35, { stagger: 0.1, out: 10.75, outDur: 0.25 });
+  W.without.forEach((w) => { if (w.strike) w.strike.style.transform = `scaleX(${E.inOut(span(t, 8.95, 9.25))})`; });
+
+  // ---- 6: the limit
+  show($("limitText"), between(t, 11.1, 12.3));
+  reveal(W.limit, t, 11.25, { stagger: 0.08, out: 11.85, outDur: 0.3 });
+  show($("over"), between(t, 14.0, 15.4));
+  show($("nomore"), between(t, 14.0, 15.4));
+  reveal(W.over, t, 14.2, { stagger: 0.08 });
+  reveal(W.nomore, t, 14.55, { stagger: 0.05 });
+
+  // ---- 7: the rule
+  show($("rule"), between(t, 15.2, 18.7));
+  if (between(t, 15.2, 18.7)) {
+    const up = E.inOut(span(t, 18.3, 18.65));
+    $("rule").style.transform = `translateY(${-up * 420}px)`;
+    $("rule").style.opacity = 1 - up * 0.6;
+    reveal(W.ruleTitle, t, 15.35, { stagger: 0.07 });
+    const lp = E.spring(span(t, 15.6, 16.2)), mp = E.spring(span(t, 16.5, 17.1));
+    $("lessPill").style.transform = `scale(${lp})`;
+    $("lessPill").style.opacity = clamp(lp * 4);
+    $("morePill").style.transform = `scale(${mp})`;
+    $("morePill").style.opacity = clamp(mp * 4);
+    reveal(W.lessWhen, t, 15.85, { stagger: 0.07 });
+    reveal(W.moreWhen, t, 16.75, { stagger: 0.07 });
+    reveal(W.ruleWhy, t, 17.35, { stagger: 0.03, dur: 0.6 });
+  }
+
+  // ---- 8: privacy
+  show($("privacy"), between(t, 18.45, 20.75));
+  show($("password"), between(t, 18.45, 20.75));
+  if (between(t, 18.45, 20.75)) {
+    const gone = E.in(span(t, 20.4, 20.75));
+    $("privacy").style.transform = `scale(${1 + 0.25 * gone})`;
+    $("privacy").style.opacity = 1 - gone;
+    $("password").style.opacity = 1 - gone;
+    W.privacy.forEach((row, i) => {
+      const at = 18.7 + i * 0.4;
+      const pop = E.spring(span(t, at, at + 0.55));
+      row.tick.style.transform = `scale(${pop})`;
+      row.check.style.strokeDashoffset = 1 - E.out(span(t, at + 0.1, at + 0.35));
+      reveal(row.words, t, at + 0.06, { stagger: 0.06 });
+    });
+    reveal(W.password, t, 19.95, { stagger: 0.03 });
+  }
+
+  // ---- 9: call to action
+  show($("cta"), t >= 20.55);
+  if (t >= 20.55) {
+    const icon = E.spring(span(t, 20.8, 21.45));
+    $("ctaIcon").style.transform = `scale(${icon})`;
+    $("ctaIcon").style.opacity = clamp(icon * 3);
+    const name = E.outExpo(span(t, 21.0, 21.6));
+    $("ctaName").style.opacity = name;
+    $("ctaName").style.transform = `translateY(${(1 - name) * 50}px)`;
+    reveal(W.ctaLine, t, 21.2, { stagger: 0.05 });
+    const btn = E.spring(span(t, 21.6, 22.2));
+    const beat = t > 22.2 ? 1 + 0.035 * Math.pow(Math.max(0, Math.cos(Math.PI * ((t - 22.0) / 0.5))), 8) : 1;
+    $("ctaButton").style.transform = `scale(${btn * beat})`;
+    $("ctaButton").style.opacity = clamp(btn * 3);
+  }
+};
+
+// An odometer: each column shows the digit it is on and the one after it, and
+// rolls between them only while the column below it is turning over.
+function rollClock(total) {
+  const at = (minutes) => {
+    const m = ((Math.floor(minutes) % 1440) + 1440) % 1440;
+    const h = Math.floor(m / 60), mm = m % 60;
+    return [Math.floor(h / 10), h % 10, Math.floor(mm / 10), mm % 10];
+  };
+  const units = [60, 60, 10, 1];
+  const now = at(total);
+  W.digits.forEach((d, i) => {
+    const u = units[i];
+    const base = Math.floor(total / u) * u;
+    const next = at(base + u)[i];
+    let roll = u === 1 ? total - Math.floor(total) : E.inOut(clamp((total % u) - (u - 1)));
+    if (next === now[i]) roll = 0;
+    d.a.textContent = now[i];
+    d.b.textContent = next;
+    d.roll.style.transform = `translateY(${-roll}em)`;
+  });
+}
+</script>
+</body>
+</html>

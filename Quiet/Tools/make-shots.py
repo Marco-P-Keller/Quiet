@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 """Compose the App Store screenshots.
 
-Six slides at 1320 x 2868 — the 6.9-inch size App Store Connect demands, and the
-only one it will not scale for you — in English and in German.
+Eight slides at 1320 x 2868 — the 6.9-inch size App Store Connect demands, and
+the only one it will not scale for you — in the six languages the app speaks:
+English, English (U.K.), German, Spanish, French and Brazilian Portuguese.
+
+Six of the eight are captures of Quiet's own screens, and
+`Tools/photograph-for-the-store.sh` takes all thirty of them off a simulator in
+about three minutes a language. Run that first if the app has changed.
 
 The phone is drawn in three dimensions: a real perspective projection of a box
 with thickness, extruded from its back face to its front so the side of the
@@ -13,10 +18,11 @@ made from one that looks assembled.
 
 **Nothing here shows anybody else's content.** Not a photograph somebody took,
 not a post somebody wrote, not a handle or a face belonging to a person who
-never agreed to appear in an advertisement. Five of the six slides are Quiet's
-own screens, captured from the simulator. The sixth is the feed, which is the
-whole product and cannot be anything but somebody's — so it is the developer's
-own account, own post, own like. See `LEGAL` at the foot of this file.
+never agreed to appear in an advertisement. Six of the eight slides are Quiet's
+own screens, captured from the simulator. The other two are the feed, which is
+the whole product and cannot be anything but somebody's — so it is the
+developer's own account, own post, own like. See `LEGAL` at the foot of this
+file.
 
 **And nothing here claims anything that is not true.** No star rating, no
 "trusted by N people", no press logos, no Apple mark. Those are the standard
@@ -32,8 +38,13 @@ dependency, and only because something has to draw a glyph:
     pip install pillow
 """
 
+import hashlib
+import html
+import json
 import math
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 try:
@@ -42,6 +53,9 @@ except ImportError:
     sys.exit("This one needs Pillow:  pip install pillow")
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+import shot_captions
+
 SOURCE = HERE / "shots" / "source"
 OUT = HERE / "shots" / "out"
 
@@ -844,15 +858,32 @@ def annotate(canvas: Image.Image, theme: dict, label: str, tip) -> None:
 # Slides
 
 
+# The phone on its ground is the slow part — a perspective projection of a box
+# with thickness — and it is the same picture for every language that shows the
+# same screen of the app. Thirty-odd languages carry the English app, so it is
+# made once per slide and copied.
+_STAGES: dict = {}
+
+
 def photographed(source: Path, theme: dict, headline: str, subline: str,
-                 seed: int, note=None) -> Image.Image:
-    canvas = Image.new("RGB", (WIDTH, HEIGHT), theme["ground"])
-    if STYLE.get("sparkle", True):
-        scatter(canvas, theme, seed)
-    yaw = math.radians(13 if seed % 2 == 0 else -13)
-    on_screen = device(canvas, theme, clean_status_bar(Image.open(source)), yaw,
-                       STYLE["device_bottom_noted"] if note else None)
-    caption(ImageDraw.Draw(canvas), theme, headline, subline)
+                 seed: int, note=None, layer=None) -> Image.Image:
+    key = (str(source), source.stat().st_mtime_ns, theme["ground"], seed,
+           bool(note), id(STYLE))
+    if key not in _STAGES:
+        canvas = Image.new("RGB", (WIDTH, HEIGHT), theme["ground"])
+        if STYLE.get("sparkle", True):
+            scatter(canvas, theme, seed)
+        yaw = math.radians(13 if seed % 2 == 0 else -13)
+        on_screen = device(canvas, theme,
+                           clean_status_bar(Image.open(source)), yaw,
+                           STYLE["device_bottom_noted"] if note else None)
+        _STAGES[key] = (canvas, on_screen)
+    stage, on_screen = _STAGES[key]
+    canvas = stage.copy()
+    if layer is not None:
+        canvas.paste(layer, (0, 0), layer)
+    else:
+        caption(ImageDraw.Draw(canvas), theme, headline, subline)
     if note:
         label, target = note
         annotate(canvas, theme, label, on_screen(*target))
@@ -860,7 +891,7 @@ def photographed(source: Path, theme: dict, headline: str, subline: str,
 
 
 def typeset(theme: dict, headline: str, subline: str, items: list[str],
-            seed: int) -> Image.Image:
+            seed: int, layer=None) -> Image.Image:
     """The one slide with no phone on it.
 
     Everything Quiet removes is removed — by construction there is no screen
@@ -872,6 +903,10 @@ def typeset(theme: dict, headline: str, subline: str, items: list[str],
     canvas = Image.new("RGB", (WIDTH, HEIGHT), theme["ground"])
     if STYLE.get("sparkle", True):
         scatter(canvas, theme, seed)
+    if layer is not None:
+        # Chrome has set the headline, the subline and the struck words.
+        canvas.paste(layer, (0, 0), layer)
+        return canvas
     draw = ImageDraw.Draw(canvas)
     bottom = caption(draw, theme, headline, subline)
 
@@ -982,6 +1017,33 @@ SLIDES = {
 # used to be the same photograph as slide 1 with a different caption over it —
 # two slides, one picture, which is a slide wasted. Now it carries the story
 # row, the header and the profile, under the claim they are all still there.
+#
+# Then three more things moved, and these are the ones to know about:
+#
+# **Eight slides, not seven.** The new one is the record — a bar for every day
+# against a dashed line at the limit, and the number the days are measured
+# from. Seven slides answered *what is it*, *does it hold* and *can I trust
+# you*, and never answered *what happens if I do this for a month*. Every app
+# this one stands beside on the shelf answers that with a chart, because it is
+# the last question somebody asks before they install. It sits at six, after
+# the argument is made, because it is the answer to a question the first five
+# raise rather than a way of raising one. The figures on it come from a
+# rehearsal scene the app computes for itself: a screen of the app with example
+# days in it, which is what a chart in a listing always is. It is the one slide
+# in the set that shows a number somebody could read as a promise — if that is
+# a trade you do not want to make, it is one line to take out.
+#
+# **Slide 3 is named for its scene.** The file was called `panel-light` and is
+# a photograph of the *settings* screen, which is the screen the caption is
+# about: the wait between increases is there and on no other screen. Anybody
+# re-shooting it from the name got the panel, which does not carry the claim.
+#
+# **`en-GB` is here and is a copy of `en`.** Not because a word of it needs
+# translating — the app's own en-GB strings are byte-for-byte the American ones
+# — but because App Store Connect wants a set of screenshots per localisation,
+# and a localisation left without one shows the default language's. The reason
+# to have the localisation at all is a second keyword field; see
+# `docs/store-listing.md`.
 SLIDES_V2 = {
     "en": [
         ("feed-open", "light", "Instagram,\nwithout *Reels*.",
@@ -990,17 +1052,48 @@ SLIDES_V2 = {
         ("curtain", "dark", "No *five more*\nminutes.",
          "When today’s time is spent, Quiet closes for the day — and there is "
          "nothing on the screen to argue with.", [], None),
-        ("panel-light", "light", "Less *now*.\nMore *next week*.",
+        ("settings", "light", "Less *now*.\nMore *next week*.",
          "Lowering your daily limit takes effect at once. Raising it waits a "
          "week and starts the next day.", [], None),
         (None, "dark", "What *isn’t* here.",
          "Taken out by address, not hidden behind a setting you could switch "
          "back on at eleven at night.",
-         ["Reels", "Explore", "Suggested accounts", "Autoplay",
+         ["Reels", "Explore",
           "Streaks and reports"], None),
         ("feed", "dark", "Your feed.\nYour *people*.",
          "Stories, messages, comments, profiles — all of it, exactly where it "
          "was, on Instagram’s own page.", [], None),
+        ("record", "light", "The days\n*behind you*.",
+         "A bar for every day, a dashed line at your limit, and the day you "
+         "started from.", [], None),
+        ("setup", "light", "The whole trade,\n*up front*.",
+         "What Quiet takes away and what it leaves alone, on the first screen, "
+         "before you choose anything.", [], None),
+        ("opening", "dark", "No account.\nNo *tracking*.",
+         "No servers of ours, no analytics, no advertising. Nothing to check "
+         "and nothing to beat.", [], None),
+    ],
+    "en-GB": [
+        ("feed-open", "light", "Instagram,\nwithout *Reels*.",
+         "The same feed, the same people, the same messages. The tab that "
+         "never ends is simply gone.", [], ("No Reels", (0.50, 0.951))),
+        ("curtain", "dark", "No *five more*\nminutes.",
+         "When today’s time is spent, Quiet closes for the day — and there is "
+         "nothing on the screen to argue with.", [], None),
+        ("settings", "light", "Less *now*.\nMore *next week*.",
+         "Lowering your daily limit takes effect at once. Raising it waits a "
+         "week and starts the next day.", [], None),
+        (None, "dark", "What *isn’t* here.",
+         "Taken out by address, not hidden behind a setting you could switch "
+         "back on at eleven at night.",
+         ["Reels", "Explore",
+          "Streaks and reports"], None),
+        ("feed", "dark", "Your feed.\nYour *people*.",
+         "Stories, messages, comments, profiles — all of it, exactly where it "
+         "was, on Instagram’s own page.", [], None),
+        ("record", "light", "The days\n*behind you*.",
+         "A bar for every day, a dashed line at your limit, and the day you "
+         "started from.", [], None),
         ("setup", "light", "The whole trade,\n*up front*.",
          "What Quiet takes away and what it leaves alone, on the first screen, "
          "before you choose anything.", [], None),
@@ -1015,17 +1108,20 @@ SLIDES_V2 = {
         ("curtain", "dark", "Keine *fünf*\nMinuten mehr.",
          "Ist die Zeit für heute weg, schließt Quiet den Tag — und auf dem "
          "Bildschirm steht nichts, mit dem sich verhandeln ließe.", [], None),
-        ("panel-light", "light", "Weniger *sofort*.\nMehr *nächste Woche*.",
+        ("settings", "light", "Weniger *sofort*.\nMehr *nächste Woche*.",
          "Das Tageslimit senken gilt sofort. Erhöhen wartet eine Woche und "
          "gilt ab dem nächsten Tag.", [], None),
         (None, "dark", "Was *nicht* da ist.",
          "Über die Adresse entfernt, nicht hinter einer Einstellung versteckt, "
          "die sich um elf Uhr abends zurückschalten lässt.",
-         ["Reels", "Explore", "Vorgeschlagene Konten", "Autoplay",
+         ["Reels", "Explore",
           "Serien und Berichte"], None),
         ("feed", "dark", "Dein Feed.\nDeine *Leute*.",
          "Stories, Nachrichten, Kommentare, Profile — alles da, genau wo es "
          "war, auf Instagrams eigener Seite.", [], None),
+        ("record", "light", "Die Tage\n*hinter dir*.",
+         "Ein Balken pro Tag, das Limit als gestrichelte Linie, und der Tag, "
+         "von dem du losgegangen bist.", [], None),
         ("setup", "light", "Der ganze Handel,\n*vorab*.",
          "Was Quiet wegnimmt und was es unangetastet lässt — auf dem ersten "
          "Bildschirm, bevor du irgendetwas wählst.", [], None),
@@ -1041,17 +1137,20 @@ SLIDES_V2 = {
         ("curtain", "dark", "Ni *cinco*\nminutos más.",
          "Cuando el tiempo de hoy se acaba, Quiet cierra el día — y en la "
          "pantalla no queda nada con lo que discutir.", [], None),
-        ("panel-light", "light", "Menos *ahora*.\nMás *en una semana*.",
+        ("settings", "light", "Menos *ahora*.\nMás *en una semana*.",
          "Bajar tu límite diario surte efecto de inmediato. Subirlo espera "
          "una semana y empieza al día siguiente.", [], None),
         (None, "dark", "Lo que *no* está.",
          "Quitado por dirección, no escondido detrás de un ajuste que podrías "
          "volver a activar a las once de la noche.",
-         ["Reels", "Explorar", "Cuentas sugeridas", "Autoplay",
+         ["Reels", "Explorar",
           "Rachas e informes"], None),
         ("feed", "dark", "Tu feed.\nTu *gente*.",
          "Historias, mensajes, comentarios, perfiles — todo, exactamente "
          "donde estaba, en la propia página de Instagram.", [], None),
+        ("record", "light", "Los días\nque *dejas atrás*.",
+         "Una barra por día, tu límite como línea de puntos, y el día del que "
+         "partiste.", [], None),
         ("setup", "light", "Todo el trato,\n*de entrada*.",
          "Lo que Quiet quita y lo que deja en paz, en la primera pantalla, "
          "antes de que elijas nada.", [], None),
@@ -1067,17 +1166,20 @@ SLIDES_V2 = {
         ("curtain", "dark", "Pas *cinq*\nminutes de plus.",
          "Quand le temps du jour est passé, Quiet ferme la journée — et il "
          "n’y a rien à l’écran avec quoi discuter.", [], None),
-        ("panel-light", "light", "Moins *maintenant*.\nPlus *dans huit jours*.",
+        ("settings", "light", "Moins *maintenant*.\nPlus *dans huit jours*.",
          "Baisser ta limite quotidienne prend effet tout de suite. La relever "
          "attend une semaine et commence le lendemain.", [], None),
         (None, "dark", "Ce qui *n’est pas* là.",
          "Retiré par adresse, pas caché derrière un réglage que tu pourrais "
          "réactiver à onze heures du soir.",
-         ["Reels", "Explorer", "Comptes suggérés", "Autoplay",
+         ["Reels", "Explorer",
           "Séries et rapports"], None),
         ("feed", "dark", "Ton fil.\nTes *gens*.",
          "Stories, messages, commentaires, profils — tout y est, exactement "
          "où c’était, sur la page d’Instagram elle-même.", [], None),
+        ("record", "light", "Les jours\n*derrière toi*.",
+         "Une barre par jour, ta limite en pointillés, et le jour d’où tu es "
+         "parti.", [], None),
         ("setup", "light", "Tout le marché,\n*d’emblée*.",
          "Ce que Quiet retire et ce qu’il laisse tranquille, sur le premier "
          "écran, avant que tu choisisses quoi que ce soit.", [], None),
@@ -1093,17 +1195,20 @@ SLIDES_V2 = {
         ("curtain", "dark", "Nem *mais cinco*\nminutos.",
          "Quando o tempo de hoje acaba, o Quiet fecha o dia — e não há nada "
          "na tela com que discutir.", [], None),
-        ("panel-light", "light", "Menos *agora*.\nMais *em uma semana*.",
+        ("settings", "light", "Menos *agora*.\nMais *em uma semana*.",
          "Baixar seu limite diário vale na hora. Aumentar espera uma semana "
          "e começa no dia seguinte.", [], None),
         (None, "dark", "O que *não* está aqui.",
          "Tirado por endereço, não escondido atrás de um ajuste que você "
          "poderia religar às onze da noite.",
-         ["Reels", "Explorar", "Contas sugeridas", "Autoplay",
+         ["Reels", "Explorar",
           "Sequências e relatórios"], None),
         ("feed", "dark", "Seu feed.\nSuas *pessoas*.",
          "Stories, mensagens, comentários, perfis — tudo, exatamente onde "
          "estava, na própria página do Instagram.", [], None),
+        ("record", "light", "Os dias\n*que passaram*.",
+         "Uma barra por dia, seu limite como linha tracejada, e o dia de onde "
+         "você partiu.", [], None),
         ("setup", "light", "O acordo inteiro,\n*de cara*.",
          "O que o Quiet tira e o que ele deixa em paz, na primeira tela, "
          "antes de você escolher qualquer coisa.", [], None),
@@ -1121,9 +1226,33 @@ STYLES["loud"]["slides"] = SLIDES
 STYLES["v2"]["slides"] = SLIDES_V2
 
 
+# The shared feed captures are of a build nobody can install any more: the row
+# along the bottom has four icons and no clock, where the build in the store has
+# five (`store/README.md` sets this out). A screenshot has to match the build it
+# is uploaded with, so these four files are named here by hash and the two feed
+# slides are skipped until `source/feed.png` and `source/feed-open.png` are
+# replaced by captures of the current build — and they come back on their own
+# when they are. The files stay in `source/` because other tools read them.
+RETIRED = {
+    "eb887b89340fc01614e819489180be8fc4da3a8c462be582f2ab9127d2bcfc20",
+    "5a5981551a733609b11b7144129b1b7ea6b60906172ab3da33df32b5bbe7537c",
+    "99d46decd8881253684aed8c2ae0e9554b281b021431b6bb53c7510891b9da0b",
+    "ac6d44776dd57b9d53afcbaf53aa2471e278ed233cb6b557809f3ae4e010df61",
+}
+
+
+HELD: set[str] = set()
+
+
 def photograph_for(language: str, name: str) -> Path | None:
     for candidate in (SOURCE / language / f"{name}.png", SOURCE / f"{name}.png"):
         if candidate.exists():
+            if hashlib.sha256(candidate.read_bytes()).hexdigest() in RETIRED:
+                if candidate.name not in HELD:
+                    print(f"    {candidate.name} is the retired capture of an "
+                          f"older build — not used")
+                HELD.add(candidate.name)
+                return None
             return candidate
     return None
 
@@ -1147,9 +1276,219 @@ def contact_sheet(paths: list[Path], into: Path) -> None:
     sheet.save(into)
 
 
+
+# --------------------------------------------------------------------------
+# Languages set by Chrome
+#
+# Pillow here has no text shaping, so everything that is not Latin, Greek or
+# Cyrillic — and Vietnamese with it — is set by Chrome and laid over the phone.
+# `shot_captions.py` has the words; `render-captions.mjs` is the camera. The
+# page does its own fitting: a headline that is too wide for the margin steps
+# down until it is not, because the languages differ by half again in length
+# and a size chosen for one of them is wrong for the next.
+
+HEAD_FACES = {
+    "default": '"New York", "Iowan Old Style", Georgia, serif',
+    "ja": '"Hiragino Mincho ProN", "Yu Mincho", serif',
+    "ko": '"AppleMyungjo", serif',
+    "zh-Hans": '"Songti SC", serif',
+    "zh-Hant": '"Songti TC", serif',
+    "th": '"Thonburi", serif',
+    "hi": '"Kohinoor Devanagari", serif',
+    "ar": '"Geeza Pro", "Al Nile", serif',
+    "he": '"Times New Roman", "Arial Hebrew", serif',
+    "mr": '"Kohinoor Devanagari", serif',
+    "bn": '"Kohinoor Bangla", "Bangla Sangam MN", serif',
+    "gu": '"Kohinoor Gujarati", "Gujarati Sangam MN", serif',
+    "pa": '"Kohinoor Gurmukhi", "Gurmukhi Sangam MN", serif',
+    "ta": '"Kohinoor Tamil", "Tamil Sangam MN", serif',
+    "te": '"Kohinoor Telugu", "Telugu Sangam MN", serif',
+    "kn": '"Kannada Sangam MN", serif',
+    "ml": '"Malayalam Sangam MN", serif',
+    "or": '"Oriya Sangam MN", serif',
+    # Not Noto Nastaliq: its lines are so tall that they overrun each other.
+    "ur": '"Geeza Pro", "Al Nile", serif',
+}
+HTML_LANG = {"zh-Hans": "zh-Hans", "zh-Hant": "zh-Hant"}
+
+
+def marked(text: str) -> str:
+    return "".join(
+        f"<b>{html.escape(run)}</b>" if emphasis else html.escape(run)
+        for run, emphasis in spans(text)
+    )
+
+
+def hex_of(rgb) -> str:
+    return "#%02X%02X%02X" % tuple(rgb)
+
+
+def caption_page(language: str, direction: str, theme: dict, headline: str,
+                 subline: str, items: list[str]) -> str:
+    mix = STYLE.get("sub_mix", 0.0)
+    tone = tuple(round(m + (i - m) * mix)
+                 for m, i in zip(theme["muted"], theme["ink"]))
+    face = HEAD_FACES.get(language, HEAD_FACES["default"])
+    lines = "".join(
+        f'<div class="row"><span class="line">{marked(line)}</span></div>'
+        for line in headline.split("\n")
+    )
+    struck = "".join(
+        f'<div class="item"><span>{html.escape(item)}</span></div>'
+        for item in items
+    )
+    config = json.dumps({
+        "size": STYLE["head_size"], "leading": STYLE["head_leading"],
+        "top": STYLE["head_top"], "indent": STYLE["head_indent"],
+        "sub": STYLE["sub_size"], "subLeading": STYLE["sub_leading"],
+        "gap": STYLE["sub_gap"], "margin": MARGIN, "width": WIDTH,
+        "height": HEIGHT, "limit": STYLE["device_top"] - 28,
+    })
+    return f"""<!doctype html>
+<html lang="{HTML_LANG.get(language, language)}" dir="{direction}"><meta charset="utf-8">
+<style>
+  html, body {{ margin: 0; width: {WIDTH}px; height: {HEIGHT}px; overflow: hidden;
+    background: transparent; }}
+  #head, #sub, .item {{ position: absolute; inset-inline-start: {MARGIN}px;
+    width: {WIDTH - 2 * MARGIN}px; }}
+  #head {{ font-family: {face}; font-weight: 400; color: {hex_of(theme["ink"])}; }}
+  #head b {{ font-weight: 700; }}
+  .line {{ display: inline-block; white-space: nowrap; }}
+  #sub {{ font-family: -apple-system, "SF Pro Text", system-ui, sans-serif;
+    color: {hex_of(tone)}; }}
+  .item {{ font-family: {face}; font-weight: 400; line-height: 1;
+    color: {hex_of(theme["ink"])}; white-space: nowrap; }}
+  .item span {{ position: relative; display: inline-block; }}
+  .item span::after {{ content: ""; position: absolute; inset-inline: -14px;
+    top: 50%; height: 7px; margin-top: -3px; background: {hex_of(theme["muted"])}; }}
+</style>
+<div id="head">{lines}</div>
+<div id="sub">{html.escape(subline)}</div>
+{struck}
+<script>
+const C = {config};
+window.fit = async () => {{
+  const head = document.getElementById("head");
+  const rows = [...head.querySelectorAll(".row")];
+  const sub = document.getElementById("sub");
+  const room = C.width - 2 * C.margin;
+  const wide = (size) => rows.some((row, i) => {{
+    row.style.fontSize = size + "px";
+    return row.firstChild.getBoundingClientRect().width + (i ? C.indent : 0) > room;
+  }});
+  let size = C.size;
+  while (size > 56 && wide(size)) size -= 2;
+  rows.forEach((row, i) => {{
+    row.style.lineHeight = Math.round(size * C.leading) + "px";
+    row.style.marginInlineStart = (i ? C.indent : 0) + "px";
+  }});
+  head.style.top = C.top + "px";
+  const lead = Math.round(size * C.leading);
+  sub.style.top = (C.top + rows.length * lead + C.gap - Math.round(size * (C.leading - 1))) + "px";
+  let s = C.sub;
+  do {{
+    sub.style.fontSize = s + "px";
+    sub.style.lineHeight = Math.round(s * C.subLeading) + "px";
+    s -= 1;
+  }} while (s > 34 && sub.getBoundingClientRect().bottom > C.limit);
+  const end = Math.round(sub.getBoundingClientRect().bottom);
+  const items = [...document.querySelectorAll(".item")];
+  let itemSize = 96;
+  if (items.length) {{
+    const tooWide = () => items.some((it) => it.firstChild.getBoundingClientRect().width + 28 > room);
+    do {{ items.forEach((it) => it.style.fontSize = itemSize + "px"); itemSize -= 2; }}
+    while (itemSize > 56 && tooWide());
+    itemSize += 2;
+    const step = Math.round(96 * 2.05);
+    const block = step * (items.length - 1) + 96;
+    const y = end + Math.floor((C.height - 150 - end - block) / 2);
+    items.forEach((it, i) => it.style.top = (y + i * step) + "px");
+  }}
+  window.RESULT = {{ head: size, sub: s + 1, end, items: items.length ? itemSize : 0 }};
+}};
+</script>
+</html>
+"""
+
+
+def chrome_layers(jobs: list[tuple[str, dict, str, str, str, list[str]]]):
+    """jobs: (language, theme, direction, headline, subline, struck) each.
+
+    Returns a PNG layer per job and the line Chrome reported for it.
+    """
+    work = Path(tempfile.mkdtemp(prefix="quiet-captions-"))
+    todo = []
+    for n, (language, theme, direction, head, sub, items) in enumerate(jobs):
+        page = work / f"{n}.html"
+        page.write_text(caption_page(language, direction, theme, head, sub,
+                                     items), encoding="utf-8")
+        todo.append({"html": str(page), "png": str(work / f"{n}.png")})
+    (work / "jobs.json").write_text(json.dumps(todo))
+    done = subprocess.run(["node", str(HERE / "render-captions.mjs"),
+                           str(work / "jobs.json")],
+                          capture_output=True, text=True)
+    if done.returncode:
+        sys.exit(f"render-captions.mjs failed:\n{done.stderr}")
+    reports = [json.loads(line) for line in done.stdout.splitlines()]
+    layers = [Image.open(job["png"]).convert("RGBA") for job in todo]
+    return layers, reports
+
+
+def draw_chrome_sets(root: Path, languages: list[str]) -> None:
+    """The slides for every language in `shot_captions`, off the English app."""
+    template = SLIDES_V2["en"]
+    jobs, owners = [], []
+    for language in languages:
+        direction, entries, struck = shot_captions.CAPTIONS[language]
+        for index, (name, mood, *_rest) in enumerate(template, 1):
+            if name is not None and photograph_for("en", name) is None:
+                continue
+            head, sub = entries[index - 1]
+            theme = THEMES[STYLE["one_ground"] or mood]
+            jobs.append((language, theme, direction, head, sub,
+                         struck if name is None else []))
+            owners.append((language, index, name, mood, head, sub, struck))
+    layers, reports = chrome_layers(jobs)
+
+    made: dict[str, list[Path]] = {}
+    for layer, report, (language, index, name, mood, head, sub, struck) in zip(
+            layers, reports, owners):
+        folder = root / language
+        folder.mkdir(parents=True, exist_ok=True)
+        if language not in made:
+            for stale in folder.glob("*.png"):
+                stale.unlink()
+        ground = STYLE["one_ground"] or mood
+        theme = THEMES[ground]
+        if name is None:
+            image, stem = typeset(theme, head, sub, struck, index, layer), "absent"
+        else:
+            image = photographed(photograph_for("en", name), theme, head, sub,
+                                 index, None, layer)
+            stem = name
+        path = folder / f"{index}-{stem}.png"
+        image.save(path)
+        made.setdefault(language, []).append(path)
+        warn = ""
+        if report["head"] < STYLE["head_size"] - 14:
+            warn += f"   ! headline stepped down to {report['head']}"
+        if report["sub"] < STYLE["sub_size"] - 6:
+            warn += f"   ! subline stepped down to {report['sub']}"
+        print(f"  {path.relative_to(HERE)}  head {report['head']} "
+              f"sub {report['sub']} end {report['end']}{warn}")
+    for language, paths in made.items():
+        contact_sheet(paths, root / f"sheet-{language}.png")
+
+
 def draw_set(root: Path, language: str, slides: list) -> None:
     folder = root / language
     folder.mkdir(parents=True, exist_ok=True)
+    # Emptied first, because a slide that is renamed or dropped otherwise stays
+    # in the folder somebody uploads from. Renaming slide 3 from `panel-light`
+    # to `settings` left eleven files in a set of eight, three of them a
+    # photograph of a build that no longer exists, and the folder looked fine.
+    for stale in folder.glob("*.png"):
+        stale.unlink()
     made: list[Path] = []
     for index, (name, mood, head, sub, items, note) in enumerate(slides, 1):
         ground = STYLE["one_ground"] or mood
@@ -1176,11 +1515,10 @@ def main() -> None:
         sys.exit(f"No source photographs in {SOURCE}")
 
     global STYLE
-    asked = sys.argv[1:] or list(STYLES)
-    unknown = [name for name in asked if name not in STYLES]
-    if unknown:
-        sys.exit(f"No such style: {', '.join(unknown)}. "
-                 f"There is {' and '.join(STYLES)}.")
+    # `v2 it ja` composes the v2 set for those languages only (the app's own and
+    # the ones Chrome sets); a bare `v2` does all of them.
+    only = [a for a in sys.argv[1:] if a not in STYLES]
+    asked = [a for a in sys.argv[1:] if a in STYLES] or list(STYLES)
 
     for name in asked:
         STYLE = STYLES[name]
@@ -1190,7 +1528,22 @@ def main() -> None:
         root = OUT if name == "house" else OUT / name
         print(f"{name}:")
         for language, slides in STYLE["slides"].items():
+            if only and language not in only and name == "v2":
+                continue
             draw_set(root, language, slides)
+        if name == "v2":
+            wanted = ([a for a in only if a in shot_captions.CAPTIONS]
+                      if only else list(shot_captions.CAPTIONS))
+            if wanted:
+                draw_chrome_sets(root, wanted)
+        # Said where the checker can read it: a set that is six slides because
+        # two were held is not the same thing as a set with a file missing.
+        if HELD:
+            (root / "held.txt").write_text(
+                "slides held, retired captures of an older build: "
+                + ", ".join(sorted(HELD)) + "\n", encoding="utf-8")
+        elif (root / "held.txt").exists():
+            (root / "held.txt").unlink()
 
 
 # The rule, for whoever re-shoots these.

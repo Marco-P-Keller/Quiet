@@ -1,0 +1,623 @@
+<!doctype html>
+<!--
+  Quiet — the App Store preview, cut for conversion. English. 1080 x 2340,
+  delivered at 886 x 1920, 19.5 seconds, driven entirely by seek(t).
+
+  `preview.html` is the TikTok spot re-cut: it tells a story, and the claim
+  arrives eight seconds in. A store preview is not watched like that. It
+  autoplays muted in search results and on the product page, most people give
+  it three seconds, and its first frame is also the poster. So this cut is
+  built backwards from those three seconds:
+
+    0.0   the claim, already on screen at frame 0: "Instagram. Without Reels.",
+          over the app's own feed with the hole where the tab was circled.
+          Paper, not night — bright stands out in a list of dark thumbnails.
+    1.8   what stays: the fear it answers is losing Instagram itself.
+    3.5   the pain, short: "No more 01:37", struck through.
+    6.0   how: a daily limit, counting down in the app's own words,
+          and the curtain when it runs out.
+   10.5   the rule nobody else has: less at once, more next week.
+   13.5   trust: no account, no tracking, no ads.
+   16.0   the name, the tagline, the subtitle.
+
+  Every picture of the app is a capture of the app (Guideline 2.3.4); no
+  device frame, no hand, no "App Store" button. The assets are the ones
+  `make-the-store-preview.py` builds for `preview.html`.
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+@font-face { font-family: "SF"; src: url("file:///System/Library/Fonts/SFNS.ttf"); font-weight: 1 1000; }
+@font-face { font-family: "NY"; src: url("file:///System/Library/Fonts/NewYork.ttf"); font-weight: 400 1000; }
+@font-face { font-family: "NY"; src: url("file:///System/Library/Fonts/NewYorkItalic.ttf"); font-weight: 400 1000; font-style: italic; }
+@font-face { font-family: "Hand"; src: url("file:///System/Library/Fonts/Supplemental/Bradley Hand Bold.ttf"); }
+
+:root {
+  --night: #0A0B0D; --paper: #F2EEE5; --ink: #171614; --paper-ink: #F4F1EA;
+  --muted: #6B665E; --muted-dark: #8E9096; --red: #D8322A;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1080px; height: 2340px; overflow: hidden; background: var(--paper); }
+body { -webkit-font-smoothing: antialiased; font-kerning: normal; text-rendering: geometricPrecision; }
+
+#stage { position: absolute; inset: 0; overflow: hidden; }
+.layer { position: absolute; inset: 0; }
+
+.display { font-family: "SF"; font-weight: 800; letter-spacing: -0.042em; line-height: 1.0; }
+.serif { font-family: "NY"; font-weight: 400; letter-spacing: -0.01em; }
+.italic { font-style: italic; }
+.m { display: inline-block; overflow: hidden; vertical-align: top;
+     padding: 0.06em 0.04em 0.16em; margin: -0.06em -0.04em -0.16em; }
+.w { display: inline-block; will-change: transform; }
+.line { display: block; white-space: nowrap; }
+.em-red { color: var(--red); position: relative; }
+.strike { position: absolute; left: -0.04em; right: -0.04em; top: 0.53em; height: 0.085em;
+          background: var(--red); transform-origin: left center; transform: scaleX(0); border-radius: 0.05em; }
+.pill { display: inline-block; border-radius: 999px; }
+
+/* the app's captures, and no device around them */
+#screenOuter { position: absolute; inset: 0; perspective: 2600px; perspective-origin: 50% 60%; }
+#screenShadow { position: absolute; width: 520px; height: 1100px; left: 280px; top: 410px;
+                border-radius: 120px; background: rgba(40, 30, 15, 0.5); filter: blur(60px); }
+#screenBox { position: absolute; left: 260px; top: 351.5px; width: 560px; height: 1217px;
+             transform-style: preserve-3d; }
+.screen { position: absolute; inset: 0; border-radius: 62px; overflow: hidden; background: #000; }
+.screen::after { content: ""; position: absolute; inset: 0; border-radius: 62px; pointer-events: none;
+                 box-shadow: inset 0 0 0 1.5px rgba(128, 124, 116, 0.35); }
+.screen img, .screen .fill { position: absolute; left: 0; top: 0; width: 560px; }
+
+#grain { position: absolute; inset: -64px; mix-blend-mode: overlay; opacity: 0.06; pointer-events: none; }
+#vignette { position: absolute; inset: 0; pointer-events: none;
+            background: radial-gradient(ellipse 80% 70% at 50% 45%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.55) 100%); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="bg" class="layer" style="inset: -48px;"></div>
+  <div id="vignette"></div>
+
+  <!-- B: the clock -->
+  <div id="nomore" class="layer display" style="top: 640px; text-align: center; font-size: 120px; color: var(--paper-ink);"></div>
+  <div id="clockWrap" class="layer" style="top: 800px; height: 330px; text-align: center;">
+    <div id="clock" class="display" style="display: inline-block; position: relative; font-size: 290px; font-variant-numeric: tabular-nums; color: var(--paper-ink); letter-spacing: -0.02em;">
+      <span id="digits"></span>
+      <span id="clockStrike" style="position: absolute; left: -0.05em; right: -0.05em; top: 0.47em; height: 0.07em; background: var(--red); border-radius: 0.04em; transform-origin: left center; transform: scaleX(0);"></span>
+    </div>
+  </div>
+  <div id="fivemore" class="layer serif italic" style="top: 1220px; text-align: center; font-size: 68px; color: var(--muted-dark);"></div>
+
+  <!-- the screen, with everything that is ever on it -->
+  <div id="screenOuter">
+    <div id="screenShadow"></div>
+    <div id="screenBox">
+      <div class="screen">
+        <div id="feedView" class="fill" style="height: 1217px; background: #fff;">
+          <div style="position: absolute; left: 0; top: 152px; width: 560px; height: 945px; overflow: hidden;">
+            <div id="feedStrip" style="position: absolute; left: 0; top: 0; width: 560px;"></div>
+          </div>
+          <img id="feedHead" style="top: 0;">
+          <img id="feedNav" style="top: 1097px;">
+        </div>
+        <img id="feedOpen">
+        <svg id="annot" width="560" height="1217" style="position: absolute; left: 0; top: 0; overflow: visible;">
+          <path id="circle" fill="none" stroke="#D8322A" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div id="gone" style="position: absolute; left: 330px; top: 985px; font-family: Hand; font-size: 64px; color: var(--red); transform: rotate(-9deg); white-space: nowrap; text-shadow: 0 0 6px #fff, 0 0 12px #fff, 0 0 3px #fff;"></div>
+        <img id="panel3"><img id="panel2"><img id="panel1"><img id="panel0">
+        <img id="curtain">
+        <img id="opening">
+      </div>
+    </div>
+  </div>
+
+  <!-- A -->
+  <div id="claim" class="layer display" style="left: 80px; top: 230px; font-size: 136px; color: var(--ink);"></div>
+  <div id="kept" class="layer display" style="left: 80px; top: 540px; font-size: 50px; font-weight: 600; letter-spacing: -0.018em; line-height: 1.22; color: var(--muted);"></div>
+
+  <!-- C -->
+  <div id="limit" class="layer display" style="left: 80px; top: 230px; font-size: 128px; color: var(--ink);"></div>
+  <div id="limitSub" class="layer display" style="left: 80px; top: 520px; font-size: 50px; font-weight: 600; letter-spacing: -0.018em; line-height: 1.22; color: var(--muted);"></div>
+  <div id="over" class="layer display" style="left: 80px; top: 230px; font-size: 128px; color: var(--paper-ink);"></div>
+  <div id="overSub" class="layer display" style="left: 80px; top: 520px; font-size: 50px; font-weight: 600; letter-spacing: -0.018em; line-height: 1.22; color: var(--muted-dark);"></div>
+
+  <!-- D: the rule -->
+  <div id="rule" class="layer" style="top: 420px;">
+    <div id="ruleTitle" class="serif" style="position: absolute; left: 80px; top: 300px; font-size: 80px; color: var(--ink);"></div>
+    <div id="lessPill" class="pill display" style="position: absolute; left: 80px; top: 510px; background: var(--ink); color: var(--paper); font-size: 80px; padding: 16px 44px 22px; transform-origin: left center;"></div>
+    <div id="lessWhen" class="display" style="position: absolute; left: 80px; top: 655px; font-size: 100px; color: var(--ink);"></div>
+    <div id="morePill" class="pill display" style="position: absolute; left: 80px; top: 870px; background: var(--red); color: #fff; font-size: 80px; padding: 16px 44px 22px; transform-origin: left center;"></div>
+    <div id="moreWhen" class="display" style="position: absolute; left: 80px; top: 1015px; font-size: 100px; color: var(--ink);"></div>
+    <div id="ruleWhy" class="display" style="position: absolute; left: 80px; top: 1250px; font-size: 52px; font-weight: 500; letter-spacing: -0.015em; line-height: 1.28; color: var(--muted);"></div>
+  </div>
+
+  <!-- E: trust -->
+  <div id="privacy" class="layer"></div>
+  <div id="password" class="layer display" style="left: 80px; top: 1440px; font-size: 48px; font-weight: 500; letter-spacing: -0.012em; line-height: 1.28; color: var(--muted-dark);"></div>
+
+  <!-- F: the name -->
+  <div id="end" class="layer">
+    <img id="endIcon" style="position: absolute; left: 440px; top: 300px; width: 200px; height: 200px; border-radius: 44px; box-shadow: 0 24px 50px rgba(60,45,20,0.28);">
+    <div id="endName" class="serif" style="position: absolute; left: 0; right: 0; top: 515px; text-align: center; font-size: 150px; font-weight: 700; color: var(--ink); letter-spacing: -0.02em;"></div>
+    <div id="endLine" class="display" style="position: absolute; left: 0; right: 0; top: 710px; text-align: center; font-size: 62px; font-weight: 700; letter-spacing: -0.025em; color: var(--ink);"></div>
+    <div style="position: absolute; left: 0; right: 0; top: 815px; text-align: center;">
+      <div id="endPill" class="pill display" style="background: var(--ink); color: var(--paper); font-size: 46px; font-weight: 700; letter-spacing: -0.015em; padding: 22px 50px 26px;"></div>
+    </div>
+  </div>
+
+  <div id="grain"></div>
+</div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const LANG = params.get("lang") || "en";
+const ASSETS = `../shots/out/store-preview/assets/${LANG}/`;
+const $ = (id) => document.getElementById(id);
+
+window.DURATION = 19.5;
+
+// The words of this cut. English only, for now; the app's own sentences come
+// from copy.js, which make-the-store-preview.py writes from the string catalog.
+const WORDS = {
+  claim: "Instagram.\nWithout *Reels*.",
+  kept: "Your feed, your friends and\nyour messages stay.",
+  gone: "gone.",
+  nomore: "No more",
+  fivemore: "“just five more minutes.”",
+  limit: "Set a daily limit.",
+  limitSub: "Quiet counts it down for you.",
+  over: "Then it’s over.",
+  overSub: "Closed until tomorrow.\nNothing to argue with.",
+  ruleTitle: "One rule:",
+  less: "Less", lessWhen: "→ right away.",
+  more: "More", moreWhen: "→ next week.",
+  ruleWhy: "So you can’t raise it\nat 11 pm.",
+  privacy: ["No account.", "No tracking.", "No ads."],
+};
+
+window.ready = new Promise((resolve) => {
+  const script = document.createElement("script");
+  script.src = ASSETS + "copy.js";
+  script.onload = () => build().then(resolve);
+  document.head.appendChild(script);
+});
+
+// ---------------------------------------------------------------- time
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const span = (t, a, b) => clamp((t - a) / (b - a));
+const E = {
+  lin: (p) => p,
+  out: (p) => 1 - Math.pow(1 - p, 3),
+  in: (p) => p * p * p,
+  inOut: (p) => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2),
+  outExpo: (p) => (p >= 1 ? 1 : 1 - Math.pow(2, -10 * p)),
+  inExpo: (p) => (p <= 0 ? 0 : Math.pow(2, 10 * p - 10)),
+  outBack: (p) => { const c = 1.45, d = p - 1; return 1 + (c + 1) * d * d * d + c * d * d; },
+  spring: (p) => (p >= 1 ? 1 : 1 - Math.exp(-6.5 * p) * Math.cos(10.5 * p)),
+};
+const lerp = (a, b, p) => a + (b - a) * p;
+
+function track(t, keys) {
+  if (t <= keys[0][0]) return keys[0][1];
+  for (let i = 1; i < keys.length; i++) {
+    const [t1, v1, ease = "inOut"] = keys[i];
+    const [t0, v0] = keys[i - 1];
+    if (t <= t1) {
+      const p = t1 > t0 ? E[ease]((t - t0) / (t1 - t0)) : 1;
+      const out = {};
+      for (const k in v1) out[k] = lerp(v0[k] ?? v1[k], v1[k], p);
+      return out;
+    }
+  }
+  return keys[keys.length - 1][1];
+}
+
+const hash = (n) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+const show = (el, on) => { el.style.display = on ? "" : "none"; };
+const between = (t, a, b) => t >= a && t < b;
+function hexMix(a, b, p) {
+  const pa = [1, 3, 5].map((i) => parseInt(a.slice(i, i + 2), 16));
+  const pb = [1, 3, 5].map((i) => parseInt(b.slice(i, i + 2), 16));
+  return `rgb(${pa.map((v, i) => Math.round(lerp(v, pb[i], p))).join(",")})`;
+}
+const NIGHT = "#0A0B0D", PAPER = "#F2EEE5", INK = "#171614", PAPER_INK = "#F4F1EA";
+
+// ---------------------------------------------------------------- words
+function setWords(el, text, { strike = false } = {}) {
+  el.innerHTML = "";
+  const words = [];
+  text.split("\n").forEach((line) => {
+    const row = document.createElement("span");
+    row.className = "line";
+    line.split(" ").forEach((word, i, all) => {
+      const mask = document.createElement("span");
+      mask.className = "m";
+      const w = document.createElement("span");
+      w.className = "w";
+      const red = /^\*.*\*[.,]?$/.test(word);
+      const clean = word.replace(/\*/g, "");
+      if (red) {
+        const inner = document.createElement("span");
+        inner.className = "em-red";
+        const bare = clean.replace(/[.,]$/, "");
+        inner.textContent = bare;
+        if (strike) {
+          const s = document.createElement("span");
+          s.className = "strike";
+          inner.appendChild(s);
+          w.strike = s;
+        }
+        w.appendChild(inner);
+        if (bare !== clean) w.appendChild(document.createTextNode(clean.slice(bare.length)));
+      } else {
+        w.textContent = clean;
+      }
+      mask.appendChild(w);
+      row.appendChild(mask);
+      if (i < all.length - 1) row.appendChild(document.createTextNode(" "));
+      words.push(w);
+    });
+    el.appendChild(row);
+  });
+  return words;
+}
+
+// In: each word rises out of its mask. Out: all leave upwards together. A
+// word that has fully arrived gets no transform at all, so nothing idle is
+// left for Chrome to paint late.
+function reveal(words, t, start, { stagger = 0.07, dur = 0.55, out = 1e9, outDur = 0.28 } = {}) {
+  words.forEach((w, i) => {
+    const pin = E.outExpo(span(t, start + i * stagger, start + i * stagger + dur));
+    const pout = E.inExpo(span(t, out + i * 0.02, out + i * 0.02 + outDur));
+    const y = (1 - pin) * 112 - pout * 112;
+    w.style.transform = Math.abs(y) < 0.01 ? "none" : `translate3d(0, ${y}%, 0)`;
+  });
+}
+
+const fits = [];
+function fit(el, width) { fits.push([el, width]); }
+function applyFits() {
+  for (const [el, width] of fits) {
+    let size = parseFloat(getComputedStyle(el).fontSize);
+    const widest = () => Math.max(...[...el.querySelectorAll(".line")].map((l) => {
+      const r = document.createRange();
+      r.selectNodeContents(l);
+      return r.getBoundingClientRect().width;
+    }), 0);
+    while (widest() > width && size > 30) {
+      size -= 2;
+      el.style.fontSize = size + "px";
+    }
+  }
+}
+
+// ---------------------------------------------------------------- build
+const W = {};
+const img = (id, file) => new Promise((ok) => {
+  const el = $(id);
+  el.onload = () => el.decode().then(ok, ok);
+  el.onerror = () => { console.log("missing " + file); ok(); };
+  el.src = ASSETS + file;
+});
+
+async function build() {
+  const C = window.COPY;
+  $("grain").style.backgroundImage = `url(${ASSETS}grain.png)`;
+
+  const strip = $("feedStrip");
+  const loads = [];
+  for (let k = 0; k < 2; k++) {
+    const im = document.createElement("img");
+    im.style.cssText = "position: relative; display: block; width: 560px;";
+    loads.push(new Promise((ok) => { im.onload = () => im.decode().then(ok, ok); }));
+    im.src = ASSETS + "feed-strip.jpg";
+    strip.appendChild(im);
+  }
+  loads.push(img("feedHead", "feed-head.png"), img("feedNav", "feed-nav.png"),
+             img("feedOpen", "feed-open.png"), img("panel3", "panel-3.png"),
+             img("panel2", "panel-2.png"), img("panel1", "panel-1.png"),
+             img("panel0", "panel-0.png"), img("curtain", "curtain.png"),
+             img("opening", "opening.png"), img("endIcon", "icon.png"));
+
+  W.claim = setWords($("claim"), WORDS.claim, { strike: true });
+  fit($("claim"), 920);
+  W.kept = setWords($("kept"), WORDS.kept);
+  fit($("kept"), 920);
+  $("gone").textContent = WORDS.gone;
+  drawCircle();
+
+  W.nomore = setWords($("nomore"), WORDS.nomore);
+  W.fivemore = setWords($("fivemore"), WORDS.fivemore);
+  const digits = $("digits");
+  W.digits = [];
+  ["d", "d", ":", "d", "d"].forEach((kind) => {
+    if (kind === ":") {
+      const c = document.createElement("span");
+      c.textContent = ":";
+      c.style.cssText = "display: inline-block; vertical-align: top; transform: translateY(-0.06em);";
+      digits.appendChild(c);
+      return;
+    }
+    const col = document.createElement("span");
+    col.style.cssText = "display: inline-block; height: 1.0em; line-height: 1.0em; overflow: hidden; vertical-align: top;";
+    const roll = document.createElement("span");
+    roll.style.cssText = "display: block;";
+    const a = document.createElement("span"), b = document.createElement("span");
+    a.style.display = b.style.display = "block";
+    roll.append(a, b);
+    col.appendChild(roll);
+    digits.appendChild(col);
+    W.digits.push({ roll, a, b });
+  });
+
+  W.limit = setWords($("limit"), WORDS.limit);
+  fit($("limit"), 920);
+  W.limitSub = setWords($("limitSub"), WORDS.limitSub);
+  fit($("limitSub"), 920);
+  W.over = setWords($("over"), WORDS.over);
+  fit($("over"), 920);
+  W.overSub = setWords($("overSub"), WORDS.overSub);
+  fit($("overSub"), 920);
+
+  W.ruleTitle = setWords($("ruleTitle"), WORDS.ruleTitle);
+  $("lessPill").textContent = "− " + WORDS.less;
+  $("morePill").textContent = "+ " + WORDS.more;
+  W.lessWhen = setWords($("lessWhen"), WORDS.lessWhen);
+  W.moreWhen = setWords($("moreWhen"), WORDS.moreWhen);
+  W.ruleWhy = setWords($("ruleWhy"), WORDS.ruleWhy);
+
+  W.privacy = WORDS.privacy.map((text, i) => {
+    const row = document.createElement("div");
+    row.className = "display";
+    row.style.cssText = `position: absolute; left: 80px; top: ${880 + i * 180}px; font-size: 112px; color: ${PAPER_INK}; display: flex; align-items: center; gap: 36px; white-space: nowrap;`;
+    const tick = document.createElement("div");
+    tick.innerHTML = `<svg width="98" height="98" viewBox="0 0 92 92"><circle cx="46" cy="46" r="46" fill="#D8322A"/><path d="M27 47 L40 60 L66 32" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/></svg>`;
+    const words = document.createElement("div");
+    row.append(tick, words);
+    $("privacy").appendChild(row);
+    return { tick: tick.firstChild, check: tick.querySelector("path"), words: setWords(words, text) };
+  });
+  W.password = setWords($("password"), C.password);
+  fit($("password"), 920);
+
+  $("endName").textContent = C.name;
+  W.endLine = setWords($("endLine"), C.tagline);
+  $("endPill").textContent = C.cta;
+
+  await Promise.all(loads);
+  await document.fonts.ready;
+  applyFits();
+  seek(0);
+}
+
+// A circle drawn by a hand in a hurry, around the place the Reels tab was.
+function drawCircle() {
+  const cx = 280, cy = 1128, rx = 86, ry = 50;
+  const pts = [];
+  for (let i = 0; i <= 64; i++) {
+    const a = (-150 + (i / 64) * 400) * Math.PI / 180;
+    const wob = 1 + 0.05 * Math.sin(i * 0.9) + 0.06 * (i / 64);
+    pts.push([cx + Math.cos(a) * rx * wob, cy + Math.sin(a) * ry * wob - 6 * (i / 64)]);
+  }
+  const c = $("circle");
+  c.setAttribute("d", pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" "));
+  c.setAttribute("pathLength", "1");
+  c.style.strokeDasharray = "1";
+}
+
+// ---------------------------------------------------------------- the score
+window.CUES = [
+  { t: 0.9, type: "scribble", length: 0.5 },
+  { t: 1.4, type: "scribble", length: 0.3 },
+  { t: 1.8, type: "pop" },
+  { t: 3.5, type: "impact" },
+  { t: 3.7, type: "roll", length: 1.2 },
+  { t: 4.9, type: "slam" },
+  { t: 5.3, type: "whip" },
+  { t: 6.0, type: "bell" },
+  { t: 7.3, type: "tick" }, { t: 7.8, type: "tick" }, { t: 8.3, type: "tick", high: true },
+  { t: 8.8, type: "curtain" },
+  { t: 9.3, type: "thud" },
+  { t: 10.5, type: "swell" },
+  { t: 10.9, type: "pop" }, { t: 11.7, type: "pop", pitch: 1.15 },
+  { t: 13.5, type: "whoosh" },
+  { t: 13.7, type: "pop" }, { t: 14.1, type: "pop", pitch: 1.1 }, { t: 14.5, type: "pop", pitch: 1.2 },
+  { t: 16.0, type: "whoosh" },
+  { t: 16.25, type: "bell" },
+  { t: 17.0, type: "pop", pitch: 0.9 },
+  { t: 3.5, type: "mark:loud" },
+  { t: 6.0, type: "mark:cut" }, { t: 6.0, type: "mark:back" },
+  { t: 8.8, type: "mark:drop0" }, { t: 10.5, type: "mark:drop1" }, { t: 19.5, type: "mark:end" },
+];
+
+const FAST = [[3.4, 3.6], [3.7, 4.95], [4.9, 5.2], [5.95, 6.4], [8.75, 9.35], [10.45, 10.8],
+              [13.45, 13.8], [15.9, 16.6]];
+window.SAMPLES = (t) => (FAST.some(([a, b]) => t >= a && t <= b) ? 12 : 3);
+
+// ---------------------------------------------------------------- the screen's path
+// x, y: its centre on the 1080 x 2340 stage. s: its scale.
+const POSE = [
+  [0.0, { x: 540, y: 1560, s: 1.2, rx: 7, ry: -9, rz: -1, o: 1, b: 0 }],
+  [3.45, { x: 540, y: 1540, s: 1.2, rx: 5, ry: 5, rz: 0.5, o: 1, b: 0 }, "lin"],
+  // B: the feed, scrolling out of focus behind the clock
+  [3.5, { x: 540, y: 1560, s: 1.0, rx: 10, ry: -6, rz: 1, o: 0.3, b: 14 }, "lin"],
+  [5.95, { x: 540, y: 1600, s: 0.94, rx: 12, ry: -2, rz: 1, o: 0.3, b: 14 }, "lin"],
+  // C: the panel, close enough to read its first line
+  [6.0, { x: 560, y: 1780, s: 1.45, rx: 2, ry: -4, rz: 0, o: 1, b: 0 }, "lin"],
+  [8.75, { x: 560, y: 1760, s: 1.47, rx: 1, ry: 2, rz: 0, o: 1, b: 0 }, "lin"],
+  [9.3, { x: 540, y: 1560, s: 1.2, rx: 5, ry: -6, rz: -0.5, o: 1, b: 0 }, "inOut"],
+  [10.45, { x: 540, y: 1550, s: 1.2, rx: 5, ry: 4, rz: 0, o: 1, b: 0 }, "lin"],
+  [10.5, { x: 540, y: 3400, s: 1.2, rx: 5, ry: 4, rz: 0, o: 0, b: 0 }, "lin"],
+  // F: the opening screen rises under the name
+  [16.1, { x: 540, y: 3400, s: 1.0, rx: 30, ry: -20, rz: 6, o: 1, b: 0 }, "lin"],
+  [16.9, { x: 540, y: 1720, s: 1.0, rx: 8, ry: -10, rz: 1.5, o: 1, b: 0 }, "outBack"],
+  [19.5, { x: 540, y: 1700, s: 1.0, rx: 6, ry: 10, rz: -1, o: 1, b: 0 }, "lin"],
+];
+
+// ---------------------------------------------------------------- seek
+window.seek = function seek(t) {
+  // ---- ground: paper, night for the clock, night under the curtain and for trust
+  let ground = PAPER;
+  if (between(t, 3.5, 6.0)) ground = NIGHT;
+  else if (between(t, 8.8, 9.3)) ground = hexMix(PAPER, NIGHT, E.inOut(span(t, 8.8, 9.3)));
+  else if (between(t, 9.3, 10.5)) ground = NIGHT;
+  else if (between(t, 13.5, 16.0)) ground = NIGHT;
+  $("bg").style.background = ground;
+  const dark = between(t, 3.5, 6.0) || between(t, 9.1, 10.5) || between(t, 13.5, 16.0);
+  $("vignette").style.opacity = dark ? 1 : 0;
+
+  const g = Math.floor(t * 24);
+  $("grain").style.backgroundPosition = `${Math.floor(hash(g) * 512)}px ${Math.floor(hash(g + 99) * 512)}px`;
+  $("grain").style.opacity = dark ? 0.08 : 0.05;
+
+  let shake = 0;
+  if (between(t, 4.9, 5.25)) shake = 14 * (1 - span(t, 4.9, 5.25));
+  const sx = (hash(Math.floor(t * 60)) - 0.5) * 2 * shake, sy = (hash(Math.floor(t * 60) + 7) - 0.5) * 2 * shake;
+  $("stage").style.transform = shake ? `translate(${sx}px, ${sy}px)` : "none";
+
+  // ---- the screen
+  const p = track(t, POSE);
+  const screenOn = !between(t, 10.5, 16.1);
+  show($("screenOuter"), screenOn);
+  if (screenOn) {
+    $("screenBox").style.transform =
+      `translate3d(${p.x - 540}px, ${p.y - 960}px, 0) scale(${p.s}) rotateX(${p.rx}deg) rotateY(${p.ry}deg) rotateZ(${p.rz}deg)`;
+    $("screenOuter").style.opacity = p.o;
+    $("screenOuter").style.filter = p.b > 0.2 ? `blur(${p.b}px)` : "none";
+    $("screenShadow").style.opacity = ground === PAPER ? 1 : 0;
+    $("screenShadow").style.transform =
+      `translate(${(p.x - 540) + p.ry * 3}px, ${(p.y - 960) + 90}px) scale(${p.s * 0.98}) rotate(${p.rz}deg)`;
+  }
+
+  // what is on it
+  show($("feedOpen"), t < 3.5);
+  show($("annot"), t < 3.5);
+  show($("gone"), t < 3.5);
+  $("circle").style.strokeDashoffset = 1 - E.inOut(span(t, 0.9, 1.4));
+  $("gone").style.clipPath = `inset(-20px ${100 - 100 * E.out(span(t, 1.4, 1.75))}% -20px -20px)`;
+  show($("feedView"), between(t, 3.5, 6.0));
+  if (between(t, 3.5, 6.0)) {
+    const first = $("feedStrip").firstChild;
+    const stripH = first.naturalHeight * 560 / first.naturalWidth;
+    const k = t - 3.5;
+    $("feedStrip").style.transform = `translateY(${-((400 * k + 500 * k * k) % stripH)}px)`;
+  }
+  const which = t < 7.3 ? 3 : t < 7.8 ? 2 : t < 8.3 ? 1 : 0;
+  [3, 2, 1, 0].forEach((n) => show($("panel" + n), between(t, 6.0, 9.4) && n === which));
+  show($("curtain"), between(t, 8.8, 10.5));
+  const drop = E.inOut(span(t, 8.8, 9.3));
+  $("curtain").style.transform = drop >= 1 ? "none" : `translateY(${-(1 - drop) * 100}%)`;
+  show($("opening"), t >= 16.0);
+
+  // ---- A: the claim, whole at frame 0 — this frame is the poster
+  show($("claim"), t < 3.5);
+  show($("kept"), between(t, 1.7, 3.5));
+  W.claim.forEach((w) => {
+    w.style.transform = "none";
+    if (w.strike) w.strike.style.transform = `scaleX(${E.inOut(span(t, 0.35, 0.7))})`;
+  });
+  reveal(W.kept, t, 1.8, { stagger: 0.03, dur: 0.6 });
+
+  // ---- B: no more 01:37
+  const inB = between(t, 3.5, 6.0);
+  show($("nomore"), inB);
+  show($("clockWrap"), inB);
+  show($("fivemore"), inB);
+  if (inB) {
+    reveal(W.nomore, t, 3.55, { stagger: 0.08, dur: 0.4 });
+    const enter = E.outExpo(span(t, 3.55, 3.9));
+    const land = E.out(span(t, 4.9, 5.3));
+    $("clock").style.opacity = enter;
+    $("clock").style.color = t >= 4.9 ? "#D8322A" : PAPER_INK;
+    $("clock").style.transform = `scale(${(0.86 + 0.14 * enter) * (1 + 0.07 * (1 - land) * (t >= 4.9))})`;
+    rollClock(1384 + 153 * E.inOut(span(t, 3.7, 4.9)));
+    $("clockStrike").style.transform = `scaleX(${E.inOut(span(t, 5.3, 5.55))})`;
+    $("clockStrike").style.background = "#F4F1EA";
+    reveal(W.fivemore, t, 5.0, { stagger: 0.05, dur: 0.5 });
+  }
+
+  // ---- C: the limit, and the curtain
+  show($("limit"), between(t, 6.0, 8.9));
+  show($("limitSub"), between(t, 6.0, 8.9));
+  reveal(W.limit, t, 6.05, { stagger: 0.07, out: 8.6 });
+  reveal(W.limitSub, t, 6.5, { stagger: 0.03, out: 8.6 });
+  show($("over"), between(t, 9.0, 10.5));
+  show($("overSub"), between(t, 9.0, 10.5));
+  reveal(W.over, t, 9.1, { stagger: 0.08, out: 10.3, outDur: 0.2 });
+  reveal(W.overSub, t, 9.45, { stagger: 0.03, out: 10.3, outDur: 0.2 });
+
+  // ---- D: the rule
+  const inD = between(t, 10.5, 13.6);
+  show($("rule"), inD);
+  if (inD) {
+    const up = E.inOut(span(t, 13.25, 13.55));
+    $("rule").style.transform = up ? `translateY(${-up * 420}px)` : "none";
+    $("rule").style.opacity = 1 - up;
+    reveal(W.ruleTitle, t, 10.55, { stagger: 0.07 });
+    const lp = E.spring(span(t, 10.8, 11.4)), mp = E.spring(span(t, 11.6, 12.2));
+    $("lessPill").style.transform = `scale(${lp})`;
+    $("lessPill").style.opacity = clamp(lp * 4);
+    $("morePill").style.transform = `scale(${mp})`;
+    $("morePill").style.opacity = clamp(mp * 4);
+    reveal(W.lessWhen, t, 11.0, { stagger: 0.07 });
+    reveal(W.moreWhen, t, 11.8, { stagger: 0.07 });
+    reveal(W.ruleWhy, t, 12.3, { stagger: 0.03, dur: 0.6 });
+  }
+
+  // ---- E: trust
+  const inE = between(t, 13.5, 16.1);
+  show($("privacy"), inE);
+  show($("password"), inE);
+  if (inE) {
+    const gone = E.in(span(t, 15.75, 16.05));
+    $("privacy").style.transform = gone ? `scale(${1 + 0.25 * gone})` : "none";
+    $("privacy").style.opacity = 1 - gone;
+    $("password").style.opacity = 1 - gone;
+    W.privacy.forEach((row, i) => {
+      const at = 13.65 + i * 0.4;
+      const pop = E.spring(span(t, at, at + 0.55));
+      row.tick.style.transform = `scale(${pop})`;
+      row.check.style.strokeDashoffset = 1 - E.out(span(t, at + 0.1, at + 0.35));
+      reveal(row.words, t, at + 0.06, { stagger: 0.06 });
+    });
+    reveal(W.password, t, 14.9, { stagger: 0.03 });
+  }
+
+  // ---- F: the name
+  show($("end"), t >= 16.0);
+  if (t >= 16.0) {
+    const icon = E.spring(span(t, 16.2, 16.85));
+    $("endIcon").style.transform = icon >= 1 ? "none" : `scale(${icon})`;
+    $("endIcon").style.opacity = clamp(icon * 3);
+    const name = E.outExpo(span(t, 16.4, 17.0));
+    $("endName").style.opacity = name;
+    $("endName").style.transform = name >= 1 ? "none" : `translateY(${(1 - name) * 50}px)`;
+    reveal(W.endLine, t, 16.6, { stagger: 0.05 });
+    const pill = E.spring(span(t, 17.0, 17.6));
+    $("endPill").style.transform = pill >= 1 ? "none" : `scale(${pill})`;
+    $("endPill").style.opacity = clamp(pill * 3);
+  }
+};
+
+function rollClock(total) {
+  const at = (minutes) => {
+    const m = ((Math.floor(minutes) % 1440) + 1440) % 1440;
+    const h = Math.floor(m / 60), mm = m % 60;
+    return [Math.floor(h / 10), h % 10, Math.floor(mm / 10), mm % 10];
+  };
+  const units = [60, 60, 10, 1];
+  const now = at(total);
+  W.digits.forEach((d, i) => {
+    const u = units[i];
+    const base = Math.floor(total / u) * u;
+    const next = at(base + u)[i];
+    let roll = u === 1 ? total - Math.floor(total) : E.inOut(clamp((total % u) - (u - 1)));
+    if (next === now[i]) roll = 0;
+    d.a.textContent = now[i];
+    d.b.textContent = next;
+    d.roll.style.transform = `translateY(${-roll}em)`;
+  });
+}
+</script>
+</body>
+</html>

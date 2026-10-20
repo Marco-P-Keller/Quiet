@@ -1,0 +1,29 @@
+Quiet ukazuje mobilní web Instagramu bez ploch, které nikdy nekončí.
+
+Tvůj feed, tvoje stories, tvoje zprávy a tvůj profil se načítají tak, jak je znáš. Reels a Prozkoumat tam nejsou. Příspěvky, které Instagram vkládá mezi příspěvky tvých přátel, ano — a jeden přepínač je odstraní, což feedu zároveň dá konec, ke kterému se dá dojít. Přihlašuješ se na vlastní stránce Instagramu, takže tvoje heslo se Quiet nikdy nedotkne.
+
+A pak je tu limit.
+
+Vybereš si, kolik minut denně chceš. Když čteš, ten čas ubývá — jen dokud je aplikace před tebou, jen dokud je stránka opravdu na obrazovce. Dvě tichá upozornění, v pěti minutách a v jedné. Když čas dojde, aplikace zavře den a řekne to.
+
+Svůj limit můžeš kdykoli snížit a platí to okamžitě. Zvýšit ho můžeš jednou týdně a nové číslo začíná další den — nikdy ve chvíli, kdy chceš pět minut navíc. Ta asymetrie je celá aplikace. Rozhodnutí, které uděláš v klidu, smí zavázat to, které uděláš v jedenáct večer.
+
+CO QUIET NEDĚLÁ
+
+• Žádný účet, žádný náš server, žádná analytika, žádná reklama, žádné sledování. Když zapneš přenášení mezi zařízeními, tvůj limit a dnešní součet půjdou do tvého vlastního iCloudu — kde je můžou číst jen tvoje zařízení.
+
+• Žádné série, žádný týdenní report, nic ke kontrole. Existuje jediné upozornění a je vypnuté, dokud si o něj neřekneš: jedna denní připomínka v hodinu, kterou si vybereš, a v každý den, kdy už jsi tam byl, zůstane zticha.
+
+• Žádné odpočítávání na obrazovce. Hodiny, na které se dá koukat, jsou hodiny, na které se kouká; co zbývá, je v panelu — pro chvíle, kdy to opravdu chceš vědět.
+
+• Quiet po tobě nechce nic svého. Jediné povolení, které může vyvolat, je to pro denní připomínku, a až potom, co ji zapneš. Vlastní stránky Instagramu si pořád můžou říct o fotoaparát, mikrofon nebo tvoje fotky, když k příspěvku nebo zprávě něco přikládáš — to se ptá iOS jménem Instagramu a Quiet sám nepoužívá ani jedno ze tří.
+
+Osm věcí zůstává v tvém telefonu, v klíčence: tvůj limit a každá změna, kterou jsi zařadil na pozdější den, dnešní součet, nejvzdálenější bod v čase, který aplikace viděla, den, kdy jsi ji nastavil, den, kdy jsi ji požádal, aby všechno zapomněla, to, co utratila tvoje ostatní zařízení, pokud mezi nimi limit přenášíš, kolik minut denně jsi podle svých slov trávil před Quiet, a kolik jsi jich strávil v každém dni od té doby. Přežijí smazání aplikace, schválně. Limit, který jde zrušit přeinstalováním, není limit.
+
+Proto existuje cesta ven, která není App Store. „Make Quiet forget everything" dole v panelu vyhodí všech osm a kopii na iCloudu s nimi — po stejném čekání, které stojí mezi tebou a větším číslem. Aplikace úplně bez cesty ven by byla past; taková, ze které se dá odejít ve chvíli, kdy člověk chce pět minut navíc, by nebyla limit.
+
+Den se přehoupne ve čtyři ráno místo o půlnoci, aby pozdní večer patřil tomu večeru, kterým se zdá být.
+
+Quiet mluví anglicky, německy, španělsky, francouzsky a portugalsky: na telefonu nastaveném na češtinu jsou vlastní obrazovky aplikace anglicky.
+
+Quiet není spojený se společnostmi Instagram ani Meta a není jimi podporovaný. Je to omezovač pro web, který stejně používáš, ne jeho náhrada — a není jimi vyrobený, provozovaný ani podporovaný.

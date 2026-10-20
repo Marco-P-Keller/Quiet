@@ -1,0 +1,1 @@
+Ein Balken pro Tag, gemessen am Tag, von dem du losgegangen bist. Senken gilt sofort, Erhöhen wartet eine Woche. Diese Asymmetrie ist die ganze App.

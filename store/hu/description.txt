@@ -1,0 +1,29 @@
+A Quiet az Instagram mobiloldalát mutatja, kivéve azokat a felületeket, amelyek sosem érnek véget.
+
+A hírfolyamod, a történeteid, az üzeneteid és a profilod úgy töltődnek be, ahogy ismered őket. A Reels és a Felfedezés nincs ott. Azok a bejegyzések, amelyeket az Instagram az ismerőseidé közé tesz, ott vannak — és egy kapcsoló kiveszi őket, ami egyben véget is ad a hírfolyamnak, egy olyat, amit el lehet érni. Az Instagram saját oldalán jelentkezel be, így a jelszavad soha nem érinti a Quietet.
+
+Aztán van egy limit.
+
+Te választod meg, hány percet szeretnél naponta. Amíg olvasol, ez az idő fogy — csak amíg az alkalmazás előtted van, csak amíg az oldal tényleg a képernyőn van. Két csendes jelzés, öt percnél és egynél. Amikor elfogy az idő, az alkalmazás lezárja a napot, és meg is mondja.
+
+A limitedet bármikor csökkentheted, és azonnal érvényes. Emelni hetente egyszer tudod, és az új szám másnap indul — soha nem abban a pillanatban, amikor még öt percet szeretnél. Ez az aszimmetria maga az alkalmazás. A nyugodtan hozott döntés megkötheti azt, amit este tizenegykor hozol.
+
+AMIT A QUIET NEM CSINÁL
+
+• Nincs fiók, nincs szerverünk, nincs analitika, nincs hirdetés, nincs követés. Ha bekapcsolod az eszközök közötti átvitelt, a limited és a mai összeg a saját iCloudodba kerül — ahol csak a te eszközeid tudják olvasni.
+
+• Nincs sorozat, nincs heti jelentés, nincs mit ellenőrizni. Egyetlen értesítés létezik, és ki van kapcsolva, amíg nem kéred: egy napi emlékeztető egy általad választott órában, amely csendben marad minden olyan napon, amikor már jártál ott.
+
+• Nincs visszaszámlálás a képernyőn. Az óra, amit nézni lehet, az óra, amit nézünk; ami maradt, az a panelen van — azokra a pillanatokra, amikor tényleg tudni akarod.
+
+• A Quiet semmit nem kér magának. Az egyetlen engedély, amit előhozhat, a napi emlékeztetőé, és az is csak azután, hogy bekapcsoltad. Az Instagram saját oldalai továbbra is kérhetik a kamerát, a mikrofont vagy a fotóidat, amikor csatolsz valamit egy bejegyzéshez vagy egy üzenethez — ez az iOS kérdez az Instagram nevében, és a Quiet egyiket sem használja.
+
+Nyolc dolog marad meg a telefonodon, a kulcskarikán: a limited és minden változtatás, amit egy későbbi napra sorba állítottál, a mai összeg, a legtávolabbi időpont, amit az alkalmazás látott, a nap, amikor beállítottad, a nap, amikor megkérted, hogy felejtsen el mindent, az, amennyit a többi eszközöd elhasznált, ha a limitet közöttük hordozod, a saját bevallásod szerint a Quiet előtti napi percek száma, és az, hogy azóta melyik nap mennyit töltöttél. Túlélik az alkalmazás törlését, szándékosan. Az a limit, amit újratelepítéssel fel lehet oldani, nem limit.
+
+Ezért van egy kijárat, ami nem az App Store. A panel alján a „Make Quiet forget everything" mind a nyolcat kidobja, és az iCloudban lévő másolatot is — ugyanaz után a várakozás után, ami közted és egy nagyobb szám között áll. Egy kijárat nélküli alkalmazás csapda lenne; egy olyan, amit abban a pillanatban el lehet hagyni, amikor öt percet szeretnél, nem lenne limit.
+
+A nap hajnali négykor fordul éjfél helyett, hogy egy késői este ahhoz az estéhez tartozzon, aminek érződik.
+
+A Quiet angolul, németül, spanyolul, franciául és portugálul beszél: magyarra állított telefonon az alkalmazás saját képernyői angolul vannak.
+
+A Quiet nem áll kapcsolatban az Instagrammal vagy a Metával, és nem is támogatják. Egy már amúgy is használt oldal korlátozója, nem a helyettesítője — és nem ők készítik, üzemeltetik vagy támogatják.

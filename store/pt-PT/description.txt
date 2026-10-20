@@ -1,0 +1,29 @@
+O Quiet mostra o site móvel do Instagram sem as superfícies que não acabam nunca.
+
+O teu feed, as tuas stories, as tuas mensagens e o teu perfil carregam como os conheces. Reels e Explorar não estão lá. As publicações que o Instagram põe entre as dos teus amigos, sim — e uma opção tira-as, o que também dá ao feed um fim que se consegue alcançar. Inicias sessão na própria página do Instagram, por isso a tua palavra-passe nunca toca no Quiet.
+
+E depois há um limite.
+
+Escolhes quantos minutos por dia queres. Enquanto lês, esse tempo vai a descer — só enquanto a app está à tua frente, só enquanto a página está mesmo no ecrã. Dois avisos discretos, aos cinco minutos e ao um. Quando o tempo acaba, a app fecha o dia e diz isso.
+
+Podes baixar o teu limite quando quiseres, e vale de imediato. Podes aumentá-lo uma vez por semana, e o número novo começa no dia seguinte — nunca no momento em que queres mais cinco minutos. Essa assimetria é a app inteira. A decisão que tomas com calma tem o direito de segurar a decisão que tomas às onze da noite.
+
+O QUE O QUIET NÃO FAZ
+
+• Sem conta, sem nenhum servidor nosso, sem análise, sem publicidade, sem rastreio. Se ligares o levar entre dispositivos, o teu limite e o total de hoje vão para a tua própria iCloud — onde só os teus dispositivos os conseguem ler.
+
+• Sem sequências, sem relatório semanal, nada para ir ver. Existe uma única notificação e fica desligada até a pedires: um lembrete diário, à hora que escolheres, que fica calado em qualquer dia em que já lá tenhas estado.
+
+• Sem contagem decrescente no ecrã. Um relógio que se pode ver é um relógio que se vê; o que sobra está no painel, para os momentos em que queres mesmo saber.
+
+• O Quiet não te pede nada de seu. A única permissão que consegue levantar é a do lembrete diário, e só depois de a ligares. As páginas do próprio Instagram continuam a poder pedir a câmara, o microfone ou as tuas fotografias quando anexas alguma coisa a uma publicação ou a uma mensagem — é o iOS a perguntar em nome do Instagram, e o Quiet não usa nenhuma das três.
+
+Oito coisas ficam guardadas, no teu telemóvel, no porta-chaves: o teu limite e qualquer alteração que tenhas deixado em fila para um dia posterior, o total de hoje, o ponto mais distante no tempo que a app viu, o dia em que a configuraste, o dia em que lhe pediste para esquecer tudo, o que os teus outros dispositivos gastaram se levas o limite entre eles, o dia de onde disseste ter partido, e quanto durou cada dia desde então. Sobrevivem a apagar a app, de propósito. Um limite que se levanta a reinstalar não é um limite.
+
+Por isso existe uma saída que não é a App Store. "Fazer o Quiet esquecer tudo", ao fundo do painel, deita as oito fora e a cópia na iCloud com elas — depois da mesma espera que existe entre ti e um número maior. Uma app sem saída nenhuma seria uma armadilha; uma que se larga no momento em que queres mais cinco minutos não seria um limite.
+
+O dia muda às quatro da manhã em vez de à meia-noite, para que uma noite tardia pertença à noite que parece ser.
+
+O Quiet fala inglês, alemão, espanhol, francês e português do Brasil; num telemóvel em português europeu, é o português do Brasil que aparece.
+
+O Quiet não é afiliado ao Instagram nem à Meta, e não é apoiado por eles. É um limitador para um site que já usas, não um substituto — e não é feito, operado nem apoiado por eles.

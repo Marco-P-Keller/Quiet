@@ -31,10 +31,14 @@ It does not get you:
   and reels sent to you in a DM. A friend's link will say "Reels are off in
   Quiet." rather than open.
 * **Explore is gone**, and with it hashtag pages and the account directory.
-* **There is no search page.** Finding someone searches Instagram for people
-  and nothing else, and remembers the last eight profiles you opened so the
-  three or four you actually visit are one tap away. What is gone with the page
-  is Explore behind it: no hashtags, no places, no grid of strangers.
+* **There is no search page, and no search.** Finding someone takes a name and
+  opens that profile; it remembers the last eight you opened, so the three or
+  four you actually visit are one tap away without typing at all. What is gone
+  with the page is Explore behind it — no hashtags, no places, no grid of
+  strangers — and what is gone with the *search* is results as you type, which
+  cost a request to `/api/v1/web/search/topsearch/` carrying Instagram's own
+  client identifier. That is an unofficial client rather than a browser, and it
+  is the one thing in this project Meta's terms name outright.
 
 ## Because Instagram would rather you used Instagram
 
@@ -68,9 +72,12 @@ It does not get you:
   arrive, which is what makes a list of hand-written phrases survive contact
   with a real page.
 * **Instagram can serve a different page to a web view than to Safari.** Quiet
-  presents a Safari user agent so it gets the real mobile site. If Instagram
-  changes what it serves, that is a thing to fix, not a thing that fails
-  gracefully.
+  used to present a Safari user agent so that it got the real mobile site, and
+  that is a disguise: an app that hides what it is has given up the one defence
+  a content blocker has. It sends WebKit's own header with `Quiet/1.0` on the
+  end now, the way every in-app browser does. **What Instagram serves that has
+  not been measured**, and if the site comes back thinner the answer is to ask
+  Meta for access rather than to put the disguise back on.
 * **Logging in with Facebook leaves Instagram's domain.** Meta's login domains
   are allowed to open inside the app, because bouncing them to Safari would
   break signing in.

@@ -1,0 +1,29 @@
+Quiet näyttää Instagramin mobiilisivuston ilman niitä pintoja, jotka eivät lopu koskaan.
+
+Syötteesi, tarinasi, viestisi ja profiilisi latautuvat niin kuin tunnet ne. Reelsiä ja Explorea ei ole. Julkaisut, joita Instagram työntää ystäviesi väliin, ovat — ja yksi kytkin ottaa ne pois, mikä antaa syötteelle samalla lopun, johon voi päästä. Kirjaudut sisään Instagramin omalla sivulla, joten salasanasi ei koskaan koske Quietia.
+
+Sitten on raja.
+
+Valitset, montako minuuttia päivässä haluat. Kun luet, aika kuluu — vain silloin kun sovellus on edessäsi, vain silloin kun sivu on todella ruudulla. Kaksi hiljaista ilmoitusta, viiden minuutin ja yhden minuutin kohdalla. Kun aika on mennyt, sovellus sulkee päivän ja sanoo sen.
+
+Voit laskea rajaasi milloin haluat, ja se astuu voimaan heti. Voit nostaa sitä kerran viikossa, ja uusi luku alkaa seuraavana päivänä — ei koskaan sillä hetkellä, kun haluat viisi minuuttia lisää. Tuo epäsymmetria on koko sovellus. Rauhassa tehty päätös saa sitoa sen päätöksen, jonka teet yhdeltätoista illalla.
+
+MITÄ QUIET EI TEE
+
+• Ei tiliä, ei omaa palvelinta, ei analytiikkaa, ei mainoksia, ei seurantaa. Jos otat käyttöön rajan siirtymisen laitteiden välillä, rajasi ja tämän päivän summa menevät omaan iCloudiisi — jossa vain sinun laitteesi voivat lukea ne.
+
+• Ei putkia, ei viikkoraporttia, ei mitään tarkistettavaa. Ilmoituksia on yksi, ja se on pois päältä kunnes pyydät sitä: yksi päivittäinen muistutus valitsemanasi kellonaikana, joka pysyy hiljaa niinä päivinä, joina olet jo käynyt.
+
+• Ei lähtölaskentaa ruudulla. Kello, jota voi katsoa, on kello, jota katsotaan; se mitä on jäljellä, on paneelissa — niitä hetkiä varten, joina todella haluat tietää.
+
+• Quiet ei pyydä sinulta mitään omaansa. Ainoa lupa, jonka se voi nostaa esiin, koskee päivittäistä muistutusta, ja vasta kun olet kytkenyt sen päälle. Instagramin omat sivut voivat yhä pyytää kameraa, mikrofonia tai kuviasi, kun liität jotain julkaisuun tai viestiin — se on iOS, joka kysyy Instagramin puolesta, eikä Quiet käytä itse yhtäkään niistä kolmesta.
+
+Kahdeksan asiaa säilyy puhelimessasi, avainnipussa: rajasi ja jokainen muutos, jonka olet jonottanut myöhemmälle päivälle, tämän päivän summa, kaukaisin ajankohta, jonka sovellus on nähnyt, päivä jona otit sen käyttöön, päivä jona pyysit sitä unohtamaan kaiken, se mitä muut laitteesi ovat käyttäneet, jos siirrät rajaa niiden välillä, montako minuuttia päivässä kerroit käyttäneesi ennen Quietia, ja kuinka kauan käytit kunakin päivänä sen jälkeen. Ne selviävät sovelluksen poistamisesta, tarkoituksella. Raja, jonka voi poistaa asentamalla uudelleen, ei ole raja.
+
+Siksi on olemassa ulospääsy, joka ei ole App Store. Paneelin alalaidassa oleva "Make Quiet forget everything" heittää kaikki kahdeksan pois ja iCloud-kopion niiden mukana — saman odotuksen jälkeen, joka seisoo sinun ja suuremman luvun välissä. Sovellus ilman mitään ulospääsyä olisi ansa; sellainen, josta voi lähteä sillä hetkellä kun haluaa viisi minuuttia lisää, ei olisi raja.
+
+Vuorokausi vaihtuu neljältä aamulla eikä keskiyöllä, jotta myöhäinen ilta kuuluu siihen iltaan, miltä se tuntuu.
+
+Quiet puhuu englantia, saksaa, espanjaa, ranskaa ja portugalia: suomeksi asetetussa puhelimessa sovelluksen omat näytöt ovat englanniksi.
+
+Quiet ei ole sidoksissa Instagramiin tai Metaan eikä niiden hyväksymä. Se on rajoitin sivustolle, jota käytät jo, ei sen korvaaja — eikä se ole niiden tekemä, ylläpitämä tai tukema.

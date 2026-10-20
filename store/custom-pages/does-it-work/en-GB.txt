@@ -1,0 +1,1 @@
+A bar for every day, against the day you started from. Lowering your limit takes effect at once; raising it waits a week. That asymmetry is the whole app.

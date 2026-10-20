@@ -1,0 +1,1 @@
+Prijava zdaj poteka na lastni strani. Nad njo je Instagramov naslov s ključavnico, na njej pa ni nobene kode Quieta, tako da sam vidiš, da Quiet nikoli ne vidi tvojega gesla. Pred prvo prijavo en zaslon pojasni, kaj se zgodi in kje to preveriš. Popravljeno tudi: spodnja vrstica se v nabiralniku zdaj zanesljivo vrne.

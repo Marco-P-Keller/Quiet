@@ -1,0 +1,40 @@
+Hello,
+
+We believe Quiet meets guidelines 4.3(a), 4.3(b) and 4.2.6, so, as your message asks, we are replying instead of resubmitting.
+
+1. What it does
+Quiet puts a daily time limit on Instagram that cannot be lifted at the moment it starts to bite. Time counts only while the page is on screen; there is a notice at five and at one minute left; when the time is used up, an end-of-day screen stays until 4 a.m. Lowering the limit takes effect immediately; raising it is allowed once every seven days and starts the next day. The limit is kept in the keychain, so reinstalling does not reset it. Within the limit, Quiet shows Instagram's own mobile website in a WKWebView and hides the surfaces designed to be endless, Reels and Explore; the feed, stories, messages and profiles stay. Suggested posts can optionally be hidden too, which gives the feed a real end.
+The problem: limits that can be dismissed in the moment (Screen Time's "Ignore Limit") get dismissed, and blocking Instagram entirely also cuts off the friends and messages people wanted to keep, so they reinstall it.
+
+2. Intended users
+Adults who use Instagram to keep in touch with people they know, lose evenings to Reels, and have found that Screen Time or deleting the app did not hold: for example students during exams, or parents who want their evenings back. Rated 17+ because it displays Instagram's content.
+
+3. The gap
+Blockers restrict the whole app; reminders leave the decision to the weakest moment. Quiet removes only the endless parts and makes the limit binding by rule: raising takes a week, reinstalling does not reset it, and there is no "five more minutes" button.
+
+4. Beta testing
+TestFlight since 19 August 2026, more than 100 builds, on my own iPhone with two Instagram accounts and by friends and family in our internal group. Feedback applied:
+- Signed out, Instagram showed an "Open the Instagram app" button, leading back into the app being limited. Quiet now opens on the sign-in form.
+- "That's everyone you follow" sometimes appeared while the feed was still loading. The end-of-feed rule now counts only suggestions actually removed.
+- Hiding all suggestions made an exhausted feed look empty. Suggestions are now shown by default and hiding them is opt-in.
+
+5. Standalone or suite
+Standalone. Connexa GmbH publishes other apps, but none of them limits or filters a website or relates to Instagram.
+
+6. In-app purchase in another app?
+No. None of our apps limits or filters a website, so there is nothing it could be added to.
+
+7. Code shared with our other apps
+None. Quiet has its own repository and was written from scratch (over 200 commits since 18 August 2026). It uses only Apple frameworks (SwiftUI, UIKit, WebKit, Security, UserNotifications, StoreKit for the review prompt) and no third-party packages.
+
+8. Code shared with third parties
+None. No template, SDK or content library. The limit, its rules, the end-of-day screen, and the stylesheet and script that hide Reels and Explore are our own work.
+
+9. Client or third party
+No. Connexa GmbH is my own company, and Quiet is our own idea and product. No commercial template or app generation service was used.
+
+To reach the end-of-day screen quickly, set the limit to its minimum of 5 minutes. The demo Instagram account is in the App Review Information.
+
+Kind regards,
+Marco Keller
+Connexa GmbH

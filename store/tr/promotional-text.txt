@@ -1,0 +1,1 @@
+Tam canını sıkmaya başladığı anda kaldırılamayan bir günlük limit. İstediğin zaman düşür. Haftada bir kez yükselt, ertesi günden itibaren geçerli.

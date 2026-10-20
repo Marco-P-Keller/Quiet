@@ -1,0 +1,1 @@
+Una barra por cada día, medida contra el día del que partiste. Bajar el límite surte efecto al instante; subirlo espera una semana. Esa asimetría es toda la app.

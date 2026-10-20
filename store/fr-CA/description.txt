@@ -1,0 +1,27 @@
+Quiet affiche le site mobile d’Instagram, sans les surfaces qui ne finissent jamais.
+
+Ton fil, tes stories, tes messages et ton profil se chargent comme tu les connais. Reels et Explorer n’y sont pas. Les publications qu’Instagram glisse entre celles de tes amis, si — et un réglage les retire, ce qui donne au fil une fin que l’on peut atteindre. Tu te connectes sur la page d’Instagram elle-même : ton mot de passe ne touche jamais Quiet.
+
+Et puis il y a une limite.
+
+Tu choisis combien de minutes par jour tu veux. Pendant que tu lis, ce temps s’écoule — seulement quand l’app est devant toi, seulement quand la page est vraiment à l’écran. Deux avis discrets, à cinq minutes et à une. Quand le temps est passé, l’app ferme la journée et le dit.
+
+Tu peux baisser ta limite quand tu veux, et cela prend effet tout de suite. Tu peux la relever une fois par semaine, et le nouveau chiffre commence le lendemain — jamais au moment où tu veux cinq minutes de plus. Cette asymétrie, c’est toute l’app. La décision que tu prends au calme a le droit de tenir celle que tu prends à onze heures du soir.
+
+CE QUE QUIET NE FAIT PAS
+
+• Pas de compte, aucun serveur à nous, aucune analyse, aucune publicité, aucun pistage. Si tu actives le transport entre appareils, ta limite et le total du jour vont dans ton propre iCloud — où seuls tes appareils peuvent les lire.
+
+• Pas de séries, pas de rapport hebdomadaire, rien à vérifier. Il existe une seule notification et elle est éteinte tant que tu ne la demandes pas : un unique rappel quotidien, à l’heure que tu choisis, qui ne dit rien les jours où tu as déjà ouvert l’app.
+
+• Pas de compte à rebours à l’écran. Une horloge qu’on peut regarder est une horloge qu’on regarde ; ce qu’il reste est dans le panneau, pour les moments où tu veux vraiment le savoir.
+
+• Quiet ne te demande rien pour lui-même. La seule autorisation qu’il peut faire apparaître est celle du rappel quotidien, et seulement après que tu l’as activé. Les pages d’Instagram, elles, peuvent toujours demander l’appareil photo, le micro ou tes photos quand tu joins quelque chose à une publication ou à un message — c’est iOS qui demande pour le compte d’Instagram, et Quiet n’utilise aucun des trois.
+
+Huit choses sont gardées, sur ton téléphone, dans le trousseau : ta limite et tout changement que tu as mis en attente pour un jour suivant, le total du jour, le point le plus loin dans le temps que l’app ait vu, le jour où tu l’as installée, le jour où tu lui as demandé de tout oublier, ce que tes autres appareils ont dépensé si tu transportes la limite entre eux, la journée d’où tu as dit être parti, et la durée de chaque journée depuis. Elles survivent à la suppression de l’app, exprès. Une limite qu’on peut lever en réinstallant n’est pas une limite.
+
+C’est pourquoi il existe une sortie qui n’est pas l’App Store. « Faire tout oublier à Quiet », au bas du panneau, jette les huit et la copie iCloud avec elles — après la même attente qui te sépare d’un plus grand chiffre. Une app sans aucune sortie serait un piège ; une app qu’on peut quitter au moment où l’on veut cinq minutes de plus ne serait pas une limite.
+
+La journée bascule à quatre heures du matin plutôt qu’à minuit, pour qu’une soirée tardive appartienne à la soirée dont elle a l’air.
+
+Quiet n’est ni affilié à Instagram ou Meta, ni approuvé par eux. C’est un limiteur pour un site que tu utilises déjà, pas un remplacement — et il n’est ni fabriqué, ni exploité, ni soutenu par eux.

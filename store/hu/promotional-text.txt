@@ -1,0 +1,1 @@
+Napi limit, amit nem lehet feloldani pont abban a pillanatban, amikor szorítani kezd. Csökkenteni bármikor. Növelni hetente egyszer, másnaptól érvényes.

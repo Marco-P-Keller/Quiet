@@ -1,0 +1,1 @@
+skjermtid,avhengighet,telefon,detox,digital,blokkering,fokus,distraksjon,sosiale,medier,scrolling

@@ -1,0 +1,27 @@
+Quiet shows Instagram's mobile site with the endless surfaces taken out.
+
+Your feed, your stories, your messages and your profile load the way you know them. Reels and Explore are not there. The posts Instagram suggests between your friends are — and one switch takes them out, which also gives the feed an end to reach. You sign in on Instagram's own page, so your password never touches Quiet.
+
+Then there is a limit.
+
+You choose how many minutes a day you want. While you are reading, that time runs down — only while the app is in front of you, only while the page is actually on screen. Two quiet notices, at five minutes and at one. When the time is gone, the app closes for the day and says so.
+
+You can lower your limit whenever you like, and it takes effect at once. You can raise it once a week, and the new number starts the next day — never in the moment you want five more minutes. That asymmetry is the whole app. The decision you make calmly is allowed to bind the decision you make at eleven at night.
+
+WHAT QUIET DOES NOT DO
+
+• No account, no server of ours, no analytics, no advertising, no tracking. If you switch on carrying between devices, your limit and today's total go into your own iCloud — where only your devices can read them.
+
+• No streaks, no weekly report, nothing to check. One notification exists and it is off until you ask for it: a single daily reminder, at an hour you pick, which stays quiet on any day you have already been.
+
+• No countdown on the screen. A timer you can watch is a timer you do watch; what is left is in the panel, for the moments you actually want to know.
+
+• Quiet asks you for nothing of its own. The one prompt it can raise is for the daily reminder, and only after you turn it on. Instagram's own pages can still ask for the camera, the microphone or your photos when you attach something to a post or a message — that is iOS asking on Instagram's behalf, and Quiet uses none of the three itself.
+
+Eight things are kept, on your phone, in the keychain: your limit and any change you have queued for a later day, today's total, the furthest point in time the app has seen, the day you set it up, the day you have asked it to forget everything, what your other devices have spent if you are carrying the limit between them, the day you said you started from, and how long each day since has been. They survive deleting the app, on purpose. A limit you can lift by reinstalling is not a limit.
+
+Which is why there is a way out that is not the App Store. "Make Quiet forget everything", at the foot of the panel, throws all eight away and the copy in iCloud with them — after the same wait that stands between you and a bigger number. An app with no way out at all would be a trap; one you can leave in the moment you want five more minutes would not be a limit.
+
+The day turns at four in the morning rather than at midnight, so a late evening belongs to the evening it feels like.
+
+Quiet is not affiliated with or endorsed by Instagram or Meta. It is a limiter for a site you already use, not a replacement for it, and it is not made by, connected to, or supported by them.

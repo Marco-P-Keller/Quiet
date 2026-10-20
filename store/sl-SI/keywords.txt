@@ -1,0 +1,1 @@
+zaslon,čas,odvisnost,telefon,detoks,digitalno,blokator,fokus,motnje,navada,odmor,koncentracija

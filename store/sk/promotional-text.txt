@@ -1,0 +1,1 @@
+Denný limit, ktorý sa nedá zrušiť presne vo chvíli, keď začne tlačiť. Znížiť ho môžeš kedykoľvek. Zvýšiť raz za týždeň, s platnosťou od ďalšieho dňa.
