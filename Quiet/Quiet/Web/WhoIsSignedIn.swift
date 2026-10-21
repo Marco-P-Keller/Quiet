@@ -116,6 +116,10 @@ final class WhoIsSignedIn: NSObject, WKHTTPCookieStoreObserver {
     /// log.
     private let switched: () -> Void
 
+    /// Nobody is signed in any more, and the app did not do it: Instagram's own
+    /// sign-out, or a session that ended. Quiet's own button says it first.
+    private let signedOut: () -> Void
+
     /// The last settled answer, and whether there has been one.
     ///
     /// Separate, rather than a double optional, because "nobody is signed in"
@@ -135,10 +139,12 @@ final class WhoIsSignedIn: NSObject, WKHTTPCookieStoreObserver {
     /// compiler said so every time it built the file from scratch.
     init(
         store: WKHTTPCookieStore? = nil,
+        signedOut: @escaping () -> Void = {},
         switched: @escaping () -> Void
     ) {
         let store = store ?? WKWebsiteDataStore.default().httpCookieStore
         self.store = store
+        self.signedOut = signedOut
         self.switched = switched
         super.init()
         // Not removed anywhere. WebKit holds its observers weakly, and the
@@ -184,6 +190,10 @@ final class WhoIsSignedIn: NSObject, WKHTTPCookieStoreObserver {
         }
         guard hasLooked else { return }
         let change = AccountChange.of(was: known, now: now)
+        if change == .signedOut {
+            signedOut()
+            return
+        }
         guard AccountChange.acts(on: change, hasLooked: hasLooked) else { return }
         switched()
     }

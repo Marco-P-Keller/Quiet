@@ -3626,6 +3626,27 @@
     guardLocation();
   }
 
+  /**
+   * One step of the pass, and nothing more than one step.
+   *
+   * Every call in `pass()` used to stand in a row with no `try` around any of
+   * them, and the last two are what tell the app the page has arrived. So one
+   * exception anywhere above them — one node Instagram renamed on one screen —
+   * did not look like a script error. It looked like a page that never loads:
+   * Quiet's cover stayed down over a feed that was sitting there ready, and
+   * after a sign-in that is all anybody saw. A step that throws now costs that
+   * step, and the rest of the pass goes on.
+   */
+  function survive(step, argument) {
+    try {
+      step(argument);
+    } catch (error) {
+      try {
+        console.error("Quiet: " + (step.name || "a step") + " threw", error);
+      } catch (ignored) {}
+    }
+  }
+
   /** Everything, once the hand is off the glass and the page has stopped. */
   function pass() {
     // Kept here rather than at the two call sites, so that a third one added
@@ -3635,7 +3656,7 @@
       clearTimeout(afterTheChurn);
       afterTheChurn = null;
     }
-    keepItClean(true);
+    survive(keepItClean, true);
     // A frame is not a page. Everything below this line answers a question
     // about the app's own chrome — the header, the row, the colour behind the
     // clock, the end of the feed, who is signed in — and `receive` in
@@ -3655,38 +3676,38 @@
     // these addresses by selector, and `ContentRules` refuses to open them at
     // all. What this adds is taking down the *strip* around a door, and a
     // strip that is there for a tenth of a second longer is not a reel.
-    refuseTheDoor();
+    survive(refuseTheDoor);
     // Out of the immediate half on purpose. It walks eleven ancestors asking
     // the browser for a computed style, which forces layout, and the thing it
     // is fixing is a band of nothing under the last post — the one place in
     // the page nobody is looking at while they are flicking through it.
-    takeUpTheFloor(document.body);
-    coverTheGlass();
-    makeRoom();
-    sayChrome();
-    faceOnThisProfile();
-    sayUnread();
-    headerComesBack();
-    liftHeader();
-    shapeHeader();
-    blankTheArrowOutOfTheInbox();
-    takeDownTheSwipeArrows();
-    oneReelOnly();
+    survive(takeUpTheFloor, document.body);
+    survive(coverTheGlass);
+    survive(makeRoom);
+    survive(sayChrome);
+    survive(faceOnThisProfile);
+    survive(sayUnread);
+    survive(headerComesBack);
+    survive(liftHeader);
+    survive(shapeHeader);
+    survive(blankTheArrowOutOfTheInbox);
+    survive(takeDownTheSwipeArrows);
+    survive(oneReelOnly);
     // After everything else has hidden what it hides: the tail below the last
     // post is only *nothing* once the suggestions in it are out.
-    endOfTheFeed();
-    sayHealth();
+    survive(endOfTheFeed);
+    survive(sayHealth);
     // Last, because Instagram's own bottom navigation and its door back into
     // the app are both full-width things at the foot of the glass — which is
     // to say, both indistinguishable from a sheet right up until the calls
     // above mark them.
-    saySheet();
-    settleTyping();
+    survive(saySheet);
+    survive(settleTyping);
     // And last of all, whether any of that found anything: the answer has to
     // be read after the calls above have hidden what they hide, or
     // Instagram's own navigation row counts as a page.
-    sayBare();
-    settle();
+    survive(sayBare);
+    survive(settle);
   }
 
   var lastRescue = 0;

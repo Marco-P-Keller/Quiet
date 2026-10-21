@@ -310,9 +310,10 @@ final class WebSurface {
     func attach(_ stack: PaneStack) {
         self.stack = stack
         guard whoIsSignedIn == nil else { return }
-        whoIsSignedIn = WhoIsSignedIn { [weak self] in
-            self?.startAgainAsSomebodyElse()
-        }
+        whoIsSignedIn = WhoIsSignedIn(
+            signedOut: { [weak self] in self?.signedOutUnderneath() },
+            switched: { [weak self] in self?.startAgainAsSomebodyElse() }
+        )
     }
 
     /// Somebody else is signed in, and every screen in the app is still the
@@ -504,6 +505,16 @@ final class WebSurface {
         canLeaveSignIn = false
         TheLastLook.found(somebody: true)
         stack?.startOver()
+    }
+
+    /// Somebody was signed out without Quiet's own button: in Instagram's
+    /// settings, or by a session that ended. The app now knows it is nobody's,
+    /// and the sign-in screen goes over everything, the row included — with no
+    /// way back past it, because there is nothing behind it to go back to.
+    fileprivate func signedOutUnderneath() {
+        guard signIn == nil else { return }
+        TheLastLook.found(somebody: false)
+        _ = takeToSignIn(ContentRules.home)
     }
 
     /// Back to the panes without finishing, which only somebody with a session
@@ -1381,9 +1392,52 @@ struct InstagramWebView: UIViewRepresentable {
         /// address the app no longer shows — this falls through to the pane's
         /// own opening address. See `ThePlace`.
         func openTheFirstPage() {
+            waitForThePage()
             if ThePlace.restore(into: webView, for: pane) { return }
             guard let opening = pane.opening(me: surface.me) else { return }
             webView.load(URLRequest(url: opening))
+        }
+
+        /// How long Quiet's cover may stand over a page that is no longer on
+        /// its way.
+        static let patience: Duration = .seconds(8)
+
+        private var waiting: Task<Void, Never>?
+
+        /// The cover is a promise that something is coming, and nothing may
+        /// keep it for ever.
+        ///
+        /// It comes up when a page starts and goes when the page says it has
+        /// drawn something. Every way that word can fail to arrive — a script
+        /// that stopped on a screen Instagram changed, a first navigation
+        /// cancelled and never replaced — left the hourglass on the glass for
+        /// good, and after a sign-in that is the whole app looking broken. So
+        /// once nothing is loading any more, the cover goes after a few
+        /// seconds whatever the page has said: what is under it is shown, or,
+        /// with nothing under it at all, the sentence and the button that try
+        /// again.
+        func waitForThePage() {
+            waiting?.cancel()
+            waiting = Task { @MainActor [weak self] in
+                try? await Task.sleep(for: Self.patience)
+                guard !Task.isCancelled else { return }
+                self?.stopWaiting()
+            }
+        }
+
+        private func stopWaiting() {
+            guard state.isBare || (!state.hasPainted && !state.hasLoaded) else { return }
+            // Still on its way, or standing behind the sign-in screen: not yet.
+            if webView.isLoading || surface.signIn != nil {
+                waitForThePage()
+                return
+            }
+            if webView.url == nil {
+                state.stumble = .unreachable
+            } else {
+                state.isBare = false
+                state.hasLoaded = true
+            }
         }
 
         /// This pane is the one being read now. Say everything it knows.
@@ -1458,6 +1512,8 @@ struct InstagramWebView: UIViewRepresentable {
 
         /// Give the page back to the system.
         func dismantle() {
+            waiting?.cancel()
+            waiting = nil
             stillness?.cancel()
             stillness = nil
             scrolling?.invalidate()
@@ -1636,6 +1692,8 @@ struct InstagramWebView: UIViewRepresentable {
             // A page has arrived, so whatever the account was changing into, it
             // has changed. See `startingOver`.
             surface.aPageArrived()
+            // A new document has its own first paint to wait for.
+            waitForThePage()
             tellThisPage(webView)
             keepPullAlive(webView.scrollView)
         }
@@ -1653,6 +1711,28 @@ struct InstagramWebView: UIViewRepresentable {
             // finished may *be* one of the other two — and then it is the third
             // one's turn. See `Warming`.
             stack?.aPaneFinished(pane)
+            askWhetherSignedIn(webView)
+        }
+
+        /// A page of Instagram's with no session behind it is a page of signing
+        /// in, whatever its address says.
+        ///
+        /// `SignIn.belongsHere` goes by the address, and Instagram does not
+        /// always give one: signing out in Instagram's own settings lands on
+        /// `/`, and `/` signed out *is* the login form. It stood in the pane
+        /// with Quiet's row under it and the last account's face in the row.
+        /// The cookie is the one thing that cannot be mistaken about it.
+        private func askWhetherSignedIn(_ webView: WKWebView) {
+            guard surface.signIn == nil,
+                  let host = webView.url?.host?.lowercased(),
+                  host == "instagram.com" || host.hasSuffix(".instagram.com") else { return }
+            Task { @MainActor [weak self] in
+                let cookies = await webView.configuration.websiteDataStore.httpCookieStore.allCookies()
+                let signedIn = cookies.contains {
+                    $0.name == WhoIsSignedIn.cookie && $0.domain.hasSuffix("instagram.com")
+                }
+                if !signedIn { self?.surface.signedOutUnderneath() }
+            }
         }
 
         /// Give the fast path back, now that the page is painting its own
@@ -1772,6 +1852,9 @@ struct InstagramWebView: UIViewRepresentable {
                 if let path = body["path"] as? String {
                     let address = URL(string: path, relativeTo: ContentRules.feed)?.absoluteURL
                     state.address = address
+                    // A move of the client's can be a sign-out too, and the
+                    // cookie watcher is not promised to hear one.
+                    askWhetherSignedIn(webView)
                     // And the one move of the client's that must not happen in
                     // a pane: into a page of signing in, which no navigation
                     // delegate is asked about. The sign-in screen goes over it.
