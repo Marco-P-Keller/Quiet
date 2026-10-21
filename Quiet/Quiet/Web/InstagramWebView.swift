@@ -487,27 +487,38 @@ final class WebSurface {
     /// Instagram answered with a page that is not part of signing in, and
     /// there is a session to go with it.
     ///
-    /// Somebody who was signed out gets three panes built again from nothing,
-    /// opening on the feed. Somebody who was already signed in and came here
-    /// for a password or Accounts Center gets back the pane they left, which
-    /// never moved: its navigation was cancelled, not made. Unless that pane is
-    /// itself standing on a page of signing in, or on nothing, which is a
-    /// session that expired under it — and then it starts again too.
+    /// Three panes built again from nothing, opening on the feed — always.
+    ///
+    /// This used to hand back the pane that was left, unbuilt, to somebody who
+    /// had been signed in before, on the reasoning that its navigation was
+    /// cancelled rather than made. But "signed in before" is what the app
+    /// remembered, not what Instagram said: a session that expired overnight
+    /// opens the app on a signed-out document at `/`, whose own script then
+    /// asks for the login form. That request is the one given to the sign-in
+    /// screen, so the pane is left holding the signed-out document, which
+    /// has drawn nothing — and after a perfectly good sign-in the cover stayed
+    /// down over it for good. Every pane after a sign-in is a pane the session
+    /// has never seen, so none of them is worth keeping.
     func signInIsOver() {
-        let wasSignedIn = canLeaveSignIn
         signIn = nil
         canLeaveSignIn = false
         TheLastLook.found(somebody: true)
-        if !wasSignedIn || address == nil || SignIn.belongsHere(address) {
-            stack?.startOver()
-        }
+        stack?.startOver()
     }
 
     /// Back to the panes without finishing, which only somebody with a session
     /// is offered.
+    ///
+    /// The pane underneath is kept when it has something on it. When it has
+    /// nothing — its first page was the one given to the sign-in screen — it
+    /// is built again, or the cover would stay down over a navigation that was
+    /// never made.
     func leaveSignIn() {
         signIn = nil
         canLeaveSignIn = false
+        if isBare || (!hasPainted && !hasLoaded) {
+            stack?.startOver()
+        }
     }
 
     fileprivate func setBar(collapsed: Bool) {
