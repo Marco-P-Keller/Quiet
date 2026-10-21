@@ -254,6 +254,46 @@ struct Warming {
     }
 }
 
+/// The phones that open all three pages at once rather than one after the
+/// other: iPhone 15 and everything after it.
+///
+/// What `Warming` waits for is room — memory for three web content processes,
+/// and a network the feed does not have to share. From the iPhone 15 on there
+/// is enough of both that the wait costs more than it saves: messages and the
+/// profile start the moment the feed's own document has arrived, so a first
+/// tap on either finds it already there. The feed still asks first, and a
+/// memory warning still stops all of it.
+///
+/// By the model, because "iPhone 15 and later" is a list of models. The
+/// numbers are Apple's internal ones, which do not match the names: `iPhone15,2`
+/// and `iPhone15,3` are the 14 Pro and 14 Pro Max, and the iPhone 15 is
+/// `iPhone15,4`.
+enum ThreeAtOnce {
+    static func suits(model: String) -> Bool {
+        guard model.hasPrefix("iPhone") else { return false }
+        let numbers = model.dropFirst("iPhone".count)
+            .split(separator: ",")
+            .compactMap { Int($0) }
+        guard numbers.count == 2 else { return false }
+        return numbers[0] > 15 || (numbers[0] == 15 && numbers[1] >= 4)
+    }
+
+    static let here = suits(model: model)
+
+    /// The model this runs on — and, in the simulator, the model it is
+    /// pretending to be, rather than the Mac's.
+    private static var model: String {
+        if let simulated = ProcessInfo.processInfo.environment["SIMULATOR_MODEL_IDENTIFIER"] {
+            return simulated
+        }
+        var system = utsname()
+        uname(&system)
+        return withUnsafeBytes(of: &system.machine) { bytes in
+            String(decoding: bytes.prefix { $0 != 0 }, as: UTF8.self)
+        }
+    }
+}
+
 /// The panes, and which of them is on the glass.
 ///
 /// SwiftUI's coordinator, so its life is the browsing screen's life. Everything
@@ -380,7 +420,7 @@ final class PaneStack {
     /// still arriving — and the whole point of waiting is to not be in the way
     /// of them. Long enough that the feed has the line to itself, short enough
     /// that somebody reading the first two posts finds the inbox already there.
-    private static let afterTheOneInFront: TimeInterval = 2
+    private static let afterTheOneInFront: TimeInterval = ThreeAtOnce.here ? 0.5 : 2
 
     private var warming = Warming()
 
@@ -392,6 +432,16 @@ final class PaneStack {
     /// start; if it was one of theirs, the one after it may.
     func aPaneFinished(_ pane: Pane) {
         if pane == current { warming.theFrontIsUp = true }
+        warmTheNextOne()
+    }
+
+    /// A page's own document arrived. On a phone that opens all three at
+    /// once, that is enough for the other two to start: the feed has had the
+    /// line to itself for its first answer, and half a second more each for
+    /// messages and the profile keeps it in front. See `ThreeAtOnce`.
+    func aPaneCommitted(_ pane: Pane) {
+        guard ThreeAtOnce.here, pane == current else { return }
+        warming.theFrontIsUp = true
         warmTheNextOne()
     }
 

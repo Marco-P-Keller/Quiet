@@ -1694,6 +1694,8 @@ struct InstagramWebView: UIViewRepresentable {
             surface.aPageArrived()
             // A new document has its own first paint to wait for.
             waitForThePage()
+            // And on the phones that can, the other two may start now.
+            stack?.aPaneCommitted(pane)
             tellThisPage(webView)
             keepPullAlive(webView.scrollView)
         }
