@@ -255,19 +255,20 @@ struct Warming {
 }
 
 /// The phones that open all three pages at once rather than one after the
-/// other: iPhone 15 and everything after it.
+/// other: iPhone 11 and everything after it.
 ///
 /// What `Warming` waits for is room — memory for three web content processes,
-/// and a network the feed does not have to share. From the iPhone 15 on there
+/// and a network the feed does not have to share. From the iPhone 11 on there
 /// is enough of both that the wait costs more than it saves: messages and the
 /// profile start the moment the feed's own document has arrived, so a first
 /// tap on either finds it already there. The feed still asks first, and a
 /// memory warning still stops all of it.
 ///
-/// By the model, because "iPhone 15 and later" is a list of models. The
-/// numbers are Apple's internal ones, which do not match the names: `iPhone15,2`
-/// and `iPhone15,3` are the 14 Pro and 14 Pro Max, and the iPhone 15 is
-/// `iPhone15,4`.
+/// By the model, because "iPhone 11 and later" is a list of models. The
+/// numbers are Apple's internal ones, which do not match the names: the
+/// iPhone 11 is `iPhone12,1`, and everything from `iPhone12` on is that
+/// generation or newer — the second iPhone SE (`iPhone12,8`) included, which
+/// has the same chip.
 enum ThreeAtOnce {
     static func suits(model: String) -> Bool {
         guard model.hasPrefix("iPhone") else { return false }
@@ -275,7 +276,7 @@ enum ThreeAtOnce {
             .split(separator: ",")
             .compactMap { Int($0) }
         guard numbers.count == 2 else { return false }
-        return numbers[0] > 15 || (numbers[0] == 15 && numbers[1] >= 4)
+        return numbers[0] >= 12
     }
 
     static let here = suits(model: model)

@@ -40,13 +40,13 @@ final class PanesTests: XCTestCase {
         XCTAssertEqual(next(warming(front: true)), .messages)
     }
 
-    /// iPhone 15 and later open all three at once, by Apple's model numbers,
-    /// which do not match the names: 15,2 and 15,3 are the 14 Pro.
-    func testThreeAtOnceIsTheIPhone15AndLater() {
-        for model in ["iPhone15,4", "iPhone15,5", "iPhone16,1", "iPhone16,2", "iPhone17,1", "iPhone18,3"] {
+    /// iPhone 11 and later open all three at once, by Apple's model numbers,
+    /// which do not match the names: the iPhone 11 is 12,1.
+    func testThreeAtOnceIsTheIPhone11AndLater() {
+        for model in ["iPhone12,1", "iPhone12,5", "iPhone12,8", "iPhone13,3", "iPhone15,2", "iPhone16,1", "iPhone18,3"] {
             XCTAssertTrue(ThreeAtOnce.suits(model: model), model)
         }
-        for model in ["iPhone15,2", "iPhone15,3", "iPhone14,7", "iPhone13,3", "iPad16,3", "arm64", ""] {
+        for model in ["iPhone11,8", "iPhone11,2", "iPhone10,6", "iPad16,3", "arm64", ""] {
             XCTAssertFalse(ThreeAtOnce.suits(model: model), model)
         }
     }
