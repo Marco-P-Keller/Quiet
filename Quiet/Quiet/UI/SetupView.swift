@@ -31,7 +31,18 @@ struct SetupView: View {
     @State private var suggested = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private enum Step { case what, now, howMuch }
+    private enum Step {
+        case what, now, howMuch
+
+        /// Where **Back** goes, and whether there is a Back at all.
+        var previous: Step? {
+            switch self {
+            case .what: return nil
+            case .now: return .what
+            case .howMuch: return .now
+            }
+        }
+    }
 
     /// Round numbers a person would actually say out loud.
     private static let choices = [5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 240]
@@ -78,6 +89,15 @@ struct SetupView: View {
             }
             .scrollBounceBehavior(.basedOnSize)
         }
+        // **Back** at the top of the screen, where every back on the phone
+        // is, rather than on top of the question — which, with the page
+        // centred, put it a third of the way down and moved it with every
+        // screen.
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if let previous = step.previous {
+                back(to: previous)
+            }
+        }
         .safeAreaInset(edge: .bottom) {
             QuietButton(title: actionTitle, action: advance)
                 .padding(.horizontal, 28)
@@ -119,8 +139,6 @@ struct SetupView: View {
 
     private var dayYouHave: some View {
         VStack(alignment: .leading, spacing: 0) {
-            back(to: .what)
-
             Text("How much Instagram\ndo you have in a day now?")
                 .font(.quietHeading)
                 .lineSpacing(5)
@@ -148,8 +166,6 @@ struct SetupView: View {
 
     private var howMuch: some View {
         VStack(alignment: .leading, spacing: 0) {
-            back(to: .now)
-
             Text("How much Instagram\ndo you want in a day?")
                 .font(.quietHeading)
                 .lineSpacing(5)
@@ -192,9 +208,15 @@ struct SetupView: View {
             Label("Back", systemImage: "chevron.left")
                 .font(.quietSmall)
                 .foregroundStyle(Paper.inkSoft)
+                // A thumb's worth of target, now that it stands alone.
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .padding(.bottom, 20)
+        .padding(.horizontal, 28)
+        .padding(.top, 4)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Paper.page)
     }
 
     private var actionTitle: String {

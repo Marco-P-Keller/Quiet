@@ -85,10 +85,27 @@ enum ThePlace {
         now: Date = Date(),
         in defaults: UserDefaults = .standard
     ) {
+        // A pane with no page is not a place, and writing it down was the
+        // whole of "after signing in, only the hourglass, then Instagram did
+        // not answer". A pane whose first page went to the sign-in screen has
+        // no address; the app went inactive while somebody was signing in —
+        // Face ID for a saved password is enough — and WebKit still handed
+        // over 137 bytes for it. Put back after the sign-in, those bytes are a
+        // web view with no address, nothing loading and nothing to load, and
+        // **Try again** put them back again. Measured, not guessed: see
+        // `ThePlaceTests.testAPaneWithNoPageIsNotAPlace`.
+        //
+        // A page of signing in is not one either. Panes never show one, and a
+        // place restored onto one would skip the navigation delegate that
+        // sends it to the sign-in screen.
+        guard let url = webView.url, !ContentRules.isSignInFlow(url) else {
+            forget(pane, in: defaults)
+            return
+        }
         guard let data = webView.interactionState as? Data else { return }
         defaults.set(data, forKey: key(state, pane))
         defaults.set(now.timeIntervalSince1970, forKey: key(when, pane))
-        defaults.set(webView.url?.absoluteString ?? "", forKey: key(address, pane))
+        defaults.set(url.absoluteString, forKey: key(address, pane))
     }
 
     /// Put the page back, and say whether it happened.
@@ -113,6 +130,14 @@ enum ThePlace {
             return false
         }
         webView.interactionState = data
+        // And only a restore that put a page back counts as one. Asked of the
+        // web view rather than trusted from what was written down, because a
+        // place written by an older build can be one with nothing in it — and
+        // a pane told "restored" opens nothing else.
+        guard webView.backForwardList.currentItem != nil else {
+            forget(pane, in: defaults)
+            return false
+        }
         return true
     }
 
@@ -134,10 +159,14 @@ enum ThePlace {
     /// the point of it — so the URL rules never see it. Without this, a state
     /// saved on a page the app refuses would walk back in through the side
     /// door. Nothing written down is trusted more than the rules.
+    ///
+    /// An address that was never written down at all is a place from before
+    /// addresses were kept, and is given the benefit of the doubt. One written
+    /// down *empty* is a pane that had no page, and is not a place.
     static func isStillShown(_ address: String?) -> Bool {
-        guard let address, !address.isEmpty else { return true }
-        guard let url = URL(string: address) else { return false }
-        return ContentRules.routing(for: url) == .allow
+        guard let address else { return true }
+        guard !address.isEmpty, let url = URL(string: address) else { return false }
+        return ContentRules.routing(for: url) == .allow && !ContentRules.isSignInFlow(url)
     }
 
     static func forget(_ pane: Pane, in defaults: UserDefaults = .standard) {

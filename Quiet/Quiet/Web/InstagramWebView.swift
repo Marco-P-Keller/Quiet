@@ -500,10 +500,16 @@ final class WebSurface {
     /// has drawn nothing — and after a perfectly good sign-in the cover stayed
     /// down over it for good. Every pane after a sign-in is a pane the session
     /// has never seen, so none of them is worth keeping.
+    ///
+    /// And no pane is put back where it was, for the same reason: every place
+    /// written down before this moment belongs to somebody who was signed out,
+    /// and the one written while the sign-in screen was up is a pane with no
+    /// page at all. See `ThePlace.keep`.
     func signInIsOver() {
         signIn = nil
         canLeaveSignIn = false
         TheLastLook.found(somebody: true)
+        ThePlace.forgetEverything()
         stack?.startOver()
     }
 
@@ -1391,9 +1397,13 @@ struct InstagramWebView: UIViewRepresentable {
         /// there is nothing to put back — a cold start, a stale place, an
         /// address the app no longer shows — this falls through to the pane's
         /// own opening address. See `ThePlace`.
-        func openTheFirstPage() {
+        ///
+        /// `restoring: false` skips the place and asks for the address — what
+        /// **Try again** and the cover running out of patience want, since a
+        /// place is what may have put nothing on the glass in the first place.
+        func openTheFirstPage(restoring: Bool = true) {
             waitForThePage()
-            if ThePlace.restore(into: webView, for: pane) { return }
+            if restoring, ThePlace.restore(into: webView, for: pane) { return }
             guard let opening = pane.opening(me: surface.me) else { return }
             webView.load(URLRequest(url: opening))
         }
@@ -1403,6 +1413,12 @@ struct InstagramWebView: UIViewRepresentable {
         static let patience: Duration = .seconds(8)
 
         private var waiting: Task<Void, Never>?
+
+        /// Whether this pane has already asked for its own address afresh
+        /// because nothing had been asked for at all. Once per page that
+        /// arrives, so a pane that truly cannot reach Instagram says so rather
+        /// than asking for ever.
+        private var askedAfresh = false
 
         /// The cover is a promise that something is coming, and nothing may
         /// keep it for ever.
@@ -1433,6 +1449,15 @@ struct InstagramWebView: UIViewRepresentable {
                 return
             }
             if webView.url == nil {
+                // Nothing on the glass and nothing on its way is not Instagram
+                // failing to answer — nothing was asked. Ask, once, before
+                // saying anything about Instagram. A request that then fails
+                // says so itself, in `didFailProvisionalNavigation`.
+                if !askedAfresh, pane.opening(me: surface.me) != nil {
+                    askedAfresh = true
+                    openTheFirstPage(restoring: false)
+                    return
+                }
                 state.stumble = .unreachable
             } else {
                 state.isBare = false
@@ -1485,7 +1510,7 @@ struct InstagramWebView: UIViewRepresentable {
         func startAgain() {
             state.stumble = nil
             if webView.url == nil {
-                openTheFirstPage()
+                openTheFirstPage(restoring: false)
             } else {
                 webView.reload()
             }
@@ -1659,6 +1684,7 @@ struct InstagramWebView: UIViewRepresentable {
             // Something arrived, so whatever did not arrive last time is no
             // longer the news.
             state.stumble = nil
+            askedAfresh = false
             state.address = webView.url
             // And neither is anything the last document said about its own
             // furniture. A document that has just committed has no sheet up and

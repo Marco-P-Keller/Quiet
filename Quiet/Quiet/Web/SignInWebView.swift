@@ -73,7 +73,7 @@ struct SignInWebView: UIViewRepresentable {
     }
 
     @MainActor
-    final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
+    final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate, WKHTTPCookieStoreObserver {
         private let page: SignInPage
         private let session: QuietSession
         private let surface: WebSurface
@@ -85,6 +85,9 @@ struct SignInWebView: UIViewRepresentable {
         private var finished = false
 
         private var watching: [NSKeyValueObservation] = []
+
+        /// The view being watched, for the cookie store to ask about.
+        private weak var webView: WKWebView?
 
         init(page: SignInPage, session: QuietSession, surface: WebSurface, onFinish: @escaping () -> Void) {
             self.page = page
@@ -99,7 +102,15 @@ struct SignInWebView: UIViewRepresentable {
         /// `url` also moves when Instagram's client changes the page without
         /// loading one — which is how the end of a sign-in can arrive, and the
         /// delegate hears nothing about it.
+        ///
+        /// And the cookies, because the two halves of `SignIn.isOver` need not
+        /// arrive in order. Instagram can move the page first and set the
+        /// session a moment later; asked only when the address moved, that
+        /// sign-in was never over, and somebody was left on this screen holding
+        /// Instagram's whole feed with none of Quiet on it.
         func watch(_ webView: WKWebView) {
+            self.webView = webView
+            webView.configuration.websiteDataStore.httpCookieStore.add(self)
             watching = [
                 webView.observe(\.url, options: [.initial, .new]) { [weak self] view, _ in
                     MainActor.assumeIsolated { self?.moved(view) }
@@ -113,12 +124,29 @@ struct SignInWebView: UIViewRepresentable {
         func stopWatching() {
             watching.forEach { $0.invalidate() }
             watching = []
+            webView?.configuration.websiteDataStore.httpCookieStore.remove(self)
+            webView = nil
+        }
+
+        func cookiesDidChange(in cookieStore: WKHTTPCookieStore) {
+            guard let webView else { return }
+            askAgain(webView)
+        }
+
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            askAgain(webView)
+        }
+
+        /// Whether the page standing here now, with the cookies there are now,
+        /// is the end of the sign-in.
+        private func askAgain(_ webView: WKWebView) {
+            guard !finished, let url = webView.url, !ContentRules.isSignInFlow(url) else { return }
+            Task { await finishIfOver(at: url, in: webView) }
         }
 
         private func moved(_ webView: WKWebView) {
             page.note(webView)
-            guard let url = webView.url, !ContentRules.isSignInFlow(url) else { return }
-            Task { await finishIfOver(at: url, in: webView) }
+            askAgain(webView)
         }
 
         private func finishIfOver(at url: URL, in webView: WKWebView) async -> Bool {
