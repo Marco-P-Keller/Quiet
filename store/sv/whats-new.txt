@@ -1,0 +1,1 @@
+Åtgärdat ett fel där Quiet kunde fastna på laddningsskärmen efter inloggning.

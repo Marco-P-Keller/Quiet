@@ -1,0 +1,1 @@
+Fixed a bug where Quiet could stay on the loading screen after signing in.

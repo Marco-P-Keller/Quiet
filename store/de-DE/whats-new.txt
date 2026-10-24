@@ -1,0 +1,1 @@
+Fehler behoben: Nach dem Anmelden konnte Quiet auf dem Ladebildschirm hängen bleiben.

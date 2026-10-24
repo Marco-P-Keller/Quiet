@@ -1,0 +1,1 @@
+Javítottuk a hibát, amely miatt a Quiet bejelentkezés után a betöltőképernyőn ragadhatott.

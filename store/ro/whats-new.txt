@@ -1,0 +1,1 @@
+Am remediat o eroare din cauza căreia Quiet putea rămâne pe ecranul de încărcare după conectare.

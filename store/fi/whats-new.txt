@@ -1,0 +1,1 @@
+Korjattu virhe, jonka vuoksi Quiet saattoi jäädä latausnäkymään kirjautumisen jälkeen.

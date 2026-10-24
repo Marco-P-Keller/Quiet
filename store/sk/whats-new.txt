@@ -1,0 +1,1 @@
+Opravená chyba, pre ktorú mohol Quiet po prihlásení zostať na obrazovke načítania.

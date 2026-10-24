@@ -1,0 +1,1 @@
+Ispravljena pogreška zbog koje je Quiet nakon prijave mogao ostati na zaslonu učitavanja.

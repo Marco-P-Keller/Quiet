@@ -1,0 +1,1 @@
+Giriş yaptıktan sonra Quiet’in yükleme ekranında kalabildiği bir hata düzeltildi.

@@ -1,0 +1,1 @@
+S’ha corregit un error pel qual Quiet es podia quedar a la pantalla de càrrega després d’iniciar la sessió.

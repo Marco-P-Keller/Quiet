@@ -1,0 +1,1 @@
+Corregido un error por el que Quiet podía quedarse en la pantalla de carga tras iniciar sesión.

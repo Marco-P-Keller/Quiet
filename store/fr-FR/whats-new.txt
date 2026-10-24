@@ -1,0 +1,1 @@
+Correction d’un bug : après la connexion, Quiet pouvait rester bloqué sur l’écran de chargement.

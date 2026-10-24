@@ -1,0 +1,1 @@
+Corrigido um erro em que o Quiet podia ficar preso na tela de carregamento após o login.

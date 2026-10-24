@@ -1,0 +1,1 @@
+Naprawiono błąd, przez który po zalogowaniu Quiet mógł zatrzymać się na ekranie ładowania.

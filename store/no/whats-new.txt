@@ -1,0 +1,1 @@
+Rettet en feil der Quiet kunne bli stående på lasteskjermen etter innlogging.

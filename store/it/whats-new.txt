@@ -1,0 +1,1 @@
+Risolto un bug per cui Quiet poteva restare sulla schermata di caricamento dopo l’accesso.
