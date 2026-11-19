@@ -28,6 +28,8 @@ struct PanelView: View {
     let session: QuietSession
     let surface: WebSurface
     let preferences: Preferences
+    /// The limit's reach into the Instagram app, handed through to settings.
+    let instagramApp: InstagramAppLimit
     var onDismiss: () -> Void
 
     @State private var isChangingLimit = false
@@ -92,6 +94,7 @@ struct PanelView: View {
                     session: session,
                     surface: surface,
                     preferences: preferences,
+                    instagramApp: instagramApp,
                     onDismiss: {
                         isChangingSettings = false
                         onDismiss()
@@ -337,6 +340,17 @@ struct PanelView: View {
     private static let recordLengths = [7, 30]
 
 
+}
+
+/// Quiet's own page in the App Store.
+enum AppStorePage {
+    static let id = "6802907680"
+
+    /// Straight to the page's "Write a Review" sheet. Opened from a door in
+    /// Settings that somebody chose to press — never put in front of anybody
+    /// unasked; the one question the app does put is the App Store's own, see
+    /// `Applause`.
+    static let writeReview = URL(string: "https://apps.apple.com/app/id\(id)?action=write-review")!
 }
 
 enum Build {

@@ -71,6 +71,8 @@ struct BrowserScreen: View {
     let session: QuietSession
     let surface: WebSurface
     let preferences: Preferences
+    /// The limit's reach into the Instagram app, handed through to settings.
+    let instagramApp: InstagramAppLimit
 
     /// What the system has reserved at either end of the screen.
     ///
@@ -465,6 +467,7 @@ struct BrowserScreen: View {
                             session: session,
                             surface: surface,
                             preferences: preferences,
+                            instagramApp: instagramApp,
                             onDismiss: { session.isPanelShowing = false }
                         )
                     } else {

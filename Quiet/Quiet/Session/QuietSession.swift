@@ -88,6 +88,10 @@ final class QuietSession {
     /// this one writes its own figures under. See `Carried`.
     private let cloud: any Cloud
     private let phone: String
+    /// The Instagram app, if the limit has been asked to reach it. See
+    /// `InstagramAppDoor`; in a test, and until somebody switches it on, a door
+    /// that does nothing.
+    private let door: any InstagramAppDoor
 
     /// The last agreement reconciled with those phones, as far as this one
     /// knows. Its version is what lets two copies say which was written later.
@@ -129,7 +133,8 @@ final class QuietSession {
         uptime: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime },
         ringer: (any Ringer)? = nil,
         cloud: (any Cloud)? = nil,
-        phone: String? = nil
+        phone: String? = nil,
+        door: (any InstagramAppDoor)? = nil
     ) {
         self.store = store
         self.clock = clock
@@ -140,6 +145,7 @@ final class QuietSession {
         self.ringer = ringer ?? SystemRinger()
         self.cloud = cloud ?? CloudMirror()
         self.phone = phone ?? ThisPhone.name()
+        self.door = door ?? NoInstagramAppDoor()
         ledger = UsageLedger(day: DayKey(clock.now, calendar: calendar))
     }
 
@@ -168,6 +174,8 @@ final class QuietSession {
             return
         }
         rollIfNeeded()
+        door.morning(now: clock.now, today: today)
+        absorbTheApp()
         evaluateScreen()
         syncCounting()
         mindTheAppointment()
@@ -210,6 +218,12 @@ final class QuietSession {
         isForeground = active
         if active {
             rollIfNeeded()
+            // Before the screen is decided: the Instagram app may have spent the
+            // rest of today while Quiet was in the background, and somebody
+            // opening Quiet should meet the curtain rather than a feed that
+            // closes a second later.
+            door.morning(now: clock.now, today: today)
+            absorbTheApp()
             evaluateScreen()
             // Every time the app comes forward, because the limit is enforced
             // when somebody opens it and this is the last moment it can be
@@ -472,6 +486,9 @@ final class QuietSession {
         ringer.silence()
         carried = nil
         ThePlace.forgetEverything()
+        // And whatever Screen Time was asked to do with the Instagram app: a
+        // limit that has been forgotten must not go on closing anything.
+        door.forget()
         // Including the copy in iCloud, or the next phone to open would put it
         // straight back and "forget everything" would have meant "wait a week
         // and then get it back".
@@ -560,7 +577,12 @@ final class QuietSession {
         let total = merged.byDevice.values.reduce(0, +)
         if merged.day == ledger.day {
             if total != ledger.seconds {
-                ledger = UsageLedger(day: ledger.day, seconds: total, endsAt: ledger.endsAt)
+                ledger = UsageLedger(
+                    day: ledger.day,
+                    seconds: total,
+                    endsAt: ledger.endsAt,
+                    fromTheApp: ledger.fromTheApp
+                )
             }
         } else if merged.day > ledger.day, ledger.hasEnded(by: clock.now) {
             ledger = UsageLedger(
@@ -918,6 +940,10 @@ final class QuietSession {
         graceUsed = false
         graceEnds = nil
         persist()
+        // The Instagram app was closed for the day that has just ended. Screen
+        // Time opens it again at four on its own; this is for the morning that
+        // call did not come.
+        door.morning(now: clock.now, today: day)
         // A day has turned, so every recap on the phone is written against a
         // window that has moved. Cheap, and it happens once a day.
         mindTheRecap()
@@ -945,6 +971,9 @@ final class QuietSession {
         if target == .spent {
             notice = nil
             flush()
+            // The other door closes with this one. Harmless when the limit does
+            // not reach the Instagram app: then there is nothing to close.
+            door.close(until: resetsAt, today: ledger.day)
         }
     }
 
@@ -988,6 +1017,7 @@ final class QuietSession {
         unsavedSeconds = 0
         guard hasSomethingToRemember else { return }
         store.save(ledger, for: .usage)
+        tellTheApp()
         checkMemory()
     }
 
@@ -1005,7 +1035,36 @@ final class QuietSession {
         store.save(limit, for: .limit)
         store.save(ledger, for: .usage)
         store.save(history, for: .history)
+        tellTheApp()
         checkMemory()
+    }
+
+    // MARK: - The Instagram app
+
+    /// Fold in whatever the Instagram app has had today that the ledger does
+    /// not hold yet.
+    ///
+    /// Screen Time reports whole minutes, and the ledger keeps how many of them
+    /// it has already taken, so this can be asked as often as the app likes and
+    /// never counts a minute twice. The minutes go into the ledger itself
+    /// rather than beside it, because every rule in the app is written against
+    /// the ledger: the curtain, the two warnings, the panel's figure and the
+    /// days behind you all see them without being told.
+    private func absorbTheApp() {
+        guard hasSomethingToRemember else { return }
+        if ledger.credit(appMinutes: door.minutes(on: ledger.day)) {
+            persist()
+        }
+    }
+
+    /// Minutes the Instagram app has had today, as far as the ledger knows.
+    var minutesInTheApp: Int { ledger.fromTheApp ?? 0 }
+
+    /// Tell the extension the limit and what Quiet itself has spent of it, so
+    /// that it closes the Instagram app at the right minute even on a day Quiet
+    /// is never opened again.
+    private func tellTheApp() {
+        door.tell(Terms(limit: limit, day: ledger.day, spentInQuiet: ledger.secondsInQuiet))
     }
 
     /// Pulls the store's health across into observable state, after every write

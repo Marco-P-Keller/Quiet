@@ -13,5 +13,17 @@
 	     phone. See `CloudMirror`. -->
 	<key>com.apple.developer.ubiquity-kvstore-identifier</key>
 	<string>$(TeamIdentifierPrefix)$(CFBundleIdentifier)</string>
+
+	<!-- Screen Time, for one person on their own phone, and only once they
+	     have switched it on in Settings: the Instagram app is counted against
+	     the same daily limit as Quiet and closed when it is spent. See
+	     `InstagramAppLimit`. -->
+	<key>com.apple.developer.family-controls</key>
+	<true/>
+	<!-- The shelf Quiet shares with its two Screen Time extensions. -->
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.com.connexa.quiet</string>
+	</array>
 </dict>
 </plist>

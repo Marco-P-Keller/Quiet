@@ -29,8 +29,8 @@ final class ApplauseTests: XCTestCase {
         super.tearDown()
     }
 
-    private func made() -> Applause {
-        Applause(defaults: defaults, uptime: { [unowned self] in self.clock })
+    private func made(version: String = "1.1") -> Applause {
+        Applause(defaults: defaults, uptime: { [unowned self] in self.clock }, version: version)
     }
 
     /// The minutes, banked over as many separate days as the rule asks for.
@@ -175,7 +175,7 @@ final class ApplauseTests: XCTestCase {
 
     // MARK: -
 
-    func testItIsAskedOnceAndThenNeverAgain() {
+    func testItIsAskedOnceInAVersionAndThenNeverAgainInIt() {
         earnIt()
         let first = made()
         XCTAssertTrue(first.isDue)
@@ -183,11 +183,56 @@ final class ApplauseTests: XCTestCase {
         first.markAsked()
         XCTAssertFalse(first.isDue)
 
-        clock += 60 * 60
-        day += 1
+        // Another three days and more, in the same version.
+        earnIt()
         let next = made()
         XCTAssertTrue(next.asked)
         XCTAssertFalse(next.isDue)
+    }
+
+    /// A new version is a new thing to have an opinion about — but only once it
+    /// has been lived with as long as the first one was.
+    func testANewVersionIsAskedAboutOnceItHasBeenLivedWith() {
+        earnIt()
+        made(version: "1.1").markAsked()
+
+        let update = made(version: "1.2")
+        XCTAssertFalse(update.asked)
+        XCTAssertFalse(update.isDue, "the minutes and days start again after a question")
+
+        earnIt()
+        let later = made(version: "1.2")
+        XCTAssertTrue(later.isDue)
+    }
+
+    /// The day the question was put does not count again as the first of the
+    /// next three.
+    func testTheDayOfTheQuestionIsNotCountedTwice() {
+        earnIt()
+        day -= 1
+        let asked = made()
+        asked.enter(on: day)
+        asked.markAsked()
+        asked.enter(on: day)
+        XCTAssertEqual(asked.days, 0)
+    }
+
+    /// Somebody asked by a version from before this rule, which wrote down only
+    /// that it had asked. They are one more day of using it away from being
+    /// asked about the new one — not asked the second it opens.
+    func testSomebodyAskedUnderTheOldRuleIsOneDayAway() {
+        earnIt()
+        defaults.set(true, forKey: "quiet.applause.asked")
+
+        let carried = made(version: "1.1")
+        XCTAssertFalse(carried.asked)
+        XCTAssertFalse(carried.isDue, "not at the moment the new version opens")
+        XCTAssertEqual(carried.days, Applause.acrossDays - 1)
+
+        carried.enter(on: day)
+        clock += Applause.earned
+        carried.bank()
+        XCTAssertTrue(carried.isDue)
     }
 
     /// A phone that spent the night asleep and woke into the foreground is not

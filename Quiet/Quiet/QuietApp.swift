@@ -20,6 +20,11 @@ struct QuietApp: App {
     /// nowhere else, which was right for as long as only views cared.
     @State private var preferences: Preferences
 
+    /// The limit, reaching the Instagram app through Screen Time when somebody
+    /// has asked it to. Built here because the session spends the day through
+    /// it and the settings screen switches it on.
+    @State private var instagramApp: InstagramAppLimit
+
     init() {
         // Sound is sound. A reel or a post with music on it is played through
         // the speaker even with the ring switch on silent, the way it is in
@@ -50,16 +55,19 @@ struct QuietApp: App {
         // of the rehearsal without anybody choosing that.
         let preferences = Preferences()
         _preferences = State(initialValue: preferences)
+        let instagramApp = InstagramAppLimit()
+        _instagramApp = State(initialValue: instagramApp)
         _session = State(initialValue: QuietSession(
             store: store,
             clock: clock,
-            preferences: preferences
+            preferences: preferences,
+            door: instagramApp
         ))
     }
 
     var body: some Scene {
         WindowGroup {
-            RootView(session: session, preferences: preferences)
+            RootView(session: session, preferences: preferences, instagramApp: instagramApp)
         }
     }
 }

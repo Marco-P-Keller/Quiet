@@ -35,11 +35,16 @@
 			     ThisPhone: the shape of the row, the daily reminder, how long
 			     the app has been on screen, the glyphs the row was drawn with
 			     last time, and the anonymous name this device writes its own
-			     figures under when the limit is carried between devices. All of it is written
-			     and read by this app alone — there is no app group and no
-			     sharing of any kind — which is precisely reason CA92.1. The
+			     figures under when the limit is carried between devices. All of that is written
+			     and read by this app alone, which is precisely reason CA92.1. The
 			     one thing that has to outlive a reinstall, the limit, is not
 			     here; it is in the keychain, which Apple does not count.
+
+			     Reason 1C8F.1 is the app group Quiet shares with its own two
+			     Screen Time extensions, and with nobody else: the limit and
+			     today's minutes in Quiet, which the extension needs in order to
+			     close the Instagram app at the right moment, and the minutes the
+			     Instagram app has had, which it reports back. See `Shelf`.
 
 			     This declaration was missing while the row preference shipped,
 			     and it is the sort of omission that is invisible until an
@@ -49,6 +54,7 @@
 			<key>NSPrivacyAccessedAPITypeReasons</key>
 			<array>
 				<string>CA92.1</string>
+				<string>1C8F.1</string>
 			</array>
 		</dict>
 	</array>

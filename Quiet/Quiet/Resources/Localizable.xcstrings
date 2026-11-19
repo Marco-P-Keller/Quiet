@@ -6925,6 +6925,924 @@
           }
         }
       }
+    },
+    "The Instagram app": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Instagram-App"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Instagram app"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La app de Instagram"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’app Instagram"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O app do Instagram"
+          }
+        }
+      }
+    },
+    "On this phone the limit holds inside Quiet only. Reaching the Instagram app as well needs iOS 17.4 or later.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf diesem Telefon gilt das Limit nur in Quiet. Damit es auch die Instagram-App erreicht, braucht es iOS 17.4 oder neuer."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On this phone the limit holds inside Quiet only. Reaching the Instagram app as well needs iOS 17.4 or later."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En este teléfono el límite solo vale dentro de Quiet. Para que llegue también a la app de Instagram hace falta iOS 17.4 o posterior."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sur ce téléphone, la limite ne vaut que dans Quiet. Pour qu’elle s’étende aussi à l’app Instagram, il faut iOS 17.4 ou plus récent."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neste telefone o limite vale só dentro do Quiet. Para alcançar também o app do Instagram, é preciso iOS 17.4 ou mais recente."
+          }
+        }
+      }
+    },
+    "Limit the Instagram app too": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auch die Instagram-App begrenzen"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limit the Instagram app too"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limitar también la app de Instagram"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limiter aussi l’app Instagram"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limitar também o app do Instagram"
+          }
+        }
+      }
+    },
+    "Nothing was switched on: a whole category was chosen. Choose the Instagram app itself — a category would count Quiet as well.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nichts wurde eingeschaltet: Es wurde eine ganze Kategorie gewählt. Wähl die Instagram-App selbst — eine Kategorie würde Quiet mitzählen."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing was switched on: a whole category was chosen. Choose the Instagram app itself — a category would count Quiet as well."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se activó nada: se eligió una categoría entera. Elige la propia app de Instagram — una categoría contaría también Quiet."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rien n’a été activé : une catégorie entière a été choisie. Choisis l’app Instagram elle-même — une catégorie compterait aussi Quiet."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nada foi ativado: foi escolhida uma categoria inteira. Escolha o próprio app do Instagram — uma categoria contaria o Quiet também."
+          }
+        }
+      }
+    },
+    "Screen Time access was not given. You can give it in iOS Settings › Screen Time, and then switch this on here.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Zugriff auf Bildschirmzeit wurde nicht erlaubt. Du kannst ihn unter Einstellungen › Bildschirmzeit geben und das hier dann einschalten."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen Time access was not given. You can give it in iOS Settings › Screen Time, and then switch this on here."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se dio acceso a Tiempo de uso. Puedes darlo en Ajustes › Tiempo de uso y luego activarlo aquí."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’accès à Temps d’écran n’a pas été accordé. Tu peux l’accorder dans Réglages › Temps d’écran, puis activer ceci ici."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O acesso ao Tempo de Uso não foi dado. Você pode dá-lo em Ajustes › Tempo de Uso e depois ativar isto aqui."
+          }
+        }
+      }
+    },
+    "If the Instagram app is still on this phone, it is a second way in with no limit on it. This closes it: time in the Instagram app counts towards the same daily minutes as Quiet, and when they are spent, Screen Time closes the app until four in the morning.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ist die Instagram-App noch auf diesem Telefon, ist sie ein zweiter Weg hinein, ganz ohne Limit. Das hier schließt ihn: Zeit in der Instagram-App zählt zu denselben Tagesminuten wie Quiet, und sind sie verbraucht, schließt Bildschirmzeit die App bis vier Uhr morgens."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If the Instagram app is still on this phone, it is a second way in with no limit on it. This closes it: time in the Instagram app counts towards the same daily minutes as Quiet, and when they are spent, Screen Time closes the app until four in the morning."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si la app de Instagram sigue en este teléfono, es una segunda entrada sin ningún límite. Esto la cierra: el tiempo en la app de Instagram cuenta para los mismos minutos diarios que Quiet, y cuando se acaban, Tiempo de uso cierra la app hasta las cuatro de la mañana."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si l’app Instagram est encore sur ce téléphone, c’est une deuxième porte d’entrée, sans aucune limite. Ceci la ferme : le temps passé dans l’app Instagram compte dans les mêmes minutes quotidiennes que Quiet, et quand elles sont épuisées, Temps d’écran ferme l’app jusqu’à quatre heures du matin."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se o app do Instagram ainda está neste telefone, ele é uma segunda porta de entrada, sem limite nenhum. Isto a fecha: o tempo no app do Instagram conta para os mesmos minutos diários do Quiet, e quando eles acabam, o Tempo de Uso fecha o app até as quatro da manhã."
+          }
+        }
+      }
+    },
+    "iOS asks whether Quiet may use Screen Time and then shows its own list of apps — choose Instagram there. Quiet learns how many minutes pass, never what you look at, and nothing leaves this phone.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS fragt, ob Quiet Bildschirmzeit nutzen darf, und zeigt dann seine eigene Liste der Apps — wähl dort Instagram. Quiet erfährt, wie viele Minuten vergehen, nie, was du dir ansiehst, und nichts verlässt dieses Telefon."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS asks whether Quiet may use Screen Time and then shows its own list of apps — choose Instagram there. Quiet learns how many minutes pass, never what you look at, and nothing leaves this phone."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS pregunta si Quiet puede usar Tiempo de uso y luego muestra su propia lista de apps — elige ahí Instagram. Quiet sabe cuántos minutos pasan, nunca lo que miras, y nada sale de este teléfono."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS demande si Quiet peut utiliser Temps d’écran, puis affiche sa propre liste d’apps — choisis-y Instagram. Quiet apprend combien de minutes passent, jamais ce que tu regardes, et rien ne quitte ce téléphone."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O iOS pergunta se o Quiet pode usar o Tempo de Uso e depois mostra a própria lista de apps — escolha o Instagram ali. O Quiet fica sabendo quantos minutos passam, nunca o que você vê, e nada sai deste telefone."
+          }
+        }
+      }
+    },
+    "Switching it on takes effect at once. Switching it off, like raising your limit, waits until the next day.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einschalten gilt sofort. Ausschalten wartet, wie das Erhöhen deines Limits, bis zum nächsten Tag."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switching it on takes effect at once. Switching it off, like raising your limit, waits until the next day."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activarlo surte efecto de inmediato. Desactivarlo, como subir tu límite, espera hasta el día siguiente."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’activer prend effet tout de suite. Le désactiver, comme relever ta limite, attend le lendemain."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ativar vale na hora. Desativar, como aumentar seu limite, espera até o dia seguinte."
+          }
+        }
+      }
+    },
+    "Today the limit still reaches the Instagram app. From tomorrow it holds inside Quiet only.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heute erreicht das Limit die Instagram-App noch. Ab morgen gilt es nur in Quiet."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today the limit still reaches the Instagram app. From tomorrow it holds inside Quiet only."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoy el límite todavía llega a la app de Instagram. A partir de mañana solo vale dentro de Quiet."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aujourd’hui, la limite s’étend encore à l’app Instagram. À partir de demain, elle ne vaut que dans Quiet."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoje o limite ainda alcança o app do Instagram. A partir de amanhã vale só dentro do Quiet."
+          }
+        }
+      }
+    },
+    "Today the limit reaches the apps you chose. From tomorrow it reaches fewer of them.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heute erreicht das Limit die Apps, die du gewählt hast. Ab morgen erreicht es weniger davon."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today the limit reaches the apps you chose. From tomorrow it reaches fewer of them."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoy el límite llega a las apps que elegiste. A partir de mañana llegará a menos de ellas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aujourd’hui, la limite s’étend aux apps que tu as choisies. À partir de demain, elle en couvrira moins."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoje o limite alcança os apps que você escolheu. A partir de amanhã alcança menos deles."
+          }
+        }
+      }
+    },
+    "The limit reaches the Instagram app. Time there counts towards your daily minutes, and when they are spent Screen Time closes it until four in the morning.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Limit erreicht die Instagram-App. Zeit dort zählt zu deinen Tagesminuten, und sind sie verbraucht, schließt Bildschirmzeit sie bis vier Uhr morgens."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The limit reaches the Instagram app. Time there counts towards your daily minutes, and when they are spent Screen Time closes it until four in the morning."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El límite llega a la app de Instagram. El tiempo allí cuenta para tus minutos diarios, y cuando se acaban, Tiempo de uso la cierra hasta las cuatro de la mañana."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La limite s’étend à l’app Instagram. Le temps passé là-bas compte dans tes minutes quotidiennes, et quand elles sont épuisées, Temps d’écran la ferme jusqu’à quatre heures du matin."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O limite alcança o app do Instagram. O tempo ali conta para seus minutos diários, e quando eles acabam, o Tempo de Uso o fecha até as quatro da manhã."
+          }
+        }
+      }
+    },
+    "Keep it as it is": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "So lassen, wie es ist"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep it as it is"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dejarlo como está"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laisser comme c’est"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deixar como está"
+          }
+        }
+      }
+    },
+    "Change which apps": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Andere Apps wählen"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change which apps"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar las apps"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changer les apps"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mudar os apps"
+          }
+        }
+      }
+    },
+    "Stop limiting the Instagram app": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Instagram-App nicht mehr begrenzen"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop limiting the Instagram app"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dejar de limitar la app de Instagram"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ne plus limiter l’app Instagram"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parar de limitar o app do Instagram"
+          }
+        }
+      }
+    },
+    "Stop limiting the Instagram app?": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Instagram-App nicht mehr begrenzen?"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop limiting the Instagram app?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Dejar de limitar la app de Instagram?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ne plus limiter l’app Instagram ?"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parar de limitar o app do Instagram?"
+          }
+        }
+      }
+    },
+    "From tomorrow": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ab morgen"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From tomorrow"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A partir de mañana"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À partir de demain"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A partir de amanhã"
+          }
+        }
+      }
+    },
+    "Like raising your limit, this waits until the next day. Today the Instagram app stays counted, and closed once your minutes are spent.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wie das Erhöhen deines Limits wartet das bis zum nächsten Tag. Heute wird die Instagram-App weiter mitgezählt und geschlossen, sobald deine Minuten verbraucht sind."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Like raising your limit, this waits until the next day. Today the Instagram app stays counted, and closed once your minutes are spent."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Como subir tu límite, esto espera hasta el día siguiente. Hoy la app de Instagram sigue contando, y se cierra en cuanto se acaben tus minutos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comme relever ta limite, cela attend le lendemain. Aujourd’hui, l’app Instagram reste comptée, et fermée dès que tes minutes sont épuisées."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Como aumentar seu limite, isto espera até o dia seguinte. Hoje o app do Instagram continua sendo contado, e fechado assim que seus minutos acabarem."
+          }
+        }
+      }
+    },
+    "Today so far: %@ in the Instagram app, counted in the panel with the rest.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heute bisher: %@ in der Instagram-App, im Panel mit dem Rest gezählt."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today so far: %@ in the Instagram app, counted in the panel with the rest."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoy hasta ahora: %@ en la app de Instagram, contados en el panel con el resto."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aujourd’hui jusqu’ici : %@ dans l’app Instagram, comptées dans le panneau avec le reste."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoje até agora: %@ no app do Instagram, contados no painel com o resto."
+          }
+        }
+      }
+    },
+    "Quiet no longer has Screen Time access, so the Instagram app is not being counted or closed. iOS Settings › Screen Time can give it back.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet hat keinen Zugriff mehr auf Bildschirmzeit, die Instagram-App wird also weder gezählt noch geschlossen. Unter Einstellungen › Bildschirmzeit lässt er sich zurückgeben."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet no longer has Screen Time access, so the Instagram app is not being counted or closed. iOS Settings › Screen Time can give it back."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet ya no tiene acceso a Tiempo de uso, así que la app de Instagram no se cuenta ni se cierra. En Ajustes › Tiempo de uso puedes devolvérselo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet n’a plus accès à Temps d’écran : l’app Instagram n’est donc ni comptée ni fermée. Réglages › Temps d’écran permet de le lui rendre."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Quiet não tem mais acesso ao Tempo de Uso, então o app do Instagram não está sendo contado nem fechado. Em Ajustes › Tempo de Uso você pode devolvê-lo."
+          }
+        }
+      }
+    },
+    "Screen Time did not accept the last request: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bildschirmzeit hat die letzte Anfrage nicht angenommen: %@"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen Time did not accept the last request: %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiempo de uso no aceptó la última solicitud: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temps d’écran n’a pas accepté la dernière demande : %@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Tempo de Uso não aceitou o último pedido: %@"
+          }
+        }
+      }
+    },
+    "Adding an app takes effect at once; taking one away waits until the next day. Taking Quiet's Screen Time access away in iOS Settings ends all of it at once — that door is iOS's, and Quiet does not try to hold it shut.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine App hinzuzufügen gilt sofort; eine wegzunehmen wartet bis zum nächsten Tag. Nimmst du Quiet in den iOS-Einstellungen den Zugriff auf Bildschirmzeit, endet alles sofort — diese Tür gehört iOS, und Quiet versucht nicht, sie zuzuhalten."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adding an app takes effect at once; taking one away waits until the next day. Taking Quiet's Screen Time access away in iOS Settings ends all of it at once — that door is iOS's, and Quiet does not try to hold it shut."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadir una app surte efecto de inmediato; quitar una espera hasta el día siguiente. Quitarle a Quiet el acceso a Tiempo de uso en los Ajustes de iOS lo termina todo de inmediato — esa puerta es de iOS, y Quiet no intenta mantenerla cerrada."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter une app prend effet tout de suite ; en retirer une attend le lendemain. Retirer à Quiet l’accès à Temps d’écran dans les Réglages d’iOS met fin à tout, tout de suite — cette porte est celle d’iOS, et Quiet n’essaie pas de la tenir fermée."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adicionar um app vale na hora; tirar um espera até o dia seguinte. Tirar do Quiet o acesso ao Tempo de Uso nos Ajustes do iOS encerra tudo na hora — essa porta é do iOS, e o Quiet não tenta mantê-la fechada."
+          }
+        }
+      }
+    },
+    "Time in Quiet counts, and so does time in the Instagram app while the limit reaches it — but only on days Quiet was open. A day you did not open it counts for nothing either way.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeit in Quiet zählt, und Zeit in der Instagram-App auch, solange das Limit sie erreicht — aber nur an Tagen, an denen Quiet offen war. Ein Tag, an dem du es nicht geöffnet hast, zählt in keine Richtung."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time in Quiet counts, and so does time in the Instagram app while the limit reaches it — but only on days Quiet was open. A day you did not open it counts for nothing either way."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuenta el tiempo en Quiet, y también el tiempo en la app de Instagram mientras el límite llegue a ella — pero solo los días en que Quiet estuvo abierto. Un día en que no lo abriste no cuenta ni a favor ni en contra."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le temps dans Quiet compte, et celui dans l’app Instagram aussi tant que la limite s’y étend — mais seulement les jours où Quiet était ouvert. Un jour où tu ne l’as pas ouvert ne compte ni dans un sens ni dans l’autre."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O tempo no Quiet conta, e o tempo no app do Instagram também, enquanto o limite o alcançar — mas só nos dias em que o Quiet esteve aberto. Um dia em que você não o abriu não conta para nenhum lado."
+          }
+        }
+      }
+    },
+    "If the limit reaches the Instagram app, two more things are kept, where only Quiet and its own Screen Time extensions can read them: the apps you chose, as tokens iOS will not let Quiet read the names of, and how many minutes they have had today.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erreicht das Limit die Instagram-App, werden zwei weitere Dinge aufbewahrt, dort, wo nur Quiet und seine eigenen Bildschirmzeit-Erweiterungen sie lesen können: die Apps, die du gewählt hast — als Kennungen, deren Namen iOS Quiet nicht lesen lässt —, und wie viele Minuten sie heute hatten."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If the limit reaches the Instagram app, two more things are kept, where only Quiet and its own Screen Time extensions can read them: the apps you chose, as tokens iOS will not let Quiet read the names of, and how many minutes they have had today."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si el límite llega a la app de Instagram, se guardan dos cosas más, donde solo Quiet y sus propias extensiones de Tiempo de uso pueden leerlas: las apps que elegiste, como identificadores cuyos nombres iOS no deja leer a Quiet, y cuántos minutos llevan hoy."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si la limite s’étend à l’app Instagram, deux choses de plus sont gardées, là où seuls Quiet et ses propres extensions Temps d’écran peuvent les lire : les apps que tu as choisies, sous forme de jetons dont iOS ne laisse pas Quiet lire les noms, et combien de minutes elles ont eues aujourd’hui."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se o limite alcança o app do Instagram, mais duas coisas são guardadas, onde só o Quiet e as próprias extensões de Tempo de Uso dele podem lê-las: os apps que você escolheu, como identificadores cujos nomes o iOS não deixa o Quiet ler, e quantos minutos eles tiveram hoje."
+          }
+        }
+      }
+    },
+    "Rate Quiet in the App Store": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet im App Store bewerten"
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rate Quiet in the App Store"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valorar Quiet en el App Store"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noter Quiet sur l’App Store"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avaliar o Quiet na App Store"
+          }
+        }
+      }
+    },
+    "A rating, or a sentence about what Quiet changed, is how the next person looking for a way out of the scroll finds it.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Bewertung oder ein Satz darüber, was Quiet verändert hat — so findet es die nächste Person, die einen Weg aus dem Scrollen sucht."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A rating, or a sentence about what Quiet changed, is how the next person looking for a way out of the scroll finds it."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una valoración, o una frase sobre lo que Quiet cambió, es como lo encuentra la próxima persona que busca una salida del scroll."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une note, ou une phrase sur ce que Quiet a changé : c’est ainsi que le trouve la prochaine personne qui cherche à sortir du scroll."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uma avaliação, ou uma frase sobre o que o Quiet mudou, é como a próxima pessoa que procura uma saída do scroll o encontra."
+          }
+        }
+      }
+    },
+    "Choose Instagram. Add instagram.com too if you also use it in Safari.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähl Instagram. Nimm instagram.com dazu, wenn du es auch in Safari benutzt."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose Instagram. Add instagram.com too if you also use it in Safari."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige Instagram. Añade instagram.com si también lo usas en Safari."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisis Instagram. Ajoute instagram.com si tu l’utilises aussi dans Safari."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escolha o Instagram. Adicione instagram.com se você também o usa no Safari."
+          }
+        }
+      }
+    },
+    "Quiet sees how many minutes these are used, never what you do in them. Nothing leaves this phone.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet sieht, wie viele Minuten sie benutzt werden, nie, was du darin tust. Nichts verlässt dieses Telefon."
+          }
+        },
+        "en-GB": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet sees how many minutes these are used, never what you do in them. Nothing leaves this phone."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet ve cuántos minutos se usan, nunca lo que haces en ellas. Nada sale de este teléfono."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiet voit combien de minutes elles sont utilisées, jamais ce que tu y fais. Rien ne quitte ce téléphone."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Quiet vê quantos minutos eles são usados, nunca o que você faz neles. Nada sai deste telefone."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

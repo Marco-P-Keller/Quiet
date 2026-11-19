@@ -29,6 +29,10 @@ targets:
     platform: iOS
     sources:
       - path: Quiet
+      - path: Shared
+    dependencies:
+      - target: QuietActivity
+      - target: QuietShield
     settings:
       base:
         INFOPLIST_FILE: Info.plist
@@ -36,11 +40,51 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
         PRODUCT_BUNDLE_IDENTIFIER: com.connexa.quiet
         DEVELOPMENT_TEAM: B97SQSQBMR
-        MARKETING_VERSION: "1.0.2"
+        MARKETING_VERSION: "1.1"
         CURRENT_PROJECT_VERSION: "1"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         ENABLE_PREVIEWS: YES
+
+  # Woken by Screen Time when the Instagram app crosses a minute, and at four
+  # in the morning. See `Monitor`.
+  QuietActivity:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: QuietActivity
+        excludes: [Info.plist, QuietActivity.entitlements]
+      - path: Shared
+    settings:
+      base:
+        INFOPLIST_FILE: QuietActivity/Info.plist
+        CODE_SIGN_ENTITLEMENTS: QuietActivity/QuietActivity.entitlements
+        GENERATE_INFOPLIST_FILE: NO
+        PRODUCT_BUNDLE_IDENTIFIER: com.connexa.quiet.activity
+        DEVELOPMENT_TEAM: B97SQSQBMR
+        MARKETING_VERSION: "1.1"
+        CURRENT_PROJECT_VERSION: "1"
+        APPLICATION_EXTENSION_API_ONLY: YES
+
+  # What stands in front of the Instagram app once it is closed for the day.
+  # See `ShieldConfig`.
+  QuietShield:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: QuietShield
+        excludes: [Info.plist, QuietShield.entitlements]
+      - path: Shared
+    settings:
+      base:
+        INFOPLIST_FILE: QuietShield/Info.plist
+        CODE_SIGN_ENTITLEMENTS: QuietShield/QuietShield.entitlements
+        GENERATE_INFOPLIST_FILE: NO
+        PRODUCT_BUNDLE_IDENTIFIER: com.connexa.quiet.shield
+        DEVELOPMENT_TEAM: B97SQSQBMR
+        MARKETING_VERSION: "1.1"
+        CURRENT_PROJECT_VERSION: "1"
+        APPLICATION_EXTENSION_API_ONLY: YES
 
   QuietTests:
     type: bundle.unit-test

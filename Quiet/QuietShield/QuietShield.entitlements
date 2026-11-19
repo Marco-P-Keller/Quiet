@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Screen Time, for one person on their own phone: the Instagram app is
+	     counted and closed by the limit that person set in Quiet. -->
+	<key>com.apple.developer.family-controls</key>
+	<true/>
+	<!-- The shelf the app and both extensions share. See `Shelf`. -->
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.com.connexa.quiet</string>
+	</array>
+</dict>
+</plist>

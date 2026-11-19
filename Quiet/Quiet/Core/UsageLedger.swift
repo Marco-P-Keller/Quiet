@@ -24,10 +24,19 @@ struct UsageLedger: Codable, Equatable, Sendable {
     /// versions do not carry it.
     private(set) var endsAt: Date?
 
-    init(day: DayKey, seconds: TimeInterval = 0, endsAt: Date? = nil) {
+    /// How many of today's minutes came from the Instagram app, by way of
+    /// Screen Time, and are already counted in `seconds`.
+    ///
+    /// Kept so that the same report can be read any number of times and only
+    /// what is new is added. Optional because ledgers written before the limit
+    /// could reach the Instagram app do not carry it, and for them it is zero.
+    private(set) var fromTheApp: Int?
+
+    init(day: DayKey, seconds: TimeInterval = 0, endsAt: Date? = nil, fromTheApp: Int? = nil) {
         self.day = day
         self.seconds = max(0, seconds)
         self.endsAt = endsAt
+        self.fromTheApp = fromTheApp
     }
 
     /// Move to `today`, discarding a previous day's total. Idempotent.
@@ -40,6 +49,7 @@ struct UsageLedger: Codable, Equatable, Sendable {
         day = today
         seconds = 0
         endsAt = endingAt
+        fromTheApp = nil
     }
 
     /// Whether `now` is past the ending this day was given.
@@ -57,6 +67,28 @@ struct UsageLedger: Codable, Equatable, Sendable {
     mutating func add(_ interval: TimeInterval) {
         guard interval > 0, interval < UsageLedger.plausibleTick else { return }
         seconds += interval
+    }
+
+    /// Take the Instagram app's total for today, as Screen Time reports it, and
+    /// add whatever part of it is new. Returns whether anything was.
+    ///
+    /// Not subject to `plausibleTick`. That rule is about a clock reading that
+    /// jumped; this is a count somebody else kept, and an afternoon spent in the
+    /// Instagram app while Quiet sat closed arrives here as one large number
+    /// that is perfectly true.
+    @discardableResult
+    mutating func credit(appMinutes total: Int) -> Bool {
+        let before = fromTheApp ?? 0
+        guard total > before else { return false }
+        seconds += TimeInterval(total - before) * 60
+        fromTheApp = total
+        return true
+    }
+
+    /// Today's total without the Instagram app's share: Quiet, and the
+    /// reader's other devices if the limit is carried between them.
+    var secondsInQuiet: TimeInterval {
+        max(0, seconds - TimeInterval(fromTheApp ?? 0) * 60)
     }
 
     func remaining(limitMinutes: Int) -> TimeInterval {

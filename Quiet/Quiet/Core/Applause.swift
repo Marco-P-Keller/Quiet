@@ -18,11 +18,17 @@ import Observation
 ///   that the limit holds, and holding is a thing that takes days to notice.
 ///   Three days is somebody who was cut off and came back anyway, which is the
 ///   only endorsement this app can actually earn.
-/// - Once. Ever. iOS caps the prompt at three a year on its own, but a rule
-///   that leans on somebody else's cap is a rule that would ask every day if
-///   the cap were lifted.
+/// - Once per version. It was once, ever, and that was too tight for the one
+///   thing that tells the next person whether this app is worth installing: a
+///   new version is a different app to have an opinion about, and somebody
+///   who answered about 1.0 has not said anything about the limit reaching
+///   the Instagram app. After each question the minutes and the days start
+///   again, so a version that arrives the day after one was asked about still
+///   waits for three days of using it. iOS caps the prompt at three a year on
+///   its own on top of that, but a rule that leans on somebody else's cap is a
+///   rule that would ask every day if the cap were lifted.
 ///
-/// The one shot is not spent more often for having waited — it is spent on
+/// The shot is not spent more often for having waited — it is spent on
 /// somebody in a position to answer.
 ///
 /// Note what is deliberately *not* a condition: reaching the curtain. The end
@@ -45,7 +51,10 @@ import Observation
 /// them without stepping onto the main actor to do it.
 private enum Key {
     static let spent = "quiet.applause.seconds"
+    /// Written by versions that asked once, ever. Read once, to carry those
+    /// readers across; never written again.
     static let asked = "quiet.applause.asked"
+    static let askedIn = "quiet.applause.askedin"
     static let days = "quiet.applause.days"
     static let lastDay = "quiet.applause.lastday"
 }
@@ -75,8 +84,14 @@ final class Applause {
     /// means, which turns at four in the morning, rather than the calendar's.
     private(set) var lastDay: Int?
 
-    /// Whether the question has already been put.
-    private(set) var asked: Bool
+    /// The version the question was last put in, if it has ever been put.
+    private(set) var askedIn: String?
+
+    /// The version running now.
+    @ObservationIgnored let version: String
+
+    /// Whether the question has already been put in this version.
+    var asked: Bool { askedIn == version }
 
     /// Set while the app is in front of somebody. Measured against
     /// `systemUptime`, like everything else in Quiet that counts elapsed time,
@@ -85,18 +100,35 @@ final class Applause {
 
     init(
         defaults: UserDefaults = .standard,
-        uptime: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime }
+        uptime: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime },
+        version: String = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
     ) {
         self.defaults = defaults
         self.uptime = uptime
+        self.version = version
         self.spent = defaults.double(forKey: Key.spent)
-        self.asked = defaults.bool(forKey: Key.asked)
+        self.askedIn = defaults.string(forKey: Key.askedIn)
         self.days = defaults.integer(forKey: Key.days)
         // `object(forKey:)` rather than `integer(forKey:)`: a missing key reads
         // as zero, and zero is a real ordinal. Nobody will open this app on the
         // day it stands for, but a rule that is only right because the date is
         // implausible is a rule that is wrong.
         self.lastDay = defaults.object(forKey: Key.lastDay) as? Int
+
+        // Somebody asked under the old rule — once, ever — by a version that
+        // did not write down which version it was. They have long since
+        // earned it, and to keep their old totals would put the question to
+        // them the second the new version opened. So they start one day short
+        // of the rule instead: five minutes on one more day of using it.
+        if askedIn == nil, defaults.bool(forKey: Key.asked) {
+            askedIn = "1.0"
+            spent = 0
+            days = Self.acrossDays - 1
+            defaults.set(askedIn, forKey: Key.askedIn)
+            defaults.set(spent, forKey: Key.spent)
+            defaults.set(days, forKey: Key.days)
+            defaults.removeObject(forKey: Key.asked)
+        }
     }
 
     /// How much longer, from what has been banked so far.
@@ -151,17 +183,25 @@ final class Applause {
         since = nil
     }
 
-    /// Said once, and never unsaid.
+    /// Said once in this version, and never unsaid. The minutes and the days
+    /// start again, so the next version has to be lived with as long as this
+    /// one was before it is asked about. The day it was asked on is kept as
+    /// counted, so that it is not counted again as the first of the next three.
     func markAsked() {
         guard !asked else { return }
-        asked = true
-        defaults.set(true, forKey: Key.asked)
+        askedIn = version
+        spent = 0
+        days = 0
+        defaults.set(version, forKey: Key.askedIn)
+        defaults.set(spent, forKey: Key.spent)
+        defaults.set(days, forKey: Key.days)
     }
 
     /// For a rehearsal, so that a scene photographs the same app every time.
     nonisolated static func forget(defaults: UserDefaults = .standard) {
         defaults.removeObject(forKey: Key.spent)
         defaults.removeObject(forKey: Key.asked)
+        defaults.removeObject(forKey: Key.askedIn)
         defaults.removeObject(forKey: Key.days)
         defaults.removeObject(forKey: Key.lastDay)
     }

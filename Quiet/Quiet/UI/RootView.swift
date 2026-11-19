@@ -24,6 +24,9 @@ struct RootView: View {
     /// and one of the two would otherwise have been holding a second copy.
     let preferences: Preferences
 
+    /// The limit's reach into the Instagram app. See `InstagramAppLimit`.
+    let instagramApp: InstagramAppLimit
+
     @State private var surface = WebSurface()
     /// Whether the app has earned the right to ask what you think of it.
     @State private var applause = Applause()
@@ -186,7 +189,12 @@ struct RootView: View {
             }
 
         case .browsing:
-            BrowserScreen(session: session, surface: surface, preferences: preferences)
+            BrowserScreen(
+                session: session,
+                surface: surface,
+                preferences: preferences,
+                instagramApp: instagramApp
+            )
 
         case .spent:
             curtain
@@ -209,6 +217,7 @@ struct RootView: View {
                 session: session,
                 surface: surface,
                 preferences: preferences,
+                instagramApp: instagramApp,
                 onDismiss: { session.isPanelShowing = false }
             )
         }

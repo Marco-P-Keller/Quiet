@@ -1,3 +1,4 @@
+import FamilyControls
 import SwiftUI
 
 /// Everything Quiet can be told to do that is not the day you are having.
@@ -18,6 +19,8 @@ struct SettingsView: View {
     let session: QuietSession
     let surface: WebSurface
     let preferences: Preferences
+    /// The limit's reach into the Instagram app. See `InstagramAppLimit`.
+    let instagramApp: InstagramAppLimit
 
     /// Closing the panel entirely, from a screen pushed on top of it. Signing
     /// out of Instagram wants the whole thing gone, not this screen popped off
@@ -38,9 +41,21 @@ struct SettingsView: View {
     @State private var isConfirmingForget = false
     @State private var hasCleared = false
 
+    /// Screen Time's own list of apps, on screen.
+    @State private var isPicking = false
+    /// What is ticked in that list. Read when it closes.
+    @State private var picking = Picked()
+    /// Set when the list came back with a whole category and nothing else,
+    /// which Quiet does not use. See `Picked.namesAnything`.
+    @State private var pickedOnlyCategories = false
+    @State private var isConfirmingLetGoOfTheApp = false
+    @Environment(\.openURL) private var openURL
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
+                Cluster("The Instagram app") { theInstagramApp }
+
                 Cluster("The days behind you") { theDayYouStartedFrom }
 
                 Cluster("The wait between increases") { theWait }
@@ -83,6 +98,23 @@ struct SettingsView: View {
         .scrollDismissesKeyboard(.interactively)
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
+        .familyActivityPicker(
+            headerText: String(localized: "Choose Instagram. Add instagram.com too if you also use it in Safari."),
+            footerText: String(localized: "Quiet sees how many minutes these are used, never what you do in them. Nothing leaves this phone."),
+            isPresented: $isPicking,
+            selection: $picking
+        )
+        .onChange(of: isPicking) { _, open in
+            guard !open else { return }
+            pickedOnlyCategories = !picking.namesAnything && !picking.categoryTokens.isEmpty
+            instagramApp.choose(
+                picking,
+                today: session.today,
+                isSpent: session.screen == .spent,
+                until: session.resetsAt
+            )
+        }
+        .onAppear { instagramApp.refresh(today: session.today) }
         .toolbarBackground(Paper.page, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
     }
@@ -137,7 +169,11 @@ struct SettingsView: View {
 
             Note("It changes nothing about your limit or your day. It is the number the chart is measured against, so it is worth it being the true one.")
 
-            Note("Only time with Instagram on screen counts, and only on days Quiet was open — a day you did not open it counts for nothing either way. Quiet cannot see what any other app on this phone did with it.")
+            if instagramApp.isOn {
+                Note("Time in Quiet counts, and so does time in the Instagram app while the limit reaches it — but only on days Quiet was open. A day you did not open it counts for nothing either way.")
+            } else {
+                Note("Only time with Instagram on screen counts, and only on days Quiet was open — a day you did not open it counts for nothing either way. Quiet cannot see what any other app on this phone did with it.")
+            }
 
             if session.baseline > 0 {
                 Note("On the chart, the dashed lines mark your limit and the day you started from. Either is left off when it sits so far above your days that drawing it would flatten them.")
@@ -148,6 +184,126 @@ struct SettingsView: View {
     }
 
     private static let baselines = [10, 15, 20, 30, 45, 60, 75, 90, 120, 150, 180, 240, 300, 360, 420, 480]
+
+    // MARK: - The Instagram app
+
+    /// The second door into Instagram, and whether the limit reaches it.
+    ///
+    /// Quiet's limit used to end at Quiet's edge, and an Instagram app left on
+    /// the phone was a door with no limit on it at all. This is the switch that
+    /// closes it. See `InstagramAppLimit` for what it does and `Reach` for why
+    /// switching it off waits for tomorrow.
+    @ViewBuilder
+    private var theInstagramApp: some View {
+        if !instagramApp.isSupported {
+            Note("On this phone the limit holds inside Quiet only. Reaching the Instagram app as well needs iOS 17.4 or later.")
+        } else if instagramApp.isOn {
+            theInstagramAppReached
+        } else {
+            theInstagramAppNotReached
+        }
+    }
+
+    private var theInstagramAppNotReached: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Hairline()
+            Door("Limit the Instagram app too") {
+                Task {
+                    if !instagramApp.isAllowed {
+                        guard await instagramApp.askForAccess() else { return }
+                    }
+                    picking = instagramApp.reach.current ?? Picked()
+                    isPicking = true
+                }
+            }
+            Hairline()
+
+            VStack(alignment: .leading, spacing: Metric.underControl) {
+                if pickedOnlyCategories {
+                    Note("Nothing was switched on: a whole category was chosen. Choose the Instagram app itself — a category would count Quiet as well.")
+                }
+                if let trouble = instagramApp.trouble {
+                    Note(verbatim: trouble)
+                }
+                if instagramApp.status == .denied {
+                    Note("Screen Time access was not given. You can give it in iOS Settings › Screen Time, and then switch this on here.")
+                }
+                Note("If the Instagram app is still on this phone, it is a second way in with no limit on it. This closes it: time in the Instagram app counts towards the same daily minutes as Quiet, and when they are spent, Screen Time closes the app until four in the morning.")
+                Note("iOS asks whether Quiet may use Screen Time and then shows its own list of apps — choose Instagram there. Quiet learns how many minutes pass, never what you look at, and nothing leaves this phone.")
+                Note("Switching it on takes effect at once. Switching it off, like raising your limit, waits until the next day.")
+            }
+            .padding(.top, Metric.underControl)
+        }
+    }
+
+    private var theInstagramAppReached: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Group {
+                if instagramApp.reach.narrowing?.to == nil, instagramApp.reach.narrowing != nil {
+                    Text("Today the limit still reaches the Instagram app. From tomorrow it holds inside Quiet only.")
+                } else if instagramApp.reach.narrowing != nil {
+                    Text("Today the limit reaches the apps you chose. From tomorrow it reaches fewer of them.")
+                } else {
+                    Text("The limit reaches the Instagram app. Time there counts towards your daily minutes, and when they are spent Screen Time closes it until four in the morning.")
+                }
+            }
+            .font(.quietBody)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.bottom, Metric.underControl)
+
+            Hairline()
+            if instagramApp.reach.narrowing != nil {
+                Door("Keep it as it is") {
+                    instagramApp.choose(
+                        instagramApp.reach.current,
+                        today: session.today,
+                        isSpent: session.screen == .spent,
+                        until: session.resetsAt
+                    )
+                }
+            } else {
+                Door("Change which apps") {
+                    picking = instagramApp.reach.current ?? Picked()
+                    isPicking = true
+                }
+                Hairline()
+                Door("Stop limiting the Instagram app") {
+                    isConfirmingLetGoOfTheApp = true
+                }
+                .confirmationDialog(
+                    "Stop limiting the Instagram app?",
+                    isPresented: $isConfirmingLetGoOfTheApp,
+                    titleVisibility: .visible
+                ) {
+                    Button("From tomorrow", role: .destructive) {
+                        instagramApp.choose(
+                            nil,
+                            today: session.today,
+                            isSpent: session.screen == .spent,
+                            until: session.resetsAt
+                        )
+                    }
+                } message: {
+                    Text("Like raising your limit, this waits until the next day. Today the Instagram app stays counted, and closed once your minutes are spent.")
+                }
+            }
+            Hairline()
+
+            VStack(alignment: .leading, spacing: Metric.underControl) {
+                if session.minutesInTheApp > 0 {
+                    Note("Today so far: \(Phrase.minutes(session.minutesInTheApp)) in the Instagram app, counted in the panel with the rest.")
+                }
+                if !instagramApp.isAllowed {
+                    Note("Quiet no longer has Screen Time access, so the Instagram app is not being counted or closed. iOS Settings › Screen Time can give it back.")
+                }
+                if let trouble = instagramApp.watchTrouble {
+                    Note("Screen Time did not accept the last request: \(trouble)")
+                }
+                Note("Adding an app takes effect at once; taking one away waits until the next day. Taking Quiet's Screen Time access away in iOS Settings ends all of it at once — that door is iOS's, and Quiet does not try to hold it shut.")
+            }
+            .padding(.top, Metric.underControl)
+        }
+    }
 
     // MARK: - How long the wait is
 
@@ -664,8 +820,20 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 10) {
             Note("Quiet has no account, no server of its own and no analytics. It stores eight things on this phone: your limit, today's total, the last time it saw, the day you set it up, whether you have asked it to forget, what your other devices have spent today, the day you said you started from, and how long each day since has been.")
             Note("If you carry it between your devices, three of those go into your own iCloud — the limit, the wait, and how much each device has spent today. Nothing else, nowhere else, and only while the switch above is on.")
+            Note("If the limit reaches the Instagram app, two more things are kept, where only Quiet and its own Screen Time extensions can read them: the apps you chose, as tokens iOS will not let Quiet read the names of, and how many minutes they have had today.")
             Note("Your limit is kept in the keychain, which outlives the app. Deleting Quiet and installing it again does not reset it.")
             Note("Quiet is not affiliated with or endorsed by Instagram or Meta.")
+
+            VStack(alignment: .leading, spacing: 0) {
+                Hairline()
+                Door("Rate Quiet in the App Store") {
+                    openURL(AppStorePage.writeReview)
+                }
+                Hairline()
+                Note("A rating, or a sentence about what Quiet changed, is how the next person looking for a way out of the scroll finds it.")
+                    .padding(.top, Metric.underControl)
+            }
+            .padding(.top, 8)
 
             signature
         }

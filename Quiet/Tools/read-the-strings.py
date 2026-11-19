@@ -38,6 +38,9 @@ HERE = pathlib.Path(__file__).resolve().parent
 CATALOGUES = [
     HERE.parent / "Quiet" / "Resources" / "Localizable.xcstrings",
     HERE.parent / "Quiet" / "Resources" / "InfoPlist.xcstrings",
+    # What stands in front of the Instagram app once Quiet has closed it for
+    # the day. A separate bundle, so a separate catalogue.
+    HERE.parent / "QuietShield" / "Localizable.xcstrings",
 ]
 
 # What Xcode writes when a string has been added but not answered.
