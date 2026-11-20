@@ -29,8 +29,8 @@ final class ApplauseTests: XCTestCase {
         super.tearDown()
     }
 
-    private func made(version: String = "1.1") -> Applause {
-        Applause(defaults: defaults, uptime: { [unowned self] in self.clock }, version: version)
+    private func made() -> Applause {
+        Applause(defaults: defaults, uptime: { [unowned self] in self.clock })
     }
 
     /// The minutes, banked over as many separate days as the rule asks for.
@@ -50,7 +50,7 @@ final class ApplauseTests: XCTestCase {
         let applause = made()
         XCTAssertEqual(applause.spent, 0)
         XCTAssertFalse(applause.isDue)
-        XCTAssertEqual(applause.remaining, 5 * 60)
+        XCTAssertEqual(applause.remaining, Applause.earned)
     }
 
     /// Time passing is not the test. Time passing *with the app on screen* is.
@@ -68,7 +68,7 @@ final class ApplauseTests: XCTestCase {
         clock += 90
         applause.bank()
         XCTAssertEqual(applause.spent, 90, accuracy: 0.001)
-        XCTAssertEqual(applause.remaining, 5 * 60 - 90, accuracy: 0.001)
+        XCTAssertEqual(applause.remaining, Applause.earned - 90, accuracy: 0.001)
         XCTAssertFalse(applause.isDue)
     }
 
@@ -104,8 +104,8 @@ final class ApplauseTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(applause.spent, Applause.earned)
         XCTAssertEqual(applause.remaining, 0)
         XCTAssertEqual(applause.days, 1)
-        XCTAssertFalse(applause.isDue, "One sitting is not three days")
-        XCTAssertEqual(applause.daysRemaining, 2)
+        XCTAssertFalse(applause.isDue, "One sitting is not enough days")
+        XCTAssertEqual(applause.daysRemaining, Applause.acrossDays - 1)
     }
 
     /// Opening the app nine times before lunch is one day, not nine.
@@ -141,7 +141,7 @@ final class ApplauseTests: XCTestCase {
         earnIt()
         let later = made()
         XCTAssertTrue(later.isDue)
-        XCTAssertEqual(later.days, 3)
+        XCTAssertEqual(later.days, Applause.acrossDays)
         XCTAssertEqual(later.daysRemaining, 0)
     }
 
@@ -175,34 +175,32 @@ final class ApplauseTests: XCTestCase {
 
     // MARK: -
 
-    func testItIsAskedOnceInAVersionAndThenNeverAgainInIt() {
+    func testItIsNotAskedAgainBeforeIOSWouldShowIt() {
         earnIt()
         let first = made()
         XCTAssertTrue(first.isDue)
-
         first.markAsked()
         XCTAssertFalse(first.isDue)
 
-        // Another three days and more, in the same version.
         earnIt()
         let next = made()
-        XCTAssertTrue(next.asked)
+        XCTAssertTrue(next.asked, "a few days later is inside the gap")
         XCTAssertFalse(next.isDue)
     }
 
-    /// A new version is a new thing to have an opinion about — but only once it
-    /// has been lived with as long as the first one was.
-    func testANewVersionIsAskedAboutOnceItHasBeenLivedWith() {
+    /// Three a year is what iOS allows, and three a year is what is asked for.
+    func testAfterTheGapItIsAskedAgainOnceEarned() {
         earnIt()
-        made(version: "1.1").markAsked()
-
-        let update = made(version: "1.2")
-        XCTAssertFalse(update.asked)
-        XCTAssertFalse(update.isDue, "the minutes and days start again after a question")
+        made().markAsked()
+        day += Applause.gap
+        let later = made()
+        later.enter(on: day)
+        XCTAssertFalse(later.asked)
+        XCTAssertFalse(later.isDue, "the minutes and days start again after a question")
+        later.leave()
 
         earnIt()
-        let later = made(version: "1.2")
-        XCTAssertTrue(later.isDue)
+        XCTAssertTrue(made().isDue)
     }
 
     /// The day the question was put does not count again as the first of the
@@ -224,7 +222,7 @@ final class ApplauseTests: XCTestCase {
         earnIt()
         defaults.set(true, forKey: "quiet.applause.asked")
 
-        let carried = made(version: "1.1")
+        let carried = made()
         XCTAssertFalse(carried.asked)
         XCTAssertFalse(carried.isDue, "not at the moment the new version opens")
         XCTAssertEqual(carried.days, Applause.acrossDays - 1)
