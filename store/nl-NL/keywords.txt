@@ -1,1 +1,1 @@
-schermtijd,verslaving,telefoon,detox,digitaal,blokkeren,focus,afleiding,social,media,scrollen,pauze
+schermtijd,verslaving,telefoon,sociale,media,detox,digitaal,focus,gewoonte,limiet,afleiding,blokker

@@ -1,1 +1,1 @@
-Rettet en feil der Quiet kunne bli stående på lasteskjermen etter innlogging.
+Grensen når nå også Instagram-appen. Slå det på under Settings › The Instagram app: tid der teller mot dine daglige minutter, og når de er brukt opp, lukker Skjermtid appen til klokken fire om morgenen (iOS 17.4 eller nyere). Også nytt: vurder Quiet i App Store fra innstillingene.

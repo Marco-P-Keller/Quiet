@@ -1,1 +1,1 @@
-Fout opgelost waardoor Quiet na het inloggen op het laadscherm kon blijven hangen.
+De limiet geldt nu ook voor de Instagram-app. Zet het aan in Settings › The Instagram app: tijd daar telt mee voor je dagelijkse minuten, en als die op zijn, sluit Schermtijd de app tot vier uur 's ochtends (iOS 17.4 of nieuwer). Ook nieuw: Quiet beoordelen in de App Store vanuit de instellingen.

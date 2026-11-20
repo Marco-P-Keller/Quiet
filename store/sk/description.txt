@@ -8,6 +8,8 @@ Vyberieš si, koľko minút denne chceš. Keď čítaš, ten čas ubúda — len
 
 Svoj limit môžeš kedykoľvek znížiť a platí to okamžite. Zvýšiť ho môžeš raz za týždeň a nové číslo začína ďalší deň — nikdy vo chvíli, keď chceš päť minút navyše. Tá asymetria je celá aplikácia. Rozhodnutie, ktoré urobíš v pokoji, smie zaviazať to, ktoré urobíš o jedenástej večer.
 
+Novinka v 1.1: aj aplikácia Instagram. Ak ju stále máš v telefóne, Quiet ju môže obmedziť cez Čas pred obrazovkou od Apple (iOS 17.4 alebo novší). Čas v nej sa počíta do tých istých denných minút, a keď sa minú, aplikácia sa zavrie do štvrtej rána. Zapnutie platí hneď; vypnutie počká do ďalšieho dňa.
+
 ČO QUIET NEROBÍ
 
 • Žiadny účet, žiadny náš server, žiadna analytika, žiadna reklama, žiadne sledovanie. Keď zapneš prenášanie medzi zariadeniami, tvoj limit a dnešný súčet pôjdu do tvojho vlastného iCloudu — kde ich môžu čítať len tvoje zariadenia.
@@ -16,7 +18,7 @@ Svoj limit môžeš kedykoľvek znížiť a platí to okamžite. Zvýšiť ho m�
 
 • Žiadne odpočítavanie na obrazovke. Hodiny, na ktoré sa dá pozerať, sú hodiny, na ktoré sa pozerá; čo zostáva, je v paneli — pre chvíle, keď to naozaj chceš vedieť.
 
-• Quiet od teba nechce nič svoje. Jediné povolenie, ktoré môže vyvolať, je to pre dennú pripomienku, a až potom, ako ju zapneš. Vlastné stránky Instagramu si stále môžu vypýtať fotoaparát, mikrofón alebo tvoje fotky, keď k príspevku alebo správe niečo prikladáš — to sa pýta iOS v mene Instagramu a Quiet sám nepoužíva ani jedno z tých troch.
+• Quiet žiada o dve veci, a len keď ich zapneš: upozornenia pre dennú pripomienku a prístup k Času pred obrazovkou pre aplikáciu Instagram. Stránky samotného Instagramu môžu stále žiadať o fotoaparát, mikrofón alebo fotky, keď niečo prikladáš; to sa pýta iOS za Instagram a Quiet sám nepoužíva nič z toho.
 
 Osem vecí zostáva v tvojom telefóne, vo zväzku kľúčov: tvoj limit a každá zmena, ktorú si zaradil na neskorší deň, dnešný súčet, najvzdialenejší bod v čase, ktorý aplikácia videla, deň, keď si ju nastavil, deň, keď si ju požiadal, aby všetko zabudla, to, čo minuli tvoje ostatné zariadenia, ak medzi nimi limit prenášaš, koľko minút denne si podľa svojich slov trávil pred Quiet, a koľko si strávil v každom dni odvtedy. Prežijú zmazanie aplikácie, naschvál. Limit, ktorý sa dá zrušiť preinštalovaním, nie je limit.
 

@@ -1,1 +1,1 @@
-S’ha corregit un error pel qual Quiet es podia quedar a la pantalla de càrrega després d’iniciar la sessió.
+El límit ara arriba també a l’app d’Instagram. Activa-ho a Settings › The Instagram app: el temps que hi passes compta per als teus minuts diaris, i quan s’acaben, el Temps d’ús tanca l’app fins a les quatre de la matinada (iOS 17.4 o posterior). També nou: valora Quiet a l’App Store des de la configuració.

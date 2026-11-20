@@ -8,6 +8,8 @@ Scegli quanti minuti al giorno vuoi. Mentre leggi, quel tempo scende — solo me
 
 Puoi abbassare il tuo limite quando vuoi, e vale subito. Puoi alzarlo una volta a settimana, e il numero nuovo parte dal giorno dopo — mai nel momento in cui vuoi cinque minuti in più. Quell'asimmetria è tutta l'app. La decisione che prendi con calma ha il diritto di tenere quella che prendi alle undici di sera.
 
+Novità nella 1.1: anche l’app di Instagram. Se è ancora sul tuo telefono, Quiet può limitarla con Tempo di utilizzo di Apple (iOS 17.4 o successivo). Il tempo lì conta negli stessi minuti giornalieri e, quando finiscono, l’app si chiude fino alle quattro del mattino. Attivarlo vale subito; disattivarlo aspetta il giorno dopo.
+
 QUELLO CHE QUIET NON FA
 
 • Nessun account, nessun server nostro, nessuna analisi, nessuna pubblicità, nessun tracciamento. Se attivi il trasporto tra dispositivi, il tuo limite e il totale di oggi finiscono nel tuo iCloud — dove solo i tuoi dispositivi possono leggerli.
@@ -16,7 +18,7 @@ QUELLO CHE QUIET NON FA
 
 • Nessun conto alla rovescia sullo schermo. Un orologio che si può guardare è un orologio che si guarda; quello che resta è nel pannello, per i momenti in cui vuoi davvero saperlo.
 
-• Quiet non ti chiede niente di suo. L'unico permesso che può far comparire è quello del promemoria quotidiano, e solo dopo che lo accendi. Le pagine di Instagram possono ancora chiederti la fotocamera, il microfono o le tue foto quando alleghi qualcosa a un post o a un messaggio — è iOS che chiede per conto di Instagram, e Quiet non usa nessuna delle tre.
+• Quiet chiede due cose, e solo quando le attivi: le notifiche per il promemoria quotidiano e l’accesso a Tempo di utilizzo per l’app di Instagram. Le pagine di Instagram possono ancora chiedere fotocamera, microfono o foto quando alleghi qualcosa; è iOS che chiede per conto di Instagram, e Quiet non usa nessuno dei tre.
 
 Otto cose restano, sul tuo telefono, nel portachiavi: il tuo limite e ogni modifica che hai messo in coda per un giorno successivo, il totale di oggi, il punto più lontano nel tempo che l'app abbia visto, il giorno in cui l'hai configurata, il giorno in cui le hai chiesto di dimenticare tutto, quanto hanno speso i tuoi altri dispositivi se porti il limite tra loro, i minuti al giorno che hai detto di passare prima di Quiet, e quanto è durato ogni giorno da allora. Sopravvivono alla cancellazione dell'app, apposta. Un limite che puoi togliere reinstallando non è un limite.
 

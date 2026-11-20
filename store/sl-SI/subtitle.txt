@@ -1,1 +1,1 @@
-Tvoj feed z dnevno omejitvijo
+Omejitev časa zaslona, blokada

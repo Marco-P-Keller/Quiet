@@ -8,6 +8,8 @@ Te választod meg, hány percet szeretnél naponta. Amíg olvasol, ez az idő fo
 
 A limitedet bármikor csökkentheted, és azonnal érvényes. Emelni hetente egyszer tudod, és az új szám másnap indul — soha nem abban a pillanatban, amikor még öt percet szeretnél. Ez az aszimmetria maga az alkalmazás. A nyugodtan hozott döntés megkötheti azt, amit este tizenegykor hozol.
 
+Újdonság az 1.1-ben: az Instagram-alkalmazás is. Ha még rajta van a telefonodon, a Quiet korlátozhatja az Apple Képernyőidő funkciójával (iOS 17.4 vagy újabb). Az ott töltött idő ugyanabba a napi percekbe számít, és ha elfogynak, az app hajnali négyig bezárul. A bekapcsolás azonnal érvényes; a kikapcsolás a következő napig vár.
+
 AMIT A QUIET NEM CSINÁL
 
 • Nincs fiók, nincs szerverünk, nincs analitika, nincs hirdetés, nincs követés. Ha bekapcsolod az eszközök közötti átvitelt, a limited és a mai összeg a saját iCloudodba kerül — ahol csak a te eszközeid tudják olvasni.
@@ -16,7 +18,7 @@ AMIT A QUIET NEM CSINÁL
 
 • Nincs visszaszámlálás a képernyőn. Az óra, amit nézni lehet, az óra, amit nézünk; ami maradt, az a panelen van — azokra a pillanatokra, amikor tényleg tudni akarod.
 
-• A Quiet semmit nem kér magának. Az egyetlen engedély, amit előhozhat, a napi emlékeztetőé, és az is csak azután, hogy bekapcsoltad. Az Instagram saját oldalai továbbra is kérhetik a kamerát, a mikrofont vagy a fotóidat, amikor csatolsz valamit egy bejegyzéshez vagy egy üzenethez — ez az iOS kérdez az Instagram nevében, és a Quiet egyiket sem használja.
+• A Quiet két dolgot kér, és csak ha bekapcsolod őket: értesítéseket a napi emlékeztetőhöz és Képernyőidő-hozzáférést az Instagram-alkalmazáshoz. Az Instagram saját oldalai továbbra is kérhetik a kamerát, a mikrofont vagy a fotóidat, ha csatolsz valamit; ilyenkor az iOS kérdez az Instagram nevében, a Quiet maga egyiket sem használja.
 
 Nyolc dolog marad meg a telefonodon, a kulcskarikán: a limited és minden változtatás, amit egy későbbi napra sorba állítottál, a mai összeg, a legtávolabbi időpont, amit az alkalmazás látott, a nap, amikor beállítottad, a nap, amikor megkérted, hogy felejtsen el mindent, az, amennyit a többi eszközöd elhasznált, ha a limitet közöttük hordozod, a saját bevallásod szerint a Quiet előtti napi percek száma, és az, hogy azóta melyik nap mennyit töltöttél. Túlélik az alkalmazás törlését, szándékosan. Az a limit, amit újratelepítéssel fel lehet oldani, nem limit.
 

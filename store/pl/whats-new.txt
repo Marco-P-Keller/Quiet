@@ -1,1 +1,1 @@
-Naprawiono błąd, przez który po zalogowaniu Quiet mógł zatrzymać się na ekranie ładowania.
+Limit obejmuje teraz także aplikację Instagram. Włącz to w Settings › The Instagram app: czas w niej liczy się do twoich dziennych minut, a gdy się skończą, Czas przed ekranem zamyka aplikację do czwartej rano (iOS 17.4 lub nowszy). Nowość także: oceń Quiet w App Store z ustawień.

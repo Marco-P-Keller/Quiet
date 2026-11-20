@@ -1,1 +1,1 @@
-Ispravljena pogreška zbog koje je Quiet nakon prijave mogao ostati na zaslonu učitavanja.
+Ograničenje sada doseže i aplikaciju Instagram. Uključi ga u Settings › The Instagram app: vrijeme u njoj broji se u tvoje dnevne minute, a kad ih nestane, Vrijeme uz zaslon zatvara aplikaciju do četiri ujutro (iOS 17.4 ili noviji). Novo je i: ocijeni Quiet u App Storeu iz postavki.

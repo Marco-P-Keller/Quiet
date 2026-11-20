@@ -1,1 +1,1 @@
-Opravená chyba, pre ktorú mohol Quiet po prihlásení zostať na obrazovke načítania.
+Limit teraz zasahuje aj aplikáciu Instagram. Zapni to v Settings › The Instagram app: čas v nej sa počíta do tvojich denných minút, a keď sa minú, Čas pred obrazovkou aplikáciu zavrie do štvrtej rána (iOS 17.4 alebo novší). Novinka aj: ohodnoť Quiet v App Store z nastavení.

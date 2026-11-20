@@ -8,6 +8,8 @@ Du wählst, wie viele Minuten am Tag du möchtest. Während du liest, läuft die
 
 Du kannst dein Limit jederzeit senken, und es gilt sofort. Erhöhen kannst du es einmal pro Woche, und die neue Zahl beginnt am nächsten Tag — nie in dem Moment, in dem du fünf Minuten mehr willst. Diese Asymmetrie ist die ganze App. Die Entscheidung, die du in Ruhe triffst, darf die Entscheidung binden, die du um elf Uhr abends triffst.
 
+Neu in 1.1: auch die Instagram-App. Ist sie noch auf deinem Telefon, kann Quiet sie über Apples Bildschirmzeit mitbegrenzen (ab iOS 17.4). Zeit dort zählt zu denselben Tagesminuten, und sind sie verbraucht, schließt die App bis vier Uhr morgens. Einschalten gilt sofort; Ausschalten wartet bis zum nächsten Tag.
+
 WAS QUIET NICHT TUT
 
 • Kein Konto, kein Server von uns, keine Analytics, keine Werbung, kein Tracking. Wenn du das Mitnehmen zwischen Geräten einschaltest, gehen dein Limit und der heutige Stand in deine eigene iCloud — wo nur deine Geräte sie lesen können.
@@ -16,7 +18,7 @@ WAS QUIET NICHT TUT
 
 • Kein Countdown auf dem Bildschirm. Eine Uhr, auf die man schauen kann, ist eine Uhr, auf die man schaut; was übrig ist, steht im Panel — für die Momente, in denen du es wirklich wissen willst.
 
-• Quiet fragt dich um nichts Eigenes. Die einzige Abfrage, die es auslösen kann, ist die für die tägliche Erinnerung, und auch die erst, wenn du sie einschaltest. Instagrams eigene Seiten können weiterhin nach Kamera, Mikrofon oder deinen Fotos fragen, wenn du etwas an einen Beitrag oder eine Nachricht hängst — das ist iOS, das für Instagram fragt, und Quiet selbst benutzt keines der drei.
+• Quiet fragt nach zwei Dingen, und erst wenn du sie einschaltest: Mitteilungen für die tägliche Erinnerung und Bildschirmzeit-Zugriff für die Instagram-App. Instagrams eigene Seiten können weiterhin nach Kamera, Mikrofon oder deinen Fotos fragen, wenn du etwas anhängst — das ist iOS, das für Instagram fragt, und Quiet selbst benutzt keines der drei.
 
 Acht Dinge bleiben auf deinem Telefon, im Schlüsselbund: dein Limit und jede Änderung, die du für einen späteren Tag vorgemerkt hast, der heutige Stand, der späteste Zeitpunkt, den die App gesehen hat, der Tag, an dem du sie eingerichtet hast, der Tag, an dem du sie gebeten hast, alles zu vergessen, und was deine anderen Geräte verbraucht haben, falls du das Limit zwischen ihnen mitnimmst, der Tag, von dem du losgegangen bist, und wie lang jeder Tag seither war. Sie überleben das Löschen der App, mit Absicht. Ein Limit, das sich durch Neuinstallieren aufheben lässt, ist kein Limit.
 

@@ -8,6 +8,8 @@ Wybierasz, ile minut dziennie chcesz. Kiedy czytasz, ten czas leci — tylko gdy
 
 Swój limit możesz obniżyć, kiedy chcesz, i działa od razu. Podnieść możesz raz w tygodniu, a nowa liczba zaczyna obowiązywać następnego dnia — nigdy w chwili, w której chcesz jeszcze pięć minut. Ta asymetria to cała aplikacja. Decyzja podjęta na spokojnie ma prawo wiązać tę, która zapada o jedenastej wieczorem.
 
+Nowość w 1.1: także aplikacja Instagram. Jeśli wciąż masz ją na telefonie, Quiet może ją ograniczyć przez Czas przed ekranem Apple (iOS 17.4 lub nowszy). Czas w niej liczy się do tych samych dziennych minut, a gdy się skończą, aplikacja zamyka się do czwartej rano. Włączenie działa od razu; wyłączenie czeka do następnego dnia.
+
 CZEGO QUIET NIE ROBI
 
 • Żadnego konta, żadnego naszego serwera, żadnej analityki, żadnych reklam, żadnego śledzenia. Jeśli włączysz przenoszenie między urządzeniami, twój limit i dzisiejsza suma trafią do twojego własnego iCloud — gdzie odczytać je mogą tylko twoje urządzenia.
@@ -16,7 +18,7 @@ CZEGO QUIET NIE ROBI
 
 • Żadnego odliczania na ekranie. Zegar, na który można patrzeć, to zegar, na który się patrzy; to, co zostało, jest w panelu — na chwile, w których naprawdę chcesz wiedzieć.
 
-• Quiet nie prosi cię o nic swojego. Jedyne pozwolenie, jakie może wywołać, dotyczy dziennego przypomnienia, i dopiero gdy je włączysz. Własne strony Instagrama nadal mogą poprosić o aparat, mikrofon albo twoje zdjęcia, kiedy dołączasz coś do posta albo do wiadomości — to iOS pyta w imieniu Instagrama, a Quiet nie używa żadnej z tych trzech rzeczy.
+• Quiet prosi o dwie rzeczy i tylko wtedy, gdy je włączysz: powiadomienia dla codziennego przypomnienia i dostęp do Czasu przed ekranem dla aplikacji Instagram. Strony samego Instagrama mogą nadal prosić o aparat, mikrofon lub zdjęcia, gdy coś załączasz; to iOS pyta w imieniu Instagrama, a Quiet sam nie używa żadnego z tych trzech.
 
 Osiem rzeczy zostaje na twoim telefonie, w pęku kluczy: twój limit i każda zmiana ustawiona na późniejszy dzień, dzisiejsza suma, najdalszy punkt w czasie, jaki aplikacja widziała, dzień, w którym została skonfigurowana, dzień, w którym kazano jej wszystko zapomnieć, to, co wydały twoje inne urządzenia, jeśli przenosisz limit między nimi, ile minut dziennie — jak powiedziałeś — spędzałeś przed Quiet, oraz ile spędziłeś w każdym dniu od tamtej pory. Przeżywają usunięcie aplikacji, celowo. Limit, który można znieść, instalując od nowa, nie jest limitem.
 

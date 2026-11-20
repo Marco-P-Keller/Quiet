@@ -1,1 +1,1 @@
-obrazovka,čas,závislosť,telefón,detox,digitálny,blokovanie,sústredenie,sociálne,siete,pozornosť
+závislosť,mobil,telefón,sociálne,siete,detox,digitálny,sústredenie,zvyk,rozptýlenie,kontrola

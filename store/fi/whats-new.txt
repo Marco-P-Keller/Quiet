@@ -1,1 +1,1 @@
-Korjattu virhe, jonka vuoksi Quiet saattoi jäädä latausnäkymään kirjautumisen jälkeen.
+Raja ulottuu nyt myös Instagram-sovellukseen. Kytke se päälle kohdassa Settings › The Instagram app: siellä vietetty aika lasketaan päivittäisiin minuutteihisi, ja kun ne on käytetty, Ruutuaika sulkee sovelluksen aamuneljään asti (iOS 17.4 tai uudempi). Uutta myös: arvioi Quiet App Storessa asetuksista.

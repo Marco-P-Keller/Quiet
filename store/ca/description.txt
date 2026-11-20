@@ -8,6 +8,8 @@ Tries quants minuts al dia vols. Mentre llegeixes, aquest temps baixa — només
 
 Pots abaixar el teu límit quan vulguis, i té efecte de seguida. El pots apujar un cop per setmana, i el número nou comença l'endemà — mai en el moment en què vols cinc minuts més. Aquesta asimetria és tota l'app. La decisió que prens amb calma té dret a lligar la que prens a les onze de la nit.
 
+Novetat a la 1.1: també l’app d’Instagram. Si encara la tens al telèfon, Quiet la pot limitar amb el Temps d’ús d’Apple (iOS 17.4 o posterior). El temps que hi passes compta per als mateixos minuts diaris, i quan s’acaben, l’app es tanca fins a les quatre de la matinada. Activar-ho té efecte de seguida; desactivar-ho espera fins l’endemà.
+
 EL QUE QUIET NO FA
 
 • Sense compte, sense cap servidor nostre, sense analítica, sense publicitat, sense rastreig. Si actives portar el límit entre dispositius, el teu límit i el total d'avui van al teu propi iCloud — on només els teus dispositius els poden llegir.
@@ -16,7 +18,7 @@ EL QUE QUIET NO FA
 
 • Sense compte enrere a la pantalla. Un rellotge que es pot mirar és un rellotge que es mira; el que queda és al tauler, per als moments en què de debò ho vols saber.
 
-• Quiet no et demana res seu. L'únic permís que pot fer sortir és el del recordatori diari, i només després que l'encenguis. Les pàgines del mateix Instagram encara et poden demanar la càmera, el micròfon o les teves fotos quan adjuntes alguna cosa a una publicació o a un missatge — això és l'iOS preguntant en nom d'Instagram, i Quiet no fa servir cap de les tres.
+• Quiet demana dues coses, i només quan les actives: notificacions per al recordatori diari i accés al Temps d’ús per a l’app d’Instagram. Les pàgines del mateix Instagram encara poden demanar la càmera, el micròfon o les fotos quan adjuntes alguna cosa; és l’iOS que pregunta en nom d’Instagram, i Quiet no fa servir cap dels tres.
 
 Es guarden vuit coses, al teu telèfon, al clauer: el teu límit i qualsevol canvi que hagis posat a la cua per a un dia posterior, el total d'avui, el punt més llunyà en el temps que l'app ha vist, el dia que la vas configurar, el dia que li vas demanar que ho oblidés tot, el que han gastat els teus altres dispositius si portes el límit entre ells, els minuts al dia que vas dir que gastaves abans de Quiet, i quant vas gastar cada dia des d'aleshores. Sobreviuen a esborrar l'app, expressament. Un límit que pots aixecar reinstal·lant no és un límit.
 

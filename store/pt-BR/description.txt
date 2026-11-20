@@ -8,6 +8,8 @@ Você escolhe quantos minutos por dia quer. Enquanto você lê, esse tempo vai d
 
 Você pode baixar seu limite quando quiser, e vale na hora. Pode aumentar uma vez por semana, e o número novo começa no dia seguinte — nunca no momento em que você quer mais cinco minutos. Essa assimetria é o app inteiro. A decisão que você toma com calma tem o direito de segurar a decisão que você toma às onze da noite.
 
+Novo na 1.1: o app do Instagram também. Se ele ainda está no seu telefone, o Quiet pode limitá-lo com o Tempo de Uso da Apple (iOS 17.4 ou mais recente). O tempo ali conta para os mesmos minutos diários, e quando eles acabam, o app fecha até as quatro da manhã. Ativar vale na hora; desativar espera até o dia seguinte.
+
 O QUE O QUIET NÃO FAZ
 
 • Sem conta, sem nenhum servidor nosso, sem análise, sem publicidade, sem rastreio. Se você ligar o levar entre dispositivos, seu limite e o total de hoje vão para o seu próprio iCloud — onde só os seus dispositivos conseguem ler.
@@ -16,7 +18,7 @@ O QUE O QUIET NÃO FAZ
 
 • Sem contagem regressiva na tela. Um relógio que dá para olhar é um relógio que se olha; o que sobrou está no painel, para os momentos em que você realmente quer saber.
 
-• O Quiet não pede nada para si. A única permissão que ele pode levantar é a do lembrete diário, e só depois de você ligar. As páginas do próprio Instagram ainda podem pedir a câmera, o microfone ou suas fotos quando você anexa algo a uma publicação ou a uma mensagem — é o iOS perguntando em nome do Instagram, e o Quiet não usa nenhum dos três.
+• O Quiet pede duas coisas, e só quando você as ativa: notificações para o lembrete diário e acesso ao Tempo de Uso para o app do Instagram. As próprias páginas do Instagram ainda podem pedir a câmera, o microfone ou suas fotos quando você anexa algo; é o iOS perguntando em nome do Instagram, e o Quiet não usa nenhum dos três.
 
 Oito coisas ficam guardadas, no seu telefone, no chaveiro: seu limite e qualquer mudança que você deixou na fila para um dia posterior, o total de hoje, o ponto mais distante no tempo que o app viu, o dia em que você configurou tudo, o dia em que você pediu para ele esquecer tudo, o que os seus outros dispositivos gastaram se você leva o limite entre eles, o dia de onde você disse ter partido, e quanto durou cada dia desde então. Elas sobrevivem a apagar o app, de propósito. Um limite que você levanta reinstalando não é um limite.
 

@@ -1,1 +1,1 @@
-Se corrigió un error por el que Quiet podía quedarse en la pantalla de carga después de iniciar sesión.
+El límite ahora llega también a la app de Instagram. Actívalo en Ajustes › La app de Instagram: el tiempo allí cuenta para tus minutos diarios, y cuando se acaban, Tiempo de uso cierra la app hasta las cuatro de la mañana (iOS 17.4 o posterior). También nuevo: valora Quiet en el App Store desde Ajustes.

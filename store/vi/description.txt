@@ -8,6 +8,8 @@ Bạn chọn mỗi ngày bao nhiêu phút. Trong lúc bạn đọc, thời gian 
 
 Bạn có thể hạ hạn mức bất cứ lúc nào, và nó có hiệu lực ngay. Bạn có thể nâng nó mỗi tuần một lần, và con số mới bắt đầu từ hôm sau — không bao giờ ngay vào lúc bạn muốn thêm năm phút. Chính sự bất đối xứng đó là toàn bộ ứng dụng này. Quyết định bạn đưa ra lúc bình tĩnh được phép ràng buộc quyết định bạn đưa ra lúc mười một giờ đêm.
 
+Mới trong 1.1: cả ứng dụng Instagram. Nếu nó vẫn còn trên điện thoại, Quiet có thể giới hạn nó qua Thời gian sử dụng của Apple (iOS 17.4 trở lên). Thời gian ở đó được tính vào cùng số phút mỗi ngày, và khi hết, ứng dụng sẽ đóng đến bốn giờ sáng. Bật có hiệu lực ngay; tắt phải chờ đến ngày hôm sau.
+
 QUIET KHÔNG LÀM GÌ
 
 • Không tài khoản, không máy chủ nào của chúng tôi, không phân tích, không quảng cáo, không theo dõi. Nếu bạn bật mang hạn mức giữa các thiết bị, hạn mức và tổng của hôm nay sẽ đi vào iCloud của chính bạn — nơi chỉ thiết bị của bạn đọc được.
@@ -16,7 +18,7 @@ QUIET KHÔNG LÀM GÌ
 
 • Không đếm ngược trên màn hình. Một cái đồng hồ có thể nhìn là một cái đồng hồ sẽ bị nhìn; phần còn lại nằm trong bảng, dành cho những lúc bạn thật sự muốn biết.
 
-• Quiet không xin bạn thứ gì của riêng nó. Quyền duy nhất nó có thể hỏi là quyền cho lời nhắc hằng ngày, và chỉ sau khi bạn bật lên. Các trang của chính Instagram vẫn có thể xin máy ảnh, micrô hoặc ảnh của bạn khi bạn đính kèm thứ gì đó vào bài viết hay tin nhắn — đó là iOS hỏi thay cho Instagram, còn Quiet không dùng cái nào trong ba thứ đó.
+• Quiet chỉ xin hai thứ, và chỉ khi bạn bật chúng: thông báo cho lời nhắc hằng ngày, và quyền Thời gian sử dụng cho ứng dụng Instagram. Các trang của chính Instagram vẫn có thể xin camera, micro hoặc ảnh khi bạn đính kèm gì đó; đó là iOS hỏi thay Instagram, và Quiet không tự dùng thứ nào trong ba thứ ấy.
 
 Tám thứ được giữ lại, trên điện thoại của bạn, trong keychain: hạn mức của bạn và mọi thay đổi bạn đã xếp hàng cho một ngày sau, tổng của hôm nay, điểm xa nhất trong thời gian mà ứng dụng từng thấy, ngày bạn thiết lập nó, ngày bạn bảo nó quên hết, các thiết bị khác của bạn đã dùng bao nhiêu nếu bạn mang hạn mức giữa chúng, số phút mỗi ngày bạn nói mình dùng trước Quiet, và mỗi ngày kể từ đó bạn đã dùng bao lâu. Chúng sống sót qua việc xoá ứng dụng, một cách có chủ ý. Một hạn mức mà bạn gỡ được bằng cách cài lại thì không phải là hạn mức.
 

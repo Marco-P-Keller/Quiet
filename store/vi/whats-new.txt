@@ -1,1 +1,1 @@
-Đã sửa lỗi khiến Quiet có thể bị kẹt ở màn hình tải sau khi đăng nhập.
+Giới hạn giờ đây áp dụng cả cho ứng dụng Instagram. Bật trong Settings › The Instagram app: thời gian ở đó được tính vào số phút mỗi ngày của bạn, và khi hết, Thời gian sử dụng sẽ đóng ứng dụng đến bốn giờ sáng (iOS 17.4 trở lên). Cũng mới: đánh giá Quiet trên App Store ngay trong cài đặt.

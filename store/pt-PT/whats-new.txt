@@ -1,1 +1,1 @@
-Corrigido um erro em que o Quiet podia ficar no ecrã de carregamento após iniciar sessão.
+O limite chega agora também à app do Instagram. Ativa-o em Settings › The Instagram app: o tempo lá conta para os teus minutos diários e, quando acabam, o Tempo de ecrã fecha a app até às quatro da manhã (iOS 17.4 ou posterior). Também novo: avaliar o Quiet na App Store a partir das definições.

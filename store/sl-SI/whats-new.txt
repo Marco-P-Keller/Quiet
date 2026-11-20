@@ -1,1 +1,1 @@
-Odpravljena napaka, zaradi katere je Quiet po prijavi lahko obstal na zaslonu za nalaganje.
+Omejitev zdaj sega tudi do aplikacije Instagram. Vklopi jo v Settings › The Instagram app: čas v njej šteje v tvoje dnevne minute, in ko jih zmanjka, Čas zaslona aplikacijo zapre do štirih zjutraj (iOS 17.4 ali novejši). Novo tudi: oceni Quiet v App Storu iz nastavitev.

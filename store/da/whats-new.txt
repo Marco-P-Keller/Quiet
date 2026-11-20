@@ -1,1 +1,1 @@
-Rettet en fejl, hvor Quiet kunne blive hængende på indlæsningsskærmen efter login.
+Grænsen når nu også Instagram-appen. Slå det til under Settings › The Instagram app: tid der tæller med i dine daglige minutter, og når de er brugt, lukker Skærmtid appen indtil klokken fire om morgenen (iOS 17.4 eller nyere). Også nyt: bedøm Quiet i App Store fra indstillingerne.

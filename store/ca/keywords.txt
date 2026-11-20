@@ -1,1 +1,1 @@
-pantalla,temps,addicció,mòbil,detox,digital,bloqueig,concentració,xarxes,socials,distracció
+addicció,mòbil,xarxes,socials,detox,digital,concentració,hàbit,límit,distracció,pausa,control,apps

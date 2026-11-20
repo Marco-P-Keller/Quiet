@@ -8,6 +8,8 @@ Tu choisis combien de minutes par jour tu veux. Pendant que tu lis, ce temps s�
 
 Tu peux baisser ta limite quand tu veux, et cela prend effet tout de suite. Tu peux la relever une fois par semaine, et le nouveau chiffre commence le lendemain — jamais au moment où tu veux cinq minutes de plus. Cette asymétrie, c’est toute l’app. La décision que tu prends au calme a le droit de tenir celle que tu prends à onze heures du soir.
 
+Nouveau dans la 1.1 : l’app Instagram aussi. Si elle est encore sur ton téléphone, Quiet peut la limiter avec Temps d’écran d’Apple (iOS 17.4 ou plus récent). Le temps passé là-bas compte dans les mêmes minutes quotidiennes, et quand elles sont épuisées, l’app se ferme jusqu’à quatre heures du matin. L’activer prend effet tout de suite ; le désactiver attend le lendemain.
+
 CE QUE QUIET NE FAIT PAS
 
 • Pas de compte, aucun serveur à nous, aucune analyse, aucune publicité, aucun pistage. Si tu actives le transport entre appareils, ta limite et le total du jour vont dans ton propre iCloud — où seuls tes appareils peuvent les lire.
@@ -16,7 +18,7 @@ CE QUE QUIET NE FAIT PAS
 
 • Pas de compte à rebours à l’écran. Une horloge qu’on peut regarder est une horloge qu’on regarde ; ce qu’il reste est dans le panneau, pour les moments où tu veux vraiment le savoir.
 
-• Quiet ne te demande rien pour lui-même. La seule autorisation qu’il peut faire apparaître est celle du rappel quotidien, et seulement après que tu l’as activé. Les pages d’Instagram, elles, peuvent toujours demander l’appareil photo, le micro ou tes photos quand tu joins quelque chose à une publication ou à un message — c’est iOS qui demande pour le compte d’Instagram, et Quiet n’utilise aucun des trois.
+• Quiet demande deux choses, et seulement quand tu les actives : les notifications pour le rappel quotidien, et l’accès à Temps d’écran pour l’app Instagram. Les pages d’Instagram peuvent encore demander l’appareil photo, le micro ou tes photos quand tu joins quelque chose ; c’est iOS qui demande au nom d’Instagram, et Quiet n’utilise aucun des trois.
 
 Huit choses sont gardées, sur ton téléphone, dans le trousseau : ta limite et tout changement que tu as mis en attente pour un jour suivant, le total du jour, le point le plus loin dans le temps que l’app ait vu, le jour où tu l’as installée, le jour où tu lui as demandé de tout oublier, ce que tes autres appareils ont dépensé si tu transportes la limite entre eux, la journée d’où tu as dit être parti, et la durée de chaque journée depuis. Elles survivent à la suppression de l’app, exprès. Une limite qu’on peut lever en réinstallant n’est pas une limite.
 

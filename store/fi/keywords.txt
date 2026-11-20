@@ -1,1 +1,1 @@
-ruutuaika,riippuvuus,puhelin,detox,digitaalinen,esto,keskittyminen,sosiaalinen,media,selaaminen
+ruutuaika,riippuvuus,puhelin,some,sosiaalinen,media,detox,digitaalinen,keskittyminen,tapa,rajoitus

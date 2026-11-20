@@ -8,6 +8,8 @@ Du väljer hur många minuter om dagen du vill ha. Medan du läser räknas den t
 
 Du kan sänka din gräns när du vill, och det gäller direkt. Du kan höja den en gång i veckan, och den nya siffran börjar nästa dag — aldrig i det ögonblick du vill ha fem minuter till. Den asymmetrin är hela appen. Beslutet du fattar lugnt får binda beslutet du fattar klockan elva på kvällen.
 
+Nytt i 1.1: Instagram-appen också. Om den fortfarande finns i din telefon kan Quiet begränsa den med Apples Skärmtid (iOS 17.4 eller senare). Tid där räknas mot samma dagliga minuter, och när de är slut stängs appen till fyra på morgonen. Att slå på gäller direkt; att slå av väntar till nästa dag.
+
 VAD QUIET INTE GÖR
 
 • Inget konto, ingen server hos oss, ingen analys, ingen reklam, ingen spårning. Slår du på att ta med gränsen mellan enheter hamnar din gräns och dagens summa i ditt eget iCloud — där bara dina enheter kan läsa dem.
@@ -16,7 +18,7 @@ VAD QUIET INTE GÖR
 
 • Ingen nedräkning på skärmen. En klocka man kan titta på är en klocka man tittar på; det som är kvar står i panelen, för de stunder då du verkligen vill veta.
 
-• Quiet ber dig inte om något för egen del. Den enda behörighet den kan ta fram är den för den dagliga påminnelsen, och först efter att du slagit på den. Instagrams egna sidor kan fortfarande be om kameran, mikrofonen eller dina bilder när du bifogar något till ett inlägg eller ett meddelande — det är iOS som frågar för Instagrams räkning, och Quiet använder ingen av de tre själv.
+• Quiet ber om två saker, och bara när du slår på dem: notiser för den dagliga påminnelsen och tillgång till Skärmtid för Instagram-appen. Instagrams egna sidor kan fortfarande be om kameran, mikrofonen eller dina bilder när du bifogar något; det är iOS som frågar för Instagrams räkning, och Quiet använder inget av de tre själv.
 
 Åtta saker sparas, på din telefon, i nyckelringen: din gräns och varje ändring du köat till en senare dag, dagens summa, den längsta punkten i tiden som appen sett, dagen du ställde in den, dagen du bad den glömma allt, vad dina andra enheter gjort av med om du tar med gränsen mellan dem, hur många minuter om dagen du sa att du lade före Quiet, och hur länge du var där varje dag sedan dess. De överlever att appen raderas, med flit. En gräns du kan häva genom att installera om är ingen gräns.
 

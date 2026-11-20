@@ -8,6 +8,8 @@ Tu alegi câte minute pe zi vrei. Cât timp citești, timpul acela scade — doa
 
 Îți poți scădea limita oricând, și se aplică imediat. O poți crește o dată pe săptămână, iar numărul nou începe a doua zi — niciodată în clipa în care vrei încă cinci minute. Asimetria asta este toată aplicația. Decizia pe care o iei calm are voie să o lege pe cea pe care o iei la unsprezece seara.
 
+Nou în 1.1: și aplicația Instagram. Dacă e încă pe telefonul tău, Quiet o poate limita prin Timpul de ecran de la Apple (iOS 17.4 sau mai nou). Timpul petrecut acolo intră în aceleași minute zilnice, iar când se termină, aplicația se închide până la patru dimineața. Pornirea are efect imediat; oprirea așteaptă ziua următoare.
+
 CE NU FACE QUIET
 
 • Fără cont, fără vreun server al nostru, fără analitice, fără reclame, fără urmărire. Dacă pornești ducerea limitei între dispozitive, limita ta și totalul de azi ajung în propriul tău iCloud — unde doar dispozitivele tale le pot citi.
@@ -16,7 +18,7 @@ CE NU FACE QUIET
 
 • Fără numărătoare inversă pe ecran. Un ceas la care te poți uita este un ceas la care te uiți; ce a rămas este în panou, pentru momentele în care chiar vrei să știi.
 
-• Quiet nu îți cere nimic al lui. Singura permisiune pe care o poate ridica este cea pentru amintirea zilnică, și doar după ce o pornești. Paginile Instagram pot cere în continuare camera, microfonul sau pozele tale când atașezi ceva la o postare sau la un mesaj — acela este iOS care întreabă în numele Instagram, iar Quiet nu folosește niciuna dintre cele trei.
+• Quiet cere două lucruri, și doar când le pornești: notificări pentru memento-ul zilnic și acces la Timpul de ecran pentru aplicația Instagram. Paginile Instagram pot cere în continuare camera, microfonul sau pozele când atașezi ceva; e iOS care întreabă în numele Instagram, iar Quiet nu folosește niciunul dintre cele trei.
 
 Opt lucruri rămân, pe telefonul tău, în brelocul de chei: limita ta și orice schimbare pusă la coadă pentru o zi ulterioară, totalul de azi, cel mai îndepărtat punct în timp pe care l-a văzut aplicația, ziua în care ai configurat-o, ziua în care i-ai cerut să uite tot, cât au consumat celelalte dispozitive ale tale dacă duci limita între ele, câte minute pe zi ai spus că petreceai înainte de Quiet, și cât ai petrecut în fiecare zi de atunci. Supraviețuiesc ștergerii aplicației, intenționat. O limită pe care o poți ridica reinstalând nu este o limită.
 

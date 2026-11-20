@@ -1,1 +1,1 @@
-Am remediat o eroare din cauza căreia Quiet putea rămâne pe ecranul de încărcare după conectare.
+Limita ajunge acum și la aplicația Instagram. Pornește-o din Settings › The Instagram app: timpul petrecut acolo intră în minutele tale zilnice, iar când se termină, Timpul de ecran închide aplicația până la patru dimineața (iOS 17.4 sau mai nou). Tot nou: evaluează Quiet în App Store din setări.

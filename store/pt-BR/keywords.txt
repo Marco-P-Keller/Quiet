@@ -1,1 +1,1 @@
-tela,tempo,vicio,celular,detox,digital,bloqueador,foco,redes,sociais,uso,distracao,dopamina,rolagem
+vício,celular,redes,sociais,detox,digital,foco,hábito,limite,distração,controle,pausa,produtividade

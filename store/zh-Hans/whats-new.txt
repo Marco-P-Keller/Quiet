@@ -1,1 +1,1 @@
-修复了登录后 Quiet 可能一直停留在加载画面的问题。
+限额现在也覆盖 Instagram App。在 Settings › The Instagram app 中开启：在那里用掉的时间计入你的每日分钟数，用完后“屏幕使用时间”会把该 App 关闭到凌晨四点（iOS 17.4 或更高版本）。另外新增：可在设置中到 App Store 为 Quiet 评分。

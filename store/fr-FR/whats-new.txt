@@ -1,1 +1,1 @@
-Correction d’un bug : après la connexion, Quiet pouvait rester bloqué sur l’écran de chargement.
+La limite s’étend maintenant à l’app Instagram. Active-la dans Réglages › L’app Instagram : le temps passé là-bas compte dans tes minutes quotidiennes, et quand elles sont épuisées, Temps d’écran ferme l’app jusqu’à quatre heures du matin (iOS 17.4 ou plus récent). Nouveau aussi : noter Quiet sur l’App Store depuis les Réglages.

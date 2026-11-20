@@ -8,6 +8,8 @@ Biraš koliko minuta dnevno želiš. Dok čitaš, to vrijeme se troši — samo 
 
 Svoj limit možeš smanjiti kad god želiš i vrijedi odmah. Povećati ga možeš jednom tjedno, a novi broj počinje sljedeći dan — nikad u trenutku kad želiš još pet minuta. Ta asimetrija je cijela aplikacija. Odluka koju doneseš na miru smije vezati onu koju doneseš u jedanaest navečer.
 
+Novo u 1.1: i aplikacija Instagram. Ako je još imaš na telefonu, Quiet je može ograničiti preko Appleova Vremena uz zaslon (iOS 17.4 ili noviji). Vrijeme u njoj broji se u iste dnevne minute, a kad ih nestane, aplikacija se zatvara do četiri ujutro. Uključivanje vrijedi odmah; isključivanje čeka sljedeći dan.
+
 ŠTO QUIET NE RADI
 
 • Bez računa, bez ijednog našeg servera, bez analitike, bez oglasa, bez praćenja. Ako uključiš nošenje limita između uređaja, tvoj limit i današnji zbroj idu u tvoj vlastiti iCloud — gdje ih mogu čitati samo tvoji uređaji.
@@ -16,7 +18,7 @@ Svoj limit možeš smanjiti kad god želiš i vrijedi odmah. Povećati ga može�
 
 • Bez odbrojavanja na ekranu. Sat u koji se može gledati je sat u koji se gleda; ono što je ostalo je u panelu — za trenutke kad stvarno želiš znati.
 
-• Quiet od tebe ne traži ništa svoje. Jedina dozvola koju može podići je ona za dnevni podsjetnik, i to tek nakon što ga uključiš. Vlastite stranice Instagrama i dalje mogu tražiti kameru, mikrofon ili tvoje fotografije kad nešto prilažeš objavi ili poruci — to iOS pita u ime Instagrama, a Quiet sam ne koristi nijedno od to troje.
+• Quiet traži dvije stvari, i to tek kad ih uključiš: obavijesti za dnevni podsjetnik i pristup Vremenu uz zaslon za aplikaciju Instagram. Stranice samog Instagrama i dalje mogu tražiti kameru, mikrofon ili tvoje fotografije kad nešto prilažeš; to iOS pita u ime Instagrama, a Quiet sam ne koristi ništa od toga.
 
 Osam stvari ostaje, na tvom telefonu, u svežnju ključeva: tvoj limit i svaka promjena koju si stavio u red za kasniji dan, današnji zbroj, najdalja točka u vremenu koju je aplikacija vidjela, dan kad si je postavio, dan kad si je zamolio da sve zaboravi, ono što su potrošili tvoji drugi uređaji ako limit nosiš među njima, koliko si minuta dnevno rekao da trošiš prije Quieta, i koliko si potrošio svaki dan od tada. Preživljavaju brisanje aplikacije, namjerno. Limit koji možeš ukinuti ponovnom instalacijom nije limit.
 

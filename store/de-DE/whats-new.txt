@@ -1,1 +1,1 @@
-Fehler behoben: Nach dem Anmelden konnte Quiet auf dem Ladebildschirm hängen bleiben.
+Das Limit erreicht jetzt auch die Instagram-App. Schalte es unter Einstellungen › Die Instagram-App ein: Zeit dort zählt zu deinen Tagesminuten, und sind sie verbraucht, schließt Bildschirmzeit die App bis vier Uhr morgens (ab iOS 17.4). Außerdem neu: Quiet direkt aus den Einstellungen im App Store bewerten.

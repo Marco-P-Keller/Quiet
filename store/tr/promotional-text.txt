@@ -1,1 +1,1 @@
-Tam canını sıkmaya başladığı anda kaldırılamayan bir günlük limit. İstediğin zaman düşür. Haftada bir kez yükselt, ertesi günden itibaren geçerli.
+Yeni: limit Instagram uygulamasına da uzanıyor. Dakikaların bitince Ekran Süresi onu sabah 4'e kadar kapatır. İstediğinde düşür, haftada bir artır. Ücretsiz.

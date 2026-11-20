@@ -8,6 +8,8 @@ Kamu memilih berapa menit sehari yang kamu mau. Selama kamu membaca, waktu itu b
 
 Kamu bisa menurunkan batasmu kapan saja, dan berlaku seketika. Kamu bisa menaikkannya seminggu sekali, dan angka baru mulai keesokan harinya — tidak pernah pada saat kamu ingin lima menit lagi. Ketidaksimetrisan itulah seluruh aplikasi ini. Keputusan yang kamu ambil dengan tenang boleh mengikat keputusan yang kamu ambil pukul sebelas malam.
 
+Baru di 1.1: aplikasi Instagram juga. Jika masih ada di ponselmu, Quiet bisa membatasinya lewat Durasi Layar dari Apple (iOS 17.4 atau lebih baru). Waktu di sana dihitung ke menit harian yang sama, dan saat habis, aplikasinya ditutup sampai pukul empat pagi. Menyalakan berlaku langsung; mematikan menunggu sampai besok.
+
 YANG TIDAK DILAKUKAN QUIET
 
 • Tanpa akun, tanpa server kami, tanpa analitik, tanpa iklan, tanpa pelacakan. Kalau kamu menyalakan membawa batas antarperangkat, batasmu dan total hari ini masuk ke iCloud milikmu sendiri — di mana hanya perangkatmu yang bisa membacanya.
@@ -16,7 +18,7 @@ YANG TIDAK DILAKUKAN QUIET
 
 • Tanpa hitung mundur di layar. Jam yang bisa dilihat adalah jam yang akan dilihat; sisanya ada di panel, untuk saat-saat kamu benar-benar ingin tahu.
 
-• Quiet tidak meminta apa pun untuk dirinya sendiri. Satu-satunya izin yang bisa ia munculkan adalah untuk pengingat harian, dan hanya setelah kamu menyalakannya. Halaman Instagram sendiri masih bisa meminta kamera, mikrofon, atau fotomu ketika kamu melampirkan sesuatu ke postingan atau pesan — itu iOS yang bertanya atas nama Instagram, dan Quiet sendiri tidak memakai satu pun dari ketiganya.
+• Quiet hanya meminta dua hal, dan hanya saat kamu menyalakannya: notifikasi untuk pengingat harian, dan akses Durasi Layar untuk aplikasi Instagram. Halaman Instagram sendiri masih bisa meminta kamera, mikrofon, atau foto saat kamu melampirkan sesuatu; itu iOS yang bertanya atas nama Instagram, dan Quiet sendiri tidak memakai satu pun dari ketiganya.
 
 Delapan hal disimpan, di ponselmu, di keychain: batasmu dan setiap perubahan yang kamu antrekan untuk hari berikutnya, total hari ini, titik terjauh dalam waktu yang pernah dilihat aplikasi, hari kamu menyiapkannya, hari kamu memintanya melupakan semuanya, berapa yang dipakai perangkatmu yang lain kalau kamu membawa batas di antara mereka, berapa menit sehari yang kamu bilang kamu pakai sebelum Quiet, dan berapa lama kamu memakainya setiap hari sejak itu. Semuanya bertahan setelah aplikasi dihapus, dengan sengaja. Batas yang bisa dicabut dengan memasang ulang bukan batas.
 

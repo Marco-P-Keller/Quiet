@@ -8,6 +8,8 @@ Valitset, montako minuuttia päivässä haluat. Kun luet, aika kuluu — vain si
 
 Voit laskea rajaasi milloin haluat, ja se astuu voimaan heti. Voit nostaa sitä kerran viikossa, ja uusi luku alkaa seuraavana päivänä — ei koskaan sillä hetkellä, kun haluat viisi minuuttia lisää. Tuo epäsymmetria on koko sovellus. Rauhassa tehty päätös saa sitoa sen päätöksen, jonka teet yhdeltätoista illalla.
 
+Uutta versiossa 1.1: myös Instagram-sovellus. Jos se on yhä puhelimessasi, Quiet voi rajoittaa sitä Applen Ruutuajan avulla (iOS 17.4 tai uudempi). Siellä vietetty aika lasketaan samoihin päivittäisiin minuutteihin, ja kun ne on käytetty, sovellus sulkeutuu aamuneljään asti. Päälle kytkeminen tulee voimaan heti; pois kytkeminen odottaa seuraavaan päivään.
+
 MITÄ QUIET EI TEE
 
 • Ei tiliä, ei omaa palvelinta, ei analytiikkaa, ei mainoksia, ei seurantaa. Jos otat käyttöön rajan siirtymisen laitteiden välillä, rajasi ja tämän päivän summa menevät omaan iCloudiisi — jossa vain sinun laitteesi voivat lukea ne.
@@ -16,7 +18,7 @@ MITÄ QUIET EI TEE
 
 • Ei lähtölaskentaa ruudulla. Kello, jota voi katsoa, on kello, jota katsotaan; se mitä on jäljellä, on paneelissa — niitä hetkiä varten, joina todella haluat tietää.
 
-• Quiet ei pyydä sinulta mitään omaansa. Ainoa lupa, jonka se voi nostaa esiin, koskee päivittäistä muistutusta, ja vasta kun olet kytkenyt sen päälle. Instagramin omat sivut voivat yhä pyytää kameraa, mikrofonia tai kuviasi, kun liität jotain julkaisuun tai viestiin — se on iOS, joka kysyy Instagramin puolesta, eikä Quiet käytä itse yhtäkään niistä kolmesta.
+• Quiet pyytää kahta asiaa, ja vain kun kytket ne päälle: ilmoituksia päivittäistä muistutusta varten ja Ruutuajan käyttöoikeutta Instagram-sovellusta varten. Instagramin omat sivut voivat yhä pyytää kameraa, mikrofonia tai kuviasi, kun liität jotain; silloin iOS kysyy Instagramin puolesta, eikä Quiet itse käytä mitään niistä.
 
 Kahdeksan asiaa säilyy puhelimessasi, avainnipussa: rajasi ja jokainen muutos, jonka olet jonottanut myöhemmälle päivälle, tämän päivän summa, kaukaisin ajankohta, jonka sovellus on nähnyt, päivä jona otit sen käyttöön, päivä jona pyysit sitä unohtamaan kaiken, se mitä muut laitteesi ovat käyttäneet, jos siirrät rajaa niiden välillä, montako minuuttia päivässä kerroit käyttäneesi ennen Quietia, ja kuinka kauan käytit kunakin päivänä sen jälkeen. Ne selviävät sovelluksen poistamisesta, tarkoituksella. Raja, jonka voi poistaa asentamalla uudelleen, ei ole raja.
 

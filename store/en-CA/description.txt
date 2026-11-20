@@ -8,6 +8,8 @@ You choose how many minutes a day you want. While you are reading, that time run
 
 You can lower your limit whenever you like, and it takes effect at once. You can raise it once a week, and the new number starts the next day — never in the moment you want five more minutes. That asymmetry is the whole app. The decision you make calmly is allowed to bind the decision you make at eleven at night.
 
+New in 1.1: the Instagram app too. If it is still on your phone, Quiet can limit it through Apple's Screen Time (iOS 17.4 or later). Time there counts towards the same daily minutes, and when they are spent, the app closes until four in the morning. Switching it on takes effect at once; switching it off waits until the next day.
+
 WHAT QUIET DOES NOT DO
 
 • No account, no server of ours, no analytics, no advertising, no tracking. If you switch on carrying between devices, your limit and today's total go into your own iCloud — where only your devices can read them.
@@ -16,7 +18,7 @@ WHAT QUIET DOES NOT DO
 
 • No countdown on the screen. A timer you can watch is a timer you do watch; what is left is in the panel, for the moments you actually want to know.
 
-• Quiet asks you for nothing of its own. The one prompt it can raise is for the daily reminder, and only after you turn it on. Instagram's own pages can still ask for the camera, the microphone or your photos when you attach something to a post or a message — that is iOS asking on Instagram's behalf, and Quiet uses none of the three itself.
+• Quiet asks for two things, and only once you switch them on: notifications for the daily reminder, and Screen Time access for the Instagram app. Instagram's own pages can still ask for the camera, the microphone or your photos when you attach something; that is iOS asking on Instagram's behalf, and Quiet uses none of the three itself.
 
 Eight things are kept, on your phone, in the keychain: your limit and any change you have queued for a later day, today's total, the furthest point in time the app has seen, the day you set it up, the day you have asked it to forget everything, what your other devices have spent if you are carrying the limit between them, the day you said you started from, and how long each day since has been. They survive deleting the app, on purpose. A limit you can lift by reinstalling is not a limit.
 

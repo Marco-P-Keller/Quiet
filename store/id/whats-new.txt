@@ -1,1 +1,1 @@
-Memperbaiki bug yang membuat Quiet bisa tertahan di layar pemuatan setelah masuk.
+Batasnya kini juga menjangkau aplikasi Instagram. Nyalakan di Settings › The Instagram app: waktu di sana dihitung ke menit harianmu, dan saat habis, Durasi Layar menutup aplikasinya sampai pukul empat pagi (iOS 17.4 atau lebih baru). Juga baru: beri nilai Quiet di App Store dari pengaturan.

@@ -1,1 +1,1 @@
-Javítottuk a hibát, amely miatt a Quiet bejelentkezés után a betöltőképernyőn ragadhatott.
+A limit mostantól az Instagram-alkalmazásra is kiterjed. Kapcsold be itt: Settings › The Instagram app. Az ott töltött idő a napi perceidbe számít, és ha elfogynak, a Képernyőidő hajnali négyig bezárja az appot (iOS 17.4 vagy újabb). Szintén új: értékeld a Quietet az App Store-ban a beállításokból.

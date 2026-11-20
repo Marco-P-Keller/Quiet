@@ -1,1 +1,1 @@
-pantalla,tiempo,adiccion,movil,detox,digital,bloqueador,redes,sociales,concentracion,uso,distraccion
+tiempo,pantalla,uso,adicción,móvil,redes,sociales,detox,digital,concentración,hábito,distracción

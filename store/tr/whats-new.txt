@@ -1,1 +1,1 @@
-Giriş yaptıktan sonra Quiet’in yükleme ekranında kalabildiği bir hata düzeltildi.
+Limit artık Instagram uygulamasına da uzanıyor. Settings › The Instagram app bölümünden aç: orada geçen süre günlük dakikalarına sayılır ve bittiğinde Ekran Süresi uygulamayı sabah dörde kadar kapatır (iOS 17.4 veya üstü). Ayrıca yeni: Quiet'i ayarlardan App Store'da puanla.

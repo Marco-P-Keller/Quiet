@@ -8,6 +8,8 @@ Du velger hvor mange minutter om dagen du vil ha. Mens du leser, teller den tide
 
 Du kan senke grensen din når du vil, og den gjelder med én gang. Du kan heve den én gang i uken, og det nye tallet begynner dagen etter — aldri i det øyeblikket du vil ha fem minutter til. Den asymmetrien er hele appen. Avgjørelsen du tar i ro, får lov til å binde den du tar klokken elleve om kvelden.
 
+Nytt i 1.1: Instagram-appen også. Hvis den fortsatt er på telefonen din, kan Quiet begrense den med Apples Skjermtid (iOS 17.4 eller nyere). Tid der teller mot de samme daglige minuttene, og når de er brukt opp, lukkes appen til klokken fire om morgenen. Å slå på gjelder med en gang; å slå av venter til neste dag.
+
 HVA QUIET IKKE GJØR
 
 • Ingen konto, ingen server hos oss, ingen analyse, ingen reklame, ingen sporing. Slår du på å ta grensen med mellom enheter, havner grensen din og dagens sum i din egen iCloud — der bare dine enheter kan lese dem.
@@ -16,7 +18,7 @@ HVA QUIET IKKE GJØR
 
 • Ingen nedtelling på skjermen. En klokke du kan se på, er en klokke du ser på; det som er igjen, står i panelet — for de øyeblikkene du virkelig vil vite det.
 
-• Quiet ber deg ikke om noe for sin egen del. Den eneste tillatelsen den kan få fram, er den til den daglige påminnelsen, og først etter at du har slått den på. Instagrams egne sider kan fortsatt be om kameraet, mikrofonen eller bildene dine når du legger ved noe i et innlegg eller en melding — det er iOS som spør på vegne av Instagram, og Quiet bruker ingen av de tre selv.
+• Quiet ber om to ting, og bare når du slår dem på: varsler for den daglige påminnelsen og tilgang til Skjermtid for Instagram-appen. Instagrams egne sider kan fortsatt be om kameraet, mikrofonen eller bildene dine når du legger ved noe; det er iOS som spør på vegne av Instagram, og Quiet bruker ingen av de tre selv.
 
 Åtte ting blir tatt vare på, på telefonen din, i nøkkelringen: grensen din og enhver endring du har satt i kø til en senere dag, dagens sum, det fjerneste punktet i tid appen har sett, dagen du satte den opp, dagen du ba den glemme alt, hva de andre enhetene dine har brukt hvis du tar grensen med mellom dem, hvor mange minutter om dagen du sa du brukte før Quiet, og hvor lenge du brukte hver dag siden. De overlever at appen slettes, med vilje. En grense du kan oppheve ved å installere på nytt, er ingen grense.
 
